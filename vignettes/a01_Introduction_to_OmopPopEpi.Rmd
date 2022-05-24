@@ -1,0 +1,19 @@
+---
+title: "a01_Introduction_to_OmopPopEpi"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{a01_Introduction_to_OmopPopEpi}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(OmopPopEpi)
+```
