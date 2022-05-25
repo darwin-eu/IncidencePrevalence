@@ -258,18 +258,6 @@ test_that("edge cases where zero row result should be returned", {
   ))==0)
 
 
-         expect_true(nrow(get_denominator_pop(
-    db = db,
-    cdm_database_schema=cdm_database_schema,
-    start_date = NULL,
-    end_date = NULL,
-    min_age = NULL,
-    max_age = 0,
-    sex = c("Both"),
-    days_prior_history = 0,
-    verbose = FALSE
-  ))==0)
-
   expect_true(nrow(get_denominator_pop(
     db = db,
     cdm_database_schema=cdm_database_schema,
