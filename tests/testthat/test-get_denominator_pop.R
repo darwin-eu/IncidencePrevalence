@@ -278,7 +278,7 @@ test_that("edge cases where zero row result should be returned", {
     min_age = NULL,
     max_age = 1,
     sex = c("Both"),
-    days_prior_history = 500,
+    days_prior_history = 1000,
     verbose = FALSE
   ))==0)
 
