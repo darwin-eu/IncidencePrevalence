@@ -59,10 +59,20 @@ get_denominator_pop <- function(db,
     add = error_message,
     null.ok = TRUE
   )
+  if (length(min_age)>=2) {
+    error_message$push(
+      "- min_age should be one value"
+    )
+  }
   checkmate::assert_numeric(max_age,
     add = error_message,
     null.ok = TRUE
   )
+  if (length(max_age)>=2) {
+    error_message$push(
+      "- max_age should be one value"
+    )
+  }
   checkmate::assert_character(sex,
     add = error_message
   )
@@ -72,6 +82,12 @@ get_denominator_pop <- function(db,
       "- sex must be one of Male, Female, or Both"
     )
   }
+  if (length(sex)>=2) {
+    error_message$push(
+      "- sex must be one of Male, Female, or Both"
+    )
+  }
+  
   checkmate::assert_numeric(days_prior_history,
     add = error_message,
     null.ok = TRUE
@@ -79,7 +95,7 @@ get_denominator_pop <- function(db,
   days_check <- days_prior_history>=0
   if (!isTRUE(days_check)) {
     error_message$push(
-      "-days_prior_history cannot be negative"
+      "- days_prior_history cannot be negative"
     )
   }
   
