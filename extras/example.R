@@ -49,11 +49,33 @@ study_pops<-collect_denominator_pops(db,
                          cdm_database_schema,
                          study_start_date=NULL,
                          study_end_date=NULL,
-                         age_groups=list(c(10,15), c(16,20)),
+                         age_groups=list(c(10,15), c(16,20), c(10,20)),
                          sex=c("Male", "Female", "Both"),
                          days_prior_history=365,
                          verbose = TRUE)
 study_pops %>%
   group_by(cohort_definition_id, min_age, max_age, sex) %>%
   tally()
+
+
+# do we get the same people from both?
+table(get_denominator_pop(db,
+                    cdm_database_schema,
+                    min_age = 10,
+                    max_age = 15,
+                    sex = c("Male"),
+                    days_prior_history = 365) %>%
+  select(person_id) %>%
+  pull() ==
+collect_denominator_pops(db,
+                         cdm_database_schema,
+                         study_start_date=NULL,
+                         study_end_date=NULL,
+                         age_groups=list(c(10,15)),
+                         sex="Male",
+                         days_prior_history=365) %>%
+  select(person_id) %>%
+  pull())
+
+
 
