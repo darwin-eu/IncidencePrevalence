@@ -32,7 +32,7 @@ db <-DBI::dbConnect(RPostgreSQL::PostgreSQL(),
 cdm_database_schema<-"omop21t2_test"
 
 
-study_pop<-get_denominator_pop(db,
+study_pop1<-get_denominator_pop(db,
                     cdm_database_schema,
                     start_date = as.Date("2012-01-01"),
                     end_date = as.Date("2018-01-01"),
@@ -41,4 +41,6 @@ study_pop<-get_denominator_pop(db,
                     sex = c("Male"),
                     days_prior_history = 365,
                     verbose = TRUE)
-
+study_pop2<-get_denominator_pop(db,
+                    cdm_database_schema,
+                    verbose = TRUE)
