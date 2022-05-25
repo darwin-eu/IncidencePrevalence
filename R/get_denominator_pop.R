@@ -87,7 +87,7 @@ get_denominator_pop <- function(db,
       "- sex must be one of Male, Female, or Both"
     )
   }
-  
+
   checkmate::assert_numeric(days_prior_history,
     add = error_message,
     null.ok = TRUE
@@ -98,8 +98,8 @@ get_denominator_pop <- function(db,
       "- days_prior_history cannot be negative"
     )
   }
-  
-  
+
+
   checkmate::assert_logical(verbose,
     add = error_message
   )
@@ -296,15 +296,15 @@ get_denominator_pop <- function(db,
         "date_max_age"
       )
   )
-  
+
   #Exclude people who are elegible after cohort_end_date
   study_pop <- study_pop %>%
     dplyr::filter(.data$cohort_start_date<= .data$cohort_end_date)
-  
+
   # variables to keep
   study_pop <- study_pop %>%
     dplyr::select("person_id", "gender", "cohort_start_date", "cohort_end_date")
 
-  
+
   return(study_pop)
 }

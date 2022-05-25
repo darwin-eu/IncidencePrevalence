@@ -23,7 +23,7 @@ library(lubridate)
 library(readxl)
 devtools::load_all()
 
-db <-DBI::dbConnect(RPostgreSQL::PostgreSQL(),
+db <-DBI::dbConnect(RPostgres::Postgres(),
                     dbname = Sys.getenv("SERVER_DBI_TEST"),
                     port = Sys.getenv("DB_PORT_TEST"),
                     host = Sys.getenv("DB_HOST_TEST"),
@@ -44,3 +44,16 @@ study_pop1<-get_denominator_pop(db,
 study_pop2<-get_denominator_pop(db,
                     cdm_database_schema,
                     verbose = TRUE)
+
+study_pops<-collect_denominator_pops(db,
+                         cdm_database_schema,
+                         study_start_date=NULL,
+                         study_end_date=NULL,
+                         age_groups=list(c(10,15), c(16,20)),
+                         sex=c("Male", "Female", "Both"),
+                         days_prior_history=365,
+                         verbose = TRUE)
+study_pops %>%
+  group_by(cohort_definition_id, min_age, max_age, sex) %>%
+  tally()
+
