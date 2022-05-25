@@ -17,12 +17,16 @@ RoxygenNote: 7.1.2
 Suggests: 
     knitr,
     rmarkdown,
+    RPostgres,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Imports: 
     checkmate,
+    DBI,
+    dbplyr,
     dplyr,
+    glue,
     lubridate,
-    magrittr
-Remotes: OHDSI/Eunomia@main
+    magrittr,
+    rlang
 VignetteBuilder: knitr

@@ -1,15 +1,14 @@
 test_that("output format", {
-  library(Eunomia)
   library(DBI)
-  library(RSQLite)
-  library(dplyr)
-  untar(xzfile(system.file("sqlite", "cdm.tar.xz",
-    package = "Eunomia"
-  ), open = "rb"),
-  exdir = tempdir()
+  library(RPostgres)
+  db <- DBI::dbConnect(RPostgres::Postgres(),
+    dbname = Sys.getenv("SERVER_DBI_TEST"),
+    port = Sys.getenv("DB_PORT_TEST"),
+    host = Sys.getenv("DB_HOST_TEST"),
+    user = Sys.getenv("DB_USER_TEST"),
+    password = Sys.getenv("DB_PASSWORD_TEST")
   )
-  db <- DBI::dbConnect(RSQLite::SQLite(), paste0(tempdir(), "\\cdm.sqlite"))
-  cdm_database_schema <- "main"
+  cdm_database_schema <- "omop21t2_test"
 
   result <- get_denominator_pop(
     db = db,
@@ -18,11 +17,10 @@ test_that("output format", {
     end_date = NULL,
     min_age = NULL,
     max_age = NULL,
-    sex = c("Male", "Female"),
-    days_prior_history = NULL,
+    sex = c("Both"),
+    days_prior_history = 0,
     verbose = FALSE
   )
-
   # variable names
   expect_true(all(c(
     "person_id",
@@ -36,17 +34,16 @@ test_that("output format", {
 
 
 test_that("output format", {
-  library(Eunomia)
   library(DBI)
-  library(RSQLite)
-  library(dplyr)
-  untar(xzfile(system.file("sqlite", "cdm.tar.xz",
-    package = "Eunomia"
-  ), open = "rb"),
-  exdir = tempdir()
+  library(RPostgres)
+  db <- DBI::dbConnect(RPostgres::Postgres(),
+    dbname = Sys.getenv("SERVER_DBI_TEST"),
+    port = Sys.getenv("DB_PORT_TEST"),
+    host = Sys.getenv("DB_HOST_TEST"),
+    user = Sys.getenv("DB_USER_TEST"),
+    password = Sys.getenv("DB_PASSWORD_TEST")
   )
-  db <- DBI::dbConnect(RSQLite::SQLite(), paste0(tempdir(), "\\cdm.sqlite"))
-  cdm_database_schema <- "main"
+  cdm_database_schema <- "omop21t2_test"
 
   result <- get_denominator_pop(
     db = db,
@@ -55,8 +52,8 @@ test_that("output format", {
     end_date = NULL,
     min_age = NULL,
     max_age = NULL,
-    sex = c("Male", "Female"),
-    days_prior_history = NULL,
+    sex = c("Both"),
+    days_prior_history = 0,
     verbose = FALSE
   )
 

@@ -14,13 +14,17 @@
 
 ## imports -----
 # usethis::use_pipe()
+# usethis::use_package("rlang")
 # usethis::use_package("checkmate")
 # usethis::use_package("dplyr")
+# usethis::use_package("dbplyr")
 # usethis::use_package("lubridate")
+# usethis::use_package("glue")
+# usethis::use_package("DBI")
 ## usethis::use_package("dtplyr")
 ## usethis::use_package("tidyr")
 ## usethis::use_package("stringr")
-## usethis::use_package("glue")
+
 
 ## readme -----
 # usethis::use_readme_rmd()

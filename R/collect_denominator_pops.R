@@ -47,7 +47,7 @@ collect_denominator_pops <- function(db,
   time_check <- all(time %in% c("Months", "Years"))
   if (!isTRUE(time_check)) {
     error_message$push(
-      "- time must be one or both of ´Months´ and ´Years´"
+      "- time must be one or both of Months and Years"
     )
   }
   checkmate::assert_numeric(age_groups,
@@ -60,7 +60,7 @@ collect_denominator_pops <- function(db,
   sex_check <- all(sex %in% c("Male", "Female"))
   if (!isTRUE(sex_check)) {
     error_message$push(
-      "- sex must be one or both of ´Male´ and ´Female´ "
+      "- sex must be one or both of Male and Female "
     )
   }
   checkmate::assert_numeric(days_prior_history,

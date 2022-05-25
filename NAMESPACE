@@ -3,3 +3,4 @@
 export("%>%")
 export(get_denominator_pop)
 importFrom(magrittr,"%>%")
+importFrom(rlang,.data)
