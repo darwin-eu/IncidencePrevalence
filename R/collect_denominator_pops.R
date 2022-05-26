@@ -1,13 +1,36 @@
+#' Identify a set of denominator populations
+#'
+#' @param db Database connection via DBI::dbConnect()
+#' @param cdm_database_schema Name of the schema which contains the
+#' omop cdm person and observation_period tables
+#' @param study_start_date Date indicating the start of the study period. If NULL,
+#'  the earliest observation_start_date in the observation_period table
+#'  will be used.
+#' @param study_end_date Date indicating the end of the study period. If NULL,
+#'  the latest observation_end_date in the observation_period table
+#'  will be used.
+#' @param age_groups List of age groups
+#' @param sex Sex of the cohorts
+#' @param days_prior_history Days of prior history required to enter
+#' the study cohort.
+#' @param verbose Either TRUE or FALSE.
+#' If TRUE, progress will be reported.
+#'
+#' @return
+#' @importFrom rlang .data
+#' @export
+#'
+#' @examples
 collect_denominator_pops <- function(db,
-                         cdm_database_schema,
-                         study_start_date=NULL,
-                         study_end_date=NULL,
-                         age_groups=NULL,
-                         sex="Both",
-                         days_prior_history=0,
-                         verbose = FALSE){
+                                     cdm_database_schema,
+                                     study_start_date = NULL,
+                                     study_end_date = NULL,
+                                     age_groups = NULL,
+                                     sex = "Both",
+                                     days_prior_history = 0,
+                                     verbose = FALSE) {
 
-    ## check for standard types of user error
+  ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
   db_inherits_check <- inherits(db, "DBIConnection")
   checkmate::assertTRUE(db_inherits_check,
@@ -46,39 +69,50 @@ collect_denominator_pops <- function(db,
   # report initial assertions
   checkmate::reportAssertions(collection = error_message)
 
-# add broadest possible age group if NULL
+  # add broadest possible age group if NULL
   if (is.null(age_groups)) {
-    age_groups <- list(c(0,150))
+    age_groups <- list(c(0, 150))
   }
-# only allow multiple values of age and sex
-age_gr_df<-data.frame(do.call(rbind,age_groups)) %>%
-  mutate(age_range=paste0(X1,";",X2))
-pop_specs<-expand_grid(age_range = age_gr_df$age_range,
-                               sex = sex)  %>%
-  separate(age_range, c("min_age", "max_age")) %>%
-  mutate(min_age=as.numeric(min_age)) %>%
-  mutate(max_age=as.numeric(max_age))%>%
-  mutate(cohort_definition_id=as.character(1:nrow(.)))
-# to list
-pop_specs <-  split(pop_specs,
-                 pop_specs[,c('cohort_definition_id')])
-# get each population
-study_populations<-lapply(pop_specs, function(x)
-  get_denominator_pop(
-       db=db,
-       cdm_database_schema=cdm_database_schema,
-       start_date = study_start_date,
-                    end_date = study_end_date,
-                    min_age = x$min_age,
-                    max_age = x$max_age,
-                    sex = x$sex,
-                    days_prior_history = days_prior_history,
-                    verbose = TRUE))
-# to tibble and add specification for each cohort
-study_populations<-bind_rows(study_populations, .id = "cohort_definition_id") %>%
-  left_join(bind_rows(pop_specs),
-            by=c("cohort_definition_id"))
+  # only allow multiple values of age and sex
+  age_gr_df <- data.frame(do.call(rbind, age_groups)) %>%
+    dplyr::mutate(age_range = paste0(.data$X1, ";", .data$X2))
+  pop_specs <- tidyr::expand_grid(
+    age_range = age_gr_df$age_range,
+    sex = sex
+  ) %>%
+    tidyr::separate(.data$age_range, c("min_age", "max_age")) %>%
+    dplyr::mutate(min_age = as.numeric(.data$min_age)) %>%
+    dplyr::mutate(max_age = as.numeric(.data$max_age))
+
+   pop_specs <-  pop_specs %>%
+    dplyr::mutate(cohort_definition_id = as.character(dplyr::row_number()))
+  # to list
+  pop_specs <- split(
+    pop_specs,
+    pop_specs[, c("cohort_definition_id")]
+  )
+  # get each population
+  study_populations <- lapply(pop_specs, function(x) {
+    get_denominator_pop(
+      db = db,
+      cdm_database_schema = cdm_database_schema,
+      start_date = study_start_date,
+      end_date = study_end_date,
+      min_age = x$min_age,
+      max_age = x$max_age,
+      sex = x$sex,
+      days_prior_history = days_prior_history,
+      verbose = TRUE
+    )
+  })
+  # to tibble and add specification for each cohort
+  study_populations <- dplyr::bind_rows(study_populations,
+    .id = "cohort_definition_id"
+  ) %>%
+    dplyr::left_join(dplyr::bind_rows(pop_specs),
+      by = c("cohort_definition_id")
+    )
 
 
-return(study_populations)
+  return(study_populations)
 }

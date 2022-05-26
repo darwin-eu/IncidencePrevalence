@@ -21,8 +21,8 @@
 # usethis::use_package("lubridate")
 # usethis::use_package("glue")
 # usethis::use_package("DBI")
+# usethis::use_package("tidyr")
 ## usethis::use_package("dtplyr")
-## usethis::use_package("tidyr")
 ## usethis::use_package("stringr")
 
 

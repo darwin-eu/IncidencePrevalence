@@ -1,5 +1,5 @@
 
-#' Identify a denominator population
+#' Identify a single denominator population
 #'
 #' @param db Database connection via DBI::dbConnect()
 #' @param cdm_database_schema Name of the schema which contains the
@@ -59,7 +59,7 @@ get_denominator_pop <- function(db,
     add = error_message,
     null.ok = TRUE
   )
-  if (length(min_age)>=2) {
+  if (length(min_age) >= 2) {
     error_message$push(
       "- min_age should be one value"
     )
@@ -68,7 +68,7 @@ get_denominator_pop <- function(db,
     add = error_message,
     null.ok = TRUE
   )
-  if (length(max_age)>=2) {
+  if (length(max_age) >= 2) {
     error_message$push(
       "- max_age should be one value"
     )
@@ -82,7 +82,7 @@ get_denominator_pop <- function(db,
       "- sex must be one of Male, Female, or Both"
     )
   }
-  if (length(sex)>=2) {
+  if (length(sex) >= 2) {
     error_message$push(
       "- sex must be one of Male, Female, or Both"
     )
@@ -92,7 +92,7 @@ get_denominator_pop <- function(db,
     add = error_message,
     null.ok = TRUE
   )
-  days_check <- days_prior_history>=0
+  days_check <- days_prior_history >= 0
   if (!isTRUE(days_check)) {
     error_message$push(
       "- days_prior_history cannot be negative"
@@ -202,13 +202,17 @@ get_denominator_pop <- function(db,
   # Optional arguments to values
   if (is.null(start_date)) {
     start_date <- observation_period_db %>%
-      dplyr::summarise(min(.data$observation_period_start_date, na.rm = TRUE)) %>%
+      dplyr::summarise(
+        min(.data$observation_period_start_date,
+            na.rm = TRUE)) %>%
       dplyr::collect() %>%
       dplyr::pull()
   }
   if (is.null(end_date)) {
     end_date <- observation_period_db %>%
-      dplyr::summarise(max(.data$observation_period_end_date, na.rm = TRUE)) %>%
+      dplyr::summarise(
+        max(.data$observation_period_end_date,
+            na.rm = TRUE)) %>%
       dplyr::collect() %>%
       dplyr::pull()
   }
@@ -220,6 +224,7 @@ get_denominator_pop <- function(db,
     max_age <- 150
   }
 
+  # filtering on database side
   # drop anyone missing year_of_birth or gender_concept_id
   study_pop_db <- person_db %>%
     dplyr::left_join(observation_period_db,
@@ -231,23 +236,48 @@ get_denominator_pop <- function(db,
     )) %>%
     dplyr::filter(!is.na(.data$gender)) %>%
     dplyr::compute()
+
   if (sex == "Male") {
-    study_pop_db <- study_pop_db %>% dplyr::filter(.data$gender == "Male")
+    study_pop_db <- study_pop_db %>%
+      dplyr::filter(.data$gender == "Male") %>%
+      dplyr::compute()
   }
   if (sex == "Female") {
-    study_pop_db <- study_pop_db %>% dplyr::filter(.data$gender == "Female")
+    study_pop_db <- study_pop_db %>%
+      dplyr::filter(.data$gender == "Female") %>%
+      dplyr::compute()
   }
+
+  last_year <- lubridate::year(end_date) + 1
+  earliest_year <- lubridate::year(start_date) - 1
+  study_pop_db <- study_pop_db %>%
+    # drop people too old even at study start
+    dplyr::filter(.data$year_of_birth + max_age >= earliest_year) %>%
+    # drop people too young even at study end
+    dplyr::filter(.data$year_of_birth + min_age <= last_year) %>%
+    # drop people with observation_period_star_date after study end
+    dplyr::filter(.data$observation_period_start_date <= end_date) %>%
+    # drop people with observation_period_end_date before study start
+    dplyr::filter(.data$observation_period_end_date >= start_date) %>%
+    dplyr::compute()
+
+  ## bring in to memory and finalise population
   study_pop <- study_pop_db %>% dplyr::collect()
 
   # get date of birth
   study_pop <- study_pop %>%
-    dplyr::mutate(dob = dplyr::if_else(is.na(.data$month_of_birth),
+    dplyr::mutate(dob = dplyr::if_else(
+      is.na(.data$month_of_birth),
       as.Date(
-        paste(.data$year_of_birth, "06", "01", sep = "/"),
+        paste(.data$year_of_birth,
+              "06",
+              "01", sep = "/"),
         "%Y/%m/%d"
       ),
       as.Date(
-        paste(.data$year_of_birth, .data$month_of_birth, .data$day_of_birth, sep = "/"),
+        paste(.data$year_of_birth,
+              .data$month_of_birth,
+              .data$day_of_birth, sep = "/"),
         "%Y/%m/%d"
       )
     ))
@@ -255,12 +285,17 @@ get_denominator_pop <- function(db,
   study_pop <- study_pop %>%
     # Date at which they reach minimum and maximum age
     # (+1 to go to the end of the year)
-    dplyr::mutate(date_min_age = lubridate::add_with_rollback(.data$dob, lubridate::years(min_age))) %>%
-    dplyr::mutate(date_max_age = lubridate::add_with_rollback(.data$dob, lubridate::years((max_age + 1)))) %>%
+    dplyr::mutate(date_min_age =
+                    lubridate::add_with_rollback(.data$dob,
+                    lubridate::years(min_age))) %>%
+    dplyr::mutate(date_max_age =
+                    lubridate::add_with_rollback(.data$dob,
+                    lubridate::years((max_age + 1)))) %>%
     # Date at which they reach
     # observation start date + prior_history requirement
-    dplyr::mutate(date_with_prior_history = .data$observation_period_start_date +
-      lubridate::days(days_prior_history))
+    dplyr::mutate(date_with_prior_history =
+                    .data$observation_period_start_date +
+                    lubridate::days(days_prior_history))
 
   # keep people only if
   # 1) they satisfy age criteria at some point in the study
@@ -270,10 +305,15 @@ get_denominator_pop <- function(db,
   # 2) and they satisfy priory history criteria at some point in the study
   study_pop <- study_pop %>%
     dplyr::filter(.data$date_with_prior_history <= end_date) %>%
-    dplyr::filter(.data$date_with_prior_history <= .data$observation_period_end_date)
+    dplyr::filter(.data$date_with_prior_history <=
+                    .data$observation_period_end_date)
 
   ## Get cohort start and end dates
-  # Start date: study start_date, date_min_age, date_with_prior_history (whichever comes last)
+  # Start date:
+  # study start_date,
+  # date_min_age,
+  # date_with_prior_history
+  # (whichever comes last)
   study_pop$cohort_start_date <- do.call(
     `pmax`,
     study_pop %>%
@@ -285,7 +325,11 @@ get_denominator_pop <- function(db,
       )
   )
 
-  # End date: study end date, end of observation, max.age (whichever comes first)
+  # End date:
+  # study end date,
+  # end of observation,
+  # max.age
+  # (whichever comes first)
   study_pop$cohort_end_date <- do.call(
     `pmin`,
     study_pop %>%
@@ -297,13 +341,14 @@ get_denominator_pop <- function(db,
       )
   )
 
-  #Exclude people who are elegible after cohort_end_date
+  # Exclude people who are elegible after cohort_end_date
   study_pop <- study_pop %>%
-    dplyr::filter(.data$cohort_start_date<= .data$cohort_end_date)
+    dplyr::filter(.data$cohort_start_date <=
+                    .data$cohort_end_date)
 
   # variables to keep
   study_pop <- study_pop %>%
-    dplyr::select("person_id", "gender", "cohort_start_date", "cohort_end_date")
+    dplyr::select("person_id", "cohort_start_date", "cohort_end_date")
 
 
   return(study_pop)

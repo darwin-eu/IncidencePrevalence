@@ -28,5 +28,6 @@ Imports:
     glue,
     lubridate,
     magrittr,
-    rlang
+    rlang,
+    tidyr
 VignetteBuilder: knitr

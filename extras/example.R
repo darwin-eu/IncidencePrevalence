@@ -32,6 +32,15 @@ db <-DBI::dbConnect(RPostgres::Postgres(),
 cdm_database_schema<-"omop21t2_test"
 
 
+# db <-DBI::dbConnect(RPostgres::Postgres(),
+#                     dbname = Sys.getenv("SERVER_DBI_FEB22"),
+#                     port = Sys.getenv("DB_PORT_FEB22"),
+#                     host = Sys.getenv("DB_HOST_FEB22"),
+#                     user = Sys.getenv("DB_USER_FEB22"),
+#                     password = Sys.getenv("DB_PASSWORD_FEB22"))
+# cdm_database_schema<-"omop21t2_cmbd"
+
+tictoc::tic()
 study_pop1<-get_denominator_pop(db,
                     cdm_database_schema,
                     start_date = as.Date("2012-01-01"),
@@ -41,10 +50,12 @@ study_pop1<-get_denominator_pop(db,
                     sex = c("Male"),
                     days_prior_history = 365,
                     verbose = TRUE)
+tictoc::toc()
+
 study_pop2<-get_denominator_pop(db,
                     cdm_database_schema,
                     verbose = TRUE)
-
+tictoc::tic()
 study_pops<-collect_denominator_pops(db,
                          cdm_database_schema,
                          study_start_date=NULL,
@@ -53,6 +64,8 @@ study_pops<-collect_denominator_pops(db,
                          sex=c("Male", "Female", "Both"),
                          days_prior_history=365,
                          verbose = TRUE)
+tictoc::toc()
+
 study_pops %>%
   group_by(cohort_definition_id, min_age, max_age, sex) %>%
   tally()
