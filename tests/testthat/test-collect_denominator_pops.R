@@ -33,47 +33,6 @@ test_that("various checks for working example", {
       select(person_id) %>%
       pull()))
 
-
-  expect_true(all(get_denominator_pop(db,
-    cdm_database_schema,
-    min_age = 10,
-    max_age = 15,
-    sex = c("Male"),
-    days_prior_history = 365
-  ) %>%
-    select(cohort_start_date) %>%
-    pull() ==
-    collect_denominator_pops(db,
-      cdm_database_schema,
-      study_start_date = NULL,
-      study_end_date = NULL,
-      age_groups = list(c(10, 15)),
-      sex = "Male",
-      days_prior_history = 365
-    ) %>%
-      select(cohort_start_date) %>%
-      pull()))
-
-  expect_true(all(get_denominator_pop(db,
-    cdm_database_schema,
-    min_age = 10,
-    max_age = 15,
-    sex = c("Male"),
-    days_prior_history = 365
-  ) %>%
-    select(cohort_end_date) %>%
-    pull() ==
-    collect_denominator_pops(db,
-      cdm_database_schema,
-      study_start_date = NULL,
-      study_end_date = NULL,
-      age_groups = list(c(10, 15)),
-      sex = "Male",
-      days_prior_history = 365
-    ) %>%
-      select(cohort_end_date) %>%
-      pull()))
-
   # variable names
   result <- collect_denominator_pops(db,
     cdm_database_schema,
