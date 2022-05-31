@@ -30,8 +30,18 @@ get_denominator_pop <- function(db,
                                 min_age = NULL,
                                 max_age = NULL,
                                 sex = "Both",
-                                days_prior_history = NULL,
+                                days_prior_history = 0,
                                 verbose = FALSE) {
+  if (!is.null(start_date)) {
+    if (is.na(start_date)) {
+      start_date <- NULL
+    }
+  }
+  if (!is.null(end_date)) {
+    if (is.na(end_date)) {
+      end_date <- NULL
+    }
+  }
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
@@ -204,7 +214,9 @@ get_denominator_pop <- function(db,
     start_date <- observation_period_db %>%
       dplyr::summarise(
         min(.data$observation_period_start_date,
-            na.rm = TRUE)) %>%
+          na.rm = TRUE
+        )
+      ) %>%
       dplyr::collect() %>%
       dplyr::pull()
   }
@@ -212,7 +224,9 @@ get_denominator_pop <- function(db,
     end_date <- observation_period_db %>%
       dplyr::summarise(
         max(.data$observation_period_end_date,
-            na.rm = TRUE)) %>%
+          na.rm = TRUE
+        )
+      ) %>%
       dplyr::collect() %>%
       dplyr::pull()
   }
@@ -270,14 +284,18 @@ get_denominator_pop <- function(db,
       is.na(.data$month_of_birth),
       as.Date(
         paste(.data$year_of_birth,
-              "06",
-              "01", sep = "/"),
+          "06",
+          "01",
+          sep = "/"
+        ),
         "%Y/%m/%d"
       ),
       as.Date(
         paste(.data$year_of_birth,
-              .data$month_of_birth,
-              .data$day_of_birth, sep = "/"),
+          .data$month_of_birth,
+          .data$day_of_birth,
+          sep = "/"
+        ),
         "%Y/%m/%d"
       )
     ))
@@ -285,17 +303,27 @@ get_denominator_pop <- function(db,
   study_pop <- study_pop %>%
     # Date at which they reach minimum and maximum age
     # (+1 to go to the end of the year)
-    dplyr::mutate(date_min_age =
-                    lubridate::add_with_rollback(.data$dob,
-                    lubridate::years(min_age))) %>%
-    dplyr::mutate(date_max_age =
-                    lubridate::add_with_rollback(.data$dob,
-                    lubridate::years((max_age + 1)))) %>%
+    dplyr::mutate(
+      date_min_age =
+        lubridate::add_with_rollback(
+          .data$dob,
+          lubridate::years(min_age)
+        )
+    ) %>%
+    dplyr::mutate(
+      date_max_age =
+        lubridate::add_with_rollback(
+          .data$dob,
+          lubridate::years((max_age + 1))
+        )
+    ) %>%
     # Date at which they reach
     # observation start date + prior_history requirement
-    dplyr::mutate(date_with_prior_history =
-                    .data$observation_period_start_date +
-                    lubridate::days(days_prior_history))
+    dplyr::mutate(
+      date_with_prior_history =
+        .data$observation_period_start_date +
+          lubridate::days(days_prior_history)
+    )
 
   # keep people only if
   # 1) they satisfy age criteria at some point in the study
@@ -306,7 +334,7 @@ get_denominator_pop <- function(db,
   study_pop <- study_pop %>%
     dplyr::filter(.data$date_with_prior_history <= end_date) %>%
     dplyr::filter(.data$date_with_prior_history <=
-                    .data$observation_period_end_date)
+      .data$observation_period_end_date)
 
   ## Get cohort start and end dates
   # Start date:
@@ -344,12 +372,11 @@ get_denominator_pop <- function(db,
   # Exclude people who are elegible after cohort_end_date
   study_pop <- study_pop %>%
     dplyr::filter(.data$cohort_start_date <=
-                    .data$cohort_end_date)
+      .data$cohort_end_date)
 
   # variables to keep
   study_pop <- study_pop %>%
     dplyr::select("person_id", "cohort_start_date", "cohort_end_date")
-
 
   return(study_pop)
 }

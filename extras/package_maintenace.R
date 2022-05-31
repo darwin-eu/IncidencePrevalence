@@ -1,16 +1,24 @@
 ## Setting up-----
 # Functions and corresponding tests -----
+# usethis::use_r("get_denominator_pop")
+# usethis::use_test("get_denominator_pop")
 # usethis::use_r("collect_denominator_pops")
 # usethis::use_test("collect_denominator_pops")
 
-# usethis::use_r("get_denominator_pop")
-# usethis::use_test("get_denominator_pop")
-
 # usethis::use_r("calculate_pop_incidence")
 # usethis::use_test("calculate_pop_incidence")
+# usethis::use_r("collect_pop_incidence")
+# usethis::use_test("collect_pop_incidence")
 
 # usethis::use_r("calculate_pop_prevalence")
 # usethis::use_test("calculate_pop_prevalence")
+# usethis::use_r("collect_pop_prevalence")
+# usethis::use_test("collect_pop_prevalence")
+
+# usethis::use_r("obscure_counts_incidence")
+# usethis::use_test("obscure_counts_incidence")
+# usethis::use_r("obscure_counts_prevalence")
+# usethis::use_test("obscure_counts_prevalence")
 
 ## imports -----
 # usethis::use_pipe()
