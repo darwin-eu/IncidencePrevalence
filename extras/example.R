@@ -59,7 +59,7 @@ tictoc::tic()
 study_pops<-collect_denominator_pops(db,
                          cdm_database_schema,
                          study_start_date=as.Date("2012-01-01"),
-                         study_end_date=as.Date("2012-01-01"),
+                         study_end_date=as.Date("2014-12-31"),
                          study_age_stratas = list(c(10,15), c(16,20), c(10,20)),
                          study_sex_stratas = c("Male", "Female", "Both"),
                          study_days_prior_history =c(0,365),
@@ -75,13 +75,13 @@ study_pops %>%
   arrange(cohort_definition_id)
 
 
-results_schema_outcome<-"results21t2_cmbd_test"
-calculate_pop_incidence(db=db,
-                        results_schema_outcome="results_schema_outcome",
-                        table_name_outcome="results_table_name",
+
+ir<-calculate_pop_incidence(db=db,
+                        results_schema_outcome="results21t2_test",
+                        table_name_outcome="cohorts",
                                     cohort_id_outcome=1,
                                     study_denominator_pop=study_pops,
-                                    cohort_id_denominator_pop=NULL,
+                                    cohort_id_denominator_pop="17",
                                     time_interval=c("Months"),
                                     prior_event_lookback=NULL,
                                     repetitive_events=FALSE,

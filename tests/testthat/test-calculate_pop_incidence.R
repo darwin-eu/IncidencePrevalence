@@ -12,20 +12,22 @@ test_that("checks on working example", {
   )
 
   cdm_database_schema <- "omop21t2_test"
-  results_schema_outcome <- "results21t2_cmbd_test"
-
+  results_schema_outcome <- "results21t2_test"
+  table_name_outcome <- "cohorts"
   working_denominator_pop <- collect_denominator_pops(db,
     cdm_database_schema,
     study_start_date = NULL,
     study_end_date = NULL,
-    age_groups = list(c(10, 15)),
-    sex = "Male",
-    days_prior_history = 365
+    study_age_stratas = list(c(10, 15)),
+    study_sex_stratas = "Male",
+    study_days_prior_history = 365
   )
+
+
   result <- calculate_pop_incidence(
     db = db,
-    results_schema_outcome = "results_schema_outcome",
-    table_name_outcome = "results_table_name",
+    results_schema_outcome = results_schema_outcome,
+    table_name_outcome = table_name_outcome,
     cohort_id_outcome = 1,
     study_denominator_pop = working_denominator_pop,
     cohort_id_denominator_pop = NULL,
@@ -49,11 +51,8 @@ test_that("checks on working example", {
     "ir_high",
     "calendar_month",
     "calendar_year",
-    "min_age",
-    "max_age",
-    "sex",
-    "pop_strata",
-    "pop_strata_value"
+    "age_strata",
+    "sex_strata"
   ) %in%
     names(result)))
 
