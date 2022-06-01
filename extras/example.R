@@ -87,3 +87,15 @@ ir<-calculate_pop_incidence(db=db,
                                     repetitive_events=FALSE,
                                     confidence_intervals="exact",
                                     verbose=FALSE)
+
+ir2<-calculate_pop_incidence(db=db,
+                        results_schema_outcome="results21t2_test",
+                        table_name_outcome="cohorts",
+                                    cohort_id_outcome=1,
+                                    study_denominator_pop=study_pops,
+                                    cohort_id_denominator_pop="17",
+                                    time_interval=c("Years"),
+                                    prior_event_lookback=NULL,
+                                    repetitive_events=FALSE,
+                                    confidence_intervals="exact",
+                                    verbose=FALSE)

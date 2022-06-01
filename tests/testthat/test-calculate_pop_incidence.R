@@ -24,19 +24,17 @@ test_that("checks on working example", {
   )
 
 
-  result <- calculate_pop_incidence(
-    db = db,
-    results_schema_outcome = results_schema_outcome,
-    table_name_outcome = table_name_outcome,
-    cohort_id_outcome = 1,
-    study_denominator_pop = working_denominator_pop,
-    cohort_id_denominator_pop = NULL,
-    time_interval = c("Months"),
-    prior_event_lookback = NULL,
-    repetitive_events = FALSE,
-    confidence_intervals = "exact",
-    verbose = FALSE
-  )
+  result <- calculate_pop_incidence(db=db,
+                        results_schema_outcome="results21t2_test",
+                        table_name_outcome="cohorts",
+                                    cohort_id_outcome=1,
+                                    study_denominator_pop=study_pops,
+                                    cohort_id_denominator_pop="17",
+                                    time_interval=c("Months"),
+                                    prior_event_lookback=NULL,
+                                    repetitive_events=FALSE,
+                                    confidence_intervals="exact",
+                                    verbose=FALSE)
   # output format
   expect_true(tibble::is_tibble(result))
   # output variables
