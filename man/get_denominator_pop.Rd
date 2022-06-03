@@ -12,7 +12,7 @@ get_denominator_pop(
   min_age = NULL,
   max_age = NULL,
   sex = "Both",
-  days_prior_history = NULL,
+  days_prior_history = 0,
   verbose = FALSE
 )
 }

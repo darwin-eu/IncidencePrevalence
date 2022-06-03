@@ -14,17 +14,16 @@ test_that("checks on working example", {
   cdm_database_schema <- "omop21t2_test"
   results_schema_outcome <- "results21t2_test"
   table_name_outcome <- "cohorts"
-  working_denominator_pop <- collect_denominator_pops(db,
-    cdm_database_schema,
-    study_start_date = NULL,
-    study_end_date = NULL,
-    study_age_stratas = list(c(10, 15)),
-    study_sex_stratas = "Male",
-    study_days_prior_history = 365
-  )
+study_pops<-collect_denominator_pops(db,
+                         cdm_database_schema,
+                         study_start_date=as.Date("2012-01-01"),
+                         study_end_date=as.Date("2014-12-31"),
+                         study_age_stratas = list(c(10,15), c(16,20), c(10,20)),
+                         study_sex_stratas = c("Male", "Female", "Both"),
+                         study_days_prior_history =c(0,365),
+                         verbose = TRUE)
 
-
-  result <- calculate_pop_incidence(db=db,
+  result <- get_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
                         table_name_outcome="cohorts",
                                     cohort_id_outcome=1,
@@ -69,8 +68,8 @@ test_that("checks on working example", {
     sum(is.na(result$ir_low)) == 0)
   testthat::expect_true(!is.null(result$ir_high) &
     sum(is.na(result$ir_high)) == 0)
-  testthat::expect_true(!is.null(result$calendar_month) &
-    sum(is.na(result$calendar_month)) == 0)
+  # testthat::expect_true(!is.null(result$calendar_month) &
+  #   sum(is.na(result$calendar_month)) == 0)
   testthat::expect_true(!is.null(result$calendar_year) &
     sum(is.na(result$calendar_year)) == 0)
   # testthat::expect_true(!is.null(result$strata) &

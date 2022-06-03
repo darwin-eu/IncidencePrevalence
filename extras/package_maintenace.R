@@ -30,8 +30,10 @@
 # usethis::use_package("glue")
 # usethis::use_package("DBI")
 # usethis::use_package("tidyr")
+# usethis::use_package("epiR")
+# usethis::use_package("tibble")
 ## usethis::use_package("dtplyr")
-## usethis::use_package("stringr")
+# usethis::use_package("stringr")
 
 
 ## readme -----
@@ -77,7 +79,7 @@ devtools::check_rhub() # All os
 # have you followed the style guide?
 # note you can use stlyer to fix formatting
 # ignore formatting warning for .datatable.aware
-#  doesn´t pick up vars used in glue (So ignore warningn about duration)
+#  doesn´t pick up vars used in glue (So ignore warning about duration)
 lintr::lint_package()
 
 devtools::build_readme()

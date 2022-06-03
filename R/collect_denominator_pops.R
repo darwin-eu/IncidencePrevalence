@@ -117,7 +117,7 @@ collect_denominator_pops <- function(db,
       days_prior_history = x$study_days_prior_history,
       verbose = TRUE
     ) %>%
-      mutate(
+      dplyr::mutate(
         study_start_date = x$study_start_date,
         study_end_date = x$study_end_date,
         age_strata = x$age_range,

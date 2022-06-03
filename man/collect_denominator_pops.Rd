@@ -9,9 +9,9 @@ collect_denominator_pops(
   cdm_database_schema,
   study_start_date = NULL,
   study_end_date = NULL,
-  age_groups = NULL,
-  sex = "Both",
-  days_prior_history = 0,
+  study_age_stratas = NULL,
+  study_sex_stratas = "Both",
+  study_days_prior_history = 0,
   verbose = FALSE
 )
 }
@@ -21,19 +21,21 @@ collect_denominator_pops(
 \item{cdm_database_schema}{Name of the schema which contains the
 omop cdm person and observation_period tables}
 
-\item{study_start_date}{Date indicating the start of the study period. If NULL,
+\item{study_start_date}{Date indicating the start of the study
+period. If NULL,
 the earliest observation_start_date in the observation_period table
 will be used.}
 
-\item{study_end_date}{Date indicating the end of the study period. If NULL,
+\item{study_end_date}{Date indicating the end of the study
+period. If NULL,
 the latest observation_end_date in the observation_period table
 will be used.}
 
-\item{age_groups}{List of age groups}
+\item{study_age_stratas}{List of age groups}
 
-\item{sex}{Sex of the cohorts}
+\item{study_sex_stratas}{Sex of the cohorts}
 
-\item{days_prior_history}{Days of prior history required to enter
+\item{study_days_prior_history}{Days of prior history required to enter
 the study cohort.}
 
 \item{verbose}{Either TRUE or FALSE.
