@@ -9,7 +9,7 @@
 
 ## Package overview
 
-<img src="D:/OmopPopEpi/github/OmopPopEpi/extras/OmopPopEpi_overview.png" width="100%" />
+<img src="extras/OmopPopEpi_overview.png" width="100%" />
 
 OmopPopEpi contains functions for estimating population-level incidence
 and prevalence using the OMOP common data model. The package facilitates
