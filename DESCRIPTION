@@ -1,5 +1,5 @@
 Package: OmopPopEpi
-Title: Population incidence and prevalence using the OMOP common data model  
+Title: Population Incidence and Prevalence using the OMOP Common Data Model
 Version: 0.0.0.9000
 Authors@R: c(
     person("Edward", "Burn", email = "edward.burn@ndorms.ox.ac.uk", role = c("aut", "cre"), 

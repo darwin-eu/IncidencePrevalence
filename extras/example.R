@@ -23,6 +23,7 @@ library(RPostgreSQL)
 library(readxl)
 library(lubridate)
 library(readxl)
+library(dtplyr)
 devtools::load_all()
 
 
@@ -117,7 +118,7 @@ denominator_pop_dementia<-collect_denominator_pops(db,
                          study_sex_stratas = c("Male", "Female", "Both"),
                          study_days_prior_history =c(365,1826),
                          verbose = TRUE)
-ir_dementia_1y<-calculate_pop_incidence(db=db,
+ir_dementia_1y<-get_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
                         table_name_outcome=outcomecohortTableStem,
                         cohort_id_outcome=1,
@@ -126,18 +127,18 @@ ir_dementia_1y<-calculate_pop_incidence(db=db,
                         time_interval=c("Months"),
                         prior_event_lookback=365,
                         repetitive_events=FALSE,
-                        confidence_intervals="exact",
+                        confidence_interval="exact",
                         verbose=FALSE)
-ir_dementia_all_hist<-calculate_pop_incidence(db=db,
+ir_dementia_all_hist<-get_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
                         table_name_outcome=outcomecohortTableStem,
                         cohort_id_outcome=1,
                         study_denominator_pop=denominator_pop_dementia,
-                        cohort_id_denominator_pop=NULL,
+                        cohort_id_denominator_pop=1,
                         time_interval=c("Months"),
                         prior_event_lookback=NULL,
                         repetitive_events=FALSE,
-                        confidence_intervals="exact",
+                        confidence_interval="exact",
                         verbose=FALSE)
 
 
@@ -150,7 +151,77 @@ ir_dementia_all_hist %>% mutate(type="All")) %>%
   geom_errorbar(aes(x=year_months, ymin=ir_low, ymax=ir_high),
                  position=position_dodge(width=0.5))
 
+all(ir_dementia_1y %>%
+  select(ir) %>%
+  pull() ==
+ir_dementia_all_hist %>%
+  select(ir) %>%
+  pull())
 
+# by design of the dementia outcome cohort (first event, end date end of observation),
+# we should get the same results
+# regardless of repetitive events TRUE or FALSE
+get_pop_incidence(db=db,
+                  results_schema_outcome="results21t2_test",
+                  table_name_outcome=outcomecohortTableStem,
+                  cohort_id_outcome=1,
+                  study_denominator_pop=denominator_pop_dementia,
+                  cohort_id_denominator_pop=1,
+                  time_interval=c("Years"),
+                  repetitive_events=FALSE) %>%
+  select(ir) %>%
+  pull() ==
+get_pop_incidence(db=db,
+                  results_schema_outcome="results21t2_test",
+                  table_name_outcome=outcomecohortTableStem,
+                  cohort_id_outcome=1,
+                  study_denominator_pop=denominator_pop_dementia,
+                  cohort_id_denominator_pop=1,
+                  time_interval=c("Years"),
+                  repetitive_events=TRUE) %>%
+  select(ir) %>%
+  pull()
+
+
+get_pop_incidence(db=db,
+                  results_schema_outcome="results21t2_test",
+                  table_name_outcome=outcomecohortTableStem,
+                  cohort_id_outcome=1,
+                  study_denominator_pop=denominator_pop_dementia,
+                  cohort_id_denominator_pop=1,
+                  time_interval=c("Months"),
+                  repetitive_events=FALSE) %>%
+  filter(calendar_year=="2014") %>%
+  summarise(person_days=sum(person_days),
+            person_months=sum(person_months),
+            person_years=sum(person_years),
+            n_events=sum(n_events))
+
+get_pop_incidence(db=db,
+                  results_schema_outcome="results21t2_test",
+                  table_name_outcome=outcomecohortTableStem,
+                  cohort_id_outcome=1,
+                  study_denominator_pop=denominator_pop_dementia,
+                  cohort_id_denominator_pop=1,
+                  time_interval=c("Years"),
+                  repetitive_events=FALSE) %>%
+  filter(calendar_year=="2014") %>%
+  summarise(person_days=sum(person_days),
+            person_months=sum(person_months),
+            person_years=sum(person_years),
+            n_events=sum(n_events))
+
+
+collect_pop_incidence(db,
+                      results_schema_outcomes="results21t2_test",
+                      cohort_ids_outcomes=c(1,2,3),
+                      study_denominator_pops=denominator_pop_dementia,
+                      cohort_ids_denominator_pops=c(1,2,3),
+                      time_intervals = "Years",
+                      prior_event_lookbacks=NULL,
+                      repetitive_events=FALSE,
+                      confidence_intervals="exact",
+                      verbose = FALSE)
 
 # influenza -------
 denominator_pop_influenza<-collect_denominator_pops(db,
@@ -162,7 +233,7 @@ denominator_pop_influenza<-collect_denominator_pops(db,
                          study_days_prior_history =365,
                          verbose = TRUE)
 
-ir_influenza_0<-calculate_pop_incidence(db=db,
+ir_influenza_0<-get_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
                         table_name_outcome=outcomecohortTableStem,
                         cohort_id_outcome=3,
@@ -173,7 +244,7 @@ ir_influenza_0<-calculate_pop_incidence(db=db,
                         repetitive_events=FALSE,
                         confidence_intervals="exact",
                         verbose=TRUE)
-ir_influenza_60<-calculate_pop_incidence(db=db,
+ir_influenza_60<-get_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
                         table_name_outcome=outcomecohortTableStem,
                         cohort_id_outcome=3,
@@ -184,7 +255,7 @@ ir_influenza_60<-calculate_pop_incidence(db=db,
                         repetitive_events=FALSE,
                         confidence_intervals="exact",
                         verbose=TRUE)
-ir_influenza_all_hist<-calculate_pop_incidence(db=db,
+ir_influenza_all_hist<-get_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
                         table_name_outcome=outcomecohortTableStem,
                         cohort_id_outcome=3,

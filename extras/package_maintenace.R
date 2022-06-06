@@ -26,6 +26,7 @@
 # usethis::use_package("checkmate")
 # usethis::use_package("dplyr")
 # usethis::use_package("dbplyr")
+# usethis::use_package("dtplyr")
 # usethis::use_package("lubridate")
 # usethis::use_package("glue")
 # usethis::use_package("DBI")

@@ -1,8 +1,8 @@
 ---
-title: "a03_Calculating_prevalence"
+title: "a04_Calculating_incidence"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{a03_Calculating_prevalence}
+  %\VignetteIndexEntry{a02_Calculating_incidence}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
