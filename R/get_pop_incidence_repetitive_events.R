@@ -9,7 +9,7 @@ calculate_pop_incidence <- function(db,
                                     repetitive_events = FALSE,
                                     confidence_intervals = "exact",
                                     verbose = FALSE) {
-  
+
   # help to avoid errors
   if (is.numeric(cohort_id_outcome)) {
     cohort_id_outcome <- as.character(cohort_id_outcome)
@@ -20,8 +20,8 @@ calculate_pop_incidence <- function(db,
   if (is.character(confidence_intervals)) {
     confidence_intervals <- stringr::str_to_lower(confidence_intervals)
   }
-  
-  
+
+
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
   db_inherits_check <- inherits(db, "DBIConnection")
@@ -68,26 +68,26 @@ calculate_pop_incidence <- function(db,
   )
   # report initial assertions
   checkmate::reportAssertions(collection = error_message)
-  
-  
+
+
   ## Analysis code
   # bring in study popupulation
   if (!is.null(cohort_id_denominator_pop)) {
     study_pop <- study_pops %>%
       filter(cohort_definition_id == cohort_id_denominator_pop)
   }
-  
+
   # link to outcome cohort
   outcome_db <- tbl(db, sql(glue::glue(
     "SELECT * FROM {results_schema_outcome}.{table_name_outcome}"
   )))
-  
+
   if (!is.null(cohort_id_outcome)) {
     outcome_db <- outcome_db %>%
       filter(cohort_definition_id == cohort_id_outcome) %>%
       compute()
   }
-  
+
   # nb more than one outcome per person is allowed
   outcome <- outcome_db %>%
     rename("outcome_date" = "cohort_start_date") %>%
@@ -95,7 +95,7 @@ calculate_pop_incidence <- function(db,
     rename("person_id" = "subject_id") %>%
     select("person_id", "outcome_date") %>%
     collect()
-  
+
   # Time intervals------
   start_date <- min(study_pop$study_start_date)
   end_date <- max(study_pop$study_end_date)
@@ -105,7 +105,7 @@ calculate_pop_incidence <- function(db,
   if (time_interval == "Months") {
     n.time <- lubridate::interval(ymd(start_date), ymd(end_date)) %/% months(1)
   }
-  
+
   # fetch incidence rates
   # looping through each time interval
   IR <- list()
@@ -121,7 +121,7 @@ calculate_pop_incidence <- function(db,
       }
       working.t.days <- as.numeric(difftime(working.t.end + days(1), working.t.start, units = "days"))
     }
-    
+
     if (time_interval == "Months") {
       working.t.start <- start_date + months(i - 1) # date, first day of the month
       if ((i == max(n.time) + 1) & (start_date + months(i) - days(1) > end_date)) {
@@ -131,28 +131,28 @@ calculate_pop_incidence <- function(db,
       }
       working.t.days <- as.numeric(difftime(working.t.end + days(1), working.t.start, units = "days"))
     }
-    
+
     # drop people who were censored prior to working.t.start (start of the month/year...)
     # & drop people who were not present in the database before working.t.end
     working.pop <- study_pop %>%
       filter(cohort_end_date >= working.t.start) %>%
       filter(cohort_start_date <= working.t.end)
-    
+
     # individuals start date for this period
     # could be start of the period or later
     working.pop <- working.pop %>%
       mutate(t_start_date = if_else(cohort_start_date <= working.t.start,
                                     working.t.start,
                                     cohort_start_date))
-    
+
     # individuals end date for this period
     # end of the period or earlier
     working.pop <- working.pop %>%
       mutate(t_end_date = if_else(cohort_end_date >= working.t.end,
                                   working.t.end,
                                   cohort_end_date))
-    
-    
+
+
     # Exclusions based on events prior to current start date
     outcome_prior <- outcome %>%
       inner_join(working.pop %>% select(person_id, t_start_date),
@@ -161,7 +161,7 @@ calculate_pop_incidence <- function(db,
                                              units = "days"
       ))) %>%
       filter(diff_days > 0)
-    
+
     if (is.null(prior_event_lookback)) {
       # If prior_event_lookback is null,
       # we exclude people with an event at any point before their index date
@@ -169,7 +169,7 @@ calculate_pop_incidence <- function(db,
         anti_join(outcome_prior,
                   by=c("person_id", "t_start_date"))
     }
-    
+
     if (is.numeric(prior_event_lookback)) {
       # If a number of days is specified, check outcomes that occurred in this window of time
       outcome_prior_lookback <- outcome_prior %>%
@@ -179,7 +179,7 @@ calculate_pop_incidence <- function(db,
         filter(seq == 1) %>% # most recent prior event relative to t_start_date
         filter(diff_days < prior_event_lookback) %>%
         select(-seq)
-      
+
       # Date at which individuals satisfied prior lookback requirement
       working.pop<- working.pop %>%
         left_join(outcome_prior_lookback %>%
@@ -193,11 +193,11 @@ calculate_pop_incidence <- function(db,
       # Exclude people who reach the lookback period after the end date
       working.pop <- working.pop %>%
         filter(t_start_date <= t_end_date)
-      
+
       working.pop<-working.pop %>%
         select(-"diff_days")
     }
-    
+
     # If Repetitive events is FALSE, add outcome information
     # First event during the interval of time under study
     if(repetitive_events==FALSE){
@@ -216,22 +216,22 @@ calculate_pop_incidence <- function(db,
       mutate(seq = row_number()) %>%
       filter(seq == 1) %>%
       select(-"seq")
-    
+
     working.pop <- working.pop %>%
       left_join(outcome.t %>% select(person_id, outcome_date),
                 by="person_id")
-    
+
     # Change t_end_date if they had the event
     working.pop <- working.pop%>%
-      mutate(t_end_date = if_else(!is.na(outcome_date)&outcome_date<t_end_date, 
+      mutate(t_end_date = if_else(!is.na(outcome_date)&outcome_date<t_end_date,
                                   outcome_date, t_end_date))
     }
-    
-  
+
+
     # If Repetitive events is TRUE: Check all outcomes
-  
+
     if(repetitive_events==TRUE){
-      
+
     #All outcomes
     outcomes.all <- outcome %>%
       inner_join(working.pop %>% select(person_id, cohort_start_date,
@@ -246,14 +246,14 @@ calculate_pop_incidence <- function(db,
       group_by(person_id) %>%
       arrange(desc(diff_days)) %>%
       mutate(seq = row_number())
-    
-    
+
+
     # Define time periods for each participant
     # Participants who don't have the event have 1 row
     # Participants who experience at least 1 event, have as many rows as events+1
     # Add rows
     outcomes.patients <- outcomes.all%>%select(person_id)%>%distinct()%>%pull()
-   
+
     if(NROW(outcomes.patients)>0){
     outcomes.z <- list()
     for(z in 1:length(outcomes.patients)){
@@ -267,16 +267,16 @@ calculate_pop_incidence <- function(db,
       }
     }
     outcomes.z <- bind_rows(outcomes.z)%>%select(-seq)
-    
+
     # Add new seq to order rows
     outcomes.z <- outcomes.z %>%
       group_by(person_id) %>%
       mutate(seq.z = row_number())
-    
+
     # For every participant experiencing the outcome, change dates for each time period:
     # t_end_date: outcome date or end of the month/year (if it's the last time period/row)
     # t_start_date: outcome date+ prior_event_lookback (for all rows except for the first one)
-    # outcome_date: the value of the last row is removed to avoid duplicates. Each outcome appears only one time. 
+    # outcome_date: the value of the last row is removed to avoid duplicates. Each outcome appears only one time.
     outcomes.patients_df<-list()
     for(y in 1:length(outcomes.patients)){
      id <- as.numeric(outcomes.patients[y])
@@ -293,37 +293,37 @@ calculate_pop_incidence <- function(db,
         }
      outcomes.patients_df[[paste0(y)]]  <- patient.rows
     }
-    outcomes.patients_df <- bind_rows(outcomes.patients_df) 
-    
+    outcomes.patients_df <- bind_rows(outcomes.patients_df)
+
     # Exclude periods in which t_start_date > t_end_date
     outcomes.patients_df  <-outcomes.patients_df %>%filter(t_start_date<=t_end_date)
-    
+
     #Join people who have the outcome + those who don't
     #people who have the outcome
     working.pop_outcome0 <- working.pop%>%
       inner_join(outcomes.patients_df%>%select(person_id)%>%distinct())%>%
       select(-t_start_date, -t_end_date)
-    
+
     working.pop_outcome<-working.pop_outcome0%>%
       left_join(outcomes.patients_df%>%
                   select(person_id, t_start_date, t_end_date, outcome_date))
-  
+
     #people who don't have the outcome
     working.pop_no_outcome <- working.pop%>%
       anti_join(outcomes.patients_df%>%select(person_id))%>%
       mutate(outcome_date=NA)
-    
+
     #merge
     working.pop <- rbind(working.pop_outcome, working.pop_no_outcome)
     } else{
     # if 0 events occurred during this period
     working.pop <- working.pop%>%
       mutate(outcome_date=NA)
-    
+
     }
     }
-    
-    
+
+
     # number of days contributed in working.time
     working.pop <- working.pop %>%
       mutate(working.days =  as.numeric(difftime(t_end_date, t_start_date, units = "days"))) %>%
@@ -332,7 +332,7 @@ calculate_pop_incidence <- function(db,
         (working.days == 0) ~ 0.25,
         working.days > 0 ~ as.numeric(working.days)
       )) # don't know why some numbers have decimals (.00)?
-    
+
     IR[[paste0(i)]] <- working.pop %>%
       summarise(
         n_persons = length(unique(working.pop$person_id)),
@@ -347,15 +347,15 @@ calculate_pop_incidence <- function(db,
                                      NA)) %>%
       mutate(calendar_year = year(working.t.start))
   }
-  
+
   IR <- bind_rows(IR)
-  
+
   if (confidence_intervals == "None") {
     IR<-IR %>%
       mutate(ir_low=NA) %>%
       mutate(ir_high=NA)
   }
-  
+
   if (confidence_intervals == "exact") {
     ci <- epi.conf(as.matrix(IR %>% select(n_events, person_months)),
                    ctype = "inc.rate",
@@ -368,12 +368,12 @@ calculate_pop_incidence <- function(db,
       select(lower, upper) %>%
       rename("ir_low" = "lower") %>%
       rename("ir_high" = "upper")
-    
+
     IR <- bind_cols(IR, ci) %>%
       relocate(ir_low, .before = calendar_month) %>%
       relocate(ir_high, .after = ir_low)
   }
-  
+
   # add design related variables
   IR <- IR %>%
     mutate(required_days_prior_history = unique(study_pop$required_days_prior_history)) %>%
@@ -382,8 +382,7 @@ calculate_pop_incidence <- function(db,
     mutate(prior_event_lookback = prior_event_lookback)%>%
     mutate(repetitive_events = repetitive_events)%>%
     mutate(time_interval = time_interval)
-  
+
   return(IR)
   }
-  
-  
+
