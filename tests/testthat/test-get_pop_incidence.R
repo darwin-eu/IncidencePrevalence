@@ -32,7 +32,7 @@ study_pops<-collect_denominator_pops(db,
                                     time_interval=c("Months"),
                                     prior_event_lookback=NULL,
                                     repetitive_events=FALSE,
-                                    confidence_intervals="exact",
+                                    confidence_interval="exact",
                                     verbose=FALSE)
   # output format
   expect_true(tibble::is_tibble(result))
