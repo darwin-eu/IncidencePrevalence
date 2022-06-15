@@ -2,7 +2,7 @@
 title: "a03_Creating numerator populations"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{a02_Calculating_incidence}
+  %\VignetteIndexEntry{a03_Creating_numerator_populations}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

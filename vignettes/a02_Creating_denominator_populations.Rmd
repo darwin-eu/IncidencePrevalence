@@ -2,7 +2,7 @@
 title: "a02_Creating denominator populations"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{a02_Calculating_incidence}
+  %\VignetteIndexEntry{a02_Creating_denominator_populations}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
