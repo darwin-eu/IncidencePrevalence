@@ -192,7 +192,8 @@ get_pop_incidence(db=db,
                   time_interval=c("Months"),
                   repetitive_events=FALSE) %>%
   filter(calendar_year=="2014") %>%
-  summarise(person_days=sum(person_days),
+  summarise(n_persons=length(unique(working_pop$person_id)),
+            person_days=sum(person_days),
             person_months=sum(person_months),
             person_years=sum(person_years),
             n_events=sum(n_events))
@@ -206,7 +207,8 @@ get_pop_incidence(db=db,
                   time_interval=c("Years"),
                   repetitive_events=FALSE) %>%
   filter(calendar_year=="2014") %>%
-  summarise(person_days=sum(person_days),
+  summarise(n_persons=length(unique(working_pop$person_id)),
+            person_days=sum(person_days),
             person_months=sum(person_months),
             person_years=sum(person_years),
             n_events=sum(n_events))
@@ -221,7 +223,13 @@ collect_pop_incidence(db,
                       prior_event_lookbacks=NULL,
                       repetitive_events=FALSE,
                       confidence_intervals="exact",
-                      verbose = FALSE)
+                      verbose = FALSE)%>%
+  group_by(cohort_definition_id)%>%
+  filter(calendar_year=="2014") %>%
+  summarise(person_days=sum(person_days),
+            person_months=sum(person_months),
+            person_years=sum(person_years),
+            n_events=sum(n_events))
 
 # influenza -------
 denominator_pop_influenza<-collect_denominator_pops(db,

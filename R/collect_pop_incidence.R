@@ -1,7 +1,7 @@
 collect_pop_incidence <- function(db,
                                   results_schema_outcomes,
                                   cohort_ids_outcomes,
-                                  study_denominator_pops,
+                                  study_denominator_pop,
                                   cohort_ids_denominator_pops,
                                   time_intervals = c("Months", "Years"),
                                   prior_event_lookbacks,
