@@ -449,36 +449,26 @@ get_pop_incidence <- function(db,
       dplyr::mutate(
         working_days =
           dplyr::if_else(is.na(.data$outcome_start_date),
-            as.numeric(difftime(.data$t_end_date,
+            as.numeric(difftime(.data$t_end_date+ lubridate::days(1),
               .data$t_start_date,
               units = "days"
             )),
-            as.numeric(difftime(.data$outcome_start_date,
+            as.numeric(difftime(.data$outcome_start_date+ lubridate::days(1),
               .data$t_start_date,
               units = "days"
             ))
           )
       )
 
-        # number of days contributed in working time
-    # note, above we have censored t_end_date to
-    # outcome_start_date above
-    # (either with or without repetitive events)
-    working_pop <- working_pop %>%
-      dplyr::mutate(working_days =
-          as.numeric(difftime(.data$t_end_date,
-            .data$t_start_date,
-            units = "days"
-          ))
-      )
 
     # if they enter the same day they exit,
     # will assume they contribute 0.5d
-    working_pop <- working_pop %>%
-      dplyr::mutate(working_days = dplyr::case_when(
-        (.data$working_days == 0) ~ 0.5,
-        .data$working_days > 0 ~ .data$working_days
-      ))
+    #
+    # working_pop <- working_pop %>%
+    #   dplyr::mutate(working_days = dplyr::case_when(
+    #  (.data$working_days == 0) ~ 0.5,
+    #     .data$working_days > 0 ~ .data$working_days
+    #  ))
 
     ir[[paste0(i)]] <- working_pop %>%
       dplyr::summarise(

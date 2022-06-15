@@ -1,7 +1,7 @@
 collect_pop_incidence <- function(db,
                                   results_schema_outcomes,
                                   cohort_ids_outcomes,
-                                  study_denominator_pops,
+                                  study_denominator_pop,
                                   cohort_ids_denominator_pops,
                                   time_intervals = c("Months", "Years"),
                                   prior_event_lookbacks,
@@ -11,8 +11,8 @@ collect_pop_incidence <- function(db,
 
 
   # help to avoid formatting errors
-  if (is.numeric(cohort_ids_outcome)) {
-    cohort_ids_outcome <- as.character(cohort_ids_outcome)
+  if (is.numeric(cohort_ids_outcomes)) {
+    cohort_ids_outcomes <- as.character(cohort_ids_outcomes)
   }
   if (is.numeric(cohort_ids_denominator_pops)) {
     cohort_ids_denominator_pops <- as.character(cohort_ids_denominator_pops)
@@ -77,11 +77,11 @@ collect_pop_incidence <- function(db,
   ) %in%
     names(study_denominator_pop)))
 
-  checkmate::assert_character(cohort_id_denominator_pop,
+  checkmate::assert_character(cohort_ids_denominator_pops,
     add = error_message,
     null.ok = TRUE
   )
-  checkmate::assert_choice(time_interval,
+  checkmate::assert_choice(time_intervals,
     choices = c("Months", "Years"),
     add = error_message
   )

@@ -215,13 +215,19 @@ get_pop_incidence(db=db,
 collect_pop_incidence(db,
                       results_schema_outcomes="results21t2_test",
                       cohort_ids_outcomes=c(1,2,3),
-                      study_denominator_pops=denominator_pop_dementia,
+                      study_denominator_pop=denominator_pop_dementia,
                       cohort_ids_denominator_pops=c(1,2,3),
                       time_intervals = "Years",
                       prior_event_lookbacks=NULL,
                       repetitive_events=FALSE,
                       confidence_intervals="exact",
-                      verbose = FALSE)
+                      verbose = FALSE)%>%
+  group_by(cohort_definition_id)%>%
+  filter(calendar_year=="2014") %>%
+  summarise(person_days=sum(person_days),
+            person_months=sum(person_months),
+            person_years=sum(person_years),
+            n_events=sum(n_events))
 
 # influenza -------
 denominator_pop_influenza<-collect_denominator_pops(db,
@@ -242,7 +248,7 @@ ir_influenza_0<-get_pop_incidence(db=db,
                         time_interval=c("Months"),
                         prior_event_lookback=0,
                         repetitive_events=FALSE,
-                        confidence_intervals="exact",
+                        confidence_interval="exact",
                         verbose=TRUE)
 ir_influenza_60<-get_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
@@ -253,7 +259,7 @@ ir_influenza_60<-get_pop_incidence(db=db,
                         time_interval=c("Months"),
                         prior_event_lookback=60,
                         repetitive_events=FALSE,
-                        confidence_intervals="exact",
+                        confidence_interval="exact",
                         verbose=TRUE)
 ir_influenza_all_hist<-get_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
@@ -264,7 +270,7 @@ ir_influenza_all_hist<-get_pop_incidence(db=db,
                         time_interval=c("Months"),
                         prior_event_lookback=NULL,
                         repetitive_events=FALSE,
-                        confidence_intervals="exact",
+                        confidence_interval="exact",
                         verbose=TRUE)
 
 
