@@ -192,8 +192,7 @@ get_pop_incidence(db=db,
                   time_interval=c("Months"),
                   repetitive_events=FALSE) %>%
   filter(calendar_year=="2014") %>%
-  summarise(n_persons=length(unique(working_pop$person_id)),
-            person_days=sum(person_days),
+  summarise(person_days=sum(person_days),
             person_months=sum(person_months),
             person_years=sum(person_years),
             n_events=sum(n_events))
@@ -207,8 +206,7 @@ get_pop_incidence(db=db,
                   time_interval=c("Years"),
                   repetitive_events=FALSE) %>%
   filter(calendar_year=="2014") %>%
-  summarise(n_persons=length(unique(working_pop$person_id)),
-            person_days=sum(person_days),
+  summarise(person_days=sum(person_days),
             person_months=sum(person_months),
             person_years=sum(person_years),
             n_events=sum(n_events))
