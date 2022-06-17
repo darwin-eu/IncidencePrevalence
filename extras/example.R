@@ -125,6 +125,11 @@ dplyr::tbl(db, dplyr::sql(glue::glue(
 
 
 # dementia ----
+dementia_outcome_id<-cohortDefinitionSet %>%
+  filter(cohortName=="dementia") %>%
+  select(cohortId) %>%
+  pull()
+
 denominator_pop_dementia<-collect_denominator_pops(db,
                          cdm_database_schema,
                          study_start_date=as.Date("2014-01-01"),
@@ -137,7 +142,7 @@ denominator_pop_dementia<-collect_denominator_pops(db,
 ir_dementia_1y<-get_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
                         table_name_outcome=outcomecohortTableStem,
-                        cohort_id_outcome=1,
+                        cohort_id_outcome=dementia_outcome_id,
                         study_denominator_pop=denominator_pop_dementia,
                         cohort_id_denominator_pop=1,
                         time_interval=c("Months"),
@@ -148,7 +153,7 @@ ir_dementia_1y<-get_pop_incidence(db=db,
 ir_dementia_all_hist<-get_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
                         table_name_outcome=outcomecohortTableStem,
-                        cohort_id_outcome=1,
+                        cohort_id_outcome=dementia_outcome_id,
                         study_denominator_pop=denominator_pop_dementia,
                         cohort_id_denominator_pop=1,
                         time_interval=c("Months"),
@@ -246,6 +251,11 @@ collect_pop_incidence(db,
             n_events=sum(n_events))
 
 # influenza -------
+influenza_outcome_id<-cohortDefinitionSet %>%
+  filter(cohortName=="influenza") %>%
+  select(cohortId) %>%
+  pull()
+
 denominator_pop_influenza<-collect_denominator_pops(db,
                          cdm_database_schema,
                          study_start_date=as.Date("2014-01-01"),
@@ -258,7 +268,7 @@ denominator_pop_influenza<-collect_denominator_pops(db,
 ir_influenza_0<-get_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
                         table_name_outcome=outcomecohortTableStem,
-                        cohort_id_outcome=3,
+                        cohort_id_outcome=influenza_outcome_id,
                         study_denominator_pop=denominator_pop_influenza,
                         cohort_id_denominator_pop="1",
                         time_interval=c("Months"),
@@ -269,7 +279,7 @@ ir_influenza_0<-get_pop_incidence(db=db,
 ir_influenza_60<-get_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
                         table_name_outcome=outcomecohortTableStem,
-                        cohort_id_outcome=3,
+                        cohort_id_outcome=influenza_outcome_id,
                         study_denominator_pop=denominator_pop_influenza,
                         cohort_id_denominator_pop="1",
                         time_interval=c("Months"),
@@ -280,7 +290,7 @@ ir_influenza_60<-get_pop_incidence(db=db,
 ir_influenza_all_hist<-get_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
                         table_name_outcome=outcomecohortTableStem,
-                        cohort_id_outcome=3,
+                        cohort_id_outcome=influenza_outcome_id,
                         study_denominator_pop=denominator_pop_influenza,
                         cohort_id_denominator_pop=NULL,
                         time_interval=c("Months"),
@@ -289,11 +299,15 @@ ir_influenza_all_hist<-get_pop_incidence(db=db,
                         confidence_interval="exact",
                         verbose=TRUE)
 
-
-bind_rows(ir_influenza_0 %>% mutate(type="0"),
+plot_data<-bind_rows(ir_influenza_0 %>% mutate(type="0"),
           ir_influenza_60 %>% mutate(type="60"),
           ir_influenza_all_hist %>% mutate(type="All")) %>%
-    mutate(year_months=paste0(calendar_year, "-", calendar_month)) %>%
+    mutate(year_months=paste0(calendar_year, "-", calendar_month))
+lev<-unique(plot_data$year_months)
+
+plot_data %>%
+    mutate(year_months=factor(year_months,
+                               levels=lev)) %>%
   ggplot(aes(group=type, colour=type))+
   geom_point(aes(year_months, ir),
               position=position_dodge(width=0.5))+
@@ -304,27 +318,15 @@ bind_rows(ir_influenza_0 %>% mutate(type="0"),
 
 
 
-
-
-
-
-
-
-
-
-
-
-
+# multiple age and sex strata
 study_pops<-collect_denominator_pops(db,
                          cdm_database_schema,
                          study_start_date=as.Date("2012-01-01"),
-                         study_end_date=as.Date("2014-12-31"),
-                         study_age_stratas = list(c(10,15), c(16,20), c(10,20)),
+                         study_end_date=as.Date("2016-01-01"),
+                         study_age_stratas = list(c(10,18), c(19,65), c(66,100)),
                          study_sex_stratas = c("Male", "Female", "Both"),
-                         study_days_prior_history =c(0,365),
+                         study_days_prior_history =c(365),
                          verbose = TRUE)
-tictoc::toc()
-
 study_pops %>%
   group_by(cohort_definition_id,
            age_strata, sex_strata,
@@ -335,31 +337,37 @@ study_pops %>%
 
 
 
-ir<-calculate_pop_incidence(db=db,
+ir<-  collect_pop_incidence(db,
                         results_schema_outcome="results21t2_test",
-                        table_name_outcome="cohorts",
-                                    cohort_id_outcome=1,
-                                    study_denominator_pop=study_pops,
-                                    cohort_id_denominator_pop="17",
-                                    time_interval=c("Months"),
-                                    prior_event_lookback=NULL,
-                                    repetitive_events=FALSE,
-                                    confidence_intervals="exact",
-                                    verbose=FALSE)
+                                  cohort_ids_outcomes=influenza_outcome_id,
+                                  study_denominator_pop=study_pops,
+                                  cohort_ids_denominator_pops=unique(study_pops$cohort_definition_id),
+                                  time_intervals = c( "Years"),
+                                  prior_event_lookbacks=0,
+                                  repetitive_events=TRUE,
+                                  confidence_intervals="exact",
+                                  verbose = FALSE)
 
-ir2<-calculate_pop_incidence(db=db,
-                        results_schema_outcome="results21t2_test",
-                        table_name_outcome="cohorts",
-                                    cohort_id_outcome=1,
-                                    study_denominator_pop=study_pops,
-                                    cohort_id_denominator_pop="17",
-                                    time_interval=c("Years"),
-                                    prior_event_lookback=NULL,
-                                    repetitive_events=FALSE,
-                                    confidence_intervals="exact",
-                                    verbose=FALSE)
+
+
+ir %>%
+  ggplot(aes(group=cohort_definition_id,
+             colour=cohort_definition_id))+
+  facet_grid(sex_strata ~ age_strata) +
+  geom_point(aes(calendar_year, ir),
+              position=position_dodge(width=0.5))+
+  geom_errorbar(aes(x=calendar_year, ymin=ir_low, ymax=ir_high),
+                 position=position_dodge(width=0.5))+
+  ylim(0, NA)
+
 
 # covid -------
+covid_outcome_id<-cohortDefinitionSet %>%
+  filter(cohortName=="SARS-CoV-2 PCR positive test") %>%
+  select(cohortId) %>%
+  pull()
+
+
 denominator_pop_covid<-collect_denominator_pops(db,
                          cdm_database_schema,
                          study_start_date=as.Date("2020-03-01"),
@@ -372,7 +380,7 @@ denominator_pop_covid<-collect_denominator_pops(db,
 ir_covid<-get_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
                         table_name_outcome=outcomecohortTableStem,
-                        cohort_id_outcome=4,
+                        cohort_id_outcome=covid_outcome_id,
                         study_denominator_pop=denominator_pop_covid,
                         cohort_id_denominator_pop="1",
                         time_interval=c("Months"),
@@ -383,7 +391,7 @@ ir_covid<-get_pop_incidence(db=db,
 ir_covid_repetitive<-get_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
                         table_name_outcome=outcomecohortTableStem,
-                        cohort_id_outcome=4,
+                        cohort_id_outcome=covid_outcome_id,
                         study_denominator_pop=denominator_pop_covid,
                         cohort_id_denominator_pop="1",
                         time_interval=c("Months"),
@@ -404,13 +412,16 @@ plot_data %>%
   geom_point(aes(year_months, ir),
               position=position_dodge(width=0.5))+
   geom_errorbar(aes(x=year_months, ymin=ir_low, ymax=ir_high),
-                 position=position_dodge(width=0.5))
+                 position=position_dodge(width=0.5))+
+  ylim(0,NA)
 
 
 # how does this compare to what we would expect (in general)
 # based on the outcome table start dates
-a<-outcome_db %>%
-  filter(cohort_id_outcome=="4") %>%
+a<-dplyr::tbl(db, dplyr::sql(glue::glue(
+    "SELECT * FROM results21t2_test.{outcomecohortTableStem}"
+  ))) %>%
+  filter(cohort_definition_id==covid_outcome_id) %>%
   select(cohort_start_date) %>%
   collect()
 
