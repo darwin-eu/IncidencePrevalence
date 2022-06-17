@@ -93,19 +93,35 @@ CohortGenerator::dropCohortStatsTables(
     cohortTableNames = cohortTableNames,
     connection = NULL)
 
-
+# rows for each outcome
+# nb, depending on outcome definition, one person may
+# contribute multiple rows
 dplyr::tbl(db, dplyr::sql(glue::glue(
     "SELECT * FROM {results_database_schema}.{outcomecohortTableStem}"
   ))) %>%
   group_by(cohort_definition_id) %>%
-  tally()
+  tally()%>%
+  arrange(cohort_definition_id)
 
+# n of people per cohort
+dplyr::tbl(db, dplyr::sql(glue::glue(
+    "SELECT * FROM {results_database_schema}.{outcomecohortTableStem}"
+  ))) %>%
+  select(cohort_definition_id, subject_id) %>%
+  distinct() %>%
+  group_by(cohort_definition_id) %>%
+  tally()%>%
+  arrange(cohort_definition_id)
+
+# maximum rows per person per outcome
+# i.e. max number of times someone has an outcome
 dplyr::tbl(db, dplyr::sql(glue::glue(
     "SELECT * FROM {results_database_schema}.{outcomecohortTableStem}"
   ))) %>%
   group_by(cohort_definition_id, subject_id) %>%
   tally() %>%
-  summarise(max(n, na.rm=TRUE))
+  summarise(max(n, na.rm=TRUE)) %>%
+  arrange(cohort_definition_id)
 
 
 # dementia ----
@@ -128,7 +144,7 @@ ir_dementia_1y<-get_pop_incidence(db=db,
                         prior_event_lookback=365,
                         repetitive_events=FALSE,
                         confidence_interval="exact",
-                        verbose=FALSE)
+                        verbose=TRUE)
 ir_dementia_all_hist<-get_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
                         table_name_outcome=outcomecohortTableStem,
@@ -342,3 +358,69 @@ ir2<-calculate_pop_incidence(db=db,
                                     repetitive_events=FALSE,
                                     confidence_intervals="exact",
                                     verbose=FALSE)
+
+# covid -------
+denominator_pop_covid<-collect_denominator_pops(db,
+                         cdm_database_schema,
+                         study_start_date=as.Date("2020-03-01"),
+                         study_end_date=as.Date("2021-04-01"),
+                         study_age_stratas = NULL,
+                         study_sex_stratas = "Both",
+                         study_days_prior_history =365,
+                         verbose = TRUE)
+
+ir_covid<-get_pop_incidence(db=db,
+                        results_schema_outcome="results21t2_test",
+                        table_name_outcome=outcomecohortTableStem,
+                        cohort_id_outcome=4,
+                        study_denominator_pop=denominator_pop_covid,
+                        cohort_id_denominator_pop="1",
+                        time_interval=c("Months"),
+                        prior_event_lookback=21,
+                        repetitive_events=FALSE,
+                        confidence_interval="exact",
+                        verbose=TRUE)
+ir_covid_repetitive<-get_pop_incidence(db=db,
+                        results_schema_outcome="results21t2_test",
+                        table_name_outcome=outcomecohortTableStem,
+                        cohort_id_outcome=4,
+                        study_denominator_pop=denominator_pop_covid,
+                        cohort_id_denominator_pop="1",
+                        time_interval=c("Months"),
+                        prior_event_lookback=21,
+                        repetitive_events=TRUE,
+                        confidence_interval="exact",
+                        verbose=TRUE)
+
+plot_data<-bind_rows(ir_covid %>% mutate(type="Without repetitive events"),
+          ir_covid_repetitive %>% mutate(type="With repetitive events")) %>%
+    mutate(year_months=paste0(calendar_year, "-", calendar_month))
+lev<-unique(plot_data$year_months)
+
+plot_data %>%
+  mutate(year_months=factor(year_months,
+                               levels=lev)) %>%
+  ggplot(aes(group=type, colour=type))+
+  geom_point(aes(year_months, ir),
+              position=position_dodge(width=0.5))+
+  geom_errorbar(aes(x=year_months, ymin=ir_low, ymax=ir_high),
+                 position=position_dodge(width=0.5))
+
+
+# how does this compare to what we would expect (in general)
+# based on the outcome table start dates
+a<-outcome_db %>%
+  filter(cohort_id_outcome=="4") %>%
+  select(cohort_start_date) %>%
+  collect()
+
+a %>%
+  ggplot() +
+  geom_histogram(aes(cohort_start_date), binwidth = 3)+
+  scale_x_date(date_breaks = "1 month", date_minor_breaks = "1 week",
+             date_labels = "%B")
+
+
+
+
+

@@ -109,6 +109,17 @@ get_pop_incidence <- function(db,
   # report initial assertions
   checkmate::reportAssertions(collection = error_message)
 
+  if(verbose==TRUE){
+    message("Inputs checked and all initial assertions passed")
+  }
+
+    if(verbose==TRUE){
+    mem_in_use<- lobstr::mem_used()[1]
+    mem_in_use_gb<- glue::glue("{round(mem_in_use*0.000000001,2)} gb")
+    message(glue::glue("Current memory used: {mem_in_use_gb}"))
+  }
+
+
 
   ## Analysis code
   # bring in study popupulation
@@ -132,6 +143,11 @@ get_pop_incidence <- function(db,
     )
   }
   checkmate::reportAssertions(collection = error_message)
+
+    if(verbose==TRUE){
+    message("Check passed: one or more people in denominator")
+  }
+
 
   # link to outcome cohort
   outcome_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
@@ -165,13 +181,27 @@ get_pop_incidence <- function(db,
   }
   checkmate::reportAssertions(collection = error_message)
 
+  if(verbose==TRUE){
+    message("Check passed: one or more outcomes identified")
+  }
+
+
   # bring outcomes into memory
+    if(verbose==TRUE){
+    message("Bringing outcomes into memory")
+  }
   outcome <- outcome_db %>%
     dplyr::rename("person_id" = "subject_id") %>%
     dplyr::rename("outcome_start_date" = "cohort_start_date") %>%
     dplyr::rename("outcome_end_date" = "cohort_end_date") %>%
     dplyr::select("person_id", "outcome_start_date", "outcome_end_date") %>%
     dplyr::collect()
+
+      if(verbose==TRUE){
+    mem_in_use<- lobstr::mem_used()[1]
+    mem_in_use_gb<- glue::glue("{round(mem_in_use*0.000000001,2)} gb")
+    message(glue::glue("Current memory used: {mem_in_use_gb}"))
+  }
 
   # start date
   start_date <- min(study_pop$cohort_start_date)
