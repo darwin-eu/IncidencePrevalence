@@ -525,18 +525,8 @@ get_pop_incidence <- function(db,
   }
 
   if (confidence_interval == "exact") {
-    ci <- epiR::epi.conf(as.matrix(ir %>%
-      dplyr::select("n_events", "person_months")),
-    ctype = "inc.rate",
-    method = confidence_interval,
-    N = 100000,
-    design = 1,
-    conf.level = 0.95
-    ) * 100000
-    ci <- ci %>%
-      dplyr::select("lower", "upper") %>%
-      dplyr::rename("ir_low" = "lower") %>%
-      dplyr::rename("ir_high" = "upper")
+    ci <- tibble(ir_low = qchisq(0.05/2, df=2*(ir$n_events-1))/2/ir$person_months*100000,
+                 ir_high = qchisq(1-0.05/2, df=2*ir$n_events)/2/ir$person_months*100000)
 
     ir <- dplyr::bind_cols(ir, ci) %>%
       dplyr::relocate(.data$ir_low, .before = .data$calendar_month) %>%
