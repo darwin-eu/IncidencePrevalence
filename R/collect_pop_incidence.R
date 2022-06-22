@@ -134,7 +134,7 @@ collect_pop_incidence <- function(db,
 # get irs
 irs<-lapply(study_specs, function(x) {
 get_pop_incidence(db=db,
-                  results_schema_outcome="results21t2_test",
+                  results_schema_outcome=results_schema_outcomes,
                   table_name_outcome=outcomecohortTableStem,
                   cohort_id_outcome=x$cohort_id_outcome,
                   study_denominator_pop=study_denominator_pop,
