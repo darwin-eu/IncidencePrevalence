@@ -32,6 +32,11 @@ get_denominator_pop <- function(db,
                                 sex = "Both",
                                 days_prior_history = 0,
                                 verbose = FALSE) {
+
+      if (verbose == TRUE) {
+        start <- Sys.time()
+        }
+
   if (!is.null(start_date)) {
     if (is.na(start_date)) {
       start_date <- NULL
@@ -41,6 +46,10 @@ get_denominator_pop <- function(db,
     if (is.na(end_date)) {
       end_date <- NULL
     }
+  }
+
+  if (verbose == TRUE) {
+    message("  (Set member) Checking inputs")
   }
 
   ## check for standard types of user error
@@ -377,6 +386,14 @@ get_denominator_pop <- function(db,
   # variables to keep
   study_pop <- study_pop %>%
     dplyr::select("person_id", "cohort_start_date", "cohort_end_date")
+
+
+      if (verbose == TRUE) {
+      duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
+      message(glue::glue(
+        "  (Set member) Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      ))
+    }
 
   return(study_pop)
 }

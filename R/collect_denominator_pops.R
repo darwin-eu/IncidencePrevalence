@@ -32,6 +32,14 @@ collect_denominator_pops <- function(db,
                                      study_days_prior_history = 0,
                                      verbose = FALSE) {
 
+        if (verbose == TRUE) {
+        start <- Sys.time()
+        }
+
+    if (verbose == TRUE) {
+    message("(Set) Checking inputs")
+  }
+
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
   db_inherits_check <- inherits(db, "DBIConnection")
@@ -70,11 +78,16 @@ collect_denominator_pops <- function(db,
   # report initial assertions
   checkmate::reportAssertions(collection = error_message)
 
+
+  if (verbose == TRUE) {
+    message("(Set) Defining denominator populations to collect")
+  }
+
   # add broadest possible age group if NULL
   if (is.null(study_age_stratas)) {
     study_age_stratas <- list(c(0, 150))
   }
-  # only allow multiple values of age and sex
+  # combinations of inputs
   age_gr_df <- data.frame(do.call(rbind, study_age_stratas)) %>%
     dplyr::mutate(age_range = paste0(.data$X1, ";", .data$X2))
   pop_specs <- tidyr::expand_grid(
@@ -99,13 +112,21 @@ collect_denominator_pops <- function(db,
   pop_specs <- pop_specs %>%
     dplyr::mutate(cohort_definition_id = as.character(dplyr::row_number()))
 
+  n_pops<-nrow(pop_specs)
+
   # to list
-  pop_specs <- split(
-    pop_specs,
-    pop_specs[, c("cohort_definition_id")]
-  )
+  pop_specs <- split(pop_specs,
+      factor(pop_specs$cohort_definition_id,
+             levels = unique(pop_specs$cohort_definition_id)))
+
   # get each population
   study_populations <- lapply(pop_specs, function(x) {
+
+    if(verbose==TRUE){
+    message(glue::glue(
+      "  (Set member) Fetching population {x$cohort_definition_id} of {n_pops}"))
+      }
+
     get_denominator_pop(
       db = db,
       cdm_database_schema = cdm_database_schema,
@@ -117,6 +138,7 @@ collect_denominator_pops <- function(db,
       days_prior_history = x$study_days_prior_history,
       verbose = TRUE
     ) %>%
+      # add specification for each population to output
       dplyr::mutate(
         study_start_date = x$study_start_date,
         study_end_date = x$study_end_date,
@@ -125,11 +147,16 @@ collect_denominator_pops <- function(db,
         required_days_prior_history = x$study_days_prior_history
       )
   })
-  # to tibble and add specification for each cohort
+  # to tibble
   study_populations <- dplyr::bind_rows(study_populations,
     .id = "cohort_definition_id"
   )
-
+        if (verbose == TRUE) {
+      duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
+      message(glue::glue(
+        "(Set) Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      ))
+    }
 
   return(study_populations)
 }
