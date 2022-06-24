@@ -90,3 +90,6 @@ devtools::document() #  Use roxygen to document a package.
 # source(here::here("extras", "precompute_vignette_data.R"))
 # devtools::build_vignettes()
 
+# usethis::use_github_actions()
+# usethis::use_github_action("lint")
+# usethis::use_github_action("test-coverage")

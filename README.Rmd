@@ -16,6 +16,7 @@ out.width = "100%"
 # OmopPopEpi
 
 <!-- badges: start -->
+[![R-CMD-check](https://github.com/edward-burn/OmopPopEpi/workflows/R-CMD-check/badge.svg)](https://github.com/edward-burn/OmopPopEpi/actions)
 <!-- badges: end -->
 
 ## Package overview
