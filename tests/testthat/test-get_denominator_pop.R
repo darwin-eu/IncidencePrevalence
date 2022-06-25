@@ -2,7 +2,7 @@ test_that("mock db checks", {
 
 # duckdb mock database
 db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
-# one person, two observation periods
+# one person, one observation periods
 person<-tibble(person_id="1",
        gender_concept_id="8507",
        year_of_birth=2000,
@@ -115,6 +115,7 @@ expect_true(nrow(dpop)==1)
 expect_true(dpop$cohort_start_date==as.Date("2010-01-01"))
 expect_true(dpop$cohort_end_date==as.Date("2010-06-01"))
 
+DBI::dbDisconnect(db)
 
 })
 

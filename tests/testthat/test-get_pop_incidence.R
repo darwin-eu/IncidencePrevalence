@@ -1,3 +1,51 @@
+test_that("mock db checks", {
+
+# duckdb mock database
+db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+
+person<-tibble(person_id=c("1","2"),
+       gender_concept_id=c("8507","8507"),
+       year_of_birth=c(2000,2000),
+       month_of_birth=c(01,01),
+       day_of_birth=c(01,01))
+observation_period<-tibble(observation_period_id=c("1","2"),
+       person_id=c("1","2"),
+       observation_period_start_date=rep(as.Date("2010-01-01"),2),
+       observation_period_end_date=rep(as.Date("2010-06-01"),2))
+outcome<-tibble(cohort_definition_id="1",
+                subject_id="1",
+                cohort_start_date=as.Date("2010-02-01"),
+                cohort_end_date=as.Date("2010-02-02") )
+
+
+DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "person", person,
+                      overwrite = TRUE)
+  })
+DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "observation_period", observation_period,
+                      overwrite = TRUE
+    )
+  })
+DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "outcome", outcome,
+                      overwrite = TRUE
+    )
+  })
+
+dpop<-collect_denominator_pops(db=db,
+                    cdm_database_schema=NULL)
+
+
+get_pop_incidence(db,
+                  results_schema_outcome=NULL,
+                  table_name_outcome="outcome",
+                  cohort_id_outcome="1",
+                  study_denominator_pop=dpop)
+
+})
+
+
 test_that("checks on working example", {
   library(DBI)
   library(RPostgres)

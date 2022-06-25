@@ -1,3 +1,22 @@
+#' Title
+#'
+#' @param db
+#' @param results_schema_outcome
+#' @param table_name_outcome
+#' @param cohort_id_outcome
+#' @param study_denominator_pop
+#' @param cohort_id_denominator_pop
+#' @param time_interval
+#' @param prior_event_lookback
+#' @param repetitive_events
+#' @param confidence_interval
+#' @param verbose
+#' @importFrom lubridate \%within\%
+#'
+#' @return
+#' @export
+#'
+#' @examples
 get_pop_incidence <- function(db,
                               results_schema_outcome,
                               table_name_outcome,
@@ -45,7 +64,8 @@ get_pop_incidence <- function(db,
     )
   }
   checkmate::assert_character(results_schema_outcome,
-    add = error_message
+    add = error_message,
+    null.ok = TRUE
   )
   checkmate::assert_character(cohort_id_outcome,
     add = error_message,
@@ -143,9 +163,13 @@ get_pop_incidence <- function(db,
 
 
   # link to outcome cohort
+    if(!is.null(cdm_database_schema)){
   outcome_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
     "SELECT * FROM {results_schema_outcome}.{table_name_outcome}"
   )))
+  } else {
+     outcome_db <- tbl(db, "outcome")
+  }
   error_message <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0,
     add = error_message
@@ -317,14 +341,18 @@ get_pop_incidence <- function(db,
       dplyr::select("person_id", "t_start_date", "t_end_date")
 
     # Add outcomes during period
-    working_pop <- working_pop %>%
-      dplyr::left_join(outcome,
+    working_pop<- working_pop %>%
+      left_join(
+    outcome %>%
+      dplyr::inner_join(working_pop,
         by = "person_id"
       ) %>%
-      dplyr::filter(is.na(.data$outcome_start_date) |
-                      .data$outcome_start_date >= .data$t_start_date) %>%
-      dplyr::filter(is.na(.data$outcome_start_date) |
-                      .data$outcome_start_date <= .data$t_end_date)
+      dplyr::filter(outcome_start_date %within%
+      lubridate::interval(t_start_date, t_end_date)
+      ) %>%
+      select("person_id", "outcome_start_date", "outcome_end_date"),
+    by = "person_id"
+    )
 
     # now we may have multiple rows
     # if repetitive events=TRUE
@@ -384,8 +412,6 @@ get_pop_incidence <- function(db,
       ) %>%
         dplyr::arrange(.data$person_id)
     }
-
-
 
     # Exclusions based on events prior to current start date
     outcome_prior <- outcome %>%
