@@ -355,7 +355,7 @@ get_pop_incidence <- function(db,
     )
 
     # now we may have multiple rows
-    # if repetitive events=TRUE
+    # if repetitive events=TRUE,
     # so we will reformat
     # t_start_date for subsequent events starts at end date of last outcome
     # extra period of time at risk after last event
@@ -363,7 +363,7 @@ get_pop_incidence <- function(db,
     if (repetitive_events == TRUE) {
       working_outcome_pop <- working_pop %>%
         dplyr::filter(!is.na(.data$outcome_start_date))
-      # add one more row per person with no outcome
+      # add one more row per person, with no outcome
       working_outcome_pop <- dplyr::bind_rows(
         working_outcome_pop,
         working_outcome_pop %>%
@@ -377,7 +377,7 @@ get_pop_incidence <- function(db,
       working_outcome_pop <- working_outcome_pop %>%
         dplyr::group_by(.data$person_id) %>%
         dplyr::mutate(
-          t_start_date_new = dplyr::lag(.data$outcome_end_date),
+          t_start_date_new = dplyr::lag(.data$outcome_end_date)+lubridate::days(1),
           t_end_date_prev = dplyr::lag(.data$t_end_date)
         )
       # drop if t_start_date is same as t_end_date_prev
@@ -400,6 +400,7 @@ get_pop_incidence <- function(db,
       # t_end_date to outcome_start_date
       working_outcome_pop <- working_outcome_pop %>%
         dplyr::mutate(t_end_date = dplyr::if_else(
+           !is.na(.data$outcome_start_date) &
           .data$t_end_date > .data$outcome_start_date,
           .data$outcome_start_date, .data$t_end_date
         ))
@@ -428,10 +429,6 @@ get_pop_incidence <- function(db,
       dplyr::filter(.data$diff_days >= 0)
 
     # keep most recent
-    # note for repetitive events= TRUE, by
-    # definition the subsequent events will have
-    # zero days since last outcome
-    # (as that is what we assigned above)
     if (nrow(outcome_prior) >= 1) {
       outcome_prior <- outcome_prior %>%
         dplyr::group_by(.data$person_id, .data$t_start_date) %>%

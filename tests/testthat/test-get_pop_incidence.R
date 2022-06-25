@@ -2,22 +2,23 @@ test_that("mock db checks", {
 
 # duckdb mock database
 db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
-
-person<-tibble(person_id=c("1","2"),
-       gender_concept_id=c("8507","8507"),
-       year_of_birth=c(2000,2000),
-       month_of_birth=c(01,01),
-       day_of_birth=c(01,01))
-observation_period<-tibble(observation_period_id=c("1","2"),
-       person_id=c("1","2"),
-       observation_period_start_date=rep(as.Date("2010-01-01"),2),
-       observation_period_end_date=rep(as.Date("2010-06-01"),2))
+person<-tibble(person_id="1",
+       gender_concept_id="8507",
+       year_of_birth=2000,
+       month_of_birth=01,
+       day_of_birth=,01)
+observation_period<-tibble(observation_period_id="1",
+       person_id="1",
+       observation_period_start_date=as.Date("2010-01-01"),
+       observation_period_end_date=as.Date("2010-06-01"))
 outcome<-tibble(cohort_definition_id="1",
                 subject_id="1",
-                cohort_start_date=as.Date("2010-02-01"),
-                cohort_end_date=as.Date("2010-02-02") )
-
-
+                cohort_start_date=c(as.Date("2010-02-05"),
+                                    as.Date("2010-02-08"),
+                                    as.Date("2010-02-20")),
+                cohort_end_date=c(as.Date("2010-02-05"),
+                                    as.Date("2010-02-08"),
+                                    as.Date("2010-02-20")))
 DBI::dbWithTransaction(db, {
     DBI::dbWriteTable(db, "person", person,
                       overwrite = TRUE)
@@ -32,16 +33,35 @@ DBI::dbWithTransaction(db, {
                       overwrite = TRUE
     )
   })
-
 dpop<-collect_denominator_pops(db=db,
                     cdm_database_schema=NULL)
-
-
-get_pop_incidence(db,
+inc<-get_pop_incidence(db,
                   results_schema_outcome=NULL,
                   table_name_outcome="outcome",
                   cohort_id_outcome="1",
-                  study_denominator_pop=dpop)
+                  study_denominator_pop=dpop,
+                  repetitive_events = FALSE)
+expect_true(sum(inc$n_events)==1)
+inc<-get_pop_incidence(db,
+                  results_schema_outcome=NULL,
+                  table_name_outcome="outcome",
+                  cohort_id_outcome="1",
+                  study_denominator_pop=dpop,
+                  repetitive_events = TRUE,
+                  prior_event_lookback=2)
+expect_true(sum(inc$n_events)==3)
+inc<-get_pop_incidence(db,
+                  results_schema_outcome=NULL,
+                  table_name_outcome="outcome",
+                  cohort_id_outcome="1",
+                  study_denominator_pop=dpop,
+                  repetitive_events = TRUE,
+                  prior_event_lookback=10)
+expect_true(sum(inc$n_events)==2)
+
+
+
+
 
 })
 
