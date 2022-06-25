@@ -7,6 +7,8 @@ library(RPostgreSQL)
 library(DBI)
 library(dbplyr)
 library(dplyr)
+library(CirceR)
+library(stringr)
 
 
 # library(CirceR)
@@ -115,14 +117,14 @@ results_database_schema<-"results21t2_cmbd"
 outcomecohortTableStem<-"EB_OmopPopEpi_covid"
 
 # build results cohorts -----
-cohortJsonFiles <- list.files(here("extras", "outcome_cohorts"))
+cohortJsonFiles <- list.files(here("inst", "outcome_cohorts"))
 cohortJsonFiles <- cohortJsonFiles[str_detect(cohortJsonFiles,"covid")]
 cohortJsonFiles <- cohortJsonFiles[str_detect(cohortJsonFiles,"reinfection", negate = TRUE)]
 cohortJsonFiles <- cohortJsonFiles[str_detect(cohortJsonFiles,".json")]
 
 cohortDefinitionSet <- list()
 for(i in 1:length(cohortJsonFiles)){
-working.json<-here("extras", "outcome_cohorts",
+working.json<-here("inst", "outcome_cohorts",
                       cohortJsonFiles[i])
 cohortJson <- readChar(working.json, file.info(working.json)$size)
 cohortExpression <- cohortExpressionFromJson(cohortJson) # generates the sql
@@ -259,7 +261,7 @@ ggsave("covid_hospitalisation_ir.png",
 
 # covid diag or test ----
 covid_outcome_id<-cohortDefinitionSet %>%
-  filter(cohortName=="covid") %>%
+  filter(cohortName=="covid_diagnosis_or_test_positive") %>%
   select(cohortId) %>%
   pull()
 

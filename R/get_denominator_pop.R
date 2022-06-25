@@ -64,7 +64,7 @@ get_denominator_pop <- function(db,
     )
   }
   checkmate::assert_character(cdm_database_schema,
-    add = error_message
+    add = error_message,null.ok = TRUE
   )
   checkmate::assert_date(start_date,
     add = error_message,
@@ -129,12 +129,21 @@ get_denominator_pop <- function(db,
   ## check person and observation_period tables exist
   # connect to relevant vocabulary tables
   # will return informative error if not found
+  if(!is.null(cdm_database_schema)){
   person_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
     "SELECT * FROM {cdm_database_schema}.person"
   )))
+  } else {
+     person_db <- tbl(db, "person")
+  }
+
+  if(!is.null(cdm_database_schema)){
   observation_period_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
     "SELECT * FROM {cdm_database_schema}.observation_period"
   )))
+  } else {
+     observation_period_db <- tbl(db, "observation_period")
+  }
 
   # make sure names are lowercase
   person_db <- dplyr::rename_with(person_db, tolower) %>%
@@ -285,7 +294,13 @@ get_denominator_pop <- function(db,
     dplyr::compute()
 
   ## bring in to memory and finalise population
-  study_pop <- study_pop_db %>% dplyr::collect()
+  study_pop <- study_pop_db %>%
+    dplyr::collect()
+
+    if (nrow(study_pop) == 0) {
+    study_pop
+    message("-- No people found for denominator population")
+  } else {
 
   # get date of birth
   study_pop <- study_pop %>%
@@ -396,4 +411,6 @@ get_denominator_pop <- function(db,
     }
 
   return(study_pop)
+  }
+
 }

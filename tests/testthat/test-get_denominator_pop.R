@@ -1,4 +1,127 @@
-test_that("various checks for working example", {
+test_that("mock db checks", {
+
+# duckdb mock database
+db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+# one person, two observation periods
+person<-tibble(person_id="1",
+       gender_concept_id="8507",
+       year_of_birth=2000,
+       month_of_birth=06,
+       day_of_birth=01)
+observation_period<-tibble(observation_period_id="1",
+       person_id="1",
+       observation_period_start_date=as.Date("2010-01-01"),
+       observation_period_end_date=as.Date("2010-06-01"))
+DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "person", person,
+                      overwrite = TRUE)
+  })
+DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "observation_period", observation_period,
+                      overwrite = TRUE
+    )
+  })
+
+dpop<-get_denominator_pop(db=db,
+                    cdm_database_schema=NULL)
+expect_true(nrow(dpop)==1)
+expect_true(dpop$cohort_start_date==as.Date("2010-01-01"))
+expect_true(dpop$cohort_end_date==as.Date("2010-06-01"))
+
+dpop<-get_denominator_pop(db=db,
+                    cdm_database_schema=NULL,
+                    start_date=as.Date("2010-02-15"),
+                    end_date = as.Date("2010-05-15"))
+expect_true(nrow(dpop)==1)
+expect_true(dpop$cohort_start_date==as.Date("2010-02-15"))
+expect_true(dpop$cohort_end_date==as.Date("2010-05-15"))
+
+
+dpop1<-get_denominator_pop(db=db,
+                    cdm_database_schema=NULL,
+                    sex="Male")
+dpop2<-get_denominator_pop(db=db,
+                    cdm_database_schema=NULL,
+                    sex="Both")
+dpop3<-get_denominator_pop(db=db,
+                    cdm_database_schema=NULL,
+                    sex="Female")
+expect_true(nrow(dpop1)==1)
+expect_true(nrow(dpop2)==1)
+expect_true(is.null(dpop3))
+
+# check min_age
+dpop<-get_denominator_pop(db=db,
+                    cdm_database_schema=NULL,
+                    min_age=10)
+expect_true(nrow(dpop)==1)
+# start date is now date of 10th birthday
+expect_true(dpop$cohort_start_date==as.Date("2010-06-01"))
+
+# check max_age
+dpop<-get_denominator_pop(db=db,
+                    cdm_database_schema=NULL,
+                    max_age=10)
+expect_true(nrow(dpop)==1)
+
+# end date is now date of 10th birthday
+## SHOULD IT NOT BE DAY BEFORE 11th BIRTHDAY?
+expect_true(dpop$cohort_end_date==as.Date("2010-06-01"))
+
+
+
+
+
+
+
+
+# one person, two observation periods
+person<-tibble(person_id="1",
+       gender_concept_id="8507",
+       year_of_birth=2000,
+       month_of_birth=06,
+       day_of_birth=01)
+observation_period<-tibble(observation_period_id=c("1","2"),
+       person_id=rep("1",2),
+       observation_period_start_date=c(as.Date("2010-01-01"),as.Date("2011-01-01")),
+       observation_period_end_date=c(as.Date("2010-06-01"),as.Date("2011-06-01")))
+DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "person", person,
+                      overwrite = TRUE)
+  })
+DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "observation_period", observation_period,
+                      overwrite = TRUE
+    )
+  })
+# expect two rows
+# one per onservation period
+dpop<-get_denominator_pop(db=db,
+                    cdm_database_schema=NULL)
+expect_true(nrow(dpop)==2)
+# expect one rows- onservation period in 2011
+dpop<-get_denominator_pop(db=db,
+                    cdm_database_schema=NULL,
+                    start_date=as.Date("2011-01-01"))
+expect_true(nrow(dpop)==1)
+expect_true(dpop$cohort_start_date==as.Date("2011-01-01"))
+expect_true(dpop$cohort_end_date==as.Date("2011-06-01"))
+
+# expect one rows- onservation period in 2010
+dpop<-get_denominator_pop(db=db,
+                    cdm_database_schema=NULL,
+                    end_date=as.Date("2010-12-31"))
+expect_true(nrow(dpop)==1)
+expect_true(dpop$cohort_start_date==as.Date("2010-01-01"))
+expect_true(dpop$cohort_end_date==as.Date("2010-06-01"))
+
+
+})
+
+
+
+test_that("various checks for working example full db", {
+# full database
   library(DBI)
   library(RPostgres)
   db <- DBI::dbConnect(RPostgres::Postgres(),
