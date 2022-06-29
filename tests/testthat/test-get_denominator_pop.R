@@ -119,8 +119,6 @@ DBI::dbDisconnect(db)
 
 })
 
-
-
 test_that("various checks for working example full db", {
 # full database
   library(DBI)
@@ -337,7 +335,7 @@ test_that("expected errors", {
   DBI::dbDisconnect(db)
 })
 
-test_that("edge cases where zero row result should be returned", {
+test_that("edge cases where NULL result should be returned", {
   library(DBI)
   library(RPostgres)
   db <- DBI::dbConnect(RPostgres::Postgres(),
@@ -349,7 +347,7 @@ test_that("edge cases where zero row result should be returned", {
   )
   cdm_database_schema <- "omop21t2_test"
 
-  expect_true(nrow(get_denominator_pop(
+  expect_true(is.null(get_denominator_pop(
     db = db,
     cdm_database_schema = cdm_database_schema,
     start_date = as.Date("2100-01-01"),
@@ -359,9 +357,9 @@ test_that("edge cases where zero row result should be returned", {
     sex = c("Both"),
     days_prior_history = 0,
     verbose = FALSE
-  )) == 0)
+  )))
 
-  expect_true(nrow(get_denominator_pop(
+  expect_true(is.null(get_denominator_pop(
     db = db,
     cdm_database_schema = cdm_database_schema,
     start_date = NULL,
@@ -371,9 +369,9 @@ test_that("edge cases where zero row result should be returned", {
     sex = c("Both"),
     days_prior_history = 0,
     verbose = FALSE
-  )) == 0)
+  )))
 
-  expect_true(nrow(get_denominator_pop(
+  expect_true(is.null(get_denominator_pop(
     db = db,
     cdm_database_schema = cdm_database_schema,
     start_date = NULL,
@@ -383,10 +381,10 @@ test_that("edge cases where zero row result should be returned", {
     sex = c("Both"),
     days_prior_history = 0,
     verbose = FALSE
-  )) == 0)
+  )))
 
 
-  expect_true(nrow(get_denominator_pop(
+  expect_true(is.null(get_denominator_pop(
     db = db,
     cdm_database_schema = cdm_database_schema,
     start_date = NULL,
@@ -396,7 +394,7 @@ test_that("edge cases where zero row result should be returned", {
     sex = c("Both"),
     days_prior_history = 1000,
     verbose = FALSE
-  )) == 0)
+  )))
 
 
   DBI::dbDisconnect(db)

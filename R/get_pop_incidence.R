@@ -534,8 +534,22 @@ get_pop_incidence <- function(db,
   }
 
   if (confidence_interval == "exact") {
-    ci <- tibble(ir_low = qchisq(0.05/2, df=2*(ir$n_events-1))/2/ir$person_months*100000,
-                 ir_high = qchisq(1-0.05/2, df=2*ir$n_events)/2/ir$person_months*100000)
+
+    ci <- ir %>%
+      left_join(
+    ir %>%
+      filter(n_events>=1) %>%
+      mutate(ir_low=(qchisq(0.05/2, df=2*(n_events-1))/2/person_months*100000)) %>%
+      mutate(ir_high=(qchisq(1-0.05/2, df=2*n_events)/2/person_months*100000))) %>%
+      select(ir_low,ir_high) %>%
+      mutate(ir_low=if_else(is.na(ir_low), 0, ir_low)) %>%
+      mutate(ir_high=if_else(is.na(ir_high), 0, ir_high))
+
+    # ci <- tibble(ir_low = if_else(ir$n_events>10,
+    #               (qchisq(0.05/2, df=2*(ir$n_events-1))/2/ir$person_months*100000),
+    #              0),
+    #              ir_high = if_else(ir$n_events>10,
+    #             qchisq(1-0.05/2, df=2*ir$n_events)/2/ir$person_months*100000,0))
 
     ir <- dplyr::bind_cols(ir, ci) %>%
       dplyr::relocate(.data$ir_low, .before = .data$calendar_month) %>%

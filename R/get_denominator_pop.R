@@ -160,71 +160,24 @@ get_denominator_pop <- function(db,
     "person_id", "gender_concept_id", "year_of_birth",
     "month_of_birth", "day_of_birth"
   )
-  for (i in seq_along(person_db_names)) {
-    variable_check <- exists(person_db_names[i], where = person_db %>%
-      utils::head(1) %>%
-      dplyr::collect())
-    if (!isTRUE(variable_check)) {
-      checkmate::assertTRUE(variable_check, add = error_message)
-      error_message$push(glue::glue(
-        "- Variable {person_db_names[i]} not found in person table"
-      ))
-    }
-  }
+    person_db_names_check <- all(person_db_names %in%
+      names(person_db %>%
+       utils::head(1) %>%
+       dplyr::collect() %>%
+       dplyr::rename_with(tolower)))
+  checkmate::assertTRUE(person_db_names_check, add = error_message)
+
   # observation_period table
-  observation_period_db_names <- c(
+  obs_period_db_names <- c(
     "observation_period_id", "person_id",
     "observation_period_start_date", "observation_period_end_date"
   )
-  for (i in seq_along(observation_period_db_names)) {
-    variable_check <- exists(observation_period_db_names[i],
-      where = observation_period_db %>%
-        utils::head(1) %>%
-        dplyr::collect()
-    )
-    if (!isTRUE(variable_check)) {
-      checkmate::assertTRUE(variable_check, add = error_message)
-      error_message$push(
-        glue::glue(
-          "- Variable {observation_period_db_names[i]}
-          not found in observation_period table"
-        )
-      )
-    }
-  }
-
-  # check data
-  person_n_check <- (person_db %>%
-    dplyr::tally() %>%
-    dplyr::collect() %>%
-    dplyr::pull()) >= 100
-  if (!isTRUE(person_n_check)) {
-    error_message$push(
-      "- Less than 100 rows in person table "
-    )
-  }
-
-  person_year_of_birth_check <- nrow(person_db %>%
-    dplyr::filter(is.na("year_of_birth")) %>%
-    dplyr::collect()) == 0
-  if (!isTRUE(person_year_of_birth_check)) {
-    error_message$push(
-      "- People in person table missing year of birth"
-    )
-  }
-
-  observation_period_n_check <- (observation_period_db %>%
-    dplyr::select("person_id") %>%
-    dplyr::distinct() %>%
-    dplyr::tally() %>%
-    dplyr::collect() %>%
-    dplyr::pull()) >= 100
-  if (!isTRUE(person_n_check)) {
-    error_message$push(
-      "- Less than 100 rows in person table "
-    )
-  }
-
+    obs_period_db_names_check <- all(obs_period_db_names %in%
+      names(observation_period_db %>%
+       utils::head(1) %>%
+       dplyr::collect() %>%
+       dplyr::rename_with(tolower)))
+  checkmate::assertTRUE(obs_period_db_names_check, add = error_message)
 
   ## Identifying population of interest
   # Optional arguments to values
@@ -298,8 +251,8 @@ get_denominator_pop <- function(db,
     dplyr::collect()
 
     if (nrow(study_pop) == 0) {
-    study_pop
     message("-- No people found for denominator population")
+    return(NULL)
   } else {
 
   # get date of birth
@@ -410,7 +363,12 @@ get_denominator_pop <- function(db,
       ))
     }
 
+  if(nrow(study_pop)==0){
+   return(NULL)
+  } else {
   return(study_pop)
+  }
+
   }
 
 }

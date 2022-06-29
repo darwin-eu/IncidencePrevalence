@@ -77,3 +77,40 @@ test_that("checks on working example", {
 
   DBI::dbDisconnect(db)
 })
+
+
+test_that("expected errors", {
+
+  library(DBI)
+  library(RPostgres)
+  db <- DBI::dbConnect(RPostgres::Postgres(),
+    dbname = Sys.getenv("SERVER_DBI_TEST"),
+    port = Sys.getenv("DB_PORT_TEST"),
+    host = Sys.getenv("DB_HOST_TEST"),
+    user = Sys.getenv("DB_USER_TEST"),
+    password = Sys.getenv("DB_PASSWORD_TEST")
+  )
+  cdm_database_schema <- "omop21t2_test"
+
+  # not a dbi connection
+  testthat::expect_error(collect_denominator_pops(db="a",
+    cdm_database_schema,
+    study_start_date = NULL,
+    study_end_date = NULL,
+    study_age_stratas = list(c(10, 15), c(16, 20)),
+    study_sex_stratas = c("Female", "Male", "Both"),
+    study_days_prior_history = c(0, 365)
+  ))
+
+  # not a dbi connection
+  testthat::expect_error(collect_denominator_pops(db="a",
+    cdm_database_schema,
+    study_start_date = NULL,
+    study_end_date = NULL,
+    study_age_stratas = list(c(10, 15), c(16, 20)),
+    study_sex_stratas = c("Women"),
+    study_days_prior_history = c(0, 365)
+  ))
+
+
+})

@@ -1,4 +1,7 @@
 test_that("mock db checks", {
+library(DBI)
+library(dplyr)
+library(tibble)
 
 # duckdb mock database
 db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
@@ -61,7 +64,7 @@ expect_true(sum(inc$n_events)==2)
 
 
 
-
+dbDisconnect(db)
 
 })
 
@@ -91,7 +94,7 @@ study_pops<-collect_denominator_pops(db,
                          study_days_prior_history =c(0,365),
                          verbose = TRUE)
 
-  result <- get_pop_incidence(db=db,
+result <- get_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
                         table_name_outcome="cohorts",
                                     cohort_id_outcome=1,
@@ -132,10 +135,12 @@ study_pops<-collect_denominator_pops(db,
     sum(is.na(result$person_years)) == 0)
   testthat::expect_true(!is.null(result$n_events) &
     sum(is.na(result$n_events)) == 0)
+
   testthat::expect_true(!is.null(result$ir_low) &
     sum(is.na(result$ir_low)) == 0)
   testthat::expect_true(!is.null(result$ir_high) &
     sum(is.na(result$ir_high)) == 0)
+
   # testthat::expect_true(!is.null(result$calendar_month) &
   #   sum(is.na(result$calendar_month)) == 0)
   testthat::expect_true(!is.null(result$calendar_year) &
@@ -144,4 +149,7 @@ study_pops<-collect_denominator_pops(db,
   #   sum(is.na(result$strata)) == 0)
   # testthat::expect_true(!is.null(result$strata_value) &
   #   sum(is.na(result$strata_value)) == 0)
+
+  dbDisconnect(db)
+
 })
