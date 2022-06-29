@@ -138,7 +138,7 @@ denominator_pop_dementia<-collect_denominator_pops(db,
                          study_age_stratas = list(c(50,80),
                                                   c(80,110)),
                          study_sex_stratas = c("Male", "Female", "Both"),
-                         study_days_prior_history =c(365,1826),
+                         study_days_prior_history =1826,
                          verbose = TRUE)
 ir_dementia<-collect_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
@@ -154,7 +154,8 @@ ir_dementia<-collect_pop_incidence(db=db,
 
 ir_dementia %>%
   mutate(year_months=paste0(calendar_year, "-", calendar_month)) %>%
-  ggplot(aes(group=type, colour=type))+
+  ggplot(aes(group=age_strata, colour=sex_strata))+
+  facet_grid(age_strata + sex_strata ~ .) +
   geom_point(aes(year_months, ir),
               position=position_dodge(width=0.5))+
   geom_errorbar(aes(x=year_months, ymin=ir_low, ymax=ir_high),

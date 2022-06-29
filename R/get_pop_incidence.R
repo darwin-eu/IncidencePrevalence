@@ -162,7 +162,7 @@ get_pop_incidence <- function(db,
 
 
   # link to outcome cohort
-    if(!is.null(cdm_database_schema)){
+    if(!is.null(results_schema_outcome)){
   outcome_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
     "SELECT * FROM {results_schema_outcome}.{table_name_outcome}"
   )))
