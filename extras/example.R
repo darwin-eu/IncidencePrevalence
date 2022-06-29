@@ -75,6 +75,7 @@ cohortDefinitionSet[[i]]<-tibble(atlasId = i,
 }
 cohortDefinitionSet<-bind_rows(cohortDefinitionSet)
 
+# instantiate cohorts (skip if already done) ----
 cohortTableNames <- CohortGenerator::getCohortTableNames(cohortTable = outcomecohortTableStem)
 
 CohortGenerator::createCohortTables(connectionDetails = connectionDetails,

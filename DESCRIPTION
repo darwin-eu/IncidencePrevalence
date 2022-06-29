@@ -27,9 +27,10 @@ Imports:
     dbplyr,
     dplyr,
     glue,
-    lubridate,
     magrittr,
     rlang,
     stringr,
     tidyr
+Depends:
+    lubridate
 VignetteBuilder: knitr
