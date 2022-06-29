@@ -3,5 +3,7 @@
 export("%>%")
 export(collect_denominator_pops)
 export(get_denominator_pop)
+export(get_pop_incidence)
+importFrom(lubridate,"\\%within\\%")
 importFrom(magrittr,"%>%")
 importFrom(rlang,.data)
