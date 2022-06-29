@@ -2,8 +2,8 @@
 
 export("%>%")
 export(collect_denominator_pops)
+export(collect_pop_incidence)
 export(get_denominator_pop)
 export(get_pop_incidence)
-importFrom(lubridate,"\\%within\\%")
 importFrom(magrittr,"%>%")
 importFrom(rlang,.data)

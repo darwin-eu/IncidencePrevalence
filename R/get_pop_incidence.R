@@ -11,7 +11,6 @@
 #' @param repetitive_events
 #' @param confidence_interval
 #' @param verbose
-#' @importFrom lubridate \%within\%
 #'
 #' @return
 #' @export

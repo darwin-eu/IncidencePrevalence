@@ -1,5 +1,24 @@
+#' Collect population incidence estimates
+#'
+#' @param db Database connection via DBI::dbConnect()
+#' @param results_schema_outcomes Name of the schema which contains the outcome table
+#' @param table_name_outcomes Name of the table with the outcome cohorts
+#' @param cohort_ids_outcomes Outcome cohort ids
+#' @param study_denominator_pop Tibble with denominator populations
+#' @param cohort_ids_denominator_pops Cohort ids of denominator populations
+#' @param time_intervals Time intervals for incidence estimates
+#' @param prior_event_lookbacks Clean windows
+#' @param repetitive_events Repeated events
+#' @param confidence_intervals Method for confidence intervals
+#' @param verbose Whether to report progress
+#'
+#' @return
+#' @export
+#'
+#' @examples
 collect_pop_incidence <- function(db,
                                   results_schema_outcomes,
+                                  table_name_outcomes,
                                   cohort_ids_outcomes,
                                   study_denominator_pop,
                                   cohort_ids_denominator_pops,
@@ -136,7 +155,7 @@ collect_pop_incidence <- function(db,
 irs<-lapply(study_specs, function(x) {
 get_pop_incidence(db=db,
                   results_schema_outcome=results_schema_outcomes,
-                  table_name_outcome=outcomecohortTableStem,
+                  table_name_outcome=table_name_outcomes,
                   cohort_id_outcome=x$cohort_id_outcome,
                   study_denominator_pop=study_denominator_pop,
                   cohort_id_denominator_pop=x$cohort_id_denominator_pop,

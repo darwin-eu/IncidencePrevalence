@@ -52,7 +52,7 @@ results_database_schema<-"results21t2_test"
 
 outcomecohortTableStem<-"EB_OmopPopEpi"
 
-# build results cohorts -----
+# define results cohorts -----
 cohortJsonFiles <- list.files(here("inst", "outcome_cohorts"))
 cohortJsonFiles <- cohortJsonFiles[str_detect(cohortJsonFiles,".json")]
 
@@ -140,45 +140,26 @@ denominator_pop_dementia<-collect_denominator_pops(db,
                          study_sex_stratas = c("Male", "Female", "Both"),
                          study_days_prior_history =c(365,1826),
                          verbose = TRUE)
-ir_dementia_1y<-get_pop_incidence(db=db,
+ir_dementia<-collect_pop_incidence(db=db,
                         results_schema_outcome="results21t2_test",
-                        table_name_outcome=outcomecohortTableStem,
-                        cohort_id_outcome=dementia_outcome_id,
+                        table_name_outcomes=outcomecohortTableStem,
+                        cohort_ids_outcomes=dementia_outcome_id,
                         study_denominator_pop=denominator_pop_dementia,
-                        cohort_id_denominator_pop=1,
-                        time_interval=c("Months"),
-                        prior_event_lookback=365,
+                        cohort_ids_denominator_pops=unique(denominator_pop_dementia$cohort_definition_id),
+                        time_intervals=c("Months"),
+                        prior_event_lookbacks=1826,
                         repetitive_events=FALSE,
                         confidence_interval="exact",
                         verbose=TRUE)
-ir_dementia_all_hist<-get_pop_incidence(db=db,
-                        results_schema_outcome="results21t2_test",
-                        table_name_outcome=outcomecohortTableStem,
-                        cohort_id_outcome=dementia_outcome_id,
-                        study_denominator_pop=denominator_pop_dementia,
-                        cohort_id_denominator_pop=1,
-                        time_interval=c("Months"),
-                        prior_event_lookback=NULL,
-                        repetitive_events=FALSE,
-                        confidence_interval="exact",
-                        verbose=FALSE)
 
-
-bind_rows(ir_dementia_1y %>% mutate(type="1y"),
-ir_dementia_all_hist %>% mutate(type="All")) %>%
-    mutate(year_months=paste0(calendar_year, "-", calendar_month)) %>%
+ir_dementia %>%
+  mutate(year_months=paste0(calendar_year, "-", calendar_month)) %>%
   ggplot(aes(group=type, colour=type))+
   geom_point(aes(year_months, ir),
               position=position_dodge(width=0.5))+
   geom_errorbar(aes(x=year_months, ymin=ir_low, ymax=ir_high),
                  position=position_dodge(width=0.5))
 
-all(ir_dementia_1y %>%
-  select(ir) %>%
-  pull() ==
-ir_dementia_all_hist %>%
-  select(ir) %>%
-  pull())
 
 # by design of the dementia outcome cohort (first event, end date end of observation),
 # we should get the same results
@@ -236,6 +217,7 @@ get_pop_incidence(db=db,
 
 collect_pop_incidence(db,
                       results_schema_outcomes="results21t2_test",
+                      table_name_outcomes= ,
                       cohort_ids_outcomes=c(1,2,3),
                       study_denominator_pop=denominator_pop_dementia,
                       cohort_ids_denominator_pops=c(1,2,3),

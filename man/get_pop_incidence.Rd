@@ -18,6 +18,9 @@ get_pop_incidence(
   verbose = FALSE
 )
 }
+\arguments{
+\item{verbose}{}
+}
 \value{
 
 }
