@@ -3,26 +3,26 @@ library(SqlRender)
 library(DatabaseConnector)
 library(CohortGenerator)
 library(CirceR)
-library(FeatureExtraction)
+# library(FeatureExtraction)
 library(here)
-library(lubridate)
+# library(lubridate)
 library(stringr)
 library(ggplot2)
 library(DBI)
-library(dbplyr)
+# library(dbplyr)
 library(dplyr)
-library(tidyr)
-library(kableExtra)
-library(RSQLite)
-library(rmarkdown)
-library(tableone)
-library(scales)
-library(forcats)
-library(epiR)
-library(RPostgreSQL)
-library(readxl)
-library(lubridate)
-library(readxl)
+# library(tidyr)
+# library(kableExtra)
+# library(RSQLite)
+# library(rmarkdown)
+# library(tableone)
+# library(scales)
+# library(forcats)
+# library(epiR)
+library(RPostgres)
+# library(readxl)
+# library(lubridate)
+# library(readxl)
 library(dtplyr)
 devtools::load_all()
 
@@ -53,12 +53,12 @@ results_database_schema<-"results21t2_test"
 outcomecohortTableStem<-"EB_OmopPopEpi"
 
 # build results cohorts -----
-cohortJsonFiles <- list.files(here("extras", "outcome_cohorts"))
+cohortJsonFiles <- list.files(here("inst", "outcome_cohorts"))
 cohortJsonFiles <- cohortJsonFiles[str_detect(cohortJsonFiles,".json")]
 
 cohortDefinitionSet <- list()
 for(i in 1:length(cohortJsonFiles)){
-working.json<-here("extras", "outcome_cohorts",
+working.json<-here("inst", "outcome_cohorts",
                       cohortJsonFiles[i])
 cohortJson <- readChar(working.json, file.info(working.json)$size)
 cohortExpression <- cohortExpressionFromJson(cohortJson) # generates the sql

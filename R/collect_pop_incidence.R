@@ -39,7 +39,8 @@ collect_pop_incidence <- function(db,
     )
   }
   checkmate::assert_character(results_schema_outcomes,
-    add = error_message
+    add = error_message,
+    null.ok = TRUE
   )
   checkmate::assert_character(cohort_ids_outcomes,
     add = error_message,
