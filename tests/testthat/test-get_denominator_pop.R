@@ -115,6 +115,80 @@ expect_true(nrow(dpop)==1)
 expect_true(dpop$cohort_start_date==as.Date("2010-01-01"))
 expect_true(dpop$cohort_end_date==as.Date("2010-06-01"))
 
+
+# missing month of birth
+person<-tibble(person_id="1",
+       gender_concept_id="8507",
+       year_of_birth=2000,
+       month_of_birth=NA,
+       day_of_birth=01)
+observation_period<-tibble(observation_period_id=c("1"),
+       person_id=c("1"),
+       observation_period_start_date=c(as.Date("2010-01-01")),
+       observation_period_end_date=c(as.Date("2010-06-01")))
+DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "person", person,
+                      overwrite = TRUE)
+  })
+DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "observation_period", observation_period,
+                      overwrite = TRUE
+    )
+  })
+# expect one row - dob should be imputed if missing only month
+dpop<-get_denominator_pop(db=db,
+                    cdm_database_schema=NULL)
+expect_true(nrow(dpop)==1)
+
+# missing day of birth
+person<-tibble(person_id="1",
+       gender_concept_id="8507",
+       year_of_birth=2000,
+       month_of_birth=06,
+       day_of_birth=NA)
+observation_period<-tibble(observation_period_id=c("1"),
+       person_id=c("1"),
+       observation_period_start_date=c(as.Date("2010-01-01")),
+       observation_period_end_date=c(as.Date("2010-06-01")))
+DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "person", person,
+                      overwrite = TRUE)
+  })
+DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "observation_period", observation_period,
+                      overwrite = TRUE
+    )
+  })
+# expect one row - dob should be imputed if missing only day
+dpop<-get_denominator_pop(db=db,
+                    cdm_database_schema=NULL)
+expect_true(nrow(dpop)==1)
+
+
+# missing day of birth and month of birth
+person<-tibble(person_id="1",
+       gender_concept_id="8507",
+       year_of_birth=2000,
+       month_of_birth=NA,
+       day_of_birth=NA)
+observation_period<-tibble(observation_period_id=c("1"),
+       person_id=c("1"),
+       observation_period_start_date=c(as.Date("2010-01-01")),
+       observation_period_end_date=c(as.Date("2010-06-01")))
+DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "person", person,
+                      overwrite = TRUE)
+  })
+DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "observation_period", observation_period,
+                      overwrite = TRUE
+    )
+  })
+# expect one row - dob should be imputed if missing month and day
+dpop<-get_denominator_pop(db=db,
+                    cdm_database_schema=NULL)
+expect_true(nrow(dpop)==1)
+
 DBI::dbDisconnect(db)
 
 })
