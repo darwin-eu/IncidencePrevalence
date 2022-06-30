@@ -258,7 +258,8 @@ get_denominator_pop <- function(db,
   # get date of birth
   study_pop <- study_pop %>%
     dplyr::mutate(dob = dplyr::if_else(
-      is.na(.data$month_of_birth),
+      is.na(.data$month_of_birth) |
+      is.na(.data$day_of_birth),
       as.Date(
         paste(.data$year_of_birth,
           "06",
