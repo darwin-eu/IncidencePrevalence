@@ -1,4 +1,4 @@
-#' Title
+#' Get population incidence estimates
 #'
 #' @param db
 #' @param results_schema_outcome
@@ -121,7 +121,7 @@ get_pop_incidence <- function(db,
     add = error_message
   )
   checkmate::assert_choice(confidence_interval,
-    choices = c("exact"),
+    choices = c("exact", "none"),
     add = error_message,
     null.ok = TRUE
   )
@@ -170,16 +170,6 @@ get_pop_incidence <- function(db,
      outcome_db <- tbl(db, "outcome")
   }
   error_message <- checkmate::makeAssertCollection()
-  checkmate::assertTRUE(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0,
-    add = error_message
-  )
-  if (!nrow(study_pop) > 0) {
-    error_message$push(
-      glue::glue("- Zero rows in {results_schema_outcome}.{table_name_outcome}")
-    )
-  }
-  checkmate::reportAssertions(collection = error_message)
-
   if (!is.null(cohort_id_outcome)) {
     outcome_db <- outcome_db %>%
       dplyr::filter(.data$cohort_definition_id == cohort_id_outcome) %>%
@@ -189,18 +179,13 @@ get_pop_incidence <- function(db,
   checkmate::assertTRUE(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0,
     add = error_message
   )
-  if (!nrow(study_pop) > 0) {
+  if (!(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 1)) {
     error_message$push(
       glue::glue("- Zero rows in {results_schema_outcome}.{table_name_outcome}
                  for cohort_id_outcome={cohort_id_outcome}")
     )
   }
   checkmate::reportAssertions(collection = error_message)
-
-  if(verbose==TRUE){
-    message("Check passed: one or more outcomes identified")
-  }
-
 
   # bring outcomes into memory
     if(verbose==TRUE){
@@ -527,7 +512,7 @@ get_pop_incidence <- function(db,
 
   ir <- dplyr::bind_rows(ir)
 
-  if (confidence_interval == "None") {
+  if (confidence_interval == "none") {
     ir <- ir %>%
       dplyr::mutate(ir_low = NA) %>%
       dplyr::mutate(ir_high = NA)

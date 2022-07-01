@@ -80,7 +80,7 @@ devtools::check_rhub() # All os
 # have you followed the style guide?
 # note you can use stlyer to fix formatting
 # ignore formatting warning for .datatable.aware
-#  doesn´t pick up vars used in glue (So ignore warning about duration)
+# nb doesn´t pick up vars used in glue
 lintr::lint_package()
 
 devtools::build_readme()

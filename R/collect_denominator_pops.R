@@ -31,13 +31,12 @@ collect_denominator_pops <- function(db,
                                      study_sex_stratas = "Both",
                                      study_days_prior_history = 0,
                                      verbose = FALSE) {
+  if (verbose == TRUE) {
+    start <- Sys.time()
+  }
 
-        if (verbose == TRUE) {
-        start <- Sys.time()
-        }
-
-    if (verbose == TRUE) {
-    message("(Set) Checking inputs")
+  if (verbose == TRUE) {
+    message("Progress: Checking inputs")
   }
 
   ## check for standard types of user error
@@ -66,7 +65,7 @@ collect_denominator_pops <- function(db,
   sex_check <- all(study_sex_stratas %in% c("Male", "Female", "Both"))
   if (!isTRUE(sex_check)) {
     error_message$push(
-      "- sex stratas must be one or more of: Male, Female, and Both"
+      "- sex stratas must be from: Male, Female, and Both"
     )
   }
   checkmate::assert_numeric(study_days_prior_history,
@@ -77,11 +76,6 @@ collect_denominator_pops <- function(db,
   )
   # report initial assertions
   checkmate::reportAssertions(collection = error_message)
-
-
-  if (verbose == TRUE) {
-    message("(Set) Defining denominator populations to collect")
-  }
 
   # add broadest possible age group if NULL
   if (is.null(study_age_stratas)) {
@@ -98,8 +92,9 @@ collect_denominator_pops <- function(db,
     study_end_date = study_end_date
   ) %>%
     tidyr::separate(.data$age_range,
-                    c("min_age", "max_age"),
-                    remove = FALSE) %>%
+      c("min_age", "max_age"),
+      remove = FALSE
+    ) %>%
     dplyr::mutate(min_age = as.numeric(.data$min_age)) %>%
     dplyr::mutate(max_age = as.numeric(.data$max_age))
   if (is.null(study_start_date)) {
@@ -108,24 +103,29 @@ collect_denominator_pops <- function(db,
   if (is.null(study_start_date)) {
     pop_specs$study_end_date <- as.Date(NA)
   }
-
   pop_specs <- pop_specs %>%
     dplyr::mutate(cohort_definition_id = as.character(dplyr::row_number()))
 
-  n_pops<-nrow(pop_specs)
+  n_pops <- nrow(pop_specs)
 
   # to list
-  pop_specs <- split(pop_specs,
-      factor(pop_specs$cohort_definition_id,
-             levels = unique(pop_specs$cohort_definition_id)))
+  pop_specs <- split(
+    pop_specs,
+    factor(pop_specs$cohort_definition_id,
+      levels = unique(pop_specs$cohort_definition_id)
+    )
+  )
 
   # get each population
   study_populations <- lapply(pop_specs, function(x) {
-
-    if(verbose==TRUE){
-    message(glue::glue(
-      "  (Set member) Fetching population {x$cohort_definition_id} of {n_pops}"))
-      }
+    if (verbose == TRUE) {
+      message(glue::glue(
+        "Progress: Fetching population {x$cohort_definition_id} of {n_pops}"
+      ))
+      message(glue::glue(
+        "Settings: {x$study_start_date}; {x$study_end_date}; {x$age_range}; {x$sex}; {x$study_days_prior_history}"
+      ))
+    }
 
     get_denominator_pop(
       db = db,
@@ -135,8 +135,7 @@ collect_denominator_pops <- function(db,
       min_age = x$min_age,
       max_age = x$max_age,
       sex = x$sex,
-      days_prior_history = x$study_days_prior_history,
-      verbose = TRUE
+      days_prior_history = x$study_days_prior_history
     ) %>%
       # add specification for each population to output
       dplyr::mutate(
@@ -151,12 +150,12 @@ collect_denominator_pops <- function(db,
   study_populations <- dplyr::bind_rows(study_populations,
     .id = "cohort_definition_id"
   )
-        if (verbose == TRUE) {
-      duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
-      message(glue::glue(
-        "(Set) Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
-      ))
-    }
+  if (verbose == TRUE) {
+    duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
+    message(glue::glue(
+      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+    ))
+  }
 
   return(study_populations)
 }

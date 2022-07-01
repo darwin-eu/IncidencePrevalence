@@ -13,7 +13,7 @@ person<-tibble(person_id="1",
 observation_period<-tibble(observation_period_id="1",
        person_id="1",
        observation_period_start_date=as.Date("2010-01-01"),
-       observation_period_end_date=as.Date("2010-06-01"))
+       observation_period_end_date=as.Date("2012-06-01"))
 outcome<-tibble(cohort_definition_id="1",
                 subject_id="1",
                 cohort_start_date=c(as.Date("2010-02-05"),
@@ -43,7 +43,8 @@ inc<-get_pop_incidence(db,
                   table_name_outcome="outcome",
                   cohort_id_outcome="1",
                   study_denominator_pop=dpop,
-                  repetitive_events = FALSE)
+                  repetitive_events = FALSE,
+                  prior_event_lookback=0)
 expect_true(sum(inc$n_events)==1)
 inc<-get_pop_incidence(db,
                   results_schema_outcome=NULL,
@@ -62,12 +63,72 @@ inc<-get_pop_incidence(db,
                   prior_event_lookback=10)
 expect_true(sum(inc$n_events)==2)
 
+# even if repetitive_events = TRUE,
+# if prior_event_lookback=NULL (all of history)
+# then it won´t be possible to have any recurrent events
+inc<-get_pop_incidence(db,
+                  results_schema_outcome=NULL,
+                  table_name_outcome="outcome",
+                  cohort_id_outcome="1",
+                  study_denominator_pop=dpop,
+                  repetitive_events = TRUE,
+                  prior_event_lookback=NULL)
+expect_true(sum(inc$n_events)==1)
+
+inc<-get_pop_incidence(db,
+                  results_schema_outcome=NULL,
+                  table_name_outcome="outcome",
+                  cohort_id_outcome=1, # to character in function
+                  study_denominator_pop=dpop)
+
+inc<-get_pop_incidence(db,
+                  results_schema_outcome=NULL,
+                  table_name_outcome="outcome",
+                  cohort_id_denominator_pop=1, # to character in function
+                  study_denominator_pop=dpop,
+                  confidence_interval="none")
+
+inc<-get_pop_incidence(db,
+                  results_schema_outcome=NULL,
+                  # gets changed to NULL (to help collect)
+                  prior_event_lookback = NA,
+                  table_name_outcome="outcome",
+                  cohort_id_outcome="1",
+                  study_denominator_pop=dpop)
+
+inc<-get_pop_incidence(db,
+                  results_schema_outcome=NULL,
+                  table_name_outcome="outcome",
+                  cohort_id_outcome=1,
+                  study_denominator_pop=dpop)
+
+inc<-get_pop_incidence(db,
+                  results_schema_outcome=NULL,
+                  table_name_outcome="outcome",
+                  cohort_id_outcome="1",
+                  study_denominator_pop=dpop,
+                  verbose=TRUE)
+
+inc<-get_pop_incidence(db,
+                  results_schema_outcome=NULL,
+                  table_name_outcome="outcome",
+                  cohort_id_outcome="1",
+                  time_interval = "years",
+                  study_denominator_pop=dpop,
+                  verbose=TRUE)
+
+inc<-get_pop_incidence(db,
+                  results_schema_outcome=NULL,
+                  table_name_outcome="outcome",
+                  cohort_id_outcome="1",
+                  study_denominator_pop=dpop,
+                  confidence_interval="none")
+
 
 
 dbDisconnect(db)
 
 })
-
 
 test_that("checks on working example", {
   library(DBI)
@@ -149,6 +210,116 @@ result <- get_pop_incidence(db=db,
   #   sum(is.na(result$strata)) == 0)
   # testthat::expect_true(!is.null(result$strata_value) &
   #   sum(is.na(result$strata_value)) == 0)
+
+  dbDisconnect(db)
+
+})
+
+test_that("mock db checks", {
+library(DBI)
+library(dplyr)
+library(tibble)
+
+# duckdb mock database
+db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+person<-tibble(person_id="1",
+       gender_concept_id="8507",
+       year_of_birth=2000,
+       month_of_birth=01,
+       day_of_birth=01)
+observation_period<-tibble(observation_period_id="1",
+       person_id="1",
+       observation_period_start_date=as.Date("2010-01-01"),
+       observation_period_end_date=as.Date("2010-01-05"))
+outcome<-tibble(cohort_definition_id="1",
+                subject_id="1",
+                cohort_start_date=c(as.Date("2010-01-04")),
+                cohort_end_date=c(as.Date("2010-01-04")))
+DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "person", person,
+                      overwrite = TRUE)
+  })
+DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "observation_period", observation_period,
+                      overwrite = TRUE
+    )
+  })
+DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "outcome", outcome,
+                      overwrite = TRUE
+    )
+  })
+dpop<-collect_denominator_pops(db=db,
+                    cdm_database_schema=NULL)
+# expect error because less than one month between
+# cohort_start_date and cohort_end_date among dpop
+expect_error(get_pop_incidence(db,
+                  results_schema_outcome=NULL,
+                  table_name_outcome="outcome",
+                  time_interval = c("Months"),
+                  study_denominator_pop=dpop))
+expect_error(get_pop_incidence(db,
+                  results_schema_outcome=NULL,
+                  table_name_outcome="outcome",
+                  time_interval = c("Years"),
+                  cohort_id_outcome="1",
+                  study_denominator_pop=dpop))
+
+dbDisconnect(db)
+
+})
+
+
+test_that("live db expected errors", {
+  library(DBI)
+  library(RPostgres)
+  library(dplyr)
+  library(tibble)
+  db <- DBI::dbConnect(RPostgres::Postgres(),
+    dbname = Sys.getenv("SERVER_DBI_TEST"),
+    port = Sys.getenv("DB_PORT_TEST"),
+    host = Sys.getenv("DB_HOST_TEST"),
+    user = Sys.getenv("DB_USER_TEST"),
+    password = Sys.getenv("DB_PASSWORD_TEST")
+  )
+
+  cdm_database_schema <- "omop21t2_test"
+  results_schema_outcome <- "results21t2_test"
+  table_name_outcome <- "cohorts"
+study_pops<-collect_denominator_pops(db,
+                         cdm_database_schema,
+                         study_start_date=as.Date("2017-01-01"),
+                         study_end_date=as.Date("2018-12-31"))
+expect_error(get_pop_incidence(db="a",
+                        results_schema_outcome="results21t2_test",
+                        table_name_outcome="cohorts",
+                        cohort_id_outcome=1,
+                        study_denominator_pop=study_pops,
+                        verbose=TRUE))
+expect_error(get_pop_incidence(db=db,
+                        results_schema_outcome="results21t2_test",
+                        table_name_outcome="cohorts",
+                        cohort_id_outcome=1,
+                        study_denominator_pop=study_pops %>% filter(person_id==0),
+                        verbose=TRUE))
+expect_error(get_pop_incidence(db=db,
+                        results_schema_outcome="results21t2_test",
+                        table_name_outcome="cohorts",
+                        cohort_id_outcome=3,
+                        study_denominator_pop=study_pops %>% filter(person_id==0),
+                        verbose=TRUE))
+
+expect_error(get_pop_incidence(db=db,
+                        results_schema_outcome="results21t2_test",
+                        table_name_outcome="cohorts",
+                        cohort_id_denominator_pop=3,
+                        study_denominator_pop=study_pops,
+                        verbose=TRUE))
+expect_error(get_pop_incidence(db=db,
+                        results_schema_outcome="results21t2_test",
+                        table_name_outcome="cohorts",
+                        cohort_id_outcome=10,
+                        study_denominator_pop=study_pops))
 
   dbDisconnect(db)
 

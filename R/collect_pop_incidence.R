@@ -23,8 +23,8 @@ collect_pop_incidence <- function(db,
                                   study_denominator_pop,
                                   cohort_ids_denominator_pops,
                                   time_intervals = c("Months", "Years"),
-                                  prior_event_lookbacks,
-                                  repetitive_events,
+                                  prior_event_lookbacks=0,
+                                  repetitive_events=FALSE,
                                   confidence_intervals="exact",
                                   verbose = FALSE){
 

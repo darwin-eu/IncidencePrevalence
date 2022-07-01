@@ -1,3 +1,22 @@
+#' Get population prevalence estimates
+#'
+#' @param db
+#' @param results_schema_outcome
+#' @param table_name_outcome
+#' @param cohort_id_outcome
+#' @param study_denominator_pop
+#' @param cohort_id_denominator_pop
+#' @param period
+#' @param time_interval
+#' @param prior_event_lookback
+#' @param minimum_representative_proportion
+#' @param confidence_interval
+#' @param verbose
+#'
+#' @return
+#' @export
+#'
+#' @examples
 get_pop_prevalence <- function(db,
                                results_schema_outcome,
                                table_name_outcome,

@@ -1,5 +1,7 @@
 test_that("mock db checks", {
-
+library(tibble)
+library(dplyr)
+library(DBI)
 # duckdb mock database
 db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
 # one person, one observation periods
@@ -27,6 +29,10 @@ dpop<-get_denominator_pop(db=db,
 expect_true(nrow(dpop)==1)
 expect_true(dpop$cohort_start_date==as.Date("2010-01-01"))
 expect_true(dpop$cohort_end_date==as.Date("2010-06-01"))
+
+expect_message(get_denominator_pop(db=db,
+                    cdm_database_schema=NULL,
+                    verbose=TRUE))
 
 dpop<-get_denominator_pop(db=db,
                     cdm_database_schema=NULL,
@@ -196,6 +202,7 @@ DBI::dbDisconnect(db)
 test_that("various checks for working example full db", {
 # full database
   library(DBI)
+  library(dplyr)
   library(RPostgres)
   db <- DBI::dbConnect(RPostgres::Postgres(),
     dbname = Sys.getenv("SERVER_DBI_TEST"),
