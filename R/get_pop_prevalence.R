@@ -62,7 +62,8 @@ get_pop_prevalence <- function(db,
     )
   }
   checkmate::assert_character(results_schema_outcome,
-                              add = error_message
+                              add = error_message,
+    null.ok = TRUE
   )
   checkmate::assert_character(cohort_id_outcome,
                               add = error_message,
@@ -161,9 +162,13 @@ get_pop_prevalence <- function(db,
   }
 
   # link to outcome cohort
+    if(!is.null(results_schema_outcome)){
   outcome_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
     "SELECT * FROM {results_schema_outcome}.{table_name_outcome}"
   )))
+  } else {
+     outcome_db <- tbl(db, "outcome")
+  }
   error_message <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0,
                         add = error_message
@@ -286,7 +291,7 @@ get_pop_prevalence <- function(db,
   } else {
     outcome_visible <- outcome %>%
       dplyr::group_by(.data$person_id) %>%
-      dplyr::filter(.data$outcome_dtart_date == min(.data$outcome_start_date))
+      dplyr::filter(.data$outcome_start_date == min(.data$outcome_start_date))
   }
 
   # fetch incidence rates

@@ -218,7 +218,7 @@ get_pop_incidence(db=db,
 
 collect_pop_incidence(db,
                       results_schema_outcomes="results21t2_test",
-                      table_name_outcomes= ,
+                      table_name_outcomes= outcomecohortTableStem,
                       cohort_ids_outcomes=c(1,2,3),
                       study_denominator_pop=denominator_pop_dementia,
                       cohort_ids_denominator_pops=c(1,2,3),
@@ -233,6 +233,22 @@ collect_pop_incidence(db,
             person_months=sum(person_months),
             person_years=sum(person_years),
             n_events=sum(n_events))
+
+
+get_pop_prevalence(db,
+                   results_schema_outcome="results21t2_test",
+                   table_name_outcome=outcomecohortTableStem,
+                   cohort_id_outcome = NULL,
+                   study_denominator_pop=denominator_pop_dementia,
+                   cohort_id_denominator_pop = NULL,
+                   period = 1,
+                   time_interval = c("Months"),
+                   prior_event_lookback = NULL,
+                   minimum_representative_proportion = 0.5,
+                   confidence_interval = "exact",
+                   verbose = FALSE)
+
+
 
 # influenza -------
 influenza_outcome_id<-cohortDefinitionSet %>%
