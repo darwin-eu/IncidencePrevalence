@@ -73,7 +73,7 @@ expect_true(nrow(dpop)==1)
 # end date is now date of 10th birthday
 ## SHOULD IT NOT BE DAY BEFORE 11th BIRTHDAY?
 expect_true(dpop$cohort_end_date==as.Date("2010-06-01"))
-
+# expect_true(dpop$cohort_end_date==as.Date("2011-05-31"))
 
 
 
