@@ -117,7 +117,7 @@ get_pop_prevalence <- function(db,
                             add = error_message
   )
   checkmate::assert_choice(confidence_interval,
-                           choices = c("exact"),
+                           choices = c("exact", "none"),
                            add = error_message,
                            null.ok = TRUE
   )
@@ -126,12 +126,6 @@ get_pop_prevalence <- function(db,
 
   if(verbose==TRUE){
     message("Inputs checked and all initial assertions passed")
-  }
-
-  if(verbose==TRUE){
-    mem_in_use<- lobstr::mem_used()[1]
-    mem_in_use_gb<- glue::glue("{round(mem_in_use*0.000000001,2)} gb")
-    message(glue::glue("Current memory used: {mem_in_use_gb}"))
   }
 
   ## Analysis code
@@ -212,12 +206,6 @@ get_pop_prevalence <- function(db,
     dplyr::select("person_id", "outcome_start_date", "outcome_end_date") %>%
     dplyr::collect()
 
-  if(verbose==TRUE){
-    mem_in_use<- lobstr::mem_used()[1]
-    mem_in_use_gb<- glue::glue("{round(mem_in_use*0.000000001,2)} gb")
-    message(glue::glue("Current memory used: {mem_in_use_gb}"))
-  }
-
   # start date
   start_date <- min(study_pop$cohort_start_date)
   # end date to the last day of last available full period
@@ -294,9 +282,9 @@ get_pop_prevalence <- function(db,
       dplyr::filter(.data$outcome_start_date == min(.data$outcome_start_date))
   }
 
-  # fetch incidence rates
+  # fetch prevalence
   # looping through each time interval
-  ir <- list()
+  prev <- list()
   for (i in seq_along(1:(n_time + 1))) {
     if (time_interval == "Years") {
       working_t_start <- start_date + lubridate::years(i - 1)
@@ -412,7 +400,7 @@ get_pop_prevalence <- function(db,
       dplyr::filter(.data$outcome_end_date >= .data$t_start_date) %>%
       nrow()
 
-    ir[[paste0(i)]] <- dplyr::tibble(prevalent = prevalent,
+    prev[[paste0(i)]] <- dplyr::tibble(prevalent = prevalent,
                                      individuals = individuals,
                                      prevalence = prevalent/individuals,
                                      calendar_month = ifelse(time_interval == "Months",
@@ -423,23 +411,23 @@ get_pop_prevalence <- function(db,
 
   ir <- dplyr::bind_rows(ir)
 
-  if (confidence_interval == "None") {
+  if (confidence_interval == "none") {
     ir <- ir %>%
       dplyr::mutate(ir_low = NA) %>%
       dplyr::mutate(ir_high = NA)
   }
 
   if (confidence_interval == "exact") {
-    ci <- tibble(ir_low = qchisq(0.05/2, df=2*(ir$prevalent-1))/2/ir$individuals,
-                 ir_high = qchisq(1-0.05/2, df=2*ir$prevalent)/2/ir$individuals)
+    ci <- tibble(prev_low = qchisq(0.05/2, df=2*(prev$prevalent-1))/2/prev$individuals,
+                 prev_high = qchisq(1-0.05/2, df=2*prev$prevalent)/2/prev$individuals)
 
-    ir <- dplyr::bind_cols(ir, ci) %>%
-      dplyr::relocate(.data$ir_low, .before = .data$calendar_month) %>%
-      dplyr::relocate(.data$ir_high, .after = .data$ir_low)
+    prev <- dplyr::bind_cols(prev, ci) %>%
+      dplyr::relocate(.data$prev_low, .before = .data$calendar_month) %>%
+      dplyr::relocate(.data$prev_high, .after = .data$prev_low)
   }
 
   # add study design related variables
-  ir <- ir %>%
+  prev <- prev %>%
     dplyr::mutate(required_days_prior_history = unique(study_pop$required_days_prior_history)) %>%
     dplyr::mutate(age_strata = unique(study_pop$age_strata)) %>%
     dplyr::mutate(sex_strata = unique(study_pop$sex_strata)) %>%
@@ -448,5 +436,5 @@ get_pop_prevalence <- function(db,
     dplyr::mutate(time_interval = time_interval) %>%
     dplyr::mutate(confidence_interval = confidence_interval)
 
-  return(ir)
+  return(prev)
 }
