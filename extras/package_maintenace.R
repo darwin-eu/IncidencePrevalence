@@ -41,7 +41,7 @@
 # usethis::use_readme_rmd()
 
 ## license -----
-# usethis::use_mit_license()
+# usethis::use_apache_license(version = 2, include_future = TRUE)
 
 ## vignettes ------
 # usethis::use_vignette("a01_Introduction_to_OmopPopEpi")
