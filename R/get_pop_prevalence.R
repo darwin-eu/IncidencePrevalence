@@ -409,12 +409,12 @@ get_pop_prevalence <- function(db,
                                      calendar_year = lubridate::year(working_t_start))
   }
 
-  ir <- dplyr::bind_rows(ir)
+  prev <- dplyr::bind_rows(prev)
 
   if (confidence_interval == "none") {
-    ir <- ir %>%
-      dplyr::mutate(ir_low = NA) %>%
-      dplyr::mutate(ir_high = NA)
+    prev <- prev %>%
+      dplyr::mutate(prev_low = NA) %>%
+      dplyr::mutate(prev_high = NA)
   }
 
   if (confidence_interval == "exact") {
