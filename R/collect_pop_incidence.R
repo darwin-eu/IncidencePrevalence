@@ -22,7 +22,7 @@ collect_pop_incidence <- function(db,
                                   cohort_ids_outcomes,
                                   study_denominator_pop,
                                   cohort_ids_denominator_pops,
-                                  time_intervals = c("Months", "Years"),
+                                  time_intervals = "Months",
                                   prior_event_lookbacks=0,
                                   repetitive_events=FALSE,
                                   confidence_intervals="exact",
@@ -101,8 +101,7 @@ collect_pop_incidence <- function(db,
     add = error_message,
     null.ok = TRUE
   )
-  checkmate::assert_choice(time_intervals,
-    choices = c("Months", "Years"),
+  checkmate::assertTRUE(all(time_intervals %in% c("Months", "Years")),
     add = error_message
   )
   checkmate::assert_numeric(prior_event_lookbacks,
