@@ -258,28 +258,61 @@ get_pop_prevalence <- function(db,
   }
   checkmate::reportAssertions(collection = error_message)
 
-  if (!is.null(prior_event_lookback)){
-    outcome_exclude <- outcome %>%
-      dplyr::select("person_id","outcome_start_date") %>%
-      dplyr::left_join(outcome %>%
-                         dplyr::select("person_id","outcome_end_date") %>%
-                         dplyr::rename("prior_outcome_end_date" = "outcome_end_date"),
-                       by = "person_id") %>%
-      dplyr::filter(.data$outcome_start_date > .data$prior_outcome_end_date) %>%
-      dplyr::mutate(diff_days = as.numeric(difftime(.data$outcome_start_date,
-                                                    .data$prior_outcome_end_date,
-                                                    units = "days"))) %>%
-      dplyr::filter(.data$diff_days < prior_event_lookback) %>%
-      dplyr::select("person_id","outcome_start_date")
-    if (nrow(outcome_exclude)>0){
-      outcome_visible <- outcome %>%
-        dplyr::anti_join(outcome_exclude,
-                         by = c("person_id","outcome_start_date"))
-    }
-  } else {
-    outcome_visible <- outcome %>%
+  if (is.null(prior_event_lookback)){
+
+    outcome <- outcome %>%
       dplyr::group_by(.data$person_id) %>%
       dplyr::filter(.data$outcome_start_date == min(.data$outcome_start_date))
+
+    study_pop <- study_pop %>%
+      dplyr::left_join(outcome, by = "person_id") %>%
+      dplyr::rename("end_contribution" = "cohort_end_date") %>%
+      dplyr::mutate(end_observation = dplyr::if_else(.data$end_contribution <= .data$outcome_end_date,
+                                                     .data$end_contribution,
+                                                     .data$outcome_end_date)
+      )
+
+  } else {
+
+    outcome <- outcome %>%
+      dplyr::group_by("person_id") %>%
+      dplyr::arrange(desc(.data$outcome_start_date)) %>%
+      dplyr::mutate(index = 1:length(.data$person_id))
+
+    outcome_first <- outcome %>%
+      dplyr::filter(.data$index == 1)
+
+    outcome_not_first <- outcome %>%
+      dplyr::filter(.data$index > 1)
+
+    study_pop_not_first <- study_pop %>%
+      dplyr::inner_join(outcome_not_first,
+                        by = "person_id") %>%
+      dplyr::inner_join(outcome %>%
+                          dplyr::mutate(.data$index = .data$index - 1) %>%
+                          dplyr::rename("prev_outcome_end_date" = "outcome_end_date") %>%
+                          dplyr::select("person_id","prev_outcome_end_date","index"),
+                        by = c("person_id","index")) %>%
+      dplyr::mutate(cohort_start_date = .data$prev_outcome_end_date + prior_event_lookback) %>%
+      dplyr::rename("end_contribution" = "cohort_end_date") %>%
+      dplyr::mutate(end_observation = dplyr::if_else(.data$end_contribution <= .data$outcome_end_date,
+                                                     .data$end_contribution,
+                                                     .data$outcome_end_date)) %>%
+      dplyr::filter(.data$cohort_start_date <= end_observation)
+
+    study_pop_first <- study_pop %>%
+      dplyr::inner_join(outcome_first,
+                        by = "person_id") %>%
+      dplyr::rename("end_contribution" = "cohort_end_date") %>%
+      dplyr::mutate(end_observation = dplyr::if_else(.data$end_contribution <= .data$outcome_end_date,
+                                                     .data$end_contribution,
+                                                     .data$outcome_end_date))
+
+    study_pop <- study_pop %>%
+      anti_join(study_pop_first, by = "person_id") %>%
+      full_join(study_pop_first) %>%
+      full_join(study_pop_not_first)
+
   }
 
   # fetch prevalence
@@ -288,24 +321,24 @@ get_pop_prevalence <- function(db,
   for (i in seq_along(1:(n_time + 1))) {
     if (time_interval == "Years") {
       working_t_start <- start_date + lubridate::years(i - 1)
-      working_t_end <- working_t_start + lubridate::days(period)
+      working_t_end <- working_t_start + lubridate::days(period-1)
     }
     if (time_interval == "Months") {
       working_t_start <- start_date + months(i - 1)
-      working_t_end <- working_t_start + lubridate::days(period)
+      working_t_end <- working_t_start + lubridate::days(period-1)
     }
 
     # drop people with end_date prior to working_t_start
     # drop people with start_date after working_t_end
     working_pop <- study_pop %>%
-      dplyr::filter(.data$cohort_end_date >= working_t_start) %>%
+      dplyr::filter(.data$end_observation >= working_t_start) %>%
       dplyr::filter(.data$cohort_start_date <= working_t_end)
 
     # individuals start date for this period
     # which could be start of the period or later
     working_pop <- working_pop %>%
-      dplyr::mutate(t_start_date = dplyr::if_else(.data$cohort_start_date <=
-                                                    working_t_start, working_t_start,
+      dplyr::mutate(t_start_date = dplyr::if_else(.data$cohort_start_date <= working_t_start,
+                                                  working_t_start,
                                                   .data$cohort_start_date
       ))
 
@@ -313,91 +346,31 @@ get_pop_prevalence <- function(db,
     # end of the period or earlier
     working_pop <- working_pop %>%
       dplyr::mutate(t_end_date =
-                      dplyr::if_else(.data$cohort_end_date >= working_t_end,
+                      dplyr::if_else(.data$end_contribution >= working_t_end,
                                      working_t_end,
-                                     .data$cohort_end_date
+                                     .data$end_contribution
                       ))
 
     working_pop <- working_pop %>%
       dplyr::select("person_id", "t_start_date", "t_end_date")
 
-    # update t_start_date based on previous outcome
-    if (is.null(prior_event_lookback)){
-
-      working_pop <- working_pop %>%
-        dplyr::anti_join(outcome %>%
-                           dplyr::select("person_id","outcome_start_date") %>%
-                           dplyr::left_join(working_pop %>%
-                                              dplyr::select("person_id","t_start_date"),
-                                            by = "person_id") %>%
-                           dplyr::filter(.data$outcome_start_date < .data$t_start_date) %>%
-                           dplyr::select("person_id"),
-                         by = "person_id")
-
-    }else{
-
-
-      outcome_prior <- outcome %>%
-        dplyr::rename("prior_outcome_end_date" = "outcome_end_date") %>%
-        dplyr::select("person_id", "prior_outcome_end_date") %>%
-        dplyr::inner_join(working_pop %>%
-                            dplyr::select("person_id", "t_start_date"),
-                          by = "person_id"
-        ) %>%
-        dplyr::mutate(diff_days = as.numeric(difftime(.data$t_start_date,
-                                                      .data$prior_outcome_end_date,
-                                                      units = "days"
-        ))) %>%
-        dplyr::filter(.data$diff_days > 0)
-
-      if (nrow(outcome_prior) >= 1) {
-        outcome_prior <- outcome_prior %>%
-          dplyr::group_by(.data$person_id, .data$t_start_date) %>%
-          dplyr::summarise(
-            diff_days = min(.data$diff_days),
-            .groups = "drop"
-          )
-        outcome_prior <- outcome_prior %>%
-          dplyr::filter(.data$diff_days <= prior_event_lookback)
-
-        # calculate at which individuals satisfied prior lookback requirement
-        working_pop <- working_pop %>%
-          dplyr::left_join(outcome_prior,
-                           by = c("person_id", "t_start_date")
-          )
-        # update t_start_date to when individuals satisfied prior lookback
-        # as in by this new date, they are now eligible
-        working_pop <- working_pop %>%
-          dplyr::mutate(t_start_date = dplyr::if_else(
-            is.na(.data$diff_days),
-            .data$t_start_date,
-            .data$t_start_date +
-              lubridate::days(prior_event_lookback - .data$diff_days)
-          )) %>%
-          dplyr::select(-"diff_days")
-      }
-    }
-
     working_pop <- working_pop %>%
-      dplyr::inner_join(working_pop %>%
-                          dplyr::mutate(diff_days = as.numeric(difftime(.data$t_end_date,
-                                                                        .data$t_start_date,
-                                                                        units = "days")) + 1) %>%
-                          dplyr::group_by(.data$person_id) %>%
-                          dplyr::summarise(contribution = sum(.data$diff_days)/period) %>%
-                          dplyr::filter(.data$contribution >= minimum_representative_proportion) %>%
-                          select("person_id"),
-                        by = "person_id")
+      dplyr::mutate(.data$contribution = (as.numeric(difftime(.data$t_end_date,.data$t_start_date))+1)/period) %>%
+      dplyr::group_by(.data$person_id) %>%
+      dplyr::mutate(contribution = sum(.data$contribution)) %>%
+      dplyr::ungroup() %>%
+      dplyr::filter(.data$contribution >= minimum_representative_proportion)
 
     individuals <- working_pop %>%
+      select("person_id") %>%
       distinct() %>%
       nrow()
 
-    prevalent <- outcome_visible %>%
-      dplyr::left_join(working_pop,
-                       by = "person_id") %>%
+    prevalent <- working_pop %>%
       dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
       dplyr::filter(.data$outcome_end_date >= .data$t_start_date) %>%
+      select("person_id") %>%
+      distinct() %>%
       nrow()
 
     prev[[paste0(i)]] <- dplyr::tibble(prevalent = prevalent,
