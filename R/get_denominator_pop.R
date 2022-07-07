@@ -277,7 +277,7 @@ get_denominator_pop <- function(db,
           is.na(.data$day_of_birth),
         as.Date(
           paste(.data$year_of_birth,
-            "06",
+            "07",
             "01",
             sep = "/"
           ),
