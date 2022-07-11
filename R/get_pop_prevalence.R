@@ -8,7 +8,6 @@
 #' @param cohort_id_denominator_pop
 #' @param period
 #' @param time_interval
-#' @param prior_event_lookback
 #' @param minimum_representative_proportion
 #' @param confidence_interval
 #' @param verbose
@@ -25,7 +24,6 @@ get_pop_prevalence <- function(db,
                                cohort_id_denominator_pop = NULL,
                                period = 1,
                                time_interval = c("Months"),
-                               prior_event_lookback = NULL,
                                minimum_representative_proportion = 0.5,
                                confidence_interval = "exact",
                                verbose = FALSE) {
@@ -63,7 +61,7 @@ get_pop_prevalence <- function(db,
   }
   checkmate::assert_character(results_schema_outcome,
                               add = error_message,
-    null.ok = TRUE
+                              null.ok = TRUE
   )
   checkmate::assert_character(cohort_id_outcome,
                               add = error_message,
@@ -156,12 +154,12 @@ get_pop_prevalence <- function(db,
   }
 
   # link to outcome cohort
-    if(!is.null(results_schema_outcome)){
-  outcome_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
-    "SELECT * FROM {results_schema_outcome}.{table_name_outcome}"
-  )))
+  if(!is.null(results_schema_outcome)){
+    outcome_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
+      "SELECT * FROM {results_schema_outcome}.{table_name_outcome}"
+    )))
   } else {
-     outcome_db <- tbl(db, "outcome")
+    outcome_db <- tbl(db, "outcome")
   }
   error_message <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0,
@@ -258,63 +256,6 @@ get_pop_prevalence <- function(db,
   }
   checkmate::reportAssertions(collection = error_message)
 
-  if (is.null(prior_event_lookback)){
-
-    outcome <- outcome %>%
-      dplyr::group_by(.data$person_id) %>%
-      dplyr::filter(.data$outcome_start_date == min(.data$outcome_start_date))
-
-    study_pop <- study_pop %>%
-      dplyr::left_join(outcome, by = "person_id") %>%
-      dplyr::rename("end_contribution" = "cohort_end_date") %>%
-      dplyr::mutate(end_observation = dplyr::if_else(.data$end_contribution <= .data$outcome_end_date,
-                                                     .data$end_contribution,
-                                                     .data$outcome_end_date)
-      )
-
-  } else {
-
-    outcome <- outcome %>%
-      dplyr::group_by("person_id") %>%
-      dplyr::arrange(desc(.data$outcome_start_date)) %>%
-      dplyr::mutate(index = 1:length(.data$person_id))
-
-    outcome_first <- outcome %>%
-      dplyr::filter(.data$index == 1)
-
-    outcome_not_first <- outcome %>%
-      dplyr::filter(.data$index > 1)
-
-    study_pop_not_first <- study_pop %>%
-      dplyr::inner_join(outcome_not_first,
-                        by = "person_id") %>%
-      dplyr::inner_join(outcome %>%
-                          dplyr::mutate(.data$index = .data$index - 1) %>%
-                          dplyr::rename("prev_outcome_end_date" = "outcome_end_date") %>%
-                          dplyr::select("person_id","prev_outcome_end_date","index"),
-                        by = c("person_id","index")) %>%
-      dplyr::mutate(cohort_start_date = .data$prev_outcome_end_date + prior_event_lookback) %>%
-      dplyr::rename("end_contribution" = "cohort_end_date") %>%
-      dplyr::mutate(end_observation = dplyr::if_else(.data$end_contribution <= .data$outcome_end_date,
-                                                     .data$end_contribution,
-                                                     .data$outcome_end_date)) %>%
-      dplyr::filter(.data$cohort_start_date <= end_observation)
-
-    study_pop_first <- study_pop %>%
-      dplyr::inner_join(outcome_first,
-                        by = "person_id") %>%
-      dplyr::rename("end_contribution" = "cohort_end_date") %>%
-      dplyr::mutate(end_observation = dplyr::if_else(.data$end_contribution <= .data$outcome_end_date,
-                                                     .data$end_contribution,
-                                                     .data$outcome_end_date))
-
-    study_pop <- study_pop %>%
-      anti_join(study_pop_first, by = "person_id") %>%
-      full_join(study_pop_first) %>%
-      full_join(study_pop_not_first)
-
-  }
-
   # fetch prevalence
   # looping through each time interval
   prev <- list()
@@ -342,20 +283,25 @@ get_pop_prevalence <- function(db,
                                                   .data$cohort_start_date
       ))
 
+
     # individuals end date for this period
     # end of the period or earlier
     working_pop <- working_pop %>%
       dplyr::mutate(t_end_date =
-                      dplyr::if_else(.data$end_contribution >= working_t_end,
+                      dplyr::if_else(.data$cohort_end_date >= working_t_end,
                                      working_t_end,
-                                     .data$end_contribution
+                                     .data$cohort_end_date
                       ))
 
     working_pop <- working_pop %>%
-      dplyr::select("person_id", "t_start_date", "t_end_date")
+      dplyr::left_join(outcome,
+                       by = "person_id")
 
     working_pop <- working_pop %>%
-      dplyr::mutate(.data$contribution = (as.numeric(difftime(.data$t_end_date,.data$t_start_date))+1)/period) %>%
+      dplyr::select("person_id", "t_start_date", "t_end_date","outcome_start_date","outcome_end_date")
+
+    working_pop <- working_pop %>%
+      dplyr::mutate(contribution = (as.numeric(difftime(.data$t_end_date,.data$t_start_date,units = "days"))+1)/period) %>%
       dplyr::group_by(.data$person_id) %>%
       dplyr::mutate(contribution = sum(.data$contribution)) %>%
       dplyr::ungroup() %>%
@@ -373,13 +319,13 @@ get_pop_prevalence <- function(db,
       distinct() %>%
       nrow()
 
-    prev[[paste0(i)]] <- dplyr::tibble(prevalent = prevalent,
-                                     individuals = individuals,
-                                     prevalence = prevalent/individuals,
-                                     calendar_month = ifelse(time_interval == "Months",
-                                                             lubridate::month(working_t_start),
-                                                             NA),
-                                     calendar_year = lubridate::year(working_t_start))
+    prev[[paste0(i)]] <- dplyr::tibble(numerator = prevalent,
+                                       denominator = individuals,
+                                       prev = prevalent/individuals,
+                                       calendar_month = ifelse(time_interval == "Months",
+                                                               lubridate::month(working_t_start),
+                                                               NA),
+                                       calendar_year = lubridate::year(working_t_start))
   }
 
   prev <- dplyr::bind_rows(prev)
@@ -388,9 +334,11 @@ get_pop_prevalence <- function(db,
     prev <- prev %>%
       dplyr::mutate(prev_low = NA) %>%
       dplyr::mutate(prev_high = NA)
-  }
+  } else {
 
-  if (confidence_interval == "exact") {
+    # ci <- obtainConfidenceInterval(numerator = prev$prevalent,
+    #                                denominator = prev$individuals,
+    #                                method = confidence_interval)
     ci <- tibble(prev_low = qchisq(0.05/2, df=2*(prev$prevalent-1))/2/prev$individuals,
                  prev_high = qchisq(1-0.05/2, df=2*prev$prevalent)/2/prev$individuals)
 
@@ -404,7 +352,6 @@ get_pop_prevalence <- function(db,
     dplyr::mutate(required_days_prior_history = unique(study_pop$required_days_prior_history)) %>%
     dplyr::mutate(age_strata = unique(study_pop$age_strata)) %>%
     dplyr::mutate(sex_strata = unique(study_pop$sex_strata)) %>%
-    dplyr::mutate(prior_event_lookback = prior_event_lookback) %>%
     dplyr::mutate(period = period) %>%
     dplyr::mutate(time_interval = time_interval) %>%
     dplyr::mutate(confidence_interval = confidence_interval)
