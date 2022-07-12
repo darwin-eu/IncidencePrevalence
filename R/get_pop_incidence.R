@@ -27,9 +27,7 @@ get_pop_incidence <- function(db,
                               repetitive_events = FALSE,
                               confidence_interval = "exact",
                               verbose = FALSE) {
-
-
-    if (!is.null(prior_event_lookback)) {
+  if (!is.null(prior_event_lookback)) {
     if (is.na(prior_event_lookback)) {
       prior_event_lookback <- NULL
     }
@@ -93,7 +91,8 @@ get_pop_incidence <- function(db,
     sum(is.na(study_denominator_pop$sex_strata)) == 0)
   checkmate::assertTRUE(
     !is.null(study_denominator_pop$required_days_prior_history) &
-    sum(is.na(study_denominator_pop$required_days_prior_history)) == 0)
+      sum(is.na(study_denominator_pop$required_days_prior_history)) == 0
+  )
   checkmate::assertTRUE(all(c(
     "cohort_definition_id",
     "person_id",
@@ -128,7 +127,7 @@ get_pop_incidence <- function(db,
   # report initial assertions
   checkmate::reportAssertions(collection = error_message)
 
-  if(verbose==TRUE){
+  if (verbose == TRUE) {
     message("Inputs checked and all initial assertions passed")
   }
 
@@ -156,18 +155,18 @@ get_pop_incidence <- function(db,
   }
   checkmate::reportAssertions(collection = error_message)
 
-    if(verbose==TRUE){
+  if (verbose == TRUE) {
     message("Check passed: one or more people in denominator")
   }
 
 
   # link to outcome cohort
-    if(!is.null(results_schema_outcome)){
-  outcome_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
-    "SELECT * FROM {results_schema_outcome}.{table_name_outcome}"
-  )))
+  if (!is.null(results_schema_outcome)) {
+    outcome_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
+      "SELECT * FROM {results_schema_outcome}.{table_name_outcome}"
+    )))
   } else {
-     outcome_db <- tbl(db, "outcome")
+    outcome_db <- tbl(db, "outcome")
   }
   error_message <- checkmate::makeAssertCollection()
   if (!is.null(cohort_id_outcome)) {
@@ -188,7 +187,7 @@ get_pop_incidence <- function(db,
   checkmate::reportAssertions(collection = error_message)
 
   # bring outcomes into memory
-    if(verbose==TRUE){
+  if (verbose == TRUE) {
     message("Bringing outcomes into memory")
   }
   outcome <- outcome_db %>%
@@ -218,7 +217,8 @@ get_pop_incidence <- function(db,
     first_outcome_fu <- outcome %>%
       dplyr::left_join(study_pop %>%
         dplyr::select("person_id", "cohort_start_date", "cohort_end_date"),
-        by = "person_id") %>%
+      by = "person_id"
+      ) %>%
       dplyr::filter(.data$outcome_start_date >= .data$cohort_start_date) %>%
       dplyr::filter(.data$outcome_start_date <= .data$cohort_end_date) %>%
       dplyr::group_by(.data$person_id) %>%
@@ -315,28 +315,29 @@ get_pop_incidence <- function(db,
     # individuals end date for this period
     # end of the period or earlier
     working_pop <- working_pop %>%
-      dplyr::mutate(t_end_date =
-        dplyr::if_else(.data$cohort_end_date >= working_t_end,
-                       working_t_end,
-                       .data$cohort_end_date
-      ))
+      dplyr::mutate(
+        t_end_date =
+          dplyr::if_else(.data$cohort_end_date >= working_t_end,
+            working_t_end,
+            .data$cohort_end_date
+          )
+      )
 
     working_pop <- working_pop %>%
       dplyr::select("person_id", "t_start_date", "t_end_date")
 
     # Add outcomes during period
-    working_pop<- working_pop %>%
+    working_pop <- working_pop %>%
       left_join(
-    outcome %>%
-      dplyr::inner_join(working_pop,
+        outcome %>%
+          dplyr::inner_join(working_pop,
+            by = "person_id"
+          ) %>%
+          dplyr::filter(outcome_start_date %within%
+            lubridate::interval(t_start_date, t_end_date)) %>%
+          select("person_id", "outcome_start_date", "outcome_end_date"),
         by = "person_id"
-      ) %>%
-      dplyr::filter(outcome_start_date %within%
-      lubridate::interval(t_start_date, t_end_date)
-      ) %>%
-      select("person_id", "outcome_start_date", "outcome_end_date"),
-    by = "person_id"
-    )
+      )
 
     # now we may have multiple rows
     # if repetitive events=TRUE,
@@ -361,7 +362,7 @@ get_pop_incidence <- function(db,
       working_outcome_pop <- working_outcome_pop %>%
         dplyr::group_by(.data$person_id) %>%
         dplyr::mutate(
-          t_start_date_new = dplyr::lag(.data$outcome_end_date)+lubridate::days(1),
+          t_start_date_new = dplyr::lag(.data$outcome_end_date) + lubridate::days(1),
           t_end_date_prev = dplyr::lag(.data$t_end_date)
         )
       # drop if t_start_date is same as t_end_date_prev
@@ -371,11 +372,13 @@ get_pop_incidence <- function(db,
         dplyr::select(-"t_end_date_prev")
       # update t_start_date
       working_outcome_pop <- working_outcome_pop %>%
-        dplyr::mutate(t_start_date =
-                      dplyr::if_else(!is.na(.data$t_start_date_new),
-          .data$t_start_date_new,
-          .data$t_start_date
-        )) %>%
+        dplyr::mutate(
+          t_start_date =
+            dplyr::if_else(!is.na(.data$t_start_date_new),
+              .data$t_start_date_new,
+              .data$t_start_date
+            )
+        ) %>%
         dplyr::select(-"t_start_date_new")
       # drop if this t_start_date is after t_end_date
       working_outcome_pop <- working_outcome_pop %>%
@@ -384,8 +387,8 @@ get_pop_incidence <- function(db,
       # t_end_date to outcome_start_date
       working_outcome_pop <- working_outcome_pop %>%
         dplyr::mutate(t_end_date = dplyr::if_else(
-           !is.na(.data$outcome_start_date) &
-          .data$t_end_date > .data$outcome_start_date,
+          !is.na(.data$outcome_start_date) &
+            .data$t_end_date > .data$outcome_start_date,
           .data$outcome_start_date, .data$t_end_date
         ))
 
@@ -473,11 +476,11 @@ get_pop_incidence <- function(db,
       dplyr::mutate(
         working_days =
           dplyr::if_else(is.na(.data$outcome_start_date),
-            as.numeric(difftime(.data$t_end_date+ lubridate::days(1),
+            as.numeric(difftime(.data$t_end_date + lubridate::days(1),
               .data$t_start_date,
               units = "days"
             )),
-            as.numeric(difftime(.data$outcome_start_date+ lubridate::days(1),
+            as.numeric(difftime(.data$outcome_start_date + lubridate::days(1),
               .data$t_start_date,
               units = "days"
             ))
@@ -519,16 +522,17 @@ get_pop_incidence <- function(db,
   }
 
   if (confidence_interval == "exact") {
-
     ci <- ir %>%
-      left_join(
-    ir %>%
-      filter(n_events>=1) %>%
-      mutate(ir_low=(qchisq(0.05/2, df=2*(n_events-1))/2/person_months*100000)) %>%
-      mutate(ir_high=(qchisq(1-0.05/2, df=2*n_events)/2/person_months*100000))) %>%
-      select(ir_low,ir_high) %>%
-      mutate(ir_low=if_else(is.na(ir_low), 0, ir_low)) %>%
-      mutate(ir_high=if_else(is.na(ir_high), 0, ir_high))
+      dplyr::left_join(
+        ir %>%
+          dplyr::filter(n_events >= 1) %>%
+          dplyr::mutate(ir_low = (qchisq(0.05 / 2, df = 2 * (n_events - 1)) / 2 / person_months * 100000)) %>%
+          dplyr::mutate(ir_high = (qchisq(1 - 0.05 / 2, df = 2 * n_events) / 2 / person_months * 100000)),
+        by = c("n_persons", "person_days", "person_months", "person_years", "n_events", "ir", "calendar_month", "calendar_year")
+      ) %>%
+      dplyr::select(ir_low, ir_high) %>%
+      dplyr::mutate(ir_low = if_else(is.na(ir_low), 0, ir_low)) %>%
+      dplyr::mutate(ir_high = if_else(is.na(ir_high), 0, ir_high))
 
     # ci <- tibble(ir_low = if_else(ir$n_events>10,
     #               (qchisq(0.05/2, df=2*(ir$n_events-1))/2/ir$person_months*100000),
