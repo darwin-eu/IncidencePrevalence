@@ -28,12 +28,6 @@ get_pop_prevalence <- function(db,
                                confidence_interval = "exact",
                                verbose = FALSE) {
 
-  if (!is.null(prior_event_lookback)) {
-    if (is.na(prior_event_lookback)) {
-      prior_event_lookback <- NULL
-    }
-  }
-
   # help to avoid formatting errors
   if (is.numeric(cohort_id_outcome)) {
     cohort_id_outcome <- as.character(cohort_id_outcome)
@@ -106,10 +100,6 @@ get_pop_prevalence <- function(db,
   checkmate::assert_choice(time_interval,
                            choices = c("Months", "Years"),
                            add = error_message
-  )
-  checkmate::assert_numeric(prior_event_lookback,
-                            add = error_message,
-                            null.ok = TRUE
   )
   checkmate::assert_logical(verbose,
                             add = error_message
@@ -272,7 +262,7 @@ get_pop_prevalence <- function(db,
     # drop people with end_date prior to working_t_start
     # drop people with start_date after working_t_end
     working_pop <- study_pop %>%
-      dplyr::filter(.data$end_observation >= working_t_start) %>%
+      dplyr::filter(.data$cohort_end_date >= working_t_start) %>%
       dplyr::filter(.data$cohort_start_date <= working_t_end)
 
     # individuals start date for this period
@@ -339,8 +329,8 @@ get_pop_prevalence <- function(db,
     # ci <- obtainConfidenceInterval(numerator = prev$prevalent,
     #                                denominator = prev$individuals,
     #                                method = confidence_interval)
-    ci <- tibble(prev_low = qchisq(0.05/2, df=2*(prev$prevalent-1))/2/prev$individuals,
-                 prev_high = qchisq(1-0.05/2, df=2*prev$prevalent)/2/prev$individuals)
+    ci <- tibble(prev_low = qchisq(0.05/2, df=2*(prev$numerator-1))/2/prev$denominator,
+                 prev_high = qchisq(1-0.05/2, df=2*prev$numerator)/2/prev$denominator)
 
     prev <- dplyr::bind_cols(prev, ci) %>%
       dplyr::relocate(.data$prev_low, .before = .data$calendar_month) %>%
