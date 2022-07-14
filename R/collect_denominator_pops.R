@@ -127,7 +127,7 @@ collect_denominator_pops <- function(db,
       ))
     }
 
- denominator_pop <-  get_denominator_pop(
+    denominator_pop <- get_denominator_pop(
       db = db,
       cdm_database_schema = cdm_database_schema,
       start_date = x$study_start_date,
@@ -137,20 +137,19 @@ collect_denominator_pops <- function(db,
       sex = x$sex,
       days_prior_history = x$study_days_prior_history
     )
- if(!is.null(denominator_pop)){
- denominator_pop <-  denominator_pop  %>%
-      # add specification for each population to output
-      dplyr::mutate(
-        study_start_date = x$study_start_date,
-        study_end_date = x$study_end_date,
-        age_strata = x$age_range,
-        sex_strata = x$sex,
-        required_days_prior_history = x$study_days_prior_history
-      )
- }
+    if (!is.null(denominator_pop)) {
+      denominator_pop <- denominator_pop %>%
+        # add specification for each population to output
+        dplyr::mutate(
+          study_start_date = x$study_start_date,
+          study_end_date = x$study_end_date,
+          age_strata = x$age_range,
+          sex_strata = x$sex,
+          required_days_prior_history = x$study_days_prior_history
+        )
+    }
 
- return(denominator_pop)
-
+    return(denominator_pop)
   })
 
   # to tibble
@@ -158,7 +157,7 @@ collect_denominator_pops <- function(db,
     .id = "cohort_definition_id"
   )
 
-    if (verbose == TRUE) {
+  if (verbose == TRUE) {
     duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
     message(glue::glue(
       "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
@@ -166,9 +165,9 @@ collect_denominator_pops <- function(db,
   }
 
   if (nrow(study_populations) == 0) {
-      message("- No people found for any denominator population")
-      return(NULL)
+    message("- No people found for any denominator population")
+    return(NULL)
   } else {
     return(study_populations)
-    }
+  }
 }

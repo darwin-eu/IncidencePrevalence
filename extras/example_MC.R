@@ -58,7 +58,7 @@ results_database_schema<-"results"
 
 createCOHORTS <- FALSE
 
-outcomecohortTableStem<-"EB_OmopPopEpi"
+outcomecohortTableStem<-"MC_OmopPopEpi"
 
 # build results cohorts -----
 if (createCOHORTS){
@@ -122,12 +122,60 @@ dplyr::tbl(db, dplyr::sql(glue::glue(
 denominator_pop_dementia<-collect_denominator_pops(db,
                                                    cdm_database_schema,
                                                    study_start_date=as.Date("2014-01-01"),
-                                                   study_end_date=as.Date("2016-12-31"),
-                                                   study_age_stratas = list(c(50,80),
-                                                                            c(80,110)),
-                                                   study_sex_stratas = c("Male", "Female","Both"),
-                                                   study_days_prior_history =c(365,1826),
+                                                   study_end_date=as.Date("2015-12-31"),
+                                                   study_age_stratas = list(c(70,71)),
+                                                   study_sex_stratas = c("Both"),
+                                                   study_days_prior_history =c(365),
                                                    verbose = TRUE)
+
+db = db
+results_schema_outcome = results_database_schema
+table_name_outcome = outcomecohortTableStem
+cohort_id_outcome = 1
+study_denominator_pop = denominator_pop_dementia
+cohort_id_denominator_pop = 1
+period = "Point"
+time_interval = c("Months")
+minimum_representative_proportion = 0.5
+confidence_interval = "exact"
+verbose = FALSE
+
+# prev_get <- get_pop_prevalence (db = db,
+#                                 results_schema_outcome = results_database_schema,
+#                                 table_name_outcome = outcomecohortTableStem,
+#                                 cohort_id_outcome = 1,
+#                                 study_denominator_pop = denominator_pop_dementia,
+#                                 cohort_id_denominator_pop = 1,
+#                                 period = "Point",
+#                                 time_interval = c("Months"),
+#                                 minimum_representative_proportion = 0.5,
+#                                 confidence_interval = "exact",
+#                                 verbose = FALSE)
+#
+# db = db
+# results_schema_outcomes = results_database_schema
+# table_name_outcomes = outcomecohortTableStem
+# cohort_ids_outcomes = 1
+# study_denominator_pop = denominator_pop_dementia
+# cohort_ids_denominator_pops = 1
+# periods = "Point"
+# time_intervals = "Months"
+# minimum_representative_proportions = 0.5
+# confidence_intervals = "exact"
+# verbose = FALSE
+
+prev_col <- collect_pop_incidence(db = db,
+                                  results_schema_outcomes = results_database_schema,
+                                  table_name_outcomes = outcomecohortTableStem,
+                                  cohort_ids_outcomes = c(1,4),
+                                  study_denominator_pop = denominator_pop_dementia,
+                                  cohort_ids_denominator_pops = 1,
+                                  periods = "Point",
+                                  time_intervals = "Months",
+                                  minimum_representative_proportions = 0.5,
+                                  confidence_intervals = "exact",
+                                  verbose = FALSE)
+
 ir_dementia_1y<-get_pop_incidence(db=db,
                                   results_schema_outcome="results",
                                   table_name_outcome=outcomecohortTableStem,

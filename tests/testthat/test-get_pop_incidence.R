@@ -1,133 +1,156 @@
 test_that("mock db checks", {
-library(DBI)
-library(dplyr)
-library(tibble)
+  library(DBI)
+  library(dplyr)
+  library(tibble)
 
-# duckdb mock database
-db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
-person<-tibble(person_id="1",
-       gender_concept_id="8507",
-       year_of_birth=2000,
-       month_of_birth=01,
-       day_of_birth=01)
-observation_period<-tibble(observation_period_id="1",
-       person_id="1",
-       observation_period_start_date=as.Date("2010-01-01"),
-       observation_period_end_date=as.Date("2012-06-01"))
-outcome<-tibble(cohort_definition_id="1",
-                subject_id="1",
-                cohort_start_date=c(as.Date("2010-02-05"),
-                                    as.Date("2010-02-08"),
-                                    as.Date("2010-02-20")),
-                cohort_end_date=c(as.Date("2010-02-05"),
-                                    as.Date("2010-02-08"),
-                                    as.Date("2010-02-20")))
-DBI::dbWithTransaction(db, {
+  # duckdb mock database
+  db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+  person <- tibble(
+    person_id = "1",
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observation_period <- tibble(
+    observation_period_id = "1",
+    person_id = "1",
+    observation_period_start_date = as.Date("2010-01-01"),
+    observation_period_end_date = as.Date("2012-06-01")
+  )
+  outcome <- tibble(
+    cohort_definition_id = "1",
+    subject_id = "1",
+    cohort_start_date = c(
+      as.Date("2010-02-05"),
+      as.Date("2010-02-08"),
+      as.Date("2010-02-20")
+    ),
+    cohort_end_date = c(
+      as.Date("2010-02-05"),
+      as.Date("2010-02-08"),
+      as.Date("2010-02-20")
+    )
+  )
+  DBI::dbWithTransaction(db, {
     DBI::dbWriteTable(db, "person", person,
-                      overwrite = TRUE)
+      overwrite = TRUE
+    )
   })
-DBI::dbWithTransaction(db, {
+  DBI::dbWithTransaction(db, {
     DBI::dbWriteTable(db, "observation_period", observation_period,
-                      overwrite = TRUE
+      overwrite = TRUE
     )
   })
-DBI::dbWithTransaction(db, {
+  DBI::dbWithTransaction(db, {
     DBI::dbWriteTable(db, "outcome", outcome,
-                      overwrite = TRUE
+      overwrite = TRUE
     )
   })
-dpop<-collect_denominator_pops(db=db,
-                    cdm_database_schema=NULL)
-inc<-get_pop_incidence(db,
-                  results_schema_outcome=NULL,
-                  table_name_outcome="outcome",
-                  cohort_id_outcome="1",
-                  study_denominator_pop=dpop,
-                  repetitive_events = FALSE,
-                  prior_event_lookback=0)
-expect_true(sum(inc$n_events)==1)
-inc<-get_pop_incidence(db,
-                  results_schema_outcome=NULL,
-                  table_name_outcome="outcome",
-                  cohort_id_outcome="1",
-                  study_denominator_pop=dpop,
-                  repetitive_events = TRUE,
-                  prior_event_lookback=2)
-expect_true(sum(inc$n_events)==3)
-inc<-get_pop_incidence(db,
-                  results_schema_outcome=NULL,
-                  table_name_outcome="outcome",
-                  cohort_id_outcome="1",
-                  study_denominator_pop=dpop,
-                  repetitive_events = TRUE,
-                  prior_event_lookback=10)
-expect_true(sum(inc$n_events)==2)
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL
+  )
+  inc <- get_pop_incidence(db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    study_denominator_pop = dpop,
+    repetitive_events = FALSE,
+    prior_event_lookback = 0
+  )
+  expect_true(sum(inc$n_events) == 1)
+  inc <- get_pop_incidence(db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    study_denominator_pop = dpop,
+    repetitive_events = TRUE,
+    prior_event_lookback = 2
+  )
+  expect_true(sum(inc$n_events) == 3)
+  inc <- get_pop_incidence(db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    study_denominator_pop = dpop,
+    repetitive_events = TRUE,
+    prior_event_lookback = 10
+  )
+  expect_true(sum(inc$n_events) == 2)
 
-# even if repetitive_events = TRUE,
-# if prior_event_lookback=NULL (all of history)
-# then it won´t be possible to have any recurrent events
-inc<-get_pop_incidence(db,
-                  results_schema_outcome=NULL,
-                  table_name_outcome="outcome",
-                  cohort_id_outcome="1",
-                  study_denominator_pop=dpop,
-                  repetitive_events = TRUE,
-                  prior_event_lookback=NULL)
-expect_true(sum(inc$n_events)==1)
+  # even if repetitive_events = TRUE,
+  # if prior_event_lookback=NULL (all of history)
+  # then it won´t be possible to have any recurrent events
+  inc <- get_pop_incidence(db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    study_denominator_pop = dpop,
+    repetitive_events = TRUE,
+    prior_event_lookback = NULL
+  )
+  expect_true(sum(inc$n_events) == 1)
 
-inc<-get_pop_incidence(db,
-                  results_schema_outcome=NULL,
-                  table_name_outcome="outcome",
-                  cohort_id_outcome=1, # to character in function
-                  study_denominator_pop=dpop)
+  inc <- get_pop_incidence(db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = 1, # to character in function
+    study_denominator_pop = dpop
+  )
 
-inc<-get_pop_incidence(db,
-                  results_schema_outcome=NULL,
-                  table_name_outcome="outcome",
-                  cohort_id_denominator_pop=1, # to character in function
-                  study_denominator_pop=dpop,
-                  confidence_interval="none")
+  inc <- get_pop_incidence(db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_denominator_pop = 1, # to character in function
+    study_denominator_pop = dpop,
+    confidence_interval = "none"
+  )
 
-inc<-get_pop_incidence(db,
-                  results_schema_outcome=NULL,
-                  # gets changed to NULL (to help collect)
-                  prior_event_lookback = NA,
-                  table_name_outcome="outcome",
-                  cohort_id_outcome="1",
-                  study_denominator_pop=dpop)
+  inc <- get_pop_incidence(db,
+    results_schema_outcome = NULL,
+    # gets changed to NULL (to help collect)
+    prior_event_lookback = NA,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    study_denominator_pop = dpop
+  )
 
-inc<-get_pop_incidence(db,
-                  results_schema_outcome=NULL,
-                  table_name_outcome="outcome",
-                  cohort_id_outcome=1,
-                  study_denominator_pop=dpop)
+  inc <- get_pop_incidence(db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = 1,
+    study_denominator_pop = dpop
+  )
 
-inc<-get_pop_incidence(db,
-                  results_schema_outcome=NULL,
-                  table_name_outcome="outcome",
-                  cohort_id_outcome="1",
-                  study_denominator_pop=dpop,
-                  verbose=TRUE)
+  inc <- get_pop_incidence(db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    study_denominator_pop = dpop,
+    verbose = TRUE
+  )
 
-inc<-get_pop_incidence(db,
-                  results_schema_outcome=NULL,
-                  table_name_outcome="outcome",
-                  cohort_id_outcome="1",
-                  time_interval = "years",
-                  study_denominator_pop=dpop,
-                  verbose=TRUE)
+  inc <- get_pop_incidence(db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    time_interval = "years",
+    study_denominator_pop = dpop,
+    verbose = TRUE
+  )
 
-inc<-get_pop_incidence(db,
-                  results_schema_outcome=NULL,
-                  table_name_outcome="outcome",
-                  cohort_id_outcome="1",
-                  study_denominator_pop=dpop,
-                  confidence_interval="none")
+  inc <- get_pop_incidence(db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    study_denominator_pop = dpop,
+    confidence_interval = "none"
+  )
 
 
 
-dbDisconnect(db)
-
+  dbDisconnect(db)
 })
 
 # test_that("checks on working example", {
@@ -216,57 +239,67 @@ dbDisconnect(db)
 # })
 
 test_that("mock db checks", {
-library(DBI)
-library(dplyr)
-library(tibble)
+  library(DBI)
+  library(dplyr)
+  library(tibble)
 
-# duckdb mock database
-db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
-person<-tibble(person_id="1",
-       gender_concept_id="8507",
-       year_of_birth=2000,
-       month_of_birth=01,
-       day_of_birth=01)
-observation_period<-tibble(observation_period_id="1",
-       person_id="1",
-       observation_period_start_date=as.Date("2010-01-01"),
-       observation_period_end_date=as.Date("2010-01-05"))
-outcome<-tibble(cohort_definition_id="1",
-                subject_id="1",
-                cohort_start_date=c(as.Date("2010-01-04")),
-                cohort_end_date=c(as.Date("2010-01-04")))
-DBI::dbWithTransaction(db, {
+  # duckdb mock database
+  db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+  person <- tibble(
+    person_id = "1",
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observation_period <- tibble(
+    observation_period_id = "1",
+    person_id = "1",
+    observation_period_start_date = as.Date("2010-01-01"),
+    observation_period_end_date = as.Date("2010-01-05")
+  )
+  outcome <- tibble(
+    cohort_definition_id = "1",
+    subject_id = "1",
+    cohort_start_date = c(as.Date("2010-01-04")),
+    cohort_end_date = c(as.Date("2010-01-04"))
+  )
+  DBI::dbWithTransaction(db, {
     DBI::dbWriteTable(db, "person", person,
-                      overwrite = TRUE)
+      overwrite = TRUE
+    )
   })
-DBI::dbWithTransaction(db, {
+  DBI::dbWithTransaction(db, {
     DBI::dbWriteTable(db, "observation_period", observation_period,
-                      overwrite = TRUE
+      overwrite = TRUE
     )
   })
-DBI::dbWithTransaction(db, {
+  DBI::dbWithTransaction(db, {
     DBI::dbWriteTable(db, "outcome", outcome,
-                      overwrite = TRUE
+      overwrite = TRUE
     )
   })
-dpop<-collect_denominator_pops(db=db,
-                    cdm_database_schema=NULL)
-# expect error because less than one month between
-# cohort_start_date and cohort_end_date among dpop
-expect_error(get_pop_incidence(db,
-                  results_schema_outcome=NULL,
-                  table_name_outcome="outcome",
-                  time_interval = c("Months"),
-                  study_denominator_pop=dpop))
-expect_error(get_pop_incidence(db,
-                  results_schema_outcome=NULL,
-                  table_name_outcome="outcome",
-                  time_interval = c("Years"),
-                  cohort_id_outcome="1",
-                  study_denominator_pop=dpop))
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL
+  )
+  # expect error because less than one month between
+  # cohort_start_date and cohort_end_date among dpop
+  expect_error(get_pop_incidence(db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    time_interval = c("Months"),
+    study_denominator_pop = dpop
+  ))
+  expect_error(get_pop_incidence(db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    time_interval = c("Years"),
+    cohort_id_outcome = "1",
+    study_denominator_pop = dpop
+  ))
 
-dbDisconnect(db)
-
+  dbDisconnect(db)
 })
 
 

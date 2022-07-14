@@ -22,7 +22,7 @@ get_pop_prevalence <- function(db,
                                cohort_id_outcome = NULL,
                                study_denominator_pop,
                                cohort_id_denominator_pop = NULL,
-                               period = 1,
+                               period = "Point",
                                time_interval = c("Months"),
                                minimum_representative_proportion = 0.5,
                                confidence_interval = "exact",
@@ -46,7 +46,7 @@ get_pop_prevalence <- function(db,
   error_message <- checkmate::makeAssertCollection()
   db_inherits_check <- inherits(db, "DBIConnection")
   checkmate::assertTRUE(db_inherits_check,
-                        add = error_message
+    add = error_message
   )
   if (!isTRUE(db_inherits_check)) {
     error_message$push(
@@ -54,37 +54,38 @@ get_pop_prevalence <- function(db,
     )
   }
   checkmate::assert_character(results_schema_outcome,
-                              add = error_message,
-                              null.ok = TRUE
+    add = error_message,
+    null.ok = TRUE
   )
   checkmate::assert_character(cohort_id_outcome,
-                              add = error_message,
-                              null.ok = TRUE
+    add = error_message,
+    null.ok = TRUE
   )
 
   checkmate::assert_tibble(study_denominator_pop,
-                           add = error_message
+    add = error_message
   )
   checkmate::assertTRUE(all(study_denominator_pop$cohort_start_date <=
-                              study_denominator_pop$cohort_end_date))
+    study_denominator_pop$cohort_end_date))
   checkmate::assertTRUE(nrow(study_denominator_pop) > 0,
-                        add = error_message
+    add = error_message
   )
   checkmate::assertTRUE(!is.null(study_denominator_pop$cohort_definition_id) &
-                          sum(is.na(study_denominator_pop$cohort_definition_id)) == 0)
+    sum(is.na(study_denominator_pop$cohort_definition_id)) == 0)
   checkmate::assertTRUE(!is.null(study_denominator_pop$person_id) &
-                          sum(is.na(study_denominator_pop$person_id)) == 0)
+    sum(is.na(study_denominator_pop$person_id)) == 0)
   checkmate::assertTRUE(!is.null(study_denominator_pop$cohort_start_date) &
-                          sum(is.na(study_denominator_pop$cohort_start_date)) == 0)
+    sum(is.na(study_denominator_pop$cohort_start_date)) == 0)
   checkmate::assertTRUE(!is.null(study_denominator_pop$cohort_end_date) &
-                          sum(is.na(study_denominator_pop$cohort_end_date)) == 0)
+    sum(is.na(study_denominator_pop$cohort_end_date)) == 0)
   checkmate::assertTRUE(!is.null(study_denominator_pop$age_strata) &
-                          sum(is.na(study_denominator_pop$age_strata)) == 0)
+    sum(is.na(study_denominator_pop$age_strata)) == 0)
   checkmate::assertTRUE(!is.null(study_denominator_pop$sex_strata) &
-                          sum(is.na(study_denominator_pop$sex_strata)) == 0)
+    sum(is.na(study_denominator_pop$sex_strata)) == 0)
   checkmate::assertTRUE(
     !is.null(study_denominator_pop$required_days_prior_history) &
-      sum(is.na(study_denominator_pop$required_days_prior_history)) == 0)
+      sum(is.na(study_denominator_pop$required_days_prior_history)) == 0
+  )
   checkmate::assertTRUE(all(c(
     "cohort_definition_id",
     "person_id",
@@ -94,25 +95,34 @@ get_pop_prevalence <- function(db,
     names(study_denominator_pop)))
 
   checkmate::assert_character(cohort_id_denominator_pop,
-                              add = error_message,
-                              null.ok = TRUE
+    add = error_message,
+    null.ok = TRUE
+  )
+  checkmate::assert_choice(period,
+    choices = c("Point", "Month", "Year"),
+    add = error_message
   )
   checkmate::assert_choice(time_interval,
-                           choices = c("Months", "Years"),
-                           add = error_message
+    choices = c("Months", "Years"),
+    add = error_message
   )
   checkmate::assert_logical(verbose,
-                            add = error_message
+    add = error_message
   )
   checkmate::assert_choice(confidence_interval,
-                           choices = c("exact", "none"),
-                           add = error_message,
-                           null.ok = TRUE
+    choices = c("exact", "none"),
+    add = error_message,
+    null.ok = TRUE
+  )
+  checkmate::assert_numeric(minimum_representative_proportion,
+    add = error_message,
+    lower = 0,
+    upper = 1
   )
   # report initial assertions
   checkmate::reportAssertions(collection = error_message)
 
-  if(verbose==TRUE){
+  if (verbose == TRUE) {
     message("Inputs checked and all initial assertions passed")
   }
 
@@ -122,14 +132,14 @@ get_pop_prevalence <- function(db,
   if (!is.null(cohort_id_denominator_pop)) {
     study_pop <- study_pop %>%
       dplyr::filter(.data$cohort_definition_id ==
-                      cohort_id_denominator_pop)
+        cohort_id_denominator_pop)
   }
 
   # check population n is above zero
   # return error if not
   error_message <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(nrow(study_pop) > 0,
-                        add = error_message
+    add = error_message
   )
   if (!nrow(study_pop) > 0) {
     error_message$push(
@@ -139,12 +149,12 @@ get_pop_prevalence <- function(db,
   }
   checkmate::reportAssertions(collection = error_message)
 
-  if(verbose==TRUE){
+  if (verbose == TRUE) {
     message("Check passed: one or more people in denominator")
   }
 
   # link to outcome cohort
-  if(!is.null(results_schema_outcome)){
+  if (!is.null(results_schema_outcome)) {
     outcome_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
       "SELECT * FROM {results_schema_outcome}.{table_name_outcome}"
     )))
@@ -153,7 +163,7 @@ get_pop_prevalence <- function(db,
   }
   error_message <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0,
-                        add = error_message
+    add = error_message
   )
   if (!nrow(study_pop) > 0) {
     error_message$push(
@@ -169,7 +179,7 @@ get_pop_prevalence <- function(db,
   }
   error_message <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0,
-                        add = error_message
+    add = error_message
   )
   if (!nrow(study_pop) > 0) {
     error_message$push(
@@ -179,12 +189,12 @@ get_pop_prevalence <- function(db,
   }
   checkmate::reportAssertions(collection = error_message)
 
-  if(verbose==TRUE){
+  if (verbose == TRUE) {
     message("Check passed: one or more outcomes identified")
   }
 
   # bring outcomes into memory
-  if(verbose==TRUE){
+  if (verbose == TRUE) {
     message("Bringing outcomes into memory")
   }
   outcome <- outcome_db %>%
@@ -199,12 +209,12 @@ get_pop_prevalence <- function(db,
   # end date to the last day of last available full period
   if (time_interval == "Years") {
     end_date <- lubridate::floor_date(max(study_pop$cohort_end_date),
-                                      unit = "years"
+      unit = "years"
     ) - lubridate::days(1)
   }
   if (time_interval == "Months") {
     end_date <- lubridate::floor_date(max(study_pop$cohort_end_date),
-                                      unit = "months"
+      unit = "months"
     ) - lubridate::days(1)
   }
 
@@ -218,7 +228,7 @@ get_pop_prevalence <- function(db,
       lubridate::years(1)
 
     checkmate::assertTRUE(n_time > 0,
-                          add = error_message
+      add = error_message
     )
     if (!n_time > 0) {
       error_message$push(
@@ -235,7 +245,7 @@ get_pop_prevalence <- function(db,
       months(1)
 
     checkmate::assertTRUE(n_time > 0,
-                          add = error_message
+      add = error_message
     )
     if (!n_time > 0) {
       error_message$push(
@@ -248,16 +258,24 @@ get_pop_prevalence <- function(db,
 
   # fetch prevalence
   # looping through each time interval
-  prev <- list()
+  pr <- list()
   for (i in seq_along(1:(n_time + 1))) {
     if (time_interval == "Years") {
       working_t_start <- start_date + lubridate::years(i - 1)
-      working_t_end <- working_t_start + lubridate::days(period-1)
     }
     if (time_interval == "Months") {
       working_t_start <- start_date + months(i - 1)
-      working_t_end <- working_t_start + lubridate::days(period-1)
     }
+    if (period == "Point") {
+      working_t_end <- working_t_start
+    }
+    if (period == "Month") {
+      working_t_end <- working_t_start + months(1) - lubridate::days(1)
+    }
+    if (period == "Year") {
+      working_t_end <- working_t_start + lubridate::years(1) - lubridate::days(1)
+    }
+    working_period <- as.numeric(working_t_end - working_t_start) + 1
 
     # drop people with end_date prior to working_t_start
     # drop people with start_date after working_t_end
@@ -269,59 +287,65 @@ get_pop_prevalence <- function(db,
     # which could be start of the period or later
     working_pop <- working_pop %>%
       dplyr::mutate(t_start_date = dplyr::if_else(.data$cohort_start_date <= working_t_start,
-                                                  working_t_start,
-                                                  .data$cohort_start_date
+        working_t_start,
+        .data$cohort_start_date
       ))
 
 
     # individuals end date for this period
     # end of the period or earlier
     working_pop <- working_pop %>%
-      dplyr::mutate(t_end_date =
-                      dplyr::if_else(.data$cohort_end_date >= working_t_end,
-                                     working_t_end,
-                                     .data$cohort_end_date
-                      ))
+      dplyr::mutate(
+        t_end_date =
+          dplyr::if_else(.data$cohort_end_date >= working_t_end,
+            working_t_end,
+            .data$cohort_end_date
+          )
+      )
 
     working_pop <- working_pop %>%
       dplyr::left_join(outcome,
-                       by = "person_id")
+        by = "person_id"
+      )
 
     working_pop <- working_pop %>%
-      dplyr::select("person_id", "t_start_date", "t_end_date","outcome_start_date","outcome_end_date")
+      dplyr::select("person_id", "t_start_date", "t_end_date", "outcome_start_date", "outcome_end_date")
 
     working_pop <- working_pop %>%
-      dplyr::mutate(contribution = (as.numeric(difftime(.data$t_end_date,.data$t_start_date,units = "days"))+1)/period) %>%
+      dplyr::mutate(contribution = (as.numeric(difftime(.data$t_end_date, .data$t_start_date, units = "days")) + 1) / working_period) %>%
       dplyr::group_by(.data$person_id) %>%
       dplyr::mutate(contribution = sum(.data$contribution)) %>%
       dplyr::ungroup() %>%
       dplyr::filter(.data$contribution >= minimum_representative_proportion)
 
-    individuals <- working_pop %>%
+    denominator <- working_pop %>%
       select("person_id") %>%
       distinct() %>%
       nrow()
 
-    prevalent <- working_pop %>%
+    numerator <- working_pop %>%
       dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
       dplyr::filter(.data$outcome_end_date >= .data$t_start_date) %>%
       select("person_id") %>%
       distinct() %>%
       nrow()
 
-    prev[[paste0(i)]] <- dplyr::tibble(numerator = prevalent,
-                                       denominator = individuals,
-                                       prev = prevalent/individuals,
-                                       calendar_month = ifelse(time_interval == "Months",
-                                                               lubridate::month(working_t_start),
-                                                               NA),
-                                       calendar_year = lubridate::year(working_t_start))
+    pr[[paste0(i)]] <- dplyr::tibble(
+      numerator = numerator,
+      denominator = denominator,
+      prev = numerator / denominator,
+      calendar_month = ifelse(time_interval == "Months",
+        lubridate::month(working_t_start),
+        NA
+      ),
+      calendar_year = lubridate::year(working_t_start)
+    )
   }
 
-  prev <- dplyr::bind_rows(prev)
+  pr <- dplyr::bind_rows(pr)
 
   if (confidence_interval == "none") {
-    prev <- prev %>%
+    pr <- pr %>%
       dplyr::mutate(prev_low = NA) %>%
       dplyr::mutate(prev_high = NA)
   } else {
@@ -329,16 +353,20 @@ get_pop_prevalence <- function(db,
     # ci <- obtainConfidenceInterval(numerator = prev$prevalent,
     #                                denominator = prev$individuals,
     #                                method = confidence_interval)
-    ci <- tibble(prev_low = qchisq(0.05/2, df=2*(prev$numerator-1))/2/prev$denominator,
-                 prev_high = qchisq(1-0.05/2, df=2*prev$numerator)/2/prev$denominator)
+    ci <- pr %>%
+      dplyr::filter(numerator > 0) %>%
+      dplyr::mutate(prev_low = qchisq(0.05 / 2, df = 2 * (.data$numerator - 1)) / 2 / .data$denominator) %>%
+      dplyr::mutate(prev_high = qchisq(1 - 0.05 / 2, df = 2 * .data$numerator) / 2 / .data$denominator)
 
-    prev <- dplyr::bind_cols(prev, ci) %>%
+    pr <- pr %>%
+      dplyr::left_join(ci, by = c("numerator", "denominator", "prev", "calendar_month", "calendar_year")) %>%
+      dplyr::mutate(prev_low = if_else(.data$numerator == 0 & .data$denominator > 0, 0, .data$prev_low)) %>%
       dplyr::relocate(.data$prev_low, .before = .data$calendar_month) %>%
       dplyr::relocate(.data$prev_high, .after = .data$prev_low)
   }
 
   # add study design related variables
-  prev <- prev %>%
+  pr <- pr %>%
     dplyr::mutate(required_days_prior_history = unique(study_pop$required_days_prior_history)) %>%
     dplyr::mutate(age_strata = unique(study_pop$age_strata)) %>%
     dplyr::mutate(sex_strata = unique(study_pop$sex_strata)) %>%
@@ -346,5 +374,5 @@ get_pop_prevalence <- function(db,
     dplyr::mutate(time_interval = time_interval) %>%
     dplyr::mutate(confidence_interval = confidence_interval)
 
-  return(prev)
+  return(pr)
 }

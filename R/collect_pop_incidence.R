@@ -23,10 +23,10 @@ collect_pop_incidence <- function(db,
                                   study_denominator_pop,
                                   cohort_ids_denominator_pops,
                                   time_intervals = "Months",
-                                  prior_event_lookbacks=0,
-                                  repetitive_events=FALSE,
-                                  confidence_intervals="exact",
-                                  verbose = FALSE){
+                                  prior_event_lookbacks = 0,
+                                  repetitive_events = FALSE,
+                                  confidence_intervals = "exact",
+                                  verbose = FALSE) {
 
 
   # help to avoid formatting errors
@@ -46,7 +46,7 @@ collect_pop_incidence <- function(db,
 
 
 
-    ## check for standard types of user error
+  ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
   db_inherits_check <- inherits(db, "DBIConnection")
   checkmate::assertTRUE(db_inherits_check,
@@ -88,7 +88,8 @@ collect_pop_incidence <- function(db,
     sum(is.na(study_denominator_pop$sex_strata)) == 0)
   checkmate::assertTRUE(
     !is.null(study_denominator_pop$required_days_prior_history) &
-    sum(is.na(study_denominator_pop$required_days_prior_history)) == 0)
+      sum(is.na(study_denominator_pop$required_days_prior_history)) == 0
+  )
   checkmate::assertTRUE(all(c(
     "cohort_definition_id",
     "person_id",
@@ -128,21 +129,21 @@ collect_pop_incidence <- function(db,
 
 
 
-  study_specs<- tidyr::expand_grid(
+  study_specs <- tidyr::expand_grid(
     cohort_id_outcome = cohort_ids_outcomes,
-    cohort_id_denominator_pop=cohort_ids_denominator_pops,
+    cohort_id_denominator_pop = cohort_ids_denominator_pops,
     time_interval = time_intervals,
     prior_event_lookback = prior_event_lookbacks,
-    repetitive_events=repetitive_events,
-    confidence_interval=confidence_intervals,
-    verbose=verbose
+    repetitive_events = repetitive_events,
+    confidence_interval = confidence_intervals,
+    verbose = verbose
   )
 
-    if (is.null(prior_event_lookbacks)) {
+  if (is.null(prior_event_lookbacks)) {
     study_specs$prior_event_lookback <- NA
   }
 
-    study_specs <- study_specs %>%
+  study_specs <- study_specs %>%
     dplyr::mutate(cohort_definition_id = as.character(dplyr::row_number()))
 
   study_specs <- split(
@@ -150,26 +151,28 @@ collect_pop_incidence <- function(db,
     study_specs[, c("cohort_definition_id")]
   )
 
-# get irs
-irs<-lapply(study_specs, function(x) {
-get_pop_incidence(db=db,
-                  results_schema_outcome=results_schema_outcomes,
-                  table_name_outcome=table_name_outcomes,
-                  cohort_id_outcome=x$cohort_id_outcome,
-                  study_denominator_pop=study_denominator_pop,
-                  cohort_id_denominator_pop=x$cohort_id_denominator_pop,
-                  time_interval=x$time_interval,
-                  prior_event_lookback = x$prior_event_lookback,
-                  repetitive_events=x$repetitive_events,
-                  confidence_interval = x$confidence_interval,
-                  verbose = x$verbose) %>%
+  # get irs
+  irs <- lapply(study_specs, function(x) {
+    get_pop_incidence(
+      db = db,
+      results_schema_outcome = results_schema_outcomes,
+      table_name_outcome = table_name_outcomes,
+      cohort_id_outcome = x$cohort_id_outcome,
+      study_denominator_pop = study_denominator_pop,
+      cohort_id_denominator_pop = x$cohort_id_denominator_pop,
+      time_interval = x$time_interval,
+      prior_event_lookback = x$prior_event_lookback,
+      repetitive_events = x$repetitive_events,
+      confidence_interval = x$confidence_interval,
+      verbose = x$verbose
+    ) %>%
       dplyr::mutate(
-                  cohort_id_outcome=x$cohort_id_outcome,
-                  cohort_id_denominator_pop=x$cohort_id_denominator_pop,
-                  time_interval=x$time_interval,
-                  prior_event_lookback = x$prior_event_lookback,
-                  repetitive_events=x$repetitive_events,
-                  confidence_interval = x$confidence_interval
+        cohort_id_outcome = x$cohort_id_outcome,
+        cohort_id_denominator_pop = x$cohort_id_denominator_pop,
+        time_interval = x$time_interval,
+        prior_event_lookback = x$prior_event_lookback,
+        repetitive_events = x$repetitive_events,
+        confidence_interval = x$confidence_interval
       )
   })
   # to tibble and add specification for each cohort
@@ -177,6 +180,5 @@ get_pop_incidence(db=db,
     .id = "cohort_definition_id"
   )
 
-return(irs)
-
+  return(irs)
 }
