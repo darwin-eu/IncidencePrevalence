@@ -19,6 +19,7 @@ Suggests:
     rmarkdown,
     RPostgres,
     tibble,
+    ggplot2,
     duckdb,
     here,
     testthat (>= 3.0.0)

@@ -86,9 +86,7 @@ lintr::lint_package()
 devtools::build_readme()
 devtools::document() #  Use roxygen to document a package.
 
-# data for vignettes is precomputed, so first let´s do that (which might take a little while)
-# source(here::here("extras", "precompute_vignette_data.R"))
-# devtools::build_vignettes()
+devtools::build_vignettes()
 
 # usethis::use_github_actions()
 # usethis::use_github_action("lint")

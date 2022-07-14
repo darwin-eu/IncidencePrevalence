@@ -78,14 +78,9 @@ test_that("mock db checks", {
     study_days_prior_history = c(0, 365)
   ))
 
-  # not a dbi connection
-  testthat::expect_error(collect_denominator_pops(db="a",
-    cdm_database_schema,
-    study_start_date = NULL,
-    study_end_date = NULL,
-    study_age_stratas = list(c(10, 15), c(16, 20)),
-    study_sex_stratas = c("Women"),
-    study_days_prior_history = c(0, 365)
+  testthat::expect_error(collect_denominator_pops(db,
+    cdm_database_schema = NULL,
+    study_sex_stratas = "Men"
   ))
 
 

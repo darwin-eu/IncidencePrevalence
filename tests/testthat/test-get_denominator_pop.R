@@ -259,7 +259,8 @@ test_that("mock db checks", {
   expect_true(is.null(get_denominator_pop(
     db = db,
     cdm_database_schema = NULL,
-    end_date = as.Date("1800-01-01")
+    end_date = as.Date("1800-01-01"),
+    verbose = TRUE
   )))
 
   expect_true(is.null(get_denominator_pop(
@@ -277,6 +278,36 @@ test_that("mock db checks", {
     verbose = FALSE
   )))
 
+
+    # not a dbi connection
+  testthat::expect_error(get_denominator_pop(
+    db = "a",
+    cdm_database_schema = NULL,
+    verbose = FALSE))
+
+    testthat::expect_error(get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    min_age = c(0,1),
+    verbose = FALSE))
+
+    testthat::expect_error(get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    max_age = c(100,110),
+    verbose = FALSE))
+
+        testthat::expect_error(get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    sex = "Men",
+    verbose = FALSE))
+
+                testthat::expect_error(get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    days_prior_history = -30,
+    verbose = FALSE))
 
   DBI::dbDisconnect(db, shutdown=TRUE)
 })
