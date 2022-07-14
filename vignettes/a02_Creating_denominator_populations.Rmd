@@ -22,7 +22,7 @@ library(dbplyr)
 library(dplyr)
 library(tidyr)
 library(duckdb)
-library(OmopPopEpi)
+library(IncidencePrevalence)
 ```
 
 ## Introduction

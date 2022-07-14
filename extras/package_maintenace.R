@@ -55,7 +55,7 @@
 devtools::test()
 
 # check code coverage - are all functions covered 100%?
-detach("package:OmopPopEpi", unload=TRUE)
+detach("package:IncidencePrevalence", unload=TRUE)
 devtools::test_coverage()
 # for more coverage details uncomment the following
 # covr::report()

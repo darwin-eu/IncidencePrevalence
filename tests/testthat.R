@@ -1,4 +1,4 @@
 library(testthat)
-library(OmopPopEpi)
+library(IncidencePrevalence)
 
-test_check("OmopPopEpi")
+test_check("IncidencePrevalence")

@@ -13,19 +13,19 @@ out.width = "100%"
 )
 ```
 
-# OmopPopEpi
+# IncidencePrevalence
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/darwin-eu/OmopPopEpi/workflows/R-CMD-check/badge.svg)](https://github.com/darwin-eu/OmopPopEpi/actions)
+[![R-CMD-check](https://github.com/darwin-eu/IncidencePrevalence/workflows/R-CMD-check/badge.svg)](https://github.com/darwin-eu/IncidencePrevalence/actions)
 <!-- badges: end -->
 
 ## Package overview
 ```{r, echo=FALSE, message=FALSE, out.width = '100%'}
 library(here)
-knitr::include_graphics("extras/OmopPopEpi_overview.png")
+knitr::include_graphics("extras/IncidencePrevalenceOverview.png")
 ```
 
-OmopPopEpi contains functions for estimating population-level incidence and prevalence using the OMOP common data model. The package facilitates the creation of the denominator populations for incidence and prevalence calculations with the collect_denominator_pops() function. Prevalence and incidence can then be calculated for a set of (previously instanstiated) outcome cohorts, using the collect_pop_prevalence() and collect_pop_incidence() functions. The obscure_counts_prevalence() and obscure_counts_incidence() can then be used to enforce minimum cell counts that may be required before results can be shared. 
+IncidencePrevalence contains functions for estimating population-level incidence and prevalence using the OMOP common data model. The package facilitates the creation of the denominator populations for incidence and prevalence calculations with the collect_denominator_pops() function. Prevalence and incidence can then be calculated for a set of (previously instanstiated) outcome cohorts, using the collect_pop_prevalence() and collect_pop_incidence() functions. The obscure_counts_prevalence() and obscure_counts_incidence() can then be used to enforce minimum cell counts that may be required before results can be shared. 
 
 ## Results specification
 The results produced are as follows:   
@@ -33,16 +33,16 @@ The results produced are as follows:
 
 ## Package installation
 
-You can install the development version of OmopPopEpi like so:
+You can install the development version of IncidencePrevalence like so:
 
 ``` r
 install.packages("remotes")
-remotes::install_github("darwin-eu/OmopPopEpi")
+remotes::install_github("darwin-eu/IncidencePrevalence")
 ```
 
 ## Example
 ```{r example}
-library(OmopPopEpi)
+library(IncidencePrevalence)
 ## basic example code
 ```
 
