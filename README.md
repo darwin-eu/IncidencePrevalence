@@ -5,7 +5,7 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/edward-burn/OmopPopEpi/workflows/R-CMD-check/badge.svg)](https://github.com/edward-burn/OmopPopEpi/actions)
+[![R-CMD-check](https://github.com/darwin-eu/OmopPopEpi/workflows/R-CMD-check/badge.svg)](https://github.com/darwin-eu/OmopPopEpi/actions)
 <!-- badges: end -->
 
 ## Package overview
