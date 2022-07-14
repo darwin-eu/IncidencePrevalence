@@ -150,7 +150,7 @@ test_that("mock db checks", {
 
 
 
-  dbDisconnect(db)
+  dbDisconnect(db, shutdown=TRUE)
 })
 
 # test_that("checks on working example", {

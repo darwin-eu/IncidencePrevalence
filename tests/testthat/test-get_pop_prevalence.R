@@ -57,9 +57,8 @@ test_that("mock db working examples", {
     cohort_id_outcome = "1",
     study_denominator_pop = dpop,
     cohort_id_denominator_pop = "1",
-    period = 1,
+    period = "Point",
     time_interval = c("Months"),
-    prior_event_lookback = NULL,
     minimum_representative_proportion = 0.5,
     confidence_interval = "exact",
     verbose = FALSE
@@ -76,9 +75,8 @@ test_that("mock db working examples", {
     cohort_id_outcome = "1",
     study_denominator_pop = dpop,
     cohort_id_denominator_pop = "1",
-    period = 1,
+    period = "Month",
     time_interval = c("Months"),
-    prior_event_lookback = NULL,
     minimum_representative_proportion = 0.5,
     confidence_interval = "exact",
     verbose = FALSE

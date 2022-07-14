@@ -248,7 +248,7 @@ test_that("mock db checks", {
   )
   expect_true(nrow(dpop) == 1)
 
-  DBI::dbDisconnect(db)
+  DBI::dbDisconnect(db, shutdown=TRUE)
 })
 
 # test_that("various checks for working example full db", {

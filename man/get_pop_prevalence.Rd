@@ -13,7 +13,6 @@ get_pop_prevalence(
   cohort_id_denominator_pop = NULL,
   period = 1,
   time_interval = c("Months"),
-  prior_event_lookback = NULL,
   minimum_representative_proportion = 0.5,
   confidence_interval = "exact",
   verbose = FALSE

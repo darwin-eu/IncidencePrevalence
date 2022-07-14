@@ -16,7 +16,7 @@
 #' @export
 #'
 #' @examples
-collect_pop_incidence <- function(db,
+collect_pop_prevalence <- function(db,
                                   results_schema_outcomes,
                                   table_name_outcomes,
                                   cohort_ids_outcomes,

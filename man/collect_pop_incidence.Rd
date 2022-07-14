@@ -11,7 +11,7 @@ collect_pop_incidence(
   cohort_ids_outcomes,
   study_denominator_pop,
   cohort_ids_denominator_pops,
-  time_intervals = c("Months", "Years"),
+  time_intervals = "Months",
   prior_event_lookbacks = 0,
   repetitive_events = FALSE,
   confidence_intervals = "exact",

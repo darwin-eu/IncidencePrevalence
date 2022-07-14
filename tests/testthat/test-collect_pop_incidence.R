@@ -89,7 +89,7 @@ test_that("checks on mock working example", {
   )
 
 
-  DBI::dbDisconnect(db)
+  DBI::dbDisconnect(db, shutdown=TRUE)
 })
 
 test_that("expected errors with mock", {
@@ -158,5 +158,5 @@ test_that("expected errors with mock", {
 
 
 
-  DBI::dbDisconnect(db)
+  DBI::dbDisconnect(db, shutdown=TRUE)
 })
