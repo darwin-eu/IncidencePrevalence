@@ -159,7 +159,7 @@ get_pop_prevalence <- function(db,
       "SELECT * FROM {results_schema_outcome}.{table_name_outcome}"
     )))
   } else {
-    outcome_db <- tbl(db, "outcome")
+    outcome_db <- dplyr::tbl(db, "outcome")
   }
   error_message <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0,
@@ -319,15 +319,15 @@ get_pop_prevalence <- function(db,
       dplyr::filter(.data$contribution >= minimum_representative_proportion)
 
     denominator <- working_pop %>%
-      select("person_id") %>%
-      distinct() %>%
+      dplyr::select("person_id") %>%
+      dplyr::distinct() %>%
       nrow()
 
     numerator <- working_pop %>%
       dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
       dplyr::filter(.data$outcome_end_date >= .data$t_start_date) %>%
-      select("person_id") %>%
-      distinct() %>%
+      dplyr::select("person_id") %>%
+      dplyr::distinct() %>%
       nrow()
 
     pr[[paste0(i)]] <- dplyr::tibble(
@@ -355,12 +355,12 @@ get_pop_prevalence <- function(db,
     #                                method = confidence_interval)
     ci <- pr %>%
       dplyr::filter(numerator > 0) %>%
-      dplyr::mutate(prev_low = qchisq(0.05 / 2, df = 2 * (.data$numerator - 1)) / 2 / .data$denominator) %>%
-      dplyr::mutate(prev_high = qchisq(1 - 0.05 / 2, df = 2 * .data$numerator) / 2 / .data$denominator)
+      dplyr::mutate(prev_low = stats::qchisq(0.05 / 2, df = 2 * (.data$numerator - 1)) / 2 / .data$denominator) %>%
+      dplyr::mutate(prev_high = stats::qchisq(1 - 0.05 / 2, df = 2 * .data$numerator) / 2 / .data$denominator)
 
     pr <- pr %>%
       dplyr::left_join(ci, by = c("numerator", "denominator", "prev", "calendar_month", "calendar_year")) %>%
-      dplyr::mutate(prev_low = if_else(.data$numerator == 0 & .data$denominator > 0, 0, .data$prev_low)) %>%
+      dplyr::mutate(prev_low = dplyr::if_else(.data$numerator == 0 & .data$denominator > 0, 0, .data$prev_low)) %>%
       dplyr::relocate(.data$prev_low, .before = .data$calendar_month) %>%
       dplyr::relocate(.data$prev_high, .after = .data$prev_low)
   }

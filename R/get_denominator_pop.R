@@ -149,7 +149,7 @@ get_denominator_pop <- function(db,
       "SELECT * FROM {cdm_database_schema}.person"
     )))
   } else {
-    person_db <- tbl(db, "person")
+    person_db <- dplyr::tbl(db, "person")
   }
 
   if (!is.null(cdm_database_schema)) {
@@ -157,7 +157,7 @@ get_denominator_pop <- function(db,
       "SELECT * FROM {cdm_database_schema}.observation_period"
     )))
   } else {
-    observation_period_db <- tbl(db, "observation_period")
+    observation_period_db <- dplyr::tbl(db, "observation_period")
   }
 
   # make sure names are lowercase

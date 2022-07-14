@@ -12,6 +12,7 @@
 #' @param confidence_interval
 #' @param verbose
 #'
+#' @importFrom lubridate `%within%`
 #' @return
 #' @export
 #'
@@ -166,7 +167,7 @@ get_pop_incidence <- function(db,
       "SELECT * FROM {results_schema_outcome}.{table_name_outcome}"
     )))
   } else {
-    outcome_db <- tbl(db, "outcome")
+    outcome_db <- dplyr::tbl(db, "outcome")
   }
   error_message <- checkmate::makeAssertCollection()
   if (!is.null(cohort_id_outcome)) {
@@ -328,14 +329,14 @@ get_pop_incidence <- function(db,
 
     # Add outcomes during period
     working_pop <- working_pop %>%
-      left_join(
+      dplyr::left_join(
         outcome %>%
           dplyr::inner_join(working_pop,
             by = "person_id"
           ) %>%
-          dplyr::filter(outcome_start_date %within%
-            lubridate::interval(t_start_date, t_end_date)) %>%
-          select("person_id", "outcome_start_date", "outcome_end_date"),
+          dplyr::filter(.data$outcome_start_date %within%
+            lubridate::interval(.data$t_start_date, .data$t_end_date)) %>%
+          dplyr::select("person_id", "outcome_start_date", "outcome_end_date"),
         by = "person_id"
       )
 
@@ -525,14 +526,14 @@ get_pop_incidence <- function(db,
     ci <- ir %>%
       dplyr::left_join(
         ir %>%
-          dplyr::filter(n_events >= 1) %>%
-          dplyr::mutate(ir_low = (qchisq(0.05 / 2, df = 2 * (n_events - 1)) / 2 / person_months * 100000)) %>%
-          dplyr::mutate(ir_high = (qchisq(1 - 0.05 / 2, df = 2 * n_events) / 2 / person_months * 100000)),
+          dplyr::filter(.data$n_events >= 1) %>%
+          dplyr::mutate(ir_low = (stats::qchisq(0.05 / 2, df = 2 * (.data$n_events - 1)) / 2 / .data$person_months * 100000)) %>%
+          dplyr::mutate(ir_high = (stats::qchisq(1 - 0.05 / 2, df = 2 * .data$n_events) / 2 / .data$person_months * 100000)),
         by = c("n_persons", "person_days", "person_months", "person_years", "n_events", "ir", "calendar_month", "calendar_year")
       ) %>%
-      dplyr::select(ir_low, ir_high) %>%
-      dplyr::mutate(ir_low = if_else(is.na(ir_low), 0, ir_low)) %>%
-      dplyr::mutate(ir_high = if_else(is.na(ir_high), 0, ir_high))
+      dplyr::select("ir_low", "ir_high") %>%
+      dplyr::mutate(ir_low = dplyr::if_else(is.na(.data$ir_low), 0, .data$ir_low)) %>%
+      dplyr::mutate(ir_high = dplyr::if_else(is.na(.data$ir_high), 0, .data$ir_high))
 
     # ci <- tibble(ir_low = if_else(ir$n_events>10,
     #               (qchisq(0.05/2, df=2*(ir$n_events-1))/2/ir$person_months*100000),
