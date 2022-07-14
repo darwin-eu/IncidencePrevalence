@@ -1,16 +1,16 @@
 #' Get population prevalence estimates
 #'
-#' @param db
-#' @param results_schema_outcome
-#' @param table_name_outcome
-#' @param cohort_id_outcome
-#' @param study_denominator_pop
-#' @param cohort_id_denominator_pop
-#' @param period
-#' @param time_interval
-#' @param minimum_representative_proportion
-#' @param confidence_interval
-#' @param verbose
+#' @param db db
+#' @param results_schema_outcome results_schema_outcome
+#' @param table_name_outcome table_name_outcome
+#' @param cohort_id_outcome cohort_id_outcome
+#' @param study_denominator_pop study_denominator_pop
+#' @param cohort_id_denominator_pop cohort_id_denominator_pop
+#' @param period period
+#' @param time_interval time_interval
+#' @param minimum_representative_proportion minimum_representative_proportion
+#' @param confidence_interval confidence_interval
+#' @param verbose verbose
 #'
 #' @return
 #' @export

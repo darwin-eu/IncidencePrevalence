@@ -1,16 +1,16 @@
 #' Get population incidence estimates
 #'
-#' @param db
-#' @param results_schema_outcome
-#' @param table_name_outcome
-#' @param cohort_id_outcome
-#' @param study_denominator_pop
-#' @param cohort_id_denominator_pop
-#' @param time_interval
-#' @param prior_event_lookback
-#' @param repetitive_events
-#' @param confidence_interval
-#' @param verbose
+#' @param db db
+#' @param results_schema_outcome results_schema_outcome
+#' @param table_name_outcome table_name_outcome
+#' @param cohort_id_outcome cohort_id_outcome
+#' @param study_denominator_pop study_denominator_pop
+#' @param cohort_id_denominator_pop cohort_id_denominator_pop
+#' @param time_interval time_interval
+#' @param prior_event_lookback prior_event_lookback
+#' @param repetitive_events repetitive_events
+#' @param confidence_interval confidence_interval
+#' @param verbose verbose
 #'
 #' @importFrom lubridate `%within%`
 #' @return
