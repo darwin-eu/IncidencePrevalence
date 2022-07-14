@@ -5,6 +5,7 @@
 
 <!-- badges: start -->
 
+[![R-CMD-check](https://github.com/edward-burn/OmopPopEpi/workflows/R-CMD-check/badge.svg)](https://github.com/edward-burn/OmopPopEpi/actions)
 <!-- badges: end -->
 
 ## Package overview
@@ -39,5 +40,11 @@ remotes::install_github("darwin-eu/OmopPopEpi")
 
 ``` r
 library(OmopPopEpi)
+#> Loading required package: lubridate
+#> 
+#> Attaching package: 'lubridate'
+#> The following objects are masked from 'package:base':
+#> 
+#>     date, intersect, setdiff, union
 ## basic example code
 ```

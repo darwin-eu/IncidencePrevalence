@@ -3,6 +3,7 @@
 export("%>%")
 export(collect_denominator_pops)
 export(collect_pop_incidence)
+export(collect_pop_prevalence)
 export(get_denominator_pop)
 export(get_pop_incidence)
 export(get_pop_prevalence)

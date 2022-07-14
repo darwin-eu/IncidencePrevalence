@@ -4,3 +4,5 @@ inst/doc
 postgresql-42.2.18.jar
 extras/example_covid.R
 mssql-jdbc-9.2.0.jre8.jar
+/doc/
+/Meta/

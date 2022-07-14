@@ -248,6 +248,36 @@ test_that("mock db checks", {
   )
   expect_true(nrow(dpop) == 1)
 
+
+# edge cases - expect zero results
+  expect_true(is.null(get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    start_date = as.Date("2100-01-01")
+  )))
+
+  expect_true(is.null(get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    end_date = as.Date("1800-01-01")
+  )))
+
+  expect_true(is.null(get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    min_age = 155
+  )))
+
+
+  expect_true(is.null(get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    max_age = 1,
+    days_prior_history = 1000,
+    verbose = FALSE
+  )))
+
+
   DBI::dbDisconnect(db, shutdown=TRUE)
 })
 
