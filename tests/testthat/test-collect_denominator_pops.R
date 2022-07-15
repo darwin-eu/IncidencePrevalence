@@ -88,6 +88,86 @@ test_that("mock db checks", {
 })
 
 
+test_that("mock db check age strata entry and exit", {
+  library(DBI)
+  library(dplyr)
+  library(tibble)
+
+  # duckdb mock database
+  db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+  person <- tibble(
+    person_id = "1",
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observation_period <- tibble(
+    observation_period_id = "1",
+    person_id = "1",
+    observation_period_start_date = as.Date("2008-01-01"),
+    observation_period_end_date = as.Date("2018-06-01")
+  )
+  outcome <- tibble(
+    cohort_definition_id = "1",
+    subject_id = "1",
+    cohort_start_date = c(
+      as.Date("2010-02-05"),
+      as.Date("2010-02-08"),
+      as.Date("2010-02-20")
+    ),
+    cohort_end_date = c(
+      as.Date("2010-02-05"),
+      as.Date("2010-02-08"),
+      as.Date("2010-02-20")
+    )
+  )
+  DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "person", person,
+      overwrite = TRUE
+    )
+  })
+  DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "observation_period", observation_period,
+      overwrite = TRUE
+    )
+  })
+  DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "outcome", outcome,
+      overwrite = TRUE
+    )
+  })
+
+  # if we have two age groups 1) 11 to 12, and 2) 13 to 14
+  # we expect the person to be in the first cohort up
+  # to the day before their 13th birthday
+  # and in the second from their 13th birthday
+  # up to the day before their 15th birthday
+dpops <- collect_denominator_pops(db = db,
+cdm_database_schema = NULL,
+study_age_stratas = list(c(11, 12),
+                         c(13,14))
+)
+expect_true(dpops %>%
+  filter(cohort_definition_id==1) %>%
+  select(cohort_start_date) %>%
+  pull() == as.Date("2011-01-01"))
+expect_true(dpops %>%
+  filter(cohort_definition_id==1) %>%
+  select(cohort_end_date) %>%
+  pull() == as.Date("2012-12-31"))
+expect_true(dpops %>%
+  filter(cohort_definition_id==2) %>%
+  select(cohort_start_date) %>%
+  pull() == as.Date("2013-01-01"))
+expect_true(dpops %>%
+  filter(cohort_definition_id==2) %>%
+  select(cohort_end_date) %>%
+  pull() == as.Date("2014-12-31"))
+
+
+  DBI::dbDisconnect(db, shutdown=TRUE)
+})
 
 
 # test_that("checks on working example", {

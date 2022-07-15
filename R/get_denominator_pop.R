@@ -308,7 +308,7 @@ get_denominator_pop <- function(db,
           lubridate::add_with_rollback(
             .data$dob,
             lubridate::years((max_age + 1))
-          )
+          ) - lubridate::days(1)
       ) %>%
       # Date at which they reach
       # observation start date + prior_history requirement

@@ -16,7 +16,7 @@ test_that("mock db checks", {
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-01"),
-    observation_period_end_date = as.Date("2010-06-01")
+    observation_period_end_date = as.Date("2015-06-01")
   )
   DBI::dbWithTransaction(db, {
     DBI::dbWriteTable(db, "person", person,
@@ -35,7 +35,7 @@ test_that("mock db checks", {
   )
   expect_true(nrow(dpop) == 1)
   expect_true(dpop$cohort_start_date == as.Date("2010-01-01"))
-  expect_true(dpop$cohort_end_date == as.Date("2010-06-01"))
+  expect_true(dpop$cohort_end_date == as.Date("2015-06-01"))
 
   expect_message(get_denominator_pop(
     db = db,
@@ -84,6 +84,7 @@ test_that("mock db checks", {
   expect_true(dpop$cohort_start_date == as.Date("2010-06-01"))
 
   # check max_age
+  # expect it to be
   dpop <- get_denominator_pop(
     db = db,
     cdm_database_schema = NULL,
@@ -91,10 +92,8 @@ test_that("mock db checks", {
   )
   expect_true(nrow(dpop) == 1)
 
-  # end date is now date of 10th birthday
-  ## SHOULD IT NOT BE DAY BEFORE 11th BIRTHDAY?
-  expect_true(dpop$cohort_end_date == as.Date("2010-06-01"))
-  # expect_true(dpop$cohort_end_date==as.Date("2011-05-31"))
+  # end date is day before 11th birthday
+  expect_true(dpop$cohort_end_date==as.Date("2011-05-31"))
 
 
 
