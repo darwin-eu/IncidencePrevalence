@@ -24,7 +24,7 @@
 #' @param study_denominator_pop Tibble with denominator populations
 #' @param cohort_ids_denominator_pops Cohort ids of denominator populations
 #' @param time_intervals Time intervals for incidence estimates
-#' @param prior_event_lookbacks Clean windows
+#' @param outcome_washout_windows Clean windows
 #' @param repetitive_events Repeated events
 #' @param confidence_intervals Method for confidence intervals
 #' @param verbose Whether to report progress
@@ -40,7 +40,7 @@ collect_pop_incidence <- function(db,
                                   study_denominator_pop,
                                   cohort_ids_denominator_pops,
                                   time_intervals = "Months",
-                                  prior_event_lookbacks = 0,
+                                  outcome_washout_windows = 0,
                                   repetitive_events = FALSE,
                                   confidence_intervals = "exact",
                                   verbose = FALSE) {
@@ -122,7 +122,7 @@ collect_pop_incidence <- function(db,
   checkmate::assertTRUE(all(time_intervals %in% c("Months", "Years")),
     add = error_message
   )
-  checkmate::assert_numeric(prior_event_lookbacks,
+  checkmate::assert_numeric(outcome_washout_windows,
     add = error_message,
     null.ok = TRUE
   )
@@ -150,14 +150,14 @@ collect_pop_incidence <- function(db,
     cohort_id_outcome = cohort_ids_outcomes,
     cohort_id_denominator_pop = cohort_ids_denominator_pops,
     time_interval = time_intervals,
-    prior_event_lookback = prior_event_lookbacks,
+    outcome_washout_window = outcome_washout_windows,
     repetitive_events = repetitive_events,
     confidence_interval = confidence_intervals,
     verbose = verbose
   )
 
-  if (is.null(prior_event_lookbacks)) {
-    study_specs$prior_event_lookback <- NA
+  if (is.null(outcome_washout_windows)) {
+    study_specs$outcome_washout_window <- NA
   }
 
   study_specs <- study_specs %>%
@@ -178,7 +178,7 @@ collect_pop_incidence <- function(db,
       study_denominator_pop = study_denominator_pop,
       cohort_id_denominator_pop = x$cohort_id_denominator_pop,
       time_interval = x$time_interval,
-      prior_event_lookback = x$prior_event_lookback,
+      outcome_washout_window = x$outcome_washout_window,
       repetitive_events = x$repetitive_events,
       confidence_interval = x$confidence_interval,
       verbose = x$verbose
@@ -187,7 +187,7 @@ collect_pop_incidence <- function(db,
         cohort_id_outcome = x$cohort_id_outcome,
         cohort_id_denominator_pop = x$cohort_id_denominator_pop,
         time_interval = x$time_interval,
-        prior_event_lookback = x$prior_event_lookback,
+        outcome_washout_window = x$outcome_washout_window,
         repetitive_events = x$repetitive_events,
         confidence_interval = x$confidence_interval
       )
