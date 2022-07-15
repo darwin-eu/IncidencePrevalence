@@ -12,7 +12,7 @@ collect_pop_incidence(
   study_denominator_pop,
   cohort_ids_denominator_pops,
   time_intervals = "Months",
-  prior_event_lookbacks = 0,
+  outcome_washout_windows = 0,
   repetitive_events = FALSE,
   confidence_intervals = "exact",
   verbose = FALSE
@@ -33,7 +33,7 @@ collect_pop_incidence(
 
 \item{time_intervals}{Time intervals for incidence estimates}
 
-\item{prior_event_lookbacks}{Clean windows}
+\item{outcome_washout_windows}{Clean windows}
 
 \item{repetitive_events}{Repeated events}
 

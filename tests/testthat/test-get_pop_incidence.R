@@ -57,7 +57,7 @@ test_that("mock db checks", {
     cohort_id_outcome = "1",
     study_denominator_pop = dpop,
     repetitive_events = FALSE,
-    prior_event_lookback = 0
+    outcome_washout_window = 0
   )
   expect_true(sum(inc$n_events) == 1)
   inc <- get_pop_incidence(db,
@@ -66,7 +66,7 @@ test_that("mock db checks", {
     cohort_id_outcome = "1",
     study_denominator_pop = dpop,
     repetitive_events = TRUE,
-    prior_event_lookback = 2
+    outcome_washout_window = 2
   )
   expect_true(sum(inc$n_events) == 3)
   inc <- get_pop_incidence(db,
@@ -75,12 +75,12 @@ test_that("mock db checks", {
     cohort_id_outcome = "1",
     study_denominator_pop = dpop,
     repetitive_events = TRUE,
-    prior_event_lookback = 10
+    outcome_washout_window = 10
   )
   expect_true(sum(inc$n_events) == 2)
 
   # even if repetitive_events = TRUE,
-  # if prior_event_lookback=NULL (all of history)
+  # if outcome_washout_window=NULL (all of history)
   # then it won´t be possible to have any recurrent events
   inc <- get_pop_incidence(db,
     results_schema_outcome = NULL,
@@ -88,7 +88,7 @@ test_that("mock db checks", {
     cohort_id_outcome = "1",
     study_denominator_pop = dpop,
     repetitive_events = TRUE,
-    prior_event_lookback = NULL
+    outcome_washout_window = NULL
   )
   expect_true(sum(inc$n_events) == 1)
 
@@ -110,7 +110,7 @@ test_that("mock db checks", {
   inc <- get_pop_incidence(db,
     results_schema_outcome = NULL,
     # gets changed to NULL (to help collect)
-    prior_event_lookback = NA,
+    outcome_washout_window = NA,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     study_denominator_pop = dpop
@@ -258,7 +258,7 @@ test_that("mock db study ", {
 #                                     study_denominator_pop=study_pops,
 #                                     cohort_id_denominator_pop="17",
 #                                     time_interval=c("Months"),
-#                                     prior_event_lookback=NULL,
+#                                     outcome_washout_window=NULL,
 #                                     repetitive_events=FALSE,
 #                                     confidence_interval="exact",
 #                                     verbose=FALSE)

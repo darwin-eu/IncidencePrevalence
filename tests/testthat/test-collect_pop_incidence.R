@@ -57,7 +57,7 @@ test_that("checks on mock working example", {
     table_name_outcomes = "outcome",
     cohort_ids_outcomes = "1",
     cohort_ids_denominator_pops = "1",
-    prior_event_lookbacks = 0,
+    outcome_washout_windows = 0,
     repetitive_events = FALSE,
     study_denominator_pop = dpop,
     time_intervals = c("Months"),
@@ -70,7 +70,7 @@ test_that("checks on mock working example", {
     "person_months", "person_years", "n_events",
     "ir", "ir_low", "ir_high",
     "calendar_month", "calendar_year", "required_days_prior_history",
-    "age_strata", "sex_strata", "prior_event_lookback",
+    "age_strata", "sex_strata", "outcome_washout_window",
     "repetitive_events", "time_interval", "confidence_interval",
     "cohort_id_outcome", "cohort_id_denominator_pop"
   ) %in%
@@ -84,7 +84,7 @@ test_that("checks on mock working example", {
     table_name_outcomes = "outcome",
     cohort_ids_outcomes = 1,
     cohort_ids_denominator_pops = 1,
-    prior_event_lookbacks = NULL,
+    outcome_washout_windows = NULL,
     study_denominator_pop = dpop
   )
 

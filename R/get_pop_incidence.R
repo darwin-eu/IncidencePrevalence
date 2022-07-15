@@ -24,7 +24,7 @@
 #' @param study_denominator_pop study_denominator_pop
 #' @param cohort_id_denominator_pop cohort_id_denominator_pop
 #' @param time_interval time_interval
-#' @param prior_event_lookback prior_event_lookback
+#' @param outcome_washout_window outcome_washout_window
 #' @param repetitive_events repetitive_events
 #' @param confidence_interval confidence_interval
 #' @param verbose verbose
@@ -41,13 +41,13 @@ get_pop_incidence <- function(db,
                               study_denominator_pop,
                               cohort_id_denominator_pop = NULL,
                               time_interval = c("Months"),
-                              prior_event_lookback = NULL,
+                              outcome_washout_window = NULL,
                               repetitive_events = FALSE,
                               confidence_interval = "exact",
                               verbose = FALSE) {
-  if (!is.null(prior_event_lookback)) {
-    if (is.na(prior_event_lookback)) {
-      prior_event_lookback <- NULL
+  if (!is.null(outcome_washout_window)) {
+    if (is.na(outcome_washout_window)) {
+      outcome_washout_window <- NULL
     }
   }
 
@@ -127,7 +127,7 @@ get_pop_incidence <- function(db,
     choices = c("Months", "Years"),
     add = error_message
   )
-  checkmate::assert_numeric(prior_event_lookback,
+  checkmate::assert_numeric(outcome_washout_window,
     add = error_message,
     null.ok = TRUE
   )
@@ -446,9 +446,9 @@ get_pop_incidence <- function(db,
     }
 
     if (nrow(outcome_prior) >= 1) {
-      # check prior lookback for events
-      if (is.null(prior_event_lookback)) {
-        # If prior_event_lookback is null,
+      # check outcome washout window for events
+      if (is.null(outcome_washout_window)) {
+        # If outcome_washout_window is null,
         # we exclude people with an event at any point before their index date
         working_pop <- working_pop %>%
           dplyr::anti_join(outcome_prior,
@@ -456,28 +456,28 @@ get_pop_incidence <- function(db,
           )
       }
 
-      if (is.numeric(prior_event_lookback)) {
+      if (is.numeric(outcome_washout_window)) {
         # If a number of days is specified,
         # first get outcomes that occurred in this window of time
         outcome_prior <- outcome_prior %>%
-          dplyr::filter(.data$diff_days <= prior_event_lookback)
+          dplyr::filter(.data$diff_days <= outcome_washout_window)
 
-        # calculate at which individuals satisfied prior lookback requirement
+        # calculate at which individuals satisfied the outcome washout window requirement
         working_pop <- working_pop %>%
           dplyr::left_join(outcome_prior,
             by = c("person_id", "t_start_date")
           )
-        # update t_start_date to when individuals satisfied prior lookback
+        # update t_start_date to when individuals satisfied the outcome washout window requirement
         # as in by this new date, they are now eligible
         working_pop <- working_pop %>%
           dplyr::mutate(t_start_date = dplyr::if_else(
             is.na(.data$diff_days),
             .data$t_start_date,
             .data$t_start_date +
-              lubridate::days(prior_event_lookback - .data$diff_days)
+              lubridate::days(outcome_washout_window - .data$diff_days)
           ))
         # But, we need to now exclude people who reach the required
-        # lookback period after the end date
+        # washout period after the end date
         # and outcome_start_date
         working_pop <- working_pop %>%
           dplyr::filter(.data$t_start_date <= .data$t_end_date) %>%
@@ -573,7 +573,7 @@ get_pop_incidence <- function(db,
     ) %>%
     dplyr::mutate(age_strata = unique(study_pop$age_strata)) %>%
     dplyr::mutate(sex_strata = unique(study_pop$sex_strata)) %>%
-    dplyr::mutate(prior_event_lookback = prior_event_lookback) %>%
+    dplyr::mutate(outcome_washout_window = outcome_washout_window) %>%
     dplyr::mutate(repetitive_events = repetitive_events) %>%
     dplyr::mutate(time_interval = time_interval) %>%
     dplyr::mutate(confidence_interval = confidence_interval)
