@@ -12,7 +12,7 @@ get_pop_incidence(
   study_denominator_pop,
   cohort_id_denominator_pop = NULL,
   time_interval = c("Months"),
-  prior_event_lookback = NULL,
+  outcome_washout_window = NULL,
   repetitive_events = FALSE,
   confidence_interval = "exact",
   verbose = FALSE
@@ -33,7 +33,7 @@ get_pop_incidence(
 
 \item{time_interval}{time_interval}
 
-\item{prior_event_lookback}{prior_event_lookback}
+\item{outcome_washout_window}{outcome_washout_window}
 
 \item{repetitive_events}{repetitive_events}
 

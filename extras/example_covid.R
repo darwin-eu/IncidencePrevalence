@@ -212,7 +212,7 @@ ir <- collect_pop_incidence(db,
                                   study_denominator_pop=denominator_pop,
                                   cohort_ids_denominator_pops=unique(denominator_pop$cohort_definition_id),
                                   time_intervals = c("Months"),
-                                  prior_event_lookbacks = NULL,
+                                  outcome_washout_windows = NULL,
                                   repetitive_events = FALSE,
                                   verbose = FALSE)
 
@@ -276,7 +276,7 @@ ir <- collect_pop_incidence(db,
                                   study_denominator_pop=denominator_pop,
                                   cohort_ids_denominator_pops=unique(denominator_pop$cohort_definition_id),
                                   time_intervals = c("Months"),
-                                  prior_event_lookbacks = NULL,
+                                  outcome_washout_windows = NULL,
                                   repetitive_events = FALSE,
                                   verbose = FALSE)
 
