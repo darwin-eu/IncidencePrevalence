@@ -202,12 +202,14 @@ get_pop_incidence <- function(db,
   start_date <- min(study_pop$cohort_start_date)
   # end date to the last day of last available full period
   if (time_interval == "Years") {
-    end_date <- lubridate::floor_date(max(study_pop$cohort_end_date),
+    end_date <- lubridate::floor_date(max(study_pop$cohort_end_date) +
+                                        lubridate::days(1),
       unit = "years"
     ) - lubridate::days(1)
   }
   if (time_interval == "Months") {
-    end_date <- lubridate::floor_date(max(study_pop$cohort_end_date),
+    end_date <- lubridate::floor_date(max(study_pop$cohort_end_date) +
+                                        lubridate::days(1),
       unit = "months"
     ) - lubridate::days(1)
   }
