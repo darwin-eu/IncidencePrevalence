@@ -27,6 +27,7 @@
 #' @param time_intervals Time intervals for incidence estimates
 #' @param minimum_representative_proportions Minimum proportions that individuals must have to contribute
 #' @param confidence_intervals Method for confidence intervals
+#' @param minimum_counts Minimum number of counts
 #' @param verbose Whether to report progress
 #'
 #' @return
@@ -43,6 +44,7 @@ collect_pop_prevalence <- function(db,
                                   time_intervals = "Months",
                                   minimum_representative_proportions = 0.5,
                                   confidence_intervals = "exact",
+                                  minimum_counts = 5,
                                   verbose = FALSE) {
 
 
@@ -188,6 +190,8 @@ collect_pop_prevalence <- function(db,
   prs <- dplyr::bind_rows(prs,
     .id = "cohort_definition_id"
   )
+
+  prs <- obscure_counts(prs, minimum_counts = minimum_counts, substitute = NA)
 
   return(prs)
 }
