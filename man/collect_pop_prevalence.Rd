@@ -15,6 +15,7 @@ collect_pop_prevalence(
   time_intervals = "Months",
   minimum_representative_proportions = 0.5,
   confidence_intervals = "exact",
+  minimum_counts = 5,
   verbose = FALSE
 )
 }
@@ -38,6 +39,8 @@ collect_pop_prevalence(
 \item{minimum_representative_proportions}{Minimum proportions that individuals must have to contribute}
 
 \item{confidence_intervals}{Method for confidence intervals}
+
+\item{minimum_counts}{Minimum number of counts}
 
 \item{verbose}{Whether to report progress}
 }
