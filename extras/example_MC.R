@@ -26,6 +26,10 @@ library(dtplyr)
 
 devtools::load_all()
 
+y <- tibble(a = "casa",n_events = c(5,4,3,6,7), ir = 100000*c(0.1,0.2,0.3,0.4,0.5), strata = c("a","ab","avx","h","hh"), persones = c(10,7,0,3,1)) %>%
+  mutate(person_months = n_events/ir*100000)
+get_confidence_intervals(y,"Poisson")
+
 # database ----
 #usethis::edit_r_environ()
 

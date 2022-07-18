@@ -15,7 +15,7 @@
 # limitations under the License.
 
 
-#' Get population incidence estimates
+#' Obscure the small number of counts
 #'
 #' @param x x
 #' @param minimum_counts minimum_counts
@@ -33,36 +33,32 @@ obscure_counts <- function(x,
   error_message <- checkmate::makeAssertCollection()
 
   checkmate::assert_tibble(x,
-                           add = error_message
+    add = error_message
   )
   checkmate::assertTRUE(
-    all(c("n_events","ir","ir_low","ir_high") %in% names(x))
-  ||
-    all(c("numerator","prev","prev_low","prev_high") %in% names(x))
-    )
-
-  checkmate::assert_numeric(minimum_counts,
-                            add = error_message
+    all(c("n_events", "ir", "ir_low", "ir_high") %in% names(x)) ||
+      all(c("numerator", "prev", "prev_low", "prev_high") %in% names(x))
+  )
+  checkmate::assertFALSE(
+    all(c("n_events", "person_months", "ir") %in% names(x)) &&
+      all(c("numerator", "denominator", "prev") %in% names(x))
   )
 
-  checkmate::assertTRUE( is.numeric(substitute) || is.na(substitute) )
+  checkmate::assert_numeric(minimum_counts,
+    add = error_message
+  )
 
-  # checkmate::assertTRUE(
-  #   all(c("n_events","ir","ir_low","ir_high") %in% names(x))
-  #   ||
-  #     all(c("numerator","prev","prev_low","prev_high") %in% names(x))
-  # )
+  checkmate::assertTRUE(is.numeric(substitute) || is.na(substitute))
 
   # report initial assertions
   checkmate::reportAssertions(collection = error_message)
 
-  if(c("n_events") %in% names(x)){
-    x[x$n_events < minimum_counts,c("n_events","ir","ir_low","ir_high")] <- substitute
+  if (c("n_events") %in% names(x)) {
+    x[x$n_events < minimum_counts, c("n_events", "ir", "ir_low", "ir_high")] <- substitute
   }
-  if(c("numerator") %in% names(x)){
-    x[x$numerator < minimum_counts,c("numerator","prev","prev_low","prev_high")] <- substitute
+  if (c("numerator") %in% names(x)) {
+    x[x$numerator < minimum_counts, c("numerator", "prev", "prev_low", "prev_high")] <- substitute
   }
 
   return(x)
-
 }
