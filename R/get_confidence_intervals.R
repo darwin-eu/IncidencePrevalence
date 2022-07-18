@@ -71,7 +71,7 @@ get_confidence_intervals <- function(x,
                           x %>%
                             dplyr::left_join(
                               x %>%
-                                dplyr::filter(num >= 1) %>%
+                                dplyr::filter(.data$num >= 1) %>%
                                 dplyr::mutate(var_low = stats::qchisq(0.05 / 2, df = 2 * (.data$num - 1)) / 2 / .data$den) %>%
                                 dplyr::mutate(var_high = stats::qchisq(1 - 0.05 / 2, df = 2 * .data$num) / 2 / .data$den),
                               by = names(x)
