@@ -343,6 +343,99 @@ test_that("mock db check: washout windows", {
 
 })
 
+test_that("mock db check: compare results from months and years", {
+  library(DBI)
+  library(dplyr)
+  library(tibble)
+
+  # duckdb mock database
+  db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+  person <- tibble(
+    person_id = c("1","2", "3","4","5"),
+    gender_concept_id = rep("8507",5),
+    year_of_birth = rep(2000,5),
+    month_of_birth = rep(01,5),
+    day_of_birth = rep(01,5)
+  )
+  observation_period <- tibble(
+    observation_period_id = c("1","2","3","4","5"),
+    person_id = c("1","2", "3","4", "5"),
+    observation_period_start_date = c(as.Date("2010-01-01"),
+                                      as.Date("2010-01-01"),
+                                      as.Date("2010-01-01"),
+                                      as.Date("2010-01-01"),
+                                      as.Date("2011-07-31")),
+    observation_period_end_date = c(as.Date("2012-01-01"),
+                                    as.Date("2012-01-01"),
+                                    as.Date("2012-01-01"),
+                                    # last day of a month
+                                      as.Date("2011-07-31"),
+                                    # first day of a month
+                                      as.Date("2011-08-01"))
+  )
+  outcome <- tibble(
+    cohort_definition_id = c("1","1"),
+    subject_id = c("1","2"),
+    cohort_start_date = c(
+      as.Date("2011-02-05"),
+      as.Date("2011-07-01")
+    ),
+    cohort_end_date = c(
+      as.Date("2011-02-06"),
+      as.Date("2011-07-01")
+    )
+  )
+  DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "person", person,
+      overwrite = TRUE
+    )
+  })
+  DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "observation_period", observation_period,
+      overwrite = TRUE
+    )
+  })
+  DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "outcome", outcome,
+      overwrite = TRUE
+    )
+  })
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL,
+    study_start_date = as.Date("2010-01-01"),
+    study_end_date = as.Date("2011-12-31")
+  )
+  inc_months <- get_pop_incidence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    study_denominator_pop = dpop,
+    time_interval = c("Months"),
+  )
+  inc_years <- get_pop_incidence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    study_denominator_pop = dpop,
+    time_interval = c("Years"),
+  )
+
+# consistent results for months and years
+# expect_true(sum(inc_months$n_events)==sum(inc_years$n_events))
+# expect_equal(sum(inc_months$person_days),
+#              sum(inc_years$person_days),
+#              tolerance=1e-10)
+# expect_equal(sum(inc_months$person_months),
+#              sum(inc_years$person_months),
+#              tolerance=1e-10)
+# expect_equal(sum(inc_months$person_years),
+#              sum(inc_years$person_years),
+#              tolerance=1e-10)
+
+DBI::dbDisconnect(db, shutdown=TRUE)
+})
+
 
 
 
