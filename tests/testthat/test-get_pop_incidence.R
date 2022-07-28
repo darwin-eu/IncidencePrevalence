@@ -225,6 +225,128 @@ test_that("mock db study ", {
 })
 
 
+test_that("mock db check: washout windows", {
+  db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+  person <- tibble::tibble(
+    person_id = "1",
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observation_period <- tibble::tibble(
+    observation_period_id = "1",
+    person_id = "1",
+    observation_period_start_date = as.Date("2010-01-01"),
+    observation_period_end_date = as.Date("2012-12-31")
+  )
+  outcome <- tibble::tibble(
+    cohort_definition_id = "1",
+    subject_id = "1",
+    cohort_start_date = c(
+      as.Date("2010-06-01"),
+      # more than six months since the last event
+      as.Date("2011-01-13"),
+      # two days since the end of the last event
+      as.Date("2011-01-16"),
+      # one day since the end of the last event
+      as.Date("2011-01-18")
+    ),
+    cohort_end_date = c(
+      as.Date("2010-06-02"),
+      as.Date("2011-01-14"),
+      as.Date("2011-01-17"),
+      as.Date("2011-01-19")
+    )
+  )
+
+  DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "person", person,
+      overwrite = TRUE
+    )
+  })
+  DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "observation_period", observation_period,
+      overwrite = TRUE
+    )
+  })
+  DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "outcome", outcome,
+      overwrite = TRUE
+    )
+  })
+
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL
+  )
+
+  inc_w0 <- get_pop_incidence(db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    study_denominator_pop = dpop,
+    repetitive_events = TRUE,
+    outcome_washout_window = 0
+  )
+  # expect all events if we have zero days washout
+  expect_true(sum(inc_w0$n_events)==4)
+
+  inc_w1 <- get_pop_incidence(db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    study_denominator_pop = dpop,
+    repetitive_events = TRUE,
+    outcome_washout_window = 1
+  )
+    # expect three events if we have one days washout
+    expect_true(sum(inc_w1$n_events)==3)
+
+  inc_w2 <- get_pop_incidence(db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    study_denominator_pop = dpop,
+    repetitive_events = TRUE,
+    outcome_washout_window = 2
+  )
+  # expect two events if we have two days washout
+  expect_true(sum(inc_w2$n_events)==2)
+
+  inc_w365 <- get_pop_incidence(db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    study_denominator_pop = dpop,
+    repetitive_events = TRUE,
+    outcome_washout_window = 365
+  )
+  # expect one event if we have 365 days washout
+  expect_true(sum(inc_w365$n_events)==1)
+
+  inc_null <- get_pop_incidence(db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    study_denominator_pop = dpop,
+    repetitive_events = TRUE,
+    outcome_washout_window = NULL
+  )
+  # expect one event if we have NULL (all history washout)
+  expect_true(sum(inc_null$n_events)==1)
+
+  # but, we will have move days when using the 365 day washout
+  # as the person came back to contribute more time at risk
+  expect_true(sum(inc_null$person_days)<sum(inc_w365$person_days))
+
+
+})
+
+
+
+
+
 
 # test_that("checks on working example", {
 #   library(DBI)

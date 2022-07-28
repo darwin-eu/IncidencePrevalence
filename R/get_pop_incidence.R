@@ -220,14 +220,14 @@ get_pop_incidence <- function(db,
   # end date to the last day of last available full period
   if (time_interval == "Years") {
     end_date <- lubridate::floor_date(max(study_pop$cohort_end_date) +
-                                        lubridate::days(1),
-      unit = "years"
+      lubridate::days(1),
+    unit = "years"
     ) - lubridate::days(1)
   }
   if (time_interval == "Months") {
     end_date <- lubridate::floor_date(max(study_pop$cohort_end_date) +
-                                        lubridate::days(1),
-      unit = "months"
+      lubridate::days(1),
+    unit = "months"
     ) - lubridate::days(1)
   }
 
@@ -462,19 +462,21 @@ get_pop_incidence <- function(db,
         outcome_prior <- outcome_prior %>%
           dplyr::filter(.data$diff_days <= outcome_washout_window)
 
-        # calculate at which individuals satisfied the outcome washout window requirement
+        # calculate time at which individuals satisfied the outcome
+        # washout window requirement
         working_pop <- working_pop %>%
           dplyr::left_join(outcome_prior,
             by = c("person_id", "t_start_date")
           )
-        # update t_start_date to when individuals satisfied the outcome washout window requirement
+        # update t_start_date to when individuals satisfied the
+        # outcome washout window requirement
         # as in by this new date, they are now eligible
         working_pop <- working_pop %>%
           dplyr::mutate(t_start_date = dplyr::if_else(
             is.na(.data$diff_days),
             .data$t_start_date,
             .data$t_start_date +
-              lubridate::days(outcome_washout_window - .data$diff_days)
+              lubridate::days(outcome_washout_window + 1 - .data$diff_days)
           ))
         # But, we need to now exclude people who reach the required
         # washout period after the end date
