@@ -103,10 +103,10 @@ collect_denominator_pops <- function(db,
     dplyr::mutate(age_range = paste0(.data$X1, ";", .data$X2))
   pop_specs <- tidyr::expand_grid(
     age_range = age_gr_df$age_range,
-    sex = study_sex_stratas,
-    study_days_prior_history = study_days_prior_history,
-    study_start_date = study_start_date,
-    study_end_date = study_end_date
+    sex = .env$study_sex_stratas,
+    study_days_prior_history = .env$study_days_prior_history,
+    study_start_date = .env$study_start_date,
+    study_end_date = .env$study_end_date
   ) %>%
     tidyr::separate(.data$age_range,
       c("min_age", "max_age"),

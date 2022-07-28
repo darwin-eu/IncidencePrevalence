@@ -36,6 +36,7 @@
 ## usethis::use_package("dtplyr")
 # usethis::use_package("stringr")
 
+# usethis::use_import_from("rlang", c(".data", ".env"))
 
 ## readme -----
 # usethis::use_readme_rmd()

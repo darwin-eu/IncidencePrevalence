@@ -252,13 +252,13 @@ get_denominator_pop <- function(db,
   earliest_year <- lubridate::year(start_date) - 1
   study_pop_db <- study_pop_db %>%
     # drop people too old even at study start
-    dplyr::filter(.data$year_of_birth + max_age >= earliest_year) %>%
+    dplyr::filter(.data$year_of_birth + .env$max_age >= .env$earliest_year) %>%
     # drop people too young even at study end
-    dplyr::filter(.data$year_of_birth + min_age <= last_year) %>%
+    dplyr::filter(.data$year_of_birth + .env$min_age <= .env$last_year) %>%
     # drop people with observation_period_star_date after study end
-    dplyr::filter(.data$observation_period_start_date <= end_date) %>%
+    dplyr::filter(.data$observation_period_start_date <= .env$end_date) %>%
     # drop people with observation_period_end_date before study start
-    dplyr::filter(.data$observation_period_end_date >= start_date) %>%
+    dplyr::filter(.data$observation_period_end_date >= .env$start_date) %>%
     dplyr::compute()
 
   ## bring in to memory and finalise population
@@ -300,14 +300,14 @@ get_denominator_pop <- function(db,
         date_min_age =
           lubridate::add_with_rollback(
             .data$dob,
-            lubridate::years(min_age)
+            lubridate::years(.env$min_age)
           )
       ) %>%
       dplyr::mutate(
         date_max_age =
           lubridate::add_with_rollback(
             .data$dob,
-            lubridate::years((max_age + 1))
+            lubridate::years((.env$max_age + 1))
           ) - lubridate::days(1)
       ) %>%
       # Date at which they reach
@@ -315,17 +315,17 @@ get_denominator_pop <- function(db,
       dplyr::mutate(
         date_with_prior_history =
           .data$observation_period_start_date +
-            lubridate::days(days_prior_history)
+            lubridate::days(.env$days_prior_history)
       )
 
     # keep people only if
     # 1) they satisfy age criteria at some point in the study
     study_pop <- study_pop %>%
-      dplyr::filter(.data$date_min_age <= end_date) %>%
-      dplyr::filter(.data$date_max_age >= start_date)
+      dplyr::filter(.data$date_min_age <= .env$end_date) %>%
+      dplyr::filter(.data$date_max_age >= .env$start_date)
     # 2) and they satisfy priory history criteria at some point in the study
     study_pop <- study_pop %>%
-      dplyr::filter(.data$date_with_prior_history <= end_date) %>%
+      dplyr::filter(.data$date_with_prior_history <= .env$end_date) %>%
       dplyr::filter(.data$date_with_prior_history <=
         .data$observation_period_end_date)
 
@@ -338,7 +338,7 @@ get_denominator_pop <- function(db,
     study_pop$cohort_start_date <- do.call(
       `pmax`,
       study_pop %>%
-        dplyr::mutate(study_start_date = start_date) %>%
+        dplyr::mutate(study_start_date = .env$start_date) %>%
         dplyr::select(
           "study_start_date",
           "date_min_age",
@@ -354,7 +354,7 @@ get_denominator_pop <- function(db,
     study_pop$cohort_end_date <- do.call(
       `pmin`,
       study_pop %>%
-        dplyr::mutate(study_end_date = end_date) %>%
+        dplyr::mutate(study_end_date = .env$end_date) %>%
         dplyr::select(
           "study_end_date",
           "observation_period_end_date",

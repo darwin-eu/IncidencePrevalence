@@ -156,7 +156,7 @@ get_pop_incidence <- function(db,
   if (!is.null(cohort_id_denominator_pop)) {
     study_pop <- study_pop %>%
       dplyr::filter(.data$cohort_definition_id ==
-        cohort_id_denominator_pop)
+        .env$cohort_id_denominator_pop)
   }
 
   # check population n is above zero
@@ -189,7 +189,7 @@ get_pop_incidence <- function(db,
   error_message <- checkmate::makeAssertCollection()
   if (!is.null(cohort_id_outcome)) {
     outcome_db <- outcome_db %>%
-      dplyr::filter(.data$cohort_definition_id == cohort_id_outcome) %>%
+      dplyr::filter(.data$cohort_definition_id == .env$cohort_id_outcome) %>%
       dplyr::compute()
   }
   error_message <- checkmate::makeAssertCollection()
@@ -321,14 +321,14 @@ get_pop_incidence <- function(db,
     # drop people with end_date prior to working_t_start
     # drop people with start_date after working_t_end
     working_pop <- study_pop %>%
-      dplyr::filter(.data$cohort_end_date >= working_t_start) %>%
-      dplyr::filter(.data$cohort_start_date <= working_t_end)
+      dplyr::filter(.data$cohort_end_date >= .env$working_t_start) %>%
+      dplyr::filter(.data$cohort_start_date <= .env$working_t_end)
 
     # individuals start date for this period
     # which could be start of the period or later
     working_pop <- working_pop %>%
       dplyr::mutate(t_start_date = dplyr::if_else(.data$cohort_start_date <=
-        working_t_start, working_t_start,
+        .env$working_t_start, .env$working_t_start,
       .data$cohort_start_date
       ))
 
@@ -337,8 +337,8 @@ get_pop_incidence <- function(db,
     working_pop <- working_pop %>%
       dplyr::mutate(
         t_end_date =
-          dplyr::if_else(.data$cohort_end_date >= working_t_end,
-            working_t_end,
+          dplyr::if_else(.data$cohort_end_date >= .env$working_t_end,
+            .env$working_t_end,
             .data$cohort_end_date
           )
       )
@@ -382,7 +382,8 @@ get_pop_incidence <- function(db,
       working_outcome_pop <- working_outcome_pop %>%
         dplyr::group_by(.data$person_id) %>%
         dplyr::mutate(
-          t_start_date_new = dplyr::lag(.data$outcome_end_date) + lubridate::days(1),
+          t_start_date_new = dplyr::lag(.data$outcome_end_date) +
+            lubridate::days(1),
           t_end_date_prev = dplyr::lag(.data$t_end_date)
         )
       # drop if t_start_date is same as t_end_date_prev
@@ -460,7 +461,7 @@ get_pop_incidence <- function(db,
         # If a number of days is specified,
         # first get outcomes that occurred in this window of time
         outcome_prior <- outcome_prior %>%
-          dplyr::filter(.data$diff_days <= outcome_washout_window)
+          dplyr::filter(.data$diff_days <= .env$outcome_washout_window)
 
         # calculate time at which individuals satisfied the outcome
         # washout window requirement
@@ -529,10 +530,10 @@ get_pop_incidence <- function(db,
       ) %>%
       dplyr::mutate(ir = (.data$n_events / .data$person_months) * 100000) %>%
       dplyr::mutate(calendar_month = ifelse(time_interval == "Months",
-        lubridate::month(working_t_start),
+        lubridate::month(.env$working_t_start),
         NA
       )) %>%
-      dplyr::mutate(calendar_year = lubridate::year(working_t_start))
+      dplyr::mutate(calendar_year = lubridate::year(.env$working_t_start))
   }
 
   ir <- dplyr::bind_rows(ir)
@@ -576,9 +577,9 @@ get_pop_incidence <- function(db,
     dplyr::mutate(age_strata = unique(study_pop$age_strata)) %>%
     dplyr::mutate(sex_strata = unique(study_pop$sex_strata)) %>%
     dplyr::mutate(outcome_washout_window = outcome_washout_window) %>%
-    dplyr::mutate(repetitive_events = repetitive_events) %>%
-    dplyr::mutate(time_interval = time_interval) %>%
-    dplyr::mutate(confidence_interval = confidence_interval)
+    dplyr::mutate(repetitive_events = .env$repetitive_events) %>%
+    dplyr::mutate(time_interval = .env$time_interval) %>%
+    dplyr::mutate(confidence_interval = .env$confidence_interval)
 
   return(ir)
 }

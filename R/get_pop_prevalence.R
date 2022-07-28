@@ -149,7 +149,7 @@ get_pop_prevalence <- function(db,
   if (!is.null(cohort_id_denominator_pop)) {
     study_pop <- study_pop %>%
       dplyr::filter(.data$cohort_definition_id ==
-        cohort_id_denominator_pop)
+        .env$cohort_id_denominator_pop)
   }
 
   # check population n is above zero
@@ -191,7 +191,7 @@ get_pop_prevalence <- function(db,
 
   if (!is.null(cohort_id_outcome)) {
     outcome_db <- outcome_db %>%
-      dplyr::filter(.data$cohort_definition_id == cohort_id_outcome) %>%
+      dplyr::filter(.data$cohort_definition_id == .env$cohort_id_outcome) %>%
       dplyr::compute()
   }
   error_message <- checkmate::makeAssertCollection()
@@ -299,14 +299,15 @@ get_pop_prevalence <- function(db,
     # drop people with end_date prior to working_t_start
     # drop people with start_date after working_t_end
     working_pop <- study_pop %>%
-      dplyr::filter(.data$cohort_end_date >= working_t_start) %>%
-      dplyr::filter(.data$cohort_start_date <= working_t_end)
+      dplyr::filter(.data$cohort_end_date >= .env$working_t_start) %>%
+      dplyr::filter(.data$cohort_start_date <= .env$working_t_end)
 
     # individuals start date for this period
     # which could be start of the period or later
     working_pop <- working_pop %>%
-      dplyr::mutate(t_start_date = dplyr::if_else(.data$cohort_start_date <= working_t_start,
-        working_t_start,
+      dplyr::mutate(t_start_date =
+          dplyr::if_else(.data$cohort_start_date <= .env$working_t_start,
+        .env$working_t_start,
         .data$cohort_start_date
       ))
 
@@ -316,8 +317,8 @@ get_pop_prevalence <- function(db,
     working_pop <- working_pop %>%
       dplyr::mutate(
         t_end_date =
-          dplyr::if_else(.data$cohort_end_date >= working_t_end,
-            working_t_end,
+          dplyr::if_else(.data$cohort_end_date >= .env$working_t_end,
+            .env$working_t_end,
             .data$cohort_end_date
           )
       )
@@ -328,14 +329,18 @@ get_pop_prevalence <- function(db,
       )
 
     working_pop <- working_pop %>%
-      dplyr::select("person_id", "t_start_date", "t_end_date", "outcome_start_date", "outcome_end_date")
+      dplyr::select("person_id", "t_start_date",
+                    "t_end_date", "outcome_start_date", "outcome_end_date")
 
     working_pop <- working_pop %>%
-      dplyr::mutate(contribution = (as.numeric(difftime(.data$t_end_date, .data$t_start_date, units = "days")) + 1) / working_period) %>%
+      dplyr::mutate(contribution = (as.numeric(difftime(.data$t_end_date,
+                                                        .data$t_start_date,
+                                                        units = "days")) + 1) /
+                      working_period) %>%
       dplyr::group_by(.data$person_id) %>%
       dplyr::mutate(contribution = sum(.data$contribution)) %>%
       dplyr::ungroup() %>%
-      dplyr::filter(.data$contribution >= minimum_representative_proportion)
+      dplyr::filter(.data$contribution >= .env$minimum_representative_proportion)
 
     denominator <- working_pop %>%
       dplyr::select("person_id") %>%
@@ -386,12 +391,13 @@ get_pop_prevalence <- function(db,
 
   # add study design related variables
   pr <- pr %>%
-    dplyr::mutate(required_days_prior_history = unique(study_pop$required_days_prior_history)) %>%
+    dplyr::mutate(required_days_prior_history =
+                    unique(study_pop$required_days_prior_history)) %>%
     dplyr::mutate(age_strata = unique(study_pop$age_strata)) %>%
     dplyr::mutate(sex_strata = unique(study_pop$sex_strata)) %>%
-    dplyr::mutate(period = period) %>%
-    dplyr::mutate(time_interval = time_interval) %>%
-    dplyr::mutate(confidence_interval = confidence_interval)
+    dplyr::mutate(period = .env$period) %>%
+    dplyr::mutate(time_interval = .env$time_interval) %>%
+    dplyr::mutate(confidence_interval = .env$confidence_interval)
 
   return(pr)
 }
