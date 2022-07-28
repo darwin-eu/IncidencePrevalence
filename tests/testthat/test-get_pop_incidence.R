@@ -351,37 +351,27 @@ test_that("mock db check: compare results from months and years", {
   # duckdb mock database
   db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
   person <- tibble(
-    person_id = c("1","2", "3","4","5"),
-    gender_concept_id = rep("8507",5),
-    year_of_birth = rep(2000,5),
-    month_of_birth = rep(01,5),
-    day_of_birth = rep(01,5)
+    person_id = c("1","2"),
+    gender_concept_id = rep("8507",2),
+    year_of_birth = rep(2000,2),
+    month_of_birth = rep(01,2),
+    day_of_birth = rep(01,2)
   )
   observation_period <- tibble(
-    observation_period_id = c("1","2","3","4","5"),
-    person_id = c("1","2", "3","4", "5"),
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
     observation_period_start_date = c(as.Date("2010-01-01"),
-                                      as.Date("2010-01-01"),
-                                      as.Date("2010-01-01"),
-                                      as.Date("2010-01-01"),
-                                      as.Date("2011-07-31")),
+                                      as.Date("2010-01-01")),
     observation_period_end_date = c(as.Date("2012-01-01"),
-                                    as.Date("2012-01-01"),
-                                    as.Date("2012-01-01"),
-                                    # last day of a month
-                                      as.Date("2011-07-31"),
-                                    # first day of a month
-                                      as.Date("2011-08-01"))
+                                    as.Date("2012-01-01"))
   )
   outcome <- tibble(
-    cohort_definition_id = c("1","1"),
-    subject_id = c("1","2"),
+    cohort_definition_id = c("1"),
+    subject_id = c("1"),
     cohort_start_date = c(
-      as.Date("2011-02-05"),
       as.Date("2011-07-01")
     ),
     cohort_end_date = c(
-      as.Date("2011-02-06"),
       as.Date("2011-07-01")
     )
   )
