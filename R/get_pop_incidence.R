@@ -519,7 +519,7 @@ get_pop_incidence <- function(db,
         person_years = (.data$person_days / 365.25),
         n_events = sum(!is.na(.data$outcome_start_date))
       ) %>%
-      dplyr::mutate(ir = (.data$n_events / .data$person_months) * 100000) %>%
+      dplyr::mutate(ir_100000_pys = (.data$n_events / .data$person_years) * 100000) %>%
       dplyr::mutate(calendar_month = ifelse(time_interval == "Months",
         lubridate::month(.env$working_t_start),
         NA
@@ -531,8 +531,8 @@ get_pop_incidence <- function(db,
 
   if (confidence_interval == "none") {
     ir <- ir %>%
-      dplyr::mutate(ir_low = NA) %>%
-      dplyr::mutate(ir_high = NA)
+      dplyr::mutate(ir_100000_pys_low = NA) %>%
+      dplyr::mutate(ir_100000_pys_high = NA)
   }
 
   if (confidence_interval == "exact") {
@@ -540,23 +540,23 @@ get_pop_incidence <- function(db,
       dplyr::left_join(
         ir %>%
           dplyr::filter(.data$n_events >= 1) %>%
-          dplyr::mutate(ir_low = (stats::qchisq(0.05 / 2, df = 2 * (.data$n_events - 1)) / 2 / .data$person_months * 100000)) %>%
-          dplyr::mutate(ir_high = (stats::qchisq(1 - 0.05 / 2, df = 2 * .data$n_events) / 2 / .data$person_months * 100000)),
-        by = c("n_persons", "person_days", "person_months", "person_years", "n_events", "ir", "calendar_month", "calendar_year")
+          dplyr::mutate(ir_100000_pys_low = (stats::qchisq(0.05 / 2, df = 2 * (.data$n_events - 1)) / 2 / .data$person_years * 100000)) %>%
+          dplyr::mutate(ir_100000_pys_high = (stats::qchisq(1 - 0.05 / 2, df = 2 * .data$n_events) / 2 / .data$person_years * 100000)),
+        by = c("n_persons", "person_days", "person_months", "person_years", "n_events", "ir_100000_pys", "calendar_month", "calendar_year")
       ) %>%
-      dplyr::select("ir_low", "ir_high") %>%
-      dplyr::mutate(ir_low = dplyr::if_else(is.na(.data$ir_low), 0, .data$ir_low)) %>%
-      dplyr::mutate(ir_high = dplyr::if_else(is.na(.data$ir_high), 0, .data$ir_high))
+      dplyr::select("ir_100000_pys_low", "ir_100000_pys_high") %>%
+      dplyr::mutate(ir_100000_pys_low = dplyr::if_else(is.na(.data$ir_100000_pys_low), 0, .data$ir_100000_pys_low)) %>%
+      dplyr::mutate(ir_100000_pys_high = dplyr::if_else(is.na(.data$ir_100000_pys_high), 0, .data$ir_100000_pys_high))
 
-    # ci <- tibble(ir_low = if_else(ir$n_events>10,
+    # ci <- tibble(ir_100000_pys_low = if_else(ir$n_events>10,
     #               (qchisq(0.05/2, df=2*(ir$n_events-1))/2/ir$person_months*100000),
     #              0),
-    #              ir_high = if_else(ir$n_events>10,
+    #              ir_100000_pys_high = if_else(ir$n_events>10,
     #             qchisq(1-0.05/2, df=2*ir$n_events)/2/ir$person_months*100000,0))
 
     ir <- dplyr::bind_cols(ir, ci) %>%
-      dplyr::relocate(.data$ir_low, .before = .data$calendar_month) %>%
-      dplyr::relocate(.data$ir_high, .after = .data$ir_low)
+      dplyr::relocate(.data$ir_100000_pys_low, .before = .data$calendar_month) %>%
+      dplyr::relocate(.data$ir_100000_pys_high, .after = .data$ir_100000_pys_low)
   }
 
   # add study design related variables

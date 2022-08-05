@@ -545,9 +545,9 @@ expect_true(sum(inc_with_rep$n_events)==1)
 #     "person_months",
 #     "person_years",
 #     "n_events",
-#     "ir",
-#     "ir_low",
-#     "ir_high",
+#     "ir_100000_pys",
+#     "ir_100000_pys_low",
+#     "ir_100000_pys_high",
 #     "calendar_month",
 #     "calendar_year",
 #     "age_strata",
@@ -567,10 +567,10 @@ expect_true(sum(inc_with_rep$n_events)==1)
 #   testthat::expect_true(!is.null(result$n_events) &
 #     sum(is.na(result$n_events)) == 0)
 #
-#   testthat::expect_true(!is.null(result$ir_low) &
-#     sum(is.na(result$ir_low)) == 0)
-#   testthat::expect_true(!is.null(result$ir_high) &
-#     sum(is.na(result$ir_high)) == 0)
+#   testthat::expect_true(!is.null(result$ir_100000_pys_low) &
+#     sum(is.na(result$ir_100000_pys_low)) == 0)
+#   testthat::expect_true(!is.null(result$ir_100000_pys_high) &
+#     sum(is.na(result$ir_100000_pys_high)) == 0)
 #
 #   # testthat::expect_true(!is.null(result$calendar_month) &
 #   #   sum(is.na(result$calendar_month)) == 0)

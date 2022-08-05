@@ -34,11 +34,11 @@ get_confidence_intervals <- function(x,
     add = error_message
   )
   checkmate::assertTRUE(
-    all(c("n_events", "person_months", "ir") %in% names(x)) ||
+    all(c("n_events", "person_years", "ir_100000_pys") %in% names(x)) ||
       all(c("numerator", "denominator", "prev") %in% names(x))
   )
   checkmate::assertFALSE(
-    all(c("n_events", "person_months", "ir") %in% names(x)) &&
+    all(c("n_events", "person_years", "ir_100000_pys") %in% names(x)) &&
       all(c("numerator", "denominator", "prev") %in% names(x))
   )
   checkmate::assertFALSE(
@@ -55,8 +55,8 @@ get_confidence_intervals <- function(x,
   if (c("n_events") %in% names(x)) {
     x <- x %>%
       dplyr::rename("num" = "n_events") %>%
-      dplyr::rename("den" = "person_months") %>%
-      dplyr::rename("var" = "ir")
+      dplyr::rename("den" = "person_years") %>%
+      dplyr::rename("var" = "ir_100000_pys")
     type <- "Incidence"
   } else if (c("numerator") %in% names(x)) {
     x <- x %>%
@@ -93,10 +93,10 @@ get_confidence_intervals <- function(x,
   if (type == "Incidence"){
     x <- x %>%
       dplyr::rename("n_events" = "num") %>%
-      dplyr::rename("person_months" = "den") %>%
-      dplyr::rename("ir" = "var") %>%
-      dplyr::rename("ir_low" = "var_low") %>%
-      dplyr::rename("ir_high" = "var_high")
+      dplyr::rename("person_years" = "den") %>%
+      dplyr::rename("ir_100000_pys" = "var") %>%
+      dplyr::rename("ir_100000_pys_low" = "var_low") %>%
+      dplyr::rename("ir_100000_pys_high" = "var_high")
   } else if (type == "Prevalence"){
     x <- x %>%
       dplyr::rename("numerator" = "num") %>%
