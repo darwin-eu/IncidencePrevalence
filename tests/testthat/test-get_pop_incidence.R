@@ -426,8 +426,77 @@ test_that("mock db check: compare results from months and years", {
 DBI::dbDisconnect(db, shutdown=TRUE)
 })
 
+test_that("mock db check: entry and event on same day", {
 
+db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+person <- tibble::tibble(
+person_id = "1",
+gender_concept_id = "8507",
+year_of_birth = 2000,
+month_of_birth = 01,
+day_of_birth = 01
+)
+observation_period <- tibble::tibble(
+observation_period_id = "1",
+person_id = "1",
+observation_period_start_date = as.Date("2010-01-28"),
+observation_period_end_date = as.Date("2012-12-31")
+)
+outcome <- tibble::tibble(
+cohort_definition_id = "1",
+subject_id = "1",
+cohort_start_date = c(
+as.Date("2010-01-28")
+),
+cohort_end_date = c(
+as.Date("2010-01-28")
+)
+)
 
+DBI::dbWithTransaction(db, {
+DBI::dbWriteTable(db, "person", person,
+overwrite = TRUE
+)
+})
+DBI::dbWithTransaction(db, {
+DBI::dbWriteTable(db, "observation_period", observation_period,
+overwrite = TRUE
+)
+})
+DBI::dbWithTransaction(db, {
+DBI::dbWriteTable(db, "outcome", outcome,
+overwrite = TRUE
+)
+})
+
+dpop <- collect_denominator_pops(
+db = db,
+cdm_database_schema = NULL
+)
+
+inc_without_rep <- get_pop_incidence(db,
+results_schema_outcome = NULL,
+table_name_outcome = "outcome",
+cohort_id_outcome = "1",
+study_denominator_pop = dpop,
+repetitive_events = TRUE,
+outcome_washout_window = NULL,
+time_interval = "Years"
+)
+expect_true(sum(inc_without_rep$n_events)==1)
+
+inc_with_rep <- get_pop_incidence(db,
+results_schema_outcome = NULL,
+table_name_outcome = "outcome",
+cohort_id_outcome = "1",
+study_denominator_pop = dpop,
+repetitive_events = TRUE,
+outcome_washout_window = NULL,
+time_interval = "Years"
+)
+expect_true(sum(inc_with_rep$n_events)==1)
+
+})
 
 
 

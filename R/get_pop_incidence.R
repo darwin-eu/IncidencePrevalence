@@ -434,7 +434,7 @@ get_pop_incidence <- function(db,
         .data$prior_outcome_end_date,
         units = "days"
       ))) %>%
-      dplyr::filter(.data$diff_days >= 0)
+      dplyr::filter(.data$diff_days > 0)
 
     # keep most recent
     if (nrow(outcome_prior) >= 1) {
@@ -510,15 +510,6 @@ get_pop_incidence <- function(db,
           )
       )
 
-
-    # if they enter the same day they exit,
-    # will assume they contribute 0.5d
-    #
-    # working_pop <- working_pop %>%
-    #   dplyr::mutate(working_days = dplyr::case_when(
-    #  (.data$working_days == 0) ~ 0.5,
-    #     .data$working_days > 0 ~ .data$working_days
-    #  ))
 
     ir[[paste0(i)]] <- working_pop %>%
       dplyr::summarise(
