@@ -1,10 +1,47 @@
-test_that("mock db checks", {
+
+test_that("mock db: check output format", {
   library(DBI)
   library(dplyr)
   library(tibble)
 
-  # duckdb mock database
-  db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+  db <- generate_mock_incidence_prevalence_db()
+
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL
+  )
+
+  inc <- get_pop_incidence(db,
+                           results_schema_outcome = NULL,
+                           table_name_outcome = "outcome",
+                           study_denominator_pop = dpop
+  )
+
+  expect_true(all(c(
+    "n_persons",
+    "person_days",
+    "person_months",
+    "person_years",
+    "n_events",
+    "ir_100000_pys",
+    "ir_100000_pys_low",
+    "ir_100000_pys_high",
+    "calendar_month",
+    "calendar_year",
+    "age_strata",
+    "sex_strata"
+  ) %in%
+    names(inc)))
+
+  dbDisconnect(db, shutdown=TRUE)
+
+})
+
+test_that("mock db: check working example", {
+  library(DBI)
+  library(dplyr)
+  library(tibble)
+
   person <- tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -32,25 +69,14 @@ test_that("mock db checks", {
       as.Date("2010-02-20")
     )
   )
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "person", person,
-      overwrite = TRUE
-    )
-  })
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "observation_period", observation_period,
-      overwrite = TRUE
-    )
-  })
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "outcome", outcome,
-      overwrite = TRUE
-    )
-  })
+
+  db <- generate_mock_incidence_prevalence_db(outcome=outcome)
+
   dpop <- collect_denominator_pops(
     db = db,
     cdm_database_schema = NULL
   )
+
   inc <- get_pop_incidence(db,
     results_schema_outcome = NULL,
     table_name_outcome = "outcome",
@@ -60,6 +86,7 @@ test_that("mock db checks", {
     outcome_washout_window = 0
   )
   expect_true(sum(inc$n_events) == 1)
+
   inc <- get_pop_incidence(db,
     results_schema_outcome = NULL,
     table_name_outcome = "outcome",
@@ -69,6 +96,7 @@ test_that("mock db checks", {
     outcome_washout_window = 2
   )
   expect_true(sum(inc$n_events) == 3)
+
   inc <- get_pop_incidence(db,
     results_schema_outcome = NULL,
     table_name_outcome = "outcome",
@@ -92,75 +120,15 @@ test_that("mock db checks", {
   )
   expect_true(sum(inc$n_events) == 1)
 
-  inc <- get_pop_incidence(db,
-    results_schema_outcome = NULL,
-    table_name_outcome = "outcome",
-    cohort_id_outcome = 1, # to character in function
-    study_denominator_pop = dpop
-  )
-
-  inc <- get_pop_incidence(db,
-    results_schema_outcome = NULL,
-    table_name_outcome = "outcome",
-    cohort_id_denominator_pop = 1, # to character in function
-    study_denominator_pop = dpop,
-    confidence_interval = "none"
-  )
-
-  inc <- get_pop_incidence(db,
-    results_schema_outcome = NULL,
-    # gets changed to NULL (to help collect)
-    outcome_washout_window = NA,
-    table_name_outcome = "outcome",
-    cohort_id_outcome = "1",
-    study_denominator_pop = dpop
-  )
-
-  inc <- get_pop_incidence(db,
-    results_schema_outcome = NULL,
-    table_name_outcome = "outcome",
-    cohort_id_outcome = 1,
-    study_denominator_pop = dpop
-  )
-
-  inc <- get_pop_incidence(db,
-    results_schema_outcome = NULL,
-    table_name_outcome = "outcome",
-    cohort_id_outcome = "1",
-    study_denominator_pop = dpop,
-    verbose = TRUE
-  )
-
-  inc <- get_pop_incidence(db,
-    results_schema_outcome = NULL,
-    table_name_outcome = "outcome",
-    cohort_id_outcome = "1",
-    time_interval = "years",
-    study_denominator_pop = dpop,
-    verbose = TRUE
-  )
-
-  inc <- get_pop_incidence(db,
-    results_schema_outcome = NULL,
-    table_name_outcome = "outcome",
-    cohort_id_outcome = "1",
-    study_denominator_pop = dpop,
-    confidence_interval = "none"
-  )
-
-
 
   dbDisconnect(db, shutdown=TRUE)
 })
 
-
-test_that("mock db study ", {
+test_that("mock db: check study periods ", {
   library(DBI)
   library(dplyr)
   library(tibble)
 
-  # duckdb mock database
-  db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
   person <- tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -188,25 +156,16 @@ test_that("mock db study ", {
       as.Date("2010-02-20")
     )
   )
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "person", person,
-      overwrite = TRUE
-    )
-  })
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "observation_period", observation_period,
-      overwrite = TRUE
-    )
-  })
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "outcome", outcome,
-      overwrite = TRUE
-    )
-  })
+
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
+
   dpop <- collect_denominator_pops(
     db = db,
     cdm_database_schema = NULL
   )
+
  inc<- get_pop_incidence(db,
     results_schema_outcome = NULL,
     table_name_outcome = "outcome",
@@ -220,12 +179,10 @@ test_that("mock db study ", {
    expect_true(length(inc$calendar_year)==12)
    expect_true(any(inc$calendar_month %in% 12))
 
-
   dbDisconnect(db, shutdown=TRUE)
 })
 
-
-test_that("mock db check: washout windows", {
+test_that("mock db: check washout windows", {
   db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
   person <- tibble::tibble(
     person_id = "1",
@@ -260,21 +217,7 @@ test_that("mock db check: washout windows", {
     )
   )
 
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "person", person,
-      overwrite = TRUE
-    )
-  })
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "observation_period", observation_period,
-      overwrite = TRUE
-    )
-  })
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "outcome", outcome,
-      overwrite = TRUE
-    )
-  })
+  db <- generate_mock_incidence_prevalence_db(outcome=outcome)
 
   dpop <- collect_denominator_pops(
     db = db,
@@ -343,13 +286,11 @@ test_that("mock db check: washout windows", {
 
 })
 
-test_that("mock db check: compare results from months and years", {
+test_that("mock db: compare results from months and years", {
   library(DBI)
   library(dplyr)
   library(tibble)
 
-  # duckdb mock database
-  db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
   person <- tibble(
     person_id = c("1","2"),
     gender_concept_id = rep("8507",2),
@@ -375,21 +316,9 @@ test_that("mock db check: compare results from months and years", {
       as.Date("2011-07-01")
     )
   )
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "person", person,
-      overwrite = TRUE
-    )
-  })
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "observation_period", observation_period,
-      overwrite = TRUE
-    )
-  })
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "outcome", outcome,
-      overwrite = TRUE
-    )
-  })
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
   dpop <- collect_denominator_pops(
     db = db,
     cdm_database_schema = NULL,
@@ -426,7 +355,7 @@ test_that("mock db check: compare results from months and years", {
 DBI::dbDisconnect(db, shutdown=TRUE)
 })
 
-test_that("mock db check: entry and event on same day", {
+test_that("mock db: check entry and event on same day", {
 
 db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
 person <- tibble::tibble(
@@ -453,21 +382,7 @@ as.Date("2010-01-28")
 )
 )
 
-DBI::dbWithTransaction(db, {
-DBI::dbWriteTable(db, "person", person,
-overwrite = TRUE
-)
-})
-DBI::dbWithTransaction(db, {
-DBI::dbWriteTable(db, "observation_period", observation_period,
-overwrite = TRUE
-)
-})
-DBI::dbWithTransaction(db, {
-DBI::dbWriteTable(db, "outcome", outcome,
-overwrite = TRUE
-)
-})
+db <- generate_mock_incidence_prevalence_db(outcome=outcome)
 
 dpop <- collect_denominator_pops(
 db = db,
@@ -496,6 +411,205 @@ time_interval = "Years"
 )
 expect_true(sum(inc_with_rep$n_events)==1)
 
+})
+
+test_that("mock db: check conversion of user inputs", {
+  library(DBI)
+  library(dplyr)
+  library(tibble)
+
+  outcome <- tibble(
+    cohort_definition_id = "1",
+    subject_id = "1",
+    cohort_start_date = c(
+      as.Date("2010-02-05")
+    ),
+    cohort_end_date = c(
+      as.Date("2010-02-05")
+    )
+  )
+
+  db <- generate_mock_incidence_prevalence_db(outcome=outcome)
+
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL
+  )
+
+  inc <- get_pop_incidence(db,
+                           results_schema_outcome = NULL,
+                           table_name_outcome = "outcome",
+                           cohort_id_outcome = 1, # to character in function
+                           study_denominator_pop = dpop
+  )
+  expect_true(nrow(inc)>=0)
+
+  inc <- get_pop_incidence(db,
+                           results_schema_outcome = NULL,
+                           table_name_outcome = "outcome",
+                           cohort_id_denominator_pop = 1, # to character in function
+                           study_denominator_pop = dpop,
+                           confidence_interval = "none"
+  )
+  expect_true(nrow(inc)>=0)
+
+  inc <- get_pop_incidence(db,
+                           results_schema_outcome = NULL,
+                           # gets changed to NULL (to help collect)
+                           outcome_washout_window = NA,
+                           table_name_outcome = "outcome",
+                           cohort_id_outcome = "1",
+                           study_denominator_pop = dpop
+  )
+  expect_true(nrow(inc)>=0)
+
+
+  inc <- get_pop_incidence(db,
+                           results_schema_outcome = NULL,
+                           table_name_outcome = "outcome",
+                           # numeric id gets converted to character
+                           cohort_id_outcome = 1,
+                           study_denominator_pop = dpop
+  )
+  expect_true(nrow(inc)>=0)
+
+  dbDisconnect(db, shutdown=TRUE)
+
+})
+
+test_that("mock db: check messages when vebose is true", {
+  library(DBI)
+  library(dplyr)
+  library(tibble)
+
+  outcome <- tibble(
+    cohort_definition_id = "1",
+    subject_id = "1",
+    cohort_start_date = c(
+      as.Date("2010-02-05")
+    ),
+    cohort_end_date = c(
+      as.Date("2010-02-05")
+    )
+  )
+
+  db <- generate_mock_incidence_prevalence_db(outcome=outcome)
+
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL
+  )
+
+  expect_message(get_pop_incidence(db,
+                         results_schema_outcome = NULL,
+                         table_name_outcome = "outcome",
+                         cohort_id_outcome = "1",
+                         study_denominator_pop = dpop,
+                         verbose = TRUE
+))
+
+  expect_message(get_pop_incidence(db,
+                         results_schema_outcome = NULL,
+                         table_name_outcome = "outcome",
+                         cohort_id_outcome = "1",
+                         time_interval = "years",
+                         study_denominator_pop = dpop,
+                         verbose = TRUE
+))
+
+expect_message(get_pop_incidence(db,
+                         results_schema_outcome = NULL,
+                         table_name_outcome = "outcome",
+                         cohort_id_outcome = "1",
+                         study_denominator_pop = dpop,
+                         confidence_interval = "none",
+                         verbose = TRUE
+))
+
+dbDisconnect(db, shutdown=TRUE)
+
+})
+
+test_that("mock db: check expected errors", {
+  library(DBI)
+  library(dplyr)
+  library(tibble)
+
+  db <- generate_mock_incidence_prevalence_db()
+
+  # not a db connection
+  expect_error(get_pop_incidence(db="a",
+                                 results_schema_outcome = NULL,
+                                 table_name_outcome = "outcome",
+                                 time_interval = c("Months"),
+                                 study_denominator_pop = dpop
+  ))
+
+  # no study pop
+  expect_error(get_pop_incidence(db,
+                    results_schema_outcome = NULL,
+                    table_name_outcome = "outcome",
+                    time_interval = c("Months"),
+                    study_denominator_pop = dpop,
+                    cohort_id_denominator_pop="999"
+  ))
+
+  # no outcomes
+  expect_error(get_pop_incidence(db,
+                    results_schema_outcome = NULL,
+                    table_name_outcome = "outcome",
+                    time_interval = c("Months"),
+                    cohort_id_outcome="999",
+                    study_denominator_pop = dpop
+  ))
+
+
+  person <- tibble(
+    person_id = "1",
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observation_period <- tibble(
+    observation_period_id = "1",
+    person_id = "1",
+    observation_period_start_date = as.Date("2010-01-01"),
+    observation_period_end_date = as.Date("2010-01-05")
+  )
+  outcome <- tibble(
+    cohort_definition_id = "1",
+    subject_id = "1",
+    cohort_start_date = c(as.Date("2010-01-04")),
+    cohort_end_date = c(as.Date("2010-01-04"))
+  )
+
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
+
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL
+  )
+
+  # expect error because less than one month between
+  # cohort_start_date and cohort_end_date among dpop
+  expect_error(get_pop_incidence(db,
+                                 results_schema_outcome = NULL,
+                                 table_name_outcome = "outcome",
+                                 time_interval = c("Months"),
+                                 study_denominator_pop = dpop
+  ))
+  expect_error(get_pop_incidence(db,
+                                 results_schema_outcome = NULL,
+                                 table_name_outcome = "outcome",
+                                 time_interval = c("Years"),
+                                 cohort_id_outcome = "1",
+                                 study_denominator_pop = dpop
+  ))
+
+  dbDisconnect(db)
 })
 
 
@@ -584,71 +698,6 @@ expect_true(sum(inc_with_rep$n_events)==1)
 #   dbDisconnect(db)
 #
 # })
-
-test_that("mock db checks", {
-  library(DBI)
-  library(dplyr)
-  library(tibble)
-
-  # duckdb mock database
-  db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
-  person <- tibble(
-    person_id = "1",
-    gender_concept_id = "8507",
-    year_of_birth = 2000,
-    month_of_birth = 01,
-    day_of_birth = 01
-  )
-  observation_period <- tibble(
-    observation_period_id = "1",
-    person_id = "1",
-    observation_period_start_date = as.Date("2010-01-01"),
-    observation_period_end_date = as.Date("2010-01-05")
-  )
-  outcome <- tibble(
-    cohort_definition_id = "1",
-    subject_id = "1",
-    cohort_start_date = c(as.Date("2010-01-04")),
-    cohort_end_date = c(as.Date("2010-01-04"))
-  )
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "person", person,
-      overwrite = TRUE
-    )
-  })
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "observation_period", observation_period,
-      overwrite = TRUE
-    )
-  })
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "outcome", outcome,
-      overwrite = TRUE
-    )
-  })
-  dpop <- collect_denominator_pops(
-    db = db,
-    cdm_database_schema = NULL
-  )
-  # expect error because less than one month between
-  # cohort_start_date and cohort_end_date among dpop
-  expect_error(get_pop_incidence(db,
-    results_schema_outcome = NULL,
-    table_name_outcome = "outcome",
-    time_interval = c("Months"),
-    study_denominator_pop = dpop
-  ))
-  expect_error(get_pop_incidence(db,
-    results_schema_outcome = NULL,
-    table_name_outcome = "outcome",
-    time_interval = c("Years"),
-    cohort_id_outcome = "1",
-    study_denominator_pop = dpop
-  ))
-
-  dbDisconnect(db)
-})
-
 
 # test_that("live db expected errors", {
 #   library(DBI)

@@ -52,6 +52,7 @@ get_denominator_pop <- function(db,
     start <- Sys.time()
   }
 
+  # to handle NAs passed by collect denominator
   if (!is.null(start_date)) {
     if (is.na(start_date)) {
       start_date <- NULL
@@ -98,6 +99,12 @@ get_denominator_pop <- function(db,
       "- min_age should be one value"
     )
   }
+  if (!is.null(min_age)) {
+    checkmate::assert_true(min_age >= 0,
+      add = error_message
+    )
+  }
+
   checkmate::assert_numeric(max_age,
     add = error_message,
     null.ok = TRUE
@@ -118,10 +125,9 @@ get_denominator_pop <- function(db,
   }
   if (length(sex) >= 2) {
     error_message$push(
-      "- sex must be one of Male, Female, or Both"
+      "- sex should be one value"
     )
   }
-
   checkmate::assert_numeric(days_prior_history,
     add = error_message,
     null.ok = TRUE
@@ -132,8 +138,6 @@ get_denominator_pop <- function(db,
       "- days_prior_history cannot be negative"
     )
   }
-
-
   checkmate::assert_logical(verbose,
     add = error_message
   )
@@ -142,8 +146,8 @@ get_denominator_pop <- function(db,
 
 
   ## check person and observation_period tables exist
-  # connect to relevant vocabulary tables
-  # will return informative error if not found
+  # connect to relevant tables
+  # note, will return informative error if they are not found
   if (!is.null(cdm_database_schema)) {
     person_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
       "SELECT * FROM {cdm_database_schema}.person"
@@ -167,7 +171,6 @@ get_denominator_pop <- function(db,
     observation_period_db, tolower
   ) %>%
     dplyr::compute()
-
 
   # check variable names
   # person table
@@ -248,6 +251,9 @@ get_denominator_pop <- function(db,
       dplyr::compute()
   }
 
+  # filter
+  # on year for simplicity
+  # add a year to either side to make sure we only drop people we don´t want
   last_year <- lubridate::year(end_date) + 1
   earliest_year <- lubridate::year(start_date) - 1
   study_pop_db <- study_pop_db %>%
@@ -266,19 +272,45 @@ get_denominator_pop <- function(db,
     dplyr::collect()
 
   if (nrow(study_pop) == 0) {
+    # return NULL if we don´t find anyone
     message("-- No people found for denominator population")
     return(NULL)
   } else {
 
     # get date of birth
+    # fill in missing day (to 15th of month) if only day missing,
+    # month (July) if missing if only month missing,
+    # month (July) and day (to 1st of month) if both missing
+    # ie to impute to the centre of the period
+
     study_pop <- study_pop %>%
       dplyr::mutate(dob = dplyr::if_else(
-        is.na(.data$month_of_birth) |
+        is.na(.data$month_of_birth) &
           is.na(.data$day_of_birth),
         as.Date(
           paste(.data$year_of_birth,
             "07",
             "01",
+            sep = "/"
+          ),
+          "%Y/%m/%d"
+        ),
+        dplyr::if_else(is.na(.data$month_of_birth) &
+          !is.na(.data$day_of_birth),
+        as.Date(
+          paste(.data$year_of_birth,
+            "07",
+            .data$day_of_birth,
+            sep = "/"
+          ),
+          "%Y/%m/%d"
+        ),
+        dplyr::if_else(!is.na(.data$month_of_birth) &
+          is.na(.data$day_of_birth),
+        as.Date(
+          paste(.data$year_of_birth,
+            .data$month_of_birth,
+            "15",
             sep = "/"
           ),
           "%Y/%m/%d"
@@ -290,6 +322,8 @@ get_denominator_pop <- function(db,
             sep = "/"
           ),
           "%Y/%m/%d"
+        )
+        )
         )
       ))
 
@@ -362,7 +396,7 @@ get_denominator_pop <- function(db,
         )
     )
 
-    # Exclude people who are elegible after cohort_end_date
+    # Exclude people who are eligible only after cohort_end_date
     study_pop <- study_pop %>%
       dplyr::filter(.data$cohort_start_date <=
         .data$cohort_end_date)

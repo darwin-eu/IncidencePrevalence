@@ -28,7 +28,6 @@ devtools::check_rhub() # All os
 
 # have you followed the style guide?
 # note you can use stlyer to fix formatting
-# ignore formatting warning for .datatable.aware
 # nb doesn´t pick up vars used in glue
 lintr::lint_package()
 
