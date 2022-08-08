@@ -35,7 +35,9 @@ test_that("mock db: check output format", {
   )
 
   expect_true(all(c(
-    "cohort_definition_id",
+    "incidence_analysis_id",
+    "cohort_id_outcome",
+    "cohort_id_denominator_pop",
     "n_persons", "person_days",
     "person_months", "person_years", "n_events",
     "ir_100000_pys",
@@ -47,9 +49,7 @@ test_that("mock db: check output format", {
     "outcome_washout_window",
     "repetitive_events",
     "time_interval",
-    "confidence_interval",
-    "cohort_id_outcome",
-    "cohort_id_denominator_pop"
+    "confidence_interval"
   ) %in%
     names(inc)))
 

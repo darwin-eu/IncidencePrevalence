@@ -161,11 +161,11 @@ collect_pop_incidence <- function(db,
   }
 
   study_specs <- study_specs %>%
-    dplyr::mutate(cohort_definition_id = as.character(dplyr::row_number()))
+    dplyr::mutate(incidence_analysis_id = as.character(dplyr::row_number()))
 
   study_specs <- split(
     study_specs,
-    study_specs[, c("cohort_definition_id")]
+    study_specs[, c("incidence_analysis_id")]
   )
 
   # get irs
@@ -194,7 +194,7 @@ collect_pop_incidence <- function(db,
   })
   # to tibble and add specification for each cohort
   irs <- dplyr::bind_rows(irs,
-    .id = "cohort_definition_id"
+    .id = "incidence_analysis_id"
   )
 
   return(irs)

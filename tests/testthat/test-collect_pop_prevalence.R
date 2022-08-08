@@ -31,8 +31,9 @@ test_that("mock db: check output format", {
   )
 
   expect_true(all(c(
-    "cohort_definition_id",
+    "incidence_analysis_id",
     "numerator", "denominator",
+    "prev",
     "prev_low",
     "prev_high",
     "calendar_month", "calendar_year",

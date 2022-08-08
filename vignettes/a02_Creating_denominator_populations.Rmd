@@ -24,7 +24,7 @@ library(tibble)
 library(tidyr)
 library(duckdb)
 library(knitr)
-#library(IncidencePrevalence)
+library(IncidencePrevalence)
 ```
 
 ## Introduction

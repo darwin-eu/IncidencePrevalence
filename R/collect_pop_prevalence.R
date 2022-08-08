@@ -155,11 +155,11 @@ collect_pop_prevalence <- function(db,
   )
 
   study_specs <- study_specs %>%
-    dplyr::mutate(cohort_definition_id = as.character(dplyr::row_number()))
+    dplyr::mutate(incidence_analysis_id = as.character(dplyr::row_number()))
 
   study_specs <- split(
     study_specs,
-    study_specs[, c("cohort_definition_id")]
+    study_specs[, c("incidence_analysis_id")]
   )
 
   # get irs
@@ -188,7 +188,7 @@ collect_pop_prevalence <- function(db,
   })
   # to tibble and add specification for each cohort
   prs <- dplyr::bind_rows(prs,
-    .id = "cohort_definition_id"
+    .id = "incidence_analysis_id"
   )
 
   prs <- obscure_counts(prs, minimum_counts = minimum_counts, substitute = NA)
