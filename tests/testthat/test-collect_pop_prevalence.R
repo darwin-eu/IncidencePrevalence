@@ -4,18 +4,7 @@ test_that("mock db: check output format", {
   library(dplyr)
   library(tibble)
 
-  outcome <- tibble(
-    cohort_definition_id = "1",
-    subject_id = "1",
-    cohort_start_date = c(
-      as.Date("2010-02-05")
-    ),
-    cohort_end_date = c(
-      as.Date("2010-02-05")
-    )
-  )
-
-  db <- generate_mock_incidence_prevalence_db(outcome=outcome)
+  db <- generate_mock_incidence_prevalence_db()
 
   dpop <- collect_denominator_pops(
     db = db,
@@ -44,7 +33,9 @@ test_that("mock db: check output format", {
     "confidence_interval",
     "cohort_id_outcome",
     "cohort_id_denominator_pop",
-    "minimum_representative_proportion"
+    "minimum_representative_proportion",
+    "minimum_event_count",
+    "result_obscured"
   ) %in%
     names(prev)))
 
@@ -111,18 +102,7 @@ test_that("mock db: check minimum counts", {
   library(dplyr)
   library(tibble)
 
-  outcome <- tibble(
-    cohort_definition_id = "1",
-    subject_id = "1",
-    cohort_start_date = c(
-      as.Date("2010-02-05")
-    ),
-    cohort_end_date = c(
-      as.Date("2010-02-05")
-    )
-  )
-
-  db <- generate_mock_incidence_prevalence_db(outcome=outcome)
+  db <- generate_mock_incidence_prevalence_db()
 
   dpop <- collect_denominator_pops(
     db = db,
@@ -135,7 +115,7 @@ test_that("mock db: check minimum counts", {
     cohort_ids_outcomes = "1",
     cohort_ids_denominator_pops = "1",
     study_denominator_pop = dpop,
-    minimum_counts = NULL
+    minimum_event_count = NULL
   )
   expect_true(any(c(0:4) %in% prev$numerator))
 
@@ -146,7 +126,7 @@ test_that("mock db: check minimum counts", {
     cohort_ids_outcomes = "1",
     cohort_ids_denominator_pops = "1",
     study_denominator_pop = dpop,
-    minimum_counts = 5
+    minimum_event_count = 5
   )
   expect_true(!any(c(0:4) %in% prev$numerator))
 

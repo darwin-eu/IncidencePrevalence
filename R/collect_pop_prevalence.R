@@ -29,8 +29,8 @@
 #' @param minimum_representative_proportions Minimum proportions that
 #' individuals must have to contribute
 #' @param confidence_intervals Method for confidence intervals
-#' @param minimum_counts Minimum number of counts to report- counts lower than
-#' this will be obscured. If NULL all results will be reported.
+#' @param minimum_event_count Minimum number of events to report- results
+#' lower than this will be obscured. If NULL all results will be reported.
 #' @param verbose Whether to report progress
 #'
 #' @return
@@ -47,7 +47,7 @@ collect_pop_prevalence <- function(db,
                                   time_intervals = "Months",
                                   minimum_representative_proportions = 0.5,
                                   confidence_intervals = "exact",
-                                  minimum_counts = 5,
+                                  minimum_event_count = 5,
                                   verbose = FALSE) {
 
 
@@ -112,7 +112,7 @@ collect_pop_prevalence <- function(db,
     !is.null(study_denominator_pop$required_days_prior_history) &
       sum(is.na(study_denominator_pop$required_days_prior_history)) == 0
   )
-  checkmate::assert_number(minimum_counts, null.ok = TRUE)
+  checkmate::assert_number(minimum_event_count, null.ok = TRUE)
   checkmate::assertTRUE(all(c(
     "cohort_definition_id",
     "person_id",
@@ -187,7 +187,8 @@ collect_pop_prevalence <- function(db,
         period = x$period,
         time_interval = x$time_interval,
         minimum_representative_proportion = x$minimum_representative_proportion,
-        confidence_interval = x$confidence_interval
+        confidence_interval = x$confidence_interval,
+        minimum_event_count= minimum_event_count
       )
   })
   # to tibble and add specification for each cohort
@@ -196,10 +197,14 @@ collect_pop_prevalence <- function(db,
   )
 
   # obscure counts
-  if(!is.null(minimum_counts)){
+  if(!is.null(minimum_event_count)){
   prs <- obscure_counts(prs,
-                        minimum_counts = minimum_counts,
+                        minimum_event_count = minimum_event_count,
                         substitute = NA)
+  } else {
+    # no results obscured due to a low count
+    prs <- prs %>%
+      dplyr::mutate(result_obscured="FALSE")
   }
 
   return(prs)

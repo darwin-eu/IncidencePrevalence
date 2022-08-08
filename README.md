@@ -92,6 +92,8 @@ Format: one row per time period per incidence analysis
 | repetitive_events           | Whether follow up was censored at occurrence of first event (true) or not (false) in the given analysis |
 | time_interval               | The type of period being used in the given analysis (months or years)                                   |
 | confidence_interval         | The method for calculating the confidence interval in the given analysis                                |
+| minimum_event_count         | Minimum number of events reported                                                                       |
+| result_obscured             | Indicates whether result has been obscured due to a count of less than minimum_event_count              |
 
 ### From collect_pop_prevalence
 
@@ -115,3 +117,5 @@ Format: one row per time period per prevalence analysis
 | time_interval                     | The type of period being used in the given analysis (months or years)                         |
 | confidence_interval               | The method for calculating the confidence interval in the given analysis                      |
 | minimum_representative_proportion | The proportion of time in the period required for an individual to contribute to the analysis |
+| minimum_event_count               | Minimum number of events reported                                                             |
+| result_obscured                   | Indicates whether result has been obscured due to a count of less than minimum_event_count    |

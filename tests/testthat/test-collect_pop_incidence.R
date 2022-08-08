@@ -38,7 +38,9 @@ test_that("mock db: check output format", {
     "outcome_washout_window",
     "repetitive_events",
     "time_interval",
-    "confidence_interval"
+    "confidence_interval",
+    "minimum_event_count",
+    "result_obscured"
   ) %in%
     names(inc)))
 
@@ -124,7 +126,7 @@ test_that("mock db: check minimum counts", {
     cohort_ids_denominator_pops = "1",
     repetitive_events = FALSE,
     study_denominator_pop = dpop,
-    minimum_counts = NULL
+    minimum_event_count = NULL
   )
   expect_true(any(c(0:4) %in% inc$n_events))
 
@@ -136,7 +138,7 @@ test_that("mock db: check minimum counts", {
     cohort_ids_denominator_pops = "1",
     repetitive_events = FALSE,
     study_denominator_pop = dpop,
-    minimum_counts = 5
+    minimum_event_count = 5
   )
   expect_true(!any(c(0:4) %in% inc$n_events))
 

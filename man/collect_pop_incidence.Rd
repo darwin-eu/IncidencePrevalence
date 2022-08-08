@@ -15,7 +15,7 @@ collect_pop_incidence(
   outcome_washout_windows = 0,
   repetitive_events = FALSE,
   confidence_intervals = "exact",
-  minimum_counts = 5,
+  minimum_event_count = 5,
   verbose = FALSE
 )
 }
@@ -40,8 +40,8 @@ collect_pop_incidence(
 
 \item{confidence_intervals}{Method for confidence intervals}
 
-\item{minimum_counts}{Minimum number of counts to report- counts lower than
-this will be obscured. If NULL all results will be reported.}
+\item{minimum_event_count}{Minimum number of events to report- results
+lower than this will be obscured. If NULL all results will be reported.}
 
 \item{verbose}{Whether to report progress}
 }
