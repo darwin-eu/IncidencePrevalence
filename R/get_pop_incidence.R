@@ -26,7 +26,6 @@
 #' @param time_interval time_interval
 #' @param outcome_washout_window outcome_washout_window
 #' @param repetitive_events repetitive_events
-#' @param confidence_interval confidence_interval
 #' @param verbose verbose
 #'
 #' @importFrom lubridate `%within%`
@@ -43,7 +42,6 @@ get_pop_incidence <- function(db,
                               time_interval = c("Months"),
                               outcome_washout_window = NULL,
                               repetitive_events = FALSE,
-                              confidence_interval = "exact",
                               verbose = FALSE) {
   if (!is.null(outcome_washout_window)) {
     if (is.na(outcome_washout_window)) {
@@ -62,10 +60,6 @@ get_pop_incidence <- function(db,
   if (is.character(time_interval)) {
     time_interval <- stringr::str_to_sentence(time_interval)
   }
-  if (is.character(confidence_interval)) {
-    confidence_interval <- stringr::str_to_lower(confidence_interval)
-  }
-
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
@@ -136,11 +130,6 @@ get_pop_incidence <- function(db,
   )
   checkmate::assert_logical(verbose,
     add = error_message
-  )
-  checkmate::assert_choice(confidence_interval,
-    choices = c("exact", "none"),
-    add = error_message,
-    null.ok = TRUE
   )
   # report initial assertions
   checkmate::reportAssertions(collection = error_message)
@@ -529,36 +518,6 @@ get_pop_incidence <- function(db,
 
   ir <- dplyr::bind_rows(ir)
 
-  if (confidence_interval == "none") {
-    ir <- ir %>%
-      dplyr::mutate(ir_100000_pys_low = NA) %>%
-      dplyr::mutate(ir_100000_pys_high = NA)
-  }
-
-  if (confidence_interval == "exact") {
-    ci <- ir %>%
-      dplyr::left_join(
-        ir %>%
-          dplyr::filter(.data$n_events >= 1) %>%
-          dplyr::mutate(ir_100000_pys_low = (stats::qchisq(0.05 / 2, df = 2 * (.data$n_events - 1)) / 2 / .data$person_years * 100000)) %>%
-          dplyr::mutate(ir_100000_pys_high = (stats::qchisq(1 - 0.05 / 2, df = 2 * .data$n_events) / 2 / .data$person_years * 100000)),
-        by = c("n_persons", "person_days", "person_months", "person_years", "n_events", "ir_100000_pys", "calendar_month", "calendar_year")
-      ) %>%
-      dplyr::select("ir_100000_pys_low", "ir_100000_pys_high") %>%
-      dplyr::mutate(ir_100000_pys_low = dplyr::if_else(is.na(.data$ir_100000_pys_low), 0, .data$ir_100000_pys_low)) %>%
-      dplyr::mutate(ir_100000_pys_high = dplyr::if_else(is.na(.data$ir_100000_pys_high), 0, .data$ir_100000_pys_high))
-
-    # ci <- tibble(ir_100000_pys_low = if_else(ir$n_events>10,
-    #               (qchisq(0.05/2, df=2*(ir$n_events-1))/2/ir$person_months*100000),
-    #              0),
-    #              ir_100000_pys_high = if_else(ir$n_events>10,
-    #             qchisq(1-0.05/2, df=2*ir$n_events)/2/ir$person_months*100000,0))
-
-    ir <- dplyr::bind_cols(ir, ci) %>%
-      dplyr::relocate(.data$ir_100000_pys_low, .before = .data$calendar_month) %>%
-      dplyr::relocate(.data$ir_100000_pys_high, .after = .data$ir_100000_pys_low)
-  }
-
   # add study design related variables
   ir <- ir %>%
     dplyr::mutate(
@@ -569,8 +528,7 @@ get_pop_incidence <- function(db,
     dplyr::mutate(sex_strata = unique(study_pop$sex_strata)) %>%
     dplyr::mutate(outcome_washout_window = outcome_washout_window) %>%
     dplyr::mutate(repetitive_events = .env$repetitive_events) %>%
-    dplyr::mutate(time_interval = .env$time_interval) %>%
-    dplyr::mutate(confidence_interval = .env$confidence_interval)
+    dplyr::mutate(time_interval = .env$time_interval)
 
   return(ir)
 }

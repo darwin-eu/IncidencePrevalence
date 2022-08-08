@@ -14,7 +14,6 @@ get_pop_prevalence(
   period = "Point",
   time_interval = c("Months"),
   minimum_representative_proportion = 0.5,
-  confidence_interval = "exact",
   verbose = FALSE
 )
 }
@@ -36,8 +35,6 @@ get_pop_prevalence(
 \item{time_interval}{time_interval}
 
 \item{minimum_representative_proportion}{minimum_representative_proportion}
-
-\item{confidence_interval}{confidence_interval}
 
 \item{verbose}{verbose}
 }

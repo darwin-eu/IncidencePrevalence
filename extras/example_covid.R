@@ -207,15 +207,16 @@ denominator_pop<-collect_denominator_pops(db,
                          study_sex_stratas = c("Male", "Female"),
                          verbose = TRUE)
 ir <- collect_pop_incidence(db,
-                        results_schema_outcome=results_database_schema,
-                                  cohort_ids_outcomes=covid_outcome_id,
-                                  study_denominator_pop=denominator_pop,
-                                  cohort_ids_denominator_pops=unique(denominator_pop$cohort_definition_id),
-                                  time_intervals = c("Months"),
-                                  outcome_washout_windows = NULL,
-                                  repetitive_events = FALSE,
-                                  verbose = FALSE)
-
+                            results_schema_outcomes=results_database_schema,
+                            table_name_outcomes=outcomecohortTableStem,
+                            cohort_ids_outcomes=covid_outcome_id,
+                            study_denominator_pop=denominator_pop,
+                            cohort_ids_denominator_pops=unique(denominator_pop$cohort_definition_id),
+                            time_intervals = c("Months"),
+                            outcome_washout_windows = NULL,
+                            repetitive_events = FALSE,
+                            confidence_interval = "none",
+                            verbose = FALSE)
 
 plot_data<-ir %>%
     mutate(year_months=paste0(calendar_year, "-", calendar_month))
@@ -241,14 +242,14 @@ plot_data %>%
   ggplot(aes(group=sex_strata,
              colour=sex_strata))+
   facet_grid(age_plot ~ .) +
-  geom_point(aes(year_months, ir),
+  geom_point(aes(year_months, ir_100000_pys),
              size=2,
               position=position_dodge(width=0.5))+
-  geom_errorbar(aes(x=year_months, ymin=ir_low, ymax=ir_high),
+  geom_errorbar(aes(x=year_months, ymin=ir_100000_pys_low, ymax=ir_100000_pys_high),
                 width=0,
                  position=position_dodge(width=0.5))+
-  theme_darwin()+
-  theme_darwin_facet()+
+  # theme_darwin()+
+  # theme_darwin_facet()+
   ylab("Incidence rate (per 100,000 PYs)")+
   xlab("")
 ggsave("covid_hospitalisation_ir.png",

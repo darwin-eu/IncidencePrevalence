@@ -14,7 +14,7 @@ collect_pop_prevalence(
   periods = "Point",
   time_intervals = "Months",
   minimum_representative_proportions = 0.5,
-  confidence_intervals = "exact",
+  confidence_interval = "none",
   minimum_event_count = 5,
   verbose = FALSE
 )
@@ -40,7 +40,7 @@ the outcome table}
 \item{minimum_representative_proportions}{Minimum proportions that
 individuals must have to contribute}
 
-\item{confidence_intervals}{Method for confidence intervals}
+\item{confidence_interval}{Method for confidence intervals}
 
 \item{minimum_event_count}{Minimum number of events to report- results
 lower than this will be obscured. If NULL all results will be reported.}

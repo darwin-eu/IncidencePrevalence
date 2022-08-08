@@ -26,7 +26,6 @@
 #' @param period period
 #' @param time_interval time_interval
 #' @param minimum_representative_proportion minimum_representative_proportion
-#' @param confidence_interval confidence_interval
 #' @param verbose verbose
 #'
 #' @return
@@ -42,7 +41,6 @@ get_pop_prevalence <- function(db,
                                period = "Point",
                                time_interval = c("Months"),
                                minimum_representative_proportion = 0.5,
-                               confidence_interval = "exact",
                                verbose = FALSE) {
 
   # help to avoid formatting errors
@@ -54,9 +52,6 @@ get_pop_prevalence <- function(db,
   }
   if (is.character(time_interval)) {
     time_interval <- stringr::str_to_sentence(time_interval)
-  }
-  if (is.character(confidence_interval)) {
-    confidence_interval <- stringr::str_to_lower(confidence_interval)
   }
 
   ## check for standard types of user error
@@ -125,11 +120,6 @@ get_pop_prevalence <- function(db,
   )
   checkmate::assert_logical(verbose,
     add = error_message
-  )
-  checkmate::assert_choice(confidence_interval,
-    choices = c("exact", "none"),
-    add = error_message,
-    null.ok = TRUE
   )
   checkmate::assert_numeric(minimum_representative_proportion,
     add = error_message,
@@ -368,27 +358,6 @@ get_pop_prevalence <- function(db,
 
   pr <- dplyr::bind_rows(pr)
 
-  if (confidence_interval == "none") {
-    pr <- pr %>%
-      dplyr::mutate(prev_low = NA) %>%
-      dplyr::mutate(prev_high = NA)
-  } else {
-
-    # ci <- obtainConfidenceInterval(numerator = prev$prevalent,
-    #                                denominator = prev$individuals,
-    #                                method = confidence_interval)
-    ci <- pr %>%
-      dplyr::filter(numerator > 0) %>%
-      dplyr::mutate(prev_low = stats::qchisq(0.05 / 2, df = 2 * (.data$numerator - 1)) / 2 / .data$denominator) %>%
-      dplyr::mutate(prev_high = stats::qchisq(1 - 0.05 / 2, df = 2 * .data$numerator) / 2 / .data$denominator)
-
-    pr <- pr %>%
-      dplyr::left_join(ci, by = c("numerator", "denominator", "prev", "calendar_month", "calendar_year")) %>%
-      dplyr::mutate(prev_low = dplyr::if_else(.data$numerator == 0 & .data$denominator > 0, 0, .data$prev_low)) %>%
-      dplyr::relocate(.data$prev_low, .before = .data$calendar_month) %>%
-      dplyr::relocate(.data$prev_high, .after = .data$prev_low)
-  }
-
   # add study design related variables
   pr <- pr %>%
     dplyr::mutate(required_days_prior_history =
@@ -396,8 +365,7 @@ get_pop_prevalence <- function(db,
     dplyr::mutate(age_strata = unique(study_pop$age_strata)) %>%
     dplyr::mutate(sex_strata = unique(study_pop$sex_strata)) %>%
     dplyr::mutate(period = .env$period) %>%
-    dplyr::mutate(time_interval = .env$time_interval) %>%
-    dplyr::mutate(confidence_interval = .env$confidence_interval)
+    dplyr::mutate(time_interval = .env$time_interval)
 
   return(pr)
 }

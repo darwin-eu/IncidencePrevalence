@@ -14,7 +14,6 @@ get_pop_incidence(
   time_interval = c("Months"),
   outcome_washout_window = NULL,
   repetitive_events = FALSE,
-  confidence_interval = "exact",
   verbose = FALSE
 )
 }
@@ -36,8 +35,6 @@ get_pop_incidence(
 \item{outcome_washout_window}{outcome_washout_window}
 
 \item{repetitive_events}{repetitive_events}
-
-\item{confidence_interval}{confidence_interval}
 
 \item{verbose}{verbose}
 }

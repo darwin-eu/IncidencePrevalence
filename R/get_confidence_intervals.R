@@ -46,7 +46,7 @@ get_confidence_intervals <- function(x,
   )
 
   checkmate::assert_choice(confidence_intervals,
-    choices = c("None", "Poisson"), # Add binomial at some point
+    choices = c("poisson"), # Add binomial at some point
     add = error_message
   )
 
@@ -66,7 +66,7 @@ get_confidence_intervals <- function(x,
     type <- "Prevalence"
   }
 
-  if (confidence_intervals == "Poisson") {
+  if (confidence_intervals == "poisson") {
     x <- dplyr::bind_cols(x,
                           x %>%
                             dplyr::left_join(
@@ -80,10 +80,6 @@ get_confidence_intervals <- function(x,
                             dplyr::mutate(var_low = dplyr::if_else(is.na(.data$var_low), 0, .data$var_low)) %>%
                             dplyr::mutate(var_high = dplyr::if_else(is.na(.data$var_high), 0, .data$var_high))
     )
-  } else if (confidence_intervals == "None") {
-    x <- x %>%
-      dplyr::mutate(var_low = NA) %>%
-      dplyr::mutate(var_high = NA)
   }
 
   x <- x %>%

@@ -26,7 +26,7 @@
 #' @param time_intervals Time intervals for incidence estimates
 #' @param outcome_washout_windows Clean windows
 #' @param repetitive_events Repeated events
-#' @param confidence_intervals Method for confidence intervals
+#' @param confidence_interval Method for confidence intervals
 #' @param minimum_event_count Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
 #' @param verbose Whether to report progress
@@ -44,7 +44,7 @@ collect_pop_incidence <- function(db,
                                   time_intervals = "Months",
                                   outcome_washout_windows = 0,
                                   repetitive_events = FALSE,
-                                  confidence_intervals = "exact",
+                                  confidence_interval = "poisson",
                                   minimum_event_count = 5,
                                   verbose = FALSE) {
 
@@ -59,8 +59,8 @@ collect_pop_incidence <- function(db,
   if (is.character(time_intervals)) {
     time_intervals <- stringr::str_to_sentence(time_intervals)
   }
-  if (is.character(confidence_intervals)) {
-    confidence_intervals <- stringr::str_to_lower(confidence_intervals)
+  if (is.character(confidence_interval)) {
+    confidence_intervals <- stringr::str_to_lower(confidence_interval)
   }
 
 
@@ -136,19 +136,13 @@ collect_pop_incidence <- function(db,
   checkmate::assert_logical(verbose,
     add = error_message
   )
-  checkmate::assert_choice(confidence_intervals,
-    choices = c("exact"),
+  checkmate::assert_choice(confidence_interval,
+    choices = c("none","poisson"),
     add = error_message,
     null.ok = TRUE
   )
   # report initial assertions
   checkmate::reportAssertions(collection = error_message)
-
-
-
-
-
-
 
   study_specs <- tidyr::expand_grid(
     cohort_id_outcome = cohort_ids_outcomes,
@@ -156,7 +150,7 @@ collect_pop_incidence <- function(db,
     time_interval = time_intervals,
     outcome_washout_window = outcome_washout_windows,
     repetitive_events = repetitive_events,
-    confidence_interval = confidence_intervals,
+    confidence_interval = confidence_interval,
     verbose = verbose
   )
 
@@ -184,7 +178,6 @@ collect_pop_incidence <- function(db,
       time_interval = x$time_interval,
       outcome_washout_window = x$outcome_washout_window,
       repetitive_events = x$repetitive_events,
-      confidence_interval = x$confidence_interval,
       verbose = x$verbose
     ) %>%
       dplyr::mutate(
@@ -193,7 +186,7 @@ collect_pop_incidence <- function(db,
         time_interval = x$time_interval,
         outcome_washout_window = x$outcome_washout_window,
         repetitive_events = x$repetitive_events,
-        confidence_interval = x$confidence_interval,
+        confidence_interval = confidence_interval,
         minimum_event_count= minimum_event_count
       )
   })
@@ -202,6 +195,16 @@ collect_pop_incidence <- function(db,
     .id = "incidence_analysis_id"
   )
 
+  # get confidence intervals
+  if(confidence_interval != "none"){
+    irs <-get_confidence_intervals(irs, confidence_interval)
+  } else {
+    irs <- irs %>%
+      dplyr::mutate(ir_100000_pys_low=NA) %>%
+      dplyr::mutate(ir_100000_pys_high=NA)%>%
+      dplyr::relocate(.data$ir_100000_pys_low, .after = .data$ir_100000_pys) %>%
+      dplyr::relocate(.data$ir_100000_pys_high, .after = .data$ir_100000_pys_low)
+  }
 
   # obscure counts
   if(!is.null(minimum_event_count)){

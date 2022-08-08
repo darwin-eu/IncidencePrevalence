@@ -22,15 +22,12 @@ test_that("mock db: check output format", {
     "numerator",
     "denominator",
     "prev",
-    "prev_low",
-    "prev_high" ,
     "calendar_month",
     "calendar_year",
     "age_strata",
     "sex_strata",
     "period",
-    "time_interval",
-    "confidence_interval"
+    "time_interval"
   ) %in%
     names(prev)))
 
@@ -85,8 +82,7 @@ test_that("mock db: working examples", {
     cohort_id_denominator_pop = "1",
     period = "Point",
     time_interval = c("Months"),
-    minimum_representative_proportion = 0.5,
-    confidence_interval = "exact"
+    minimum_representative_proportion = 0.5
   )
   expect_true(nrow(prev)>=1)
 
@@ -98,8 +94,7 @@ test_that("mock db: working examples", {
                             cohort_id_denominator_pop = "1",
                             period = "Point",
                             time_interval = c("Years"),
-                            minimum_representative_proportion = 0.5,
-                            confidence_interval = "none"
+                            minimum_representative_proportion = 0.5
   )
   expect_true(nrow(prev)>=1)
 
@@ -117,8 +112,7 @@ test_that("mock db: working examples", {
     cohort_id_denominator_pop = "1",
     period = "Month",
     time_interval = c("Months"),
-    minimum_representative_proportion = 0.5,
-    confidence_interval = "exact"
+    minimum_representative_proportion = 0.5
   )
   expect_true(nrow(prev)>=1)
 
@@ -176,7 +170,6 @@ test_that("mock db: check study time periods", {
     period = "Point",
     time_interval = c("Months"),
     minimum_representative_proportion = 0.5,
-    confidence_interval = "exact",
     verbose = FALSE
   )
 

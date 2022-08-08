@@ -14,7 +14,7 @@ collect_pop_incidence(
   time_intervals = "Months",
   outcome_washout_windows = 0,
   repetitive_events = FALSE,
-  confidence_intervals = "exact",
+  confidence_interval = "poisson",
   minimum_event_count = 5,
   verbose = FALSE
 )
@@ -38,7 +38,7 @@ collect_pop_incidence(
 
 \item{repetitive_events}{Repeated events}
 
-\item{confidence_intervals}{Method for confidence intervals}
+\item{confidence_interval}{Method for confidence intervals}
 
 \item{minimum_event_count}{Minimum number of events to report- results
 lower than this will be obscured. If NULL all results will be reported.}

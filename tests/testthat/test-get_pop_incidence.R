@@ -24,8 +24,6 @@ test_that("mock db: check output format", {
     "person_years",
     "n_events",
     "ir_100000_pys",
-    "ir_100000_pys_low",
-    "ir_100000_pys_high",
     "calendar_month",
     "calendar_year",
     "age_strata",
@@ -448,8 +446,7 @@ test_that("mock db: check conversion of user inputs", {
                            results_schema_outcome = NULL,
                            table_name_outcome = "outcome",
                            cohort_id_denominator_pop = 1, # to character in function
-                           study_denominator_pop = dpop,
-                           confidence_interval = "none"
+                           study_denominator_pop = dpop
   )
   expect_true(nrow(inc)>=0)
 
@@ -522,7 +519,6 @@ expect_message(get_pop_incidence(db,
                          table_name_outcome = "outcome",
                          cohort_id_outcome = "1",
                          study_denominator_pop = dpop,
-                         confidence_interval = "none",
                          verbose = TRUE
 ))
 
@@ -648,7 +644,6 @@ test_that("mock db: check expected errors", {
 #                                     time_interval=c("Months"),
 #                                     outcome_washout_window=NULL,
 #                                     repetitive_events=FALSE,
-#                                     confidence_interval="exact",
 #                                     verbose=FALSE)
 #   # output format
 #   expect_true(tibble::is_tibble(result))

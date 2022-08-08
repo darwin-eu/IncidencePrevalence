@@ -28,7 +28,7 @@
 #' @param time_intervals Time intervals for incidence estimates
 #' @param minimum_representative_proportions Minimum proportions that
 #' individuals must have to contribute
-#' @param confidence_intervals Method for confidence intervals
+#' @param confidence_interval Method for confidence intervals
 #' @param minimum_event_count Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
 #' @param verbose Whether to report progress
@@ -46,7 +46,7 @@ collect_pop_prevalence <- function(db,
                                   periods = "Point",
                                   time_intervals = "Months",
                                   minimum_representative_proportions = 0.5,
-                                  confidence_intervals = "exact",
+                                  confidence_interval = "none",
                                   minimum_event_count = 5,
                                   verbose = FALSE) {
 
@@ -64,8 +64,8 @@ collect_pop_prevalence <- function(db,
   if (is.character(time_intervals)) {
     time_intervals <- stringr::str_to_sentence(time_intervals)
   }
-  if (is.character(confidence_intervals)) {
-    confidence_intervals <- stringr::str_to_lower(confidence_intervals)
+  if (is.character(confidence_interval)) {
+    confidence_interval <- stringr::str_to_lower(confidence_interval)
   }
 
   ## check for standard types of user error
@@ -139,8 +139,8 @@ collect_pop_prevalence <- function(db,
   checkmate::assert_logical(verbose,
     add = error_message
   )
-  checkmate::assert_choice(confidence_intervals,
-    choices = c("exact"),
+  checkmate::assert_choice(confidence_interval,
+    choices = c("none", "poisson"),
     add = error_message,
     null.ok = TRUE
   )
@@ -154,7 +154,6 @@ collect_pop_prevalence <- function(db,
     period = periods,
     time_interval = time_intervals,
     minimum_representative_proportion = minimum_representative_proportions,
-    confidence_interval = confidence_intervals,
     verbose = verbose
   )
 
@@ -178,7 +177,6 @@ collect_pop_prevalence <- function(db,
       period = x$period,
       time_interval = x$time_interval,
       minimum_representative_proportion = x$minimum_representative_proportion,
-      confidence_interval = x$confidence_interval,
       verbose = x$verbose
     ) %>%
       dplyr::mutate(
@@ -187,7 +185,7 @@ collect_pop_prevalence <- function(db,
         period = x$period,
         time_interval = x$time_interval,
         minimum_representative_proportion = x$minimum_representative_proportion,
-        confidence_interval = x$confidence_interval,
+        confidence_interval = confidence_interval,
         minimum_event_count= minimum_event_count
       )
   })
@@ -195,6 +193,17 @@ collect_pop_prevalence <- function(db,
   prs <- dplyr::bind_rows(prs,
     .id = "incidence_analysis_id"
   )
+
+  # get confidence intervals
+  if(confidence_interval != "none"){
+    prs <-get_confidence_intervals(prs, confidence_interval)
+  } else {
+    prs <- prs %>%
+      dplyr::mutate(prev_low=NA) %>%
+      dplyr::mutate(prev_high=NA)%>%
+      dplyr::relocate(.data$prev_low, .after = .data$prev) %>%
+      dplyr::relocate(.data$prev_high, .after = .data$prev_low)
+  }
 
   # obscure counts
   if(!is.null(minimum_event_count)){
