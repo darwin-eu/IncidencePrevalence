@@ -6,3 +6,4 @@ extras/example_covid.R
 mssql-jdbc-9.2.0.jre8.jar
 /doc/
 /Meta/
+vignettes/working/.

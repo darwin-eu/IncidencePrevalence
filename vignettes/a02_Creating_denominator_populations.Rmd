@@ -20,9 +20,11 @@ library(ggplot2)
 library(DBI)
 library(dbplyr)
 library(dplyr)
+library(tibble)
 library(tidyr)
 library(duckdb)
-library(IncidencePrevalence)
+library(knitr)
+#library(IncidencePrevalence)
 ```
 
 ## Introduction
@@ -237,4 +239,13 @@ options <-expand.grid(dpop_sp%>%select(age_strata)%>% distinct()%>%pull(),
 options
 ```
 
+### Alternative to identify denominator populations
+This package allows the user to identify the denominator population without the need to used the `collect_denominator_pop()` function. Therefore,`collect_pop_incidence()` and `collect_pop_prevalence()`functions can be used against populations not created with the`collect_denominator_pop()`function. 
 
+If the user prefers to do so, he/she can create a dataframe containing the denominator population of interest. Individuals included in this dataframe can be identified by bespoke code or by other OHDSI tools such as ATLAS.
+
+However, the structure of the dataframe containing the denominator population must be the same that the one created by `collect_denominator_pop()`, and must include the following columns:
+
+```{r, fig.show='hold', echo=FALSE, warning=FALSE}
+colnames(dpop)
+```
