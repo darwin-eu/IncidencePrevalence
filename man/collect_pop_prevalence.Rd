@@ -22,7 +22,8 @@ collect_pop_prevalence(
 \arguments{
 \item{db}{Database connection via DBI::dbConnect()}
 
-\item{results_schema_outcomes}{Name of the schema which contains the outcome table}
+\item{results_schema_outcomes}{Name of the schema which contains
+the outcome table}
 
 \item{table_name_outcomes}{Name of the table with the outcome cohorts}
 
@@ -36,11 +37,13 @@ collect_pop_prevalence(
 
 \item{time_intervals}{Time intervals for incidence estimates}
 
-\item{minimum_representative_proportions}{Minimum proportions that individuals must have to contribute}
+\item{minimum_representative_proportions}{Minimum proportions that
+individuals must have to contribute}
 
 \item{confidence_intervals}{Method for confidence intervals}
 
-\item{minimum_counts}{Minimum number of counts}
+\item{minimum_counts}{Minimum number of counts to report- counts lower than
+this will be obscured. If NULL all results will be reported.}
 
 \item{verbose}{Whether to report progress}
 }

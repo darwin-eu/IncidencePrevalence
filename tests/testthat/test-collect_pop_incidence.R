@@ -4,18 +4,7 @@ test_that("mock db: check output format", {
   library(dplyr)
   library(tibble)
 
-  outcome <- tibble(
-    cohort_definition_id = "1",
-    subject_id = "1",
-    cohort_start_date = c(
-      as.Date("2010-02-05")
-    ),
-    cohort_end_date = c(
-      as.Date("2010-02-05")
-    )
-  )
-
-  db <- generate_mock_incidence_prevalence_db(outcome=outcome)
+  db <- generate_mock_incidence_prevalence_db()
 
   dpop <- collect_denominator_pops(
     db = db,
@@ -115,6 +104,46 @@ test_that("mock db: checks on working example", {
 
   DBI::dbDisconnect(db, shutdown=TRUE)
 })
+
+test_that("mock db: check minimum counts", {
+  library(DBI)
+  library(dplyr)
+  library(tibble)
+
+  db <- generate_mock_incidence_prevalence_db()
+
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL
+  )
+  inc <- collect_pop_incidence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcomes = "outcome",
+    cohort_ids_outcomes = "1",
+    cohort_ids_denominator_pops = "1",
+    repetitive_events = FALSE,
+    study_denominator_pop = dpop,
+    minimum_counts = NULL
+  )
+  expect_true(any(c(0:4) %in% inc$n_events))
+
+  inc <- collect_pop_incidence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcomes = "outcome",
+    cohort_ids_outcomes = "1",
+    cohort_ids_denominator_pops = "1",
+    repetitive_events = FALSE,
+    study_denominator_pop = dpop,
+    minimum_counts = 5
+  )
+  expect_true(!any(c(0:4) %in% inc$n_events))
+
+  DBI::dbDisconnect(db, shutdown=TRUE)
+
+})
+
 
 test_that("mock db: check conversion of user inputs", {
   library(DBI)

@@ -6,22 +6,22 @@ test_that("check for incidence", {
 inc<-  tibble::tibble(
     incidence_analysis_id=c("1","2"),
     n_events=c(3,100),
-    ir=c(1,25),
-    ir_low= c(0.1,20),
-    ir_high= c(10,30)
+    ir_100000_pys=c(1,25),
+    ir_100000_pys_low= c(0.1,20),
+    ir_100000_pys_high= c(10,30)
   )
 
 inc<-  obscure_counts(inc)
 
 expect_true(is.na(inc$n_events[1]))
-expect_true(is.na(inc$ir[1]))
-expect_true(is.na(inc$ir_low[1]))
-expect_true(is.na(inc$ir_high[1]))
+expect_true(is.na(inc$ir_100000_pys[1]))
+expect_true(is.na(inc$ir_100000_pys_low[1]))
+expect_true(is.na(inc$ir_100000_pys_high[1]))
 
 expect_true(!is.na(inc$n_events[2]))
-expect_true(!is.na(inc$ir[2]))
-expect_true(!is.na(inc$ir_low[2]))
-expect_true(!is.na(inc$ir_high[2]))
+expect_true(!is.na(inc$ir_100000_pys[2]))
+expect_true(!is.na(inc$ir_100000_pys_low[2]))
+expect_true(!is.na(inc$ir_100000_pys_high[2]))
 
 })
 

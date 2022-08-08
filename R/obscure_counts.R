@@ -36,7 +36,8 @@ obscure_counts <- function(x,
     add = error_message
   )
   checkmate::assertTRUE(
-    all(c("n_events", "ir", "ir_low", "ir_high") %in% names(x)) ||
+    all(c("n_events", "ir_100000_pys", "ir_100000_pys_low",
+          "ir_100000_pys_high") %in% names(x)) ||
       all(c("numerator", "prev", "prev_low", "prev_high") %in% names(x))
   )
   checkmate::assertFALSE(
@@ -54,7 +55,7 @@ obscure_counts <- function(x,
   checkmate::reportAssertions(collection = error_message)
 
   if (c("n_events") %in% names(x)) {
-    x[x$n_events < minimum_counts, c("n_events", "ir", "ir_low", "ir_high")] <- substitute
+    x[x$n_events < minimum_counts, c("n_events", "ir_100000_pys", "ir_100000_pys_low", "ir_100000_pys_high")] <- substitute
   }
   if (c("numerator") %in% names(x)) {
     x[x$numerator < minimum_counts, c("numerator", "prev", "prev_low", "prev_high")] <- substitute

@@ -106,6 +106,54 @@ test_that("mock db: checks on working example", {
   DBI::dbDisconnect(db, shutdown=TRUE)
 })
 
+test_that("mock db: check minimum counts", {
+  library(DBI)
+  library(dplyr)
+  library(tibble)
+
+  outcome <- tibble(
+    cohort_definition_id = "1",
+    subject_id = "1",
+    cohort_start_date = c(
+      as.Date("2010-02-05")
+    ),
+    cohort_end_date = c(
+      as.Date("2010-02-05")
+    )
+  )
+
+  db <- generate_mock_incidence_prevalence_db(outcome=outcome)
+
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL
+  )
+  prev <- collect_pop_prevalence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcomes = "outcome",
+    cohort_ids_outcomes = "1",
+    cohort_ids_denominator_pops = "1",
+    study_denominator_pop = dpop,
+    minimum_counts = NULL
+  )
+  expect_true(any(c(0:4) %in% prev$numerator))
+
+  prev <- collect_pop_prevalence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcomes = "outcome",
+    cohort_ids_outcomes = "1",
+    cohort_ids_denominator_pops = "1",
+    study_denominator_pop = dpop,
+    minimum_counts = 5
+  )
+  expect_true(!any(c(0:4) %in% prev$numerator))
+
+  DBI::dbDisconnect(db, shutdown=TRUE)
+
+})
+
 test_that("mock db: check conversion of user inputs", {
   library(DBI)
   library(dplyr)

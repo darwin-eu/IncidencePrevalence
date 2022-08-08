@@ -27,6 +27,8 @@
 #' @param outcome_washout_windows Clean windows
 #' @param repetitive_events Repeated events
 #' @param confidence_intervals Method for confidence intervals
+#' @param minimum_counts Minimum number of counts to report- counts lower than
+#' this will be obscured. If NULL all results will be reported.
 #' @param verbose Whether to report progress
 #'
 #' @return
@@ -43,6 +45,7 @@ collect_pop_incidence <- function(db,
                                   outcome_washout_windows = 0,
                                   repetitive_events = FALSE,
                                   confidence_intervals = "exact",
+                                  minimum_counts = 5,
                                   verbose = FALSE) {
 
 
@@ -107,6 +110,7 @@ collect_pop_incidence <- function(db,
     !is.null(study_denominator_pop$required_days_prior_history) &
       sum(is.na(study_denominator_pop$required_days_prior_history)) == 0
   )
+  checkmate::assert_number(minimum_counts, null.ok = TRUE)
   checkmate::assertTRUE(all(c(
     "cohort_definition_id",
     "person_id",
@@ -196,6 +200,12 @@ collect_pop_incidence <- function(db,
   irs <- dplyr::bind_rows(irs,
     .id = "incidence_analysis_id"
   )
+
+
+  # obscure counts
+  if(!is.null(minimum_counts)){
+  irs <- obscure_counts(irs, minimum_counts = minimum_counts, substitute = NA)
+  }
 
   return(irs)
 }

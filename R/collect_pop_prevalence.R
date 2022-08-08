@@ -18,16 +18,19 @@
 #' Collect population prevalence estimates
 #'
 #' @param db Database connection via DBI::dbConnect()
-#' @param results_schema_outcomes Name of the schema which contains the outcome table
+#' @param results_schema_outcomes Name of the schema which contains
+#' the outcome table
 #' @param table_name_outcomes Name of the table with the outcome cohorts
 #' @param cohort_ids_outcomes Outcome cohort ids
 #' @param study_denominator_pop Tibble with denominator populations
 #' @param cohort_ids_denominator_pops Cohort ids of denominator populations
 #' @param periods Periods to compute the prevalence
 #' @param time_intervals Time intervals for incidence estimates
-#' @param minimum_representative_proportions Minimum proportions that individuals must have to contribute
+#' @param minimum_representative_proportions Minimum proportions that
+#' individuals must have to contribute
 #' @param confidence_intervals Method for confidence intervals
-#' @param minimum_counts Minimum number of counts
+#' @param minimum_counts Minimum number of counts to report- counts lower than
+#' this will be obscured. If NULL all results will be reported.
 #' @param verbose Whether to report progress
 #'
 #' @return
@@ -109,6 +112,7 @@ collect_pop_prevalence <- function(db,
     !is.null(study_denominator_pop$required_days_prior_history) &
       sum(is.na(study_denominator_pop$required_days_prior_history)) == 0
   )
+  checkmate::assert_number(minimum_counts, null.ok = TRUE)
   checkmate::assertTRUE(all(c(
     "cohort_definition_id",
     "person_id",
@@ -191,7 +195,12 @@ collect_pop_prevalence <- function(db,
     .id = "incidence_analysis_id"
   )
 
-  prs <- obscure_counts(prs, minimum_counts = minimum_counts, substitute = NA)
+  # obscure counts
+  if(!is.null(minimum_counts)){
+  prs <- obscure_counts(prs,
+                        minimum_counts = minimum_counts,
+                        substitute = NA)
+  }
 
   return(prs)
 }
