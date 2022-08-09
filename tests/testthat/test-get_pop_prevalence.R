@@ -269,6 +269,11 @@ test_that("mock db: check expected errors", {
 
   db <- generate_mock_incidence_prevalence_db()
 
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL
+  )
+
   # not a db connection
   expect_error(get_pop_prevalence("a",
                                   results_schema_outcome = NULL,
@@ -292,6 +297,53 @@ test_that("mock db: check expected errors", {
                                   table_name_outcome = "outcome",
                                   cohort_id_outcome="999",
                                   study_denominator_pop = dpop,
+                                  period = "Point"
+  ))
+
+
+
+  person <- tibble(
+    person_id = "1",
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observation_period <- tibble(
+    observation_period_id = "1",
+    person_id = "1",
+    observation_period_start_date = as.Date("2010-01-01"),
+    observation_period_end_date = as.Date("2010-01-05")
+  )
+  outcome <- tibble(
+    cohort_definition_id = "1",
+    subject_id = "1",
+    cohort_start_date = c(as.Date("2010-01-04")),
+    cohort_end_date = c(as.Date("2010-01-04"))
+  )
+
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
+
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL
+  )
+
+  # expect error because less than one month between
+  # cohort_start_date and cohort_end_date among dpop
+  expect_error(get_pop_prevalence(db,
+                                  results_schema_outcome = NULL,
+                                  table_name_outcome = "outcome",
+                                  study_denominator_pop = dpop,
+                                  period = "Point"
+  ))
+  expect_error(get_pop_prevalence(db,
+                                  results_schema_outcome = NULL,
+                                  table_name_outcome = "outcome",
+                                  study_denominator_pop = dpop,
+                                  time_interval = c("Years"),
                                   period = "Point"
   ))
 

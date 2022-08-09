@@ -172,7 +172,7 @@ get_pop_prevalence <- function(db,
   checkmate::assertTRUE(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0,
     add = error_message
   )
-  if (!nrow(study_pop) > 0) {
+  if (!outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0) {
     error_message$push(
       glue::glue("- Zero rows in {results_schema_outcome}.{table_name_outcome}")
     )
@@ -188,7 +188,7 @@ get_pop_prevalence <- function(db,
   checkmate::assertTRUE(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0,
     add = error_message
   )
-  if (!nrow(study_pop) > 0) {
+  if (!outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0) {
     error_message$push(
       glue::glue("- Zero rows in {results_schema_outcome}.{table_name_outcome}
                  for cohort_id_outcome={cohort_id_outcome}")

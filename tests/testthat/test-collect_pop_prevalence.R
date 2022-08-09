@@ -16,7 +16,8 @@ test_that("mock db: check output format", {
     table_name_outcomes = "outcome",
     cohort_ids_outcomes = "1",
     cohort_ids_denominator_pops = "1",
-    study_denominator_pop = dpop
+    study_denominator_pop = dpop,
+    confidence_interval="poisson"
   )
 
   expect_true(all(c(

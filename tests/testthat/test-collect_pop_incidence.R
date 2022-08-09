@@ -20,6 +20,7 @@ test_that("mock db: check output format", {
     repetitive_events = FALSE,
     study_denominator_pop = dpop,
     time_intervals = c("Months"),
+    confidence_interval = "none",
     verbose = TRUE
   )
 
