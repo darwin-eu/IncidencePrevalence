@@ -504,7 +504,6 @@ get_pop_incidence <- function(db,
       dplyr::summarise(
         n_persons = length(unique(working_pop$person_id)),
         person_days = sum(.data$working_days),
-        person_months = (.data$person_days / 30.44),
         person_years = (.data$person_days / 365.25),
         n_events = sum(!is.na(.data$outcome_start_date))
       ) %>%

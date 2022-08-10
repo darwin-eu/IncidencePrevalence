@@ -21,7 +21,7 @@ test_that("mock db: check output format", {
   )
 
   expect_true(all(c(
-    "incidence_analysis_id",
+    "prevalence_analysis_id",
     "numerator", "denominator",
     "prev",
     "prev_low",

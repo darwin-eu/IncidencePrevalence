@@ -35,7 +35,7 @@ the outcome table}
 
 \item{periods}{Periods to compute the prevalence}
 
-\item{time_intervals}{Time intervals for incidence estimates}
+\item{time_intervals}{Time intervals for prevalence estimates}
 
 \item{minimum_representative_proportions}{Minimum proportions that
 individuals must have to contribute}

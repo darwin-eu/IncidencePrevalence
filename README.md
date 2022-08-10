@@ -77,7 +77,6 @@ Format: one row per time period per incidence analysis
 | cohort_id_outcome           | ID identifying the outcome population used in the incidence analysis                                    |
 | n_persons                   | Number of people contributing to the given time period                                                  |
 | person_days                 | Number of person days contributed in the given time period                                              |
-| person_months               | Number of person months contributed in the given time period                                            |
 | person_years                | Number of person years contributed in the given time period                                             |
 | n_events                    | Number of events months occurring in the given time period                                              |
 | ir_100000_pys               | Incidence rate per 100,000 person-years                                                                 |
@@ -101,7 +100,7 @@ Format: one row per time period per prevalence analysis
 
 | Variable                          | Description                                                                                   |
 |-----------------------------------|-----------------------------------------------------------------------------------------------|
-| incidence_analysis_id             | ID identifying an prevalence analysis                                                         |
+| prevalence_analysis_id            | ID identifying an prevalence analysis                                                         |
 | cohort_id_denominator_pop         | ID identifying the denominator population used in the prevalence analysis                     |
 | cohort_id_outcome                 | ID identifying the outcome population used in the prevalence analysis                         |
 | numerator                         | Number of people in the numerator for calculating prevalence                                  |

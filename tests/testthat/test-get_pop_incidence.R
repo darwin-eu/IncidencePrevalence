@@ -20,7 +20,6 @@ test_that("mock db: check output format", {
   expect_true(all(c(
     "n_persons",
     "person_days",
-    "person_months",
     "person_years",
     "n_events",
     "ir_100000_pys",
@@ -343,9 +342,6 @@ test_that("mock db: compare results from months and years", {
 # expect_equal(sum(inc_months$person_days),
 #              sum(inc_years$person_days),
 #              tolerance=1e-10)
-# expect_equal(sum(inc_months$person_months),
-#              sum(inc_years$person_months),
-#              tolerance=1e-10)
 # expect_equal(sum(inc_months$person_years),
 #              sum(inc_years$person_years),
 #              tolerance=1e-10)
@@ -651,7 +647,6 @@ test_that("mock db: check expected errors", {
 #   expect_true(all(c(
 #     "n_persons",
 #     "person_days",
-#     "person_months",
 #     "person_years",
 #     "n_events",
 #     "ir_100000_pys",
@@ -669,8 +664,6 @@ test_that("mock db: check expected errors", {
 #     sum(is.na(result$n_persons)) == 0)
 #   testthat::expect_true(!is.null(result$person_days) &
 #     sum(is.na(result$person_days)) == 0)
-#   testthat::expect_true(!is.null(result$person_months) &
-#     sum(is.na(result$person_months)) == 0)
 #   testthat::expect_true(!is.null(result$person_years) &
 #     sum(is.na(result$person_years)) == 0)
 #   testthat::expect_true(!is.null(result$n_events) &

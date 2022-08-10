@@ -25,7 +25,7 @@
 #' @param study_denominator_pop Tibble with denominator populations
 #' @param cohort_ids_denominator_pops Cohort ids of denominator populations
 #' @param periods Periods to compute the prevalence
-#' @param time_intervals Time intervals for incidence estimates
+#' @param time_intervals Time intervals for prevalence estimates
 #' @param minimum_representative_proportions Minimum proportions that
 #' individuals must have to contribute
 #' @param confidence_interval Method for confidence intervals
@@ -158,11 +158,11 @@ collect_pop_prevalence <- function(db,
   )
 
   study_specs <- study_specs %>%
-    dplyr::mutate(incidence_analysis_id = as.character(dplyr::row_number()))
+    dplyr::mutate(prevalence_analysis_id = as.character(dplyr::row_number()))
 
   study_specs <- split(
     study_specs,
-    study_specs[, c("incidence_analysis_id")]
+    study_specs[, c("prevalence_analysis_id")]
   )
 
   # get irs
@@ -191,7 +191,7 @@ collect_pop_prevalence <- function(db,
   })
   # to tibble and add specification for each cohort
   prs <- dplyr::bind_rows(prs,
-    .id = "incidence_analysis_id"
+    .id = "prevalence_analysis_id"
   )
 
   # get confidence intervals
