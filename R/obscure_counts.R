@@ -18,7 +18,7 @@
 #' Obscure the small number of counts
 #'
 #' @param x x
-#' @param minimum_event_count minimum_event_count
+#' @param minimum_cell_count minimum_cell_count
 #' @param substitute substitute
 #'
 #' @return
@@ -26,7 +26,7 @@
 #'
 #' @examples
 obscure_counts <- function(x,
-                           minimum_event_count = 5,
+                           minimum_cell_count = 5,
                            substitute = NA) {
 
   ## check for standard types of user error
@@ -45,7 +45,7 @@ obscure_counts <- function(x,
       all(c("numerator", "denominator", "prev") %in% names(x))
   )
 
-  checkmate::assert_numeric(minimum_event_count,
+  checkmate::assert_numeric(minimum_cell_count,
     add = error_message
   )
 
@@ -56,17 +56,24 @@ obscure_counts <- function(x,
 
   # initialise result_obscurred as FALSE
   # will replace with true below if obscured
-   x$result_obscured <- "FALSE"
+  x$cohort_obscured <- "FALSE"
+  x$result_obscured <- "FALSE"
 
   if (c("n_events") %in% names(x)) {
-    x[x$n_events < minimum_event_count, c("result_obscured")] <- "TRUE"
-    x[x$n_events < minimum_event_count, c("n_events", "ir_100000_pys",
+    x[x$n_persons < minimum_cell_count, c("cohort_obscured")] <- "TRUE"
+    x[x$n_events < minimum_cell_count, c("n_persons",
+                                         "person_days",
+                                         "person_years")] <- substitute
+    x[x$n_events < minimum_cell_count, c("result_obscured")] <- "TRUE"
+    x[x$n_events < minimum_cell_count, c("n_events", "ir_100000_pys",
                                      "ir_100000_pys_low",
                                      "ir_100000_pys_high")] <- substitute
   }
   if (c("numerator") %in% names(x)) {
-    x[x$numerator < minimum_event_count, c("result_obscured")] <- "TRUE"
-    x[x$numerator < minimum_event_count, c("numerator",
+    x[x$denominator < minimum_cell_count, c("cohort_obscured")] <- "TRUE"
+    x[x$denominator < minimum_cell_count, c("denominator")] <- substitute
+    x[x$numerator < minimum_cell_count, c("result_obscured")] <- "TRUE"
+    x[x$numerator < minimum_cell_count, c("numerator",
                                       "prev",
                                       "prev_low", "prev_high")] <- substitute
   }

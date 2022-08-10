@@ -15,7 +15,7 @@ collect_pop_prevalence(
   time_intervals = "Months",
   minimum_representative_proportions = 0.5,
   confidence_interval = "none",
-  minimum_event_count = 5,
+  minimum_cell_count = 5,
   verbose = FALSE
 )
 }
@@ -42,7 +42,7 @@ individuals must have to contribute}
 
 \item{confidence_interval}{Method for confidence intervals}
 
-\item{minimum_event_count}{Minimum number of events to report- results
+\item{minimum_cell_count}{Minimum number of events to report- results
 lower than this will be obscured. If NULL all results will be reported.}
 
 \item{verbose}{Whether to report progress}

@@ -4,12 +4,12 @@
 \alias{obscure_counts}
 \title{Obscure the small number of counts}
 \usage{
-obscure_counts(x, minimum_event_count = 5, substitute = NA)
+obscure_counts(x, minimum_cell_count = 5, substitute = NA)
 }
 \arguments{
 \item{x}{x}
 
-\item{minimum_event_count}{minimum_event_count}
+\item{minimum_cell_count}{minimum_cell_count}
 
 \item{substitute}{substitute}
 }

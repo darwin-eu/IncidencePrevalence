@@ -35,7 +35,8 @@ test_that("mock db: check output format", {
     "cohort_id_outcome",
     "cohort_id_denominator_pop",
     "minimum_representative_proportion",
-    "minimum_event_count",
+    "minimum_cell_count",
+    "cohort_obscured",
     "result_obscured"
   ) %in%
     names(prev)))
@@ -103,22 +104,58 @@ test_that("mock db: check minimum counts", {
   library(dplyr)
   library(tibble)
 
-  db <- generate_mock_incidence_prevalence_db()
+  #20 people
+  person <- tibble(
+    person_id = as.character(c(1:20)),
+    gender_concept_id = rep("8507",20),
+    year_of_birth =  rep(2000,20),
+    month_of_birth =  rep(01,20),
+    day_of_birth =  rep(01,20)
+  )
+  observation_period <- bind_rows(
+    tibble(
+    observation_period_id = as.character(c(1:17)),
+    person_id = as.character(c(1:17)),
+    observation_period_start_date = rep(as.Date("2000-01-01"),17),
+    observation_period_end_date = rep(as.Date("2000-01-31"),17)
+  ),
+  tibble(
+    observation_period_id = as.character(c(18:20)),
+    person_id = as.character(c(18:20)),
+    observation_period_start_date = rep(as.Date("2000-01-01"),3),
+    observation_period_end_date = rep(as.Date("2012-06-01"),3)
+  ))
+
+  outcome <-
+    bind_rows(
+      # 17 in first period
+      tibble(
+        cohort_definition_id = rep("1",17),
+        subject_id = as.character(c(1:17)),
+        cohort_start_date = rep(
+          as.Date("2000-01-02"),17),
+        cohort_end_date = rep(
+          as.Date("2000-01-03"),17)
+      ),
+      # three in second
+      tibble(
+        cohort_definition_id = rep("1",3),
+        subject_id = as.character(c(18:20)),
+        cohort_start_date = rep(
+          as.Date("2000-02-02"),3),
+        cohort_end_date = rep(
+          as.Date("2000-02-03"),3)
+      )
+    )
+
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
 
   dpop <- collect_denominator_pops(
     db = db,
     cdm_database_schema = NULL
   )
-  prev <- collect_pop_prevalence(
-    db = db,
-    results_schema_outcome = NULL,
-    table_name_outcomes = "outcome",
-    cohort_ids_outcomes = "1",
-    cohort_ids_denominator_pops = "1",
-    study_denominator_pop = dpop,
-    minimum_event_count = NULL
-  )
-  expect_true(any(c(0:4) %in% prev$numerator))
 
   prev <- collect_pop_prevalence(
     db = db,
@@ -127,9 +164,52 @@ test_that("mock db: check minimum counts", {
     cohort_ids_outcomes = "1",
     cohort_ids_denominator_pops = "1",
     study_denominator_pop = dpop,
-    minimum_event_count = 5
+    minimum_cell_count = NULL,
+    periods="Month",
+    confidence_interval = "poisson"
   )
-  expect_true(!any(c(0:4) %in% prev$numerator))
+  expect_true(prev$numerator[1] == 17)
+  expect_true(prev$numerator[2] == 3)
+  expect_true(prev$numerator[3] == 0)
+  expect_true(prev$denominator[1] == 20)
+  expect_true(prev$denominator[2] == 3)
+  expect_true(prev$denominator[3] == 3)
+  expect_true(!is.na(prev$prev[1]))
+  expect_true(!is.na(prev$prev[2]))
+  expect_true(!is.na(prev$prev[3]))
+  expect_true(!is.na(prev$prev_low[1]))
+  expect_true(!is.na(prev$prev_low[2]))
+  expect_true(!is.na(prev$prev_low[3]))
+  expect_true(!is.na(prev$prev_high[1]))
+  expect_true(!is.na(prev$prev_high[2]))
+  expect_true(!is.na(prev$prev_high[3]))
+
+  prev <- collect_pop_prevalence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcomes = "outcome",
+    cohort_ids_outcomes = "1",
+    cohort_ids_denominator_pops = "1",
+    study_denominator_pop = dpop,
+    minimum_cell_count = 5,
+    periods="Month",
+    confidence_interval = "poisson"
+  )
+  expect_true(prev$numerator[1] == 17)
+  expect_true(is.na(prev$numerator[2]))
+  expect_true(is.na(prev$numerator[3]))
+  expect_true(prev$denominator[1] == 20)
+  expect_true(is.na(prev$denominator[2]))
+  expect_true(is.na(prev$denominator[3]))
+  expect_true(!is.na(prev$prev[1]))
+  expect_true(is.na(prev$prev[2]))
+  expect_true(is.na(prev$prev[3]))
+  expect_true(!is.na(prev$prev_low[1]))
+  expect_true(is.na(prev$prev_low[2]))
+  expect_true(is.na(prev$prev_low[3]))
+  expect_true(!is.na(prev$prev_high[1]))
+  expect_true(is.na(prev$prev_high[2]))
+  expect_true(is.na(prev$prev_high[3]))
 
   DBI::dbDisconnect(db, shutdown=TRUE)
 

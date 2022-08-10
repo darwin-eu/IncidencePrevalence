@@ -27,7 +27,7 @@
 #' @param outcome_washout_windows Clean windows
 #' @param repetitive_events Repeated events
 #' @param confidence_interval Method for confidence intervals
-#' @param minimum_event_count Minimum number of events to report- results
+#' @param minimum_cell_count Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
 #' @param verbose Whether to report progress
 #'
@@ -45,7 +45,7 @@ collect_pop_incidence <- function(db,
                                   outcome_washout_windows = 0,
                                   repetitive_events = FALSE,
                                   confidence_interval = "poisson",
-                                  minimum_event_count = 5,
+                                  minimum_cell_count = 5,
                                   verbose = FALSE) {
 
 
@@ -110,7 +110,7 @@ collect_pop_incidence <- function(db,
     !is.null(study_denominator_pop$required_days_prior_history) &
       sum(is.na(study_denominator_pop$required_days_prior_history)) == 0
   )
-  checkmate::assert_number(minimum_event_count, null.ok = TRUE)
+  checkmate::assert_number(minimum_cell_count, null.ok = TRUE)
   checkmate::assertTRUE(all(c(
     "cohort_definition_id",
     "person_id",
@@ -187,7 +187,7 @@ collect_pop_incidence <- function(db,
         outcome_washout_window = x$outcome_washout_window,
         repetitive_events = x$repetitive_events,
         confidence_interval = confidence_interval,
-        minimum_event_count= minimum_event_count
+        minimum_cell_count= minimum_cell_count
       )
   })
   # to tibble and add specification for each cohort
@@ -207,11 +207,12 @@ collect_pop_incidence <- function(db,
   }
 
   # obscure counts
-  if(!is.null(minimum_event_count)){
-  irs <- obscure_counts(irs, minimum_event_count = minimum_event_count, substitute = NA)
+  if(!is.null(minimum_cell_count)){
+  irs <- obscure_counts(irs, minimum_cell_count = minimum_cell_count, substitute = NA)
   } else {
     # no results obscured due to a low count
     irs <- irs %>%
+      dplyr::mutate(cohort_obscured="FALSE") %>%
       dplyr::mutate(result_obscured="FALSE")
   }
 

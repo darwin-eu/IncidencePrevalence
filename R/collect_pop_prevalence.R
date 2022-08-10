@@ -29,7 +29,7 @@
 #' @param minimum_representative_proportions Minimum proportions that
 #' individuals must have to contribute
 #' @param confidence_interval Method for confidence intervals
-#' @param minimum_event_count Minimum number of events to report- results
+#' @param minimum_cell_count Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
 #' @param verbose Whether to report progress
 #'
@@ -47,7 +47,7 @@ collect_pop_prevalence <- function(db,
                                   time_intervals = "Months",
                                   minimum_representative_proportions = 0.5,
                                   confidence_interval = "none",
-                                  minimum_event_count = 5,
+                                  minimum_cell_count = 5,
                                   verbose = FALSE) {
 
 
@@ -112,7 +112,7 @@ collect_pop_prevalence <- function(db,
     !is.null(study_denominator_pop$required_days_prior_history) &
       sum(is.na(study_denominator_pop$required_days_prior_history)) == 0
   )
-  checkmate::assert_number(minimum_event_count, null.ok = TRUE)
+  checkmate::assert_number(minimum_cell_count, null.ok = TRUE)
   checkmate::assertTRUE(all(c(
     "cohort_definition_id",
     "person_id",
@@ -186,7 +186,7 @@ collect_pop_prevalence <- function(db,
         time_interval = x$time_interval,
         minimum_representative_proportion = x$minimum_representative_proportion,
         confidence_interval = confidence_interval,
-        minimum_event_count= minimum_event_count
+        minimum_cell_count= minimum_cell_count
       )
   })
   # to tibble and add specification for each cohort
@@ -206,13 +206,14 @@ collect_pop_prevalence <- function(db,
   }
 
   # obscure counts
-  if(!is.null(minimum_event_count)){
+  if(!is.null(minimum_cell_count)){
   prs <- obscure_counts(prs,
-                        minimum_event_count = minimum_event_count,
+                        minimum_cell_count = minimum_cell_count,
                         substitute = NA)
   } else {
     # no results obscured due to a low count
     prs <- prs %>%
+      dplyr::mutate(cohort_obscured="FALSE") %>%
       dplyr::mutate(result_obscured="FALSE")
   }
 

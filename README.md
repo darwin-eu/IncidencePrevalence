@@ -91,30 +91,32 @@ Format: one row per time period per incidence analysis
 | repetitive_events           | Whether follow up was censored at occurrence of first event (true) or not (false) in the given analysis |
 | time_interval               | The type of period being used in the given analysis (months or years)                                   |
 | confidence_interval         | The method for calculating the confidence interval in the given analysis                                |
-| minimum_event_count         | Minimum number of events reported                                                                       |
-| result_obscured             | Indicates whether result has been obscured due to a count of less than minimum_event_count              |
+| minimum_cell_count          | Minimum number of people required for reporting                                                         |
+| cohort_obscured             | Indicates whether a cohort count has been obscured due to a count of less than minimum_cell_count       |
+| result_obscured             | Indicates whether result has been obscured due to a count of less than minimum_cell_count               |
 
 ### From collect_pop_prevalence
 
 Format: one row per time period per prevalence analysis
 
-| Variable                          | Description                                                                                   |
-|-----------------------------------|-----------------------------------------------------------------------------------------------|
-| prevalence_analysis_id            | ID identifying an prevalence analysis                                                         |
-| cohort_id_denominator_pop         | ID identifying the denominator population used in the prevalence analysis                     |
-| cohort_id_outcome                 | ID identifying the outcome population used in the prevalence analysis                         |
-| numerator                         | Number of people in the numerator for calculating prevalence                                  |
-| denominator                       | Number of people in the denominator for calculating prevalence                                |
-| prev                              | Estimate of prevalence                                                                        |
-| prev_low                          | Lower bound of the 95% confidence interval for the estimate of prevalence                     |
-| prev_high                         | Upper bound of the 95% confidence interval for the estimate of prevalence                     |
-| calendar_year                     | The calendar year of the given time period                                                    |
-| required_days_prior_history       | The number of days that were required for the given analysis                                  |
-| age_strata                        | The age strata for the given analysis                                                         |
-| sex_strata                        | The sex strata for the given analysis                                                         |
-| period                            | Type of period used for calculating prevalence (“point”, “month”, or “year”)                  |
-| time_interval                     | The type of period being used in the given analysis (months or years)                         |
-| confidence_interval               | The method for calculating the confidence interval in the given analysis                      |
-| minimum_representative_proportion | The proportion of time in the period required for an individual to contribute to the analysis |
-| minimum_event_count               | Minimum number of events reported                                                             |
-| result_obscured                   | Indicates whether result has been obscured due to a count of less than minimum_event_count    |
+| Variable                          | Description                                                                                       |
+|-----------------------------------|---------------------------------------------------------------------------------------------------|
+| prevalence_analysis_id            | ID identifying an prevalence analysis                                                             |
+| cohort_id_denominator_pop         | ID identifying the denominator population used in the prevalence analysis                         |
+| cohort_id_outcome                 | ID identifying the outcome population used in the prevalence analysis                             |
+| numerator                         | Number of people in the numerator for calculating prevalence                                      |
+| denominator                       | Number of people in the denominator for calculating prevalence                                    |
+| prev                              | Estimate of prevalence                                                                            |
+| prev_low                          | Lower bound of the 95% confidence interval for the estimate of prevalence                         |
+| prev_high                         | Upper bound of the 95% confidence interval for the estimate of prevalence                         |
+| calendar_year                     | The calendar year of the given time period                                                        |
+| required_days_prior_history       | The number of days that were required for the given analysis                                      |
+| age_strata                        | The age strata for the given analysis                                                             |
+| sex_strata                        | The sex strata for the given analysis                                                             |
+| period                            | Type of period used for calculating prevalence (“point”, “month”, or “year”)                      |
+| time_interval                     | The type of period being used in the given analysis (months or years)                             |
+| confidence_interval               | The method for calculating the confidence interval in the given analysis                          |
+| minimum_representative_proportion | The proportion of time in the period required for an individual to contribute to the analysis     |
+| minimum_cell_count                | Minimum number of people required for reporting                                                   |
+| cohort_obscured                   | Indicates whether a cohort count has been obscured due to a count of less than minimum_cell_count |
+| result_obscured                   | Indicates whether result has been obscured due to a count of less than minimum_cell_count         |
