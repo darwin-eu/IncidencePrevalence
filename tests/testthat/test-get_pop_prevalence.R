@@ -18,18 +18,25 @@ test_that("mock db: check output format", {
                      period = "Point"
   )
 
+  # prevalence results
   expect_true(all(c(
     "numerator",
     "denominator",
     "prev",
     "calendar_month",
-    "calendar_year",
+    "calendar_year"
+  ) %in%
+    names(prev[["pr"]])))
+
+  # analysis settings
+  expect_true(all(c(
+    "required_days_prior_history",
     "age_strata",
     "sex_strata",
     "period",
     "time_interval"
   ) %in%
-    names(prev)))
+    names(prev[["analysis_settings"]])))
 
   dbDisconnect(db, shutdown=TRUE)
 
@@ -84,7 +91,7 @@ test_that("mock db: working examples", {
     time_interval = c("Months"),
     minimum_representative_proportion = 0.5
   )
-  expect_true(nrow(prev)>=1)
+  expect_true(nrow(prev[["pr"]])>=1)
 
   prev<- get_pop_prevalence(db,
                             results_schema_outcome = NULL,
@@ -96,7 +103,7 @@ test_that("mock db: working examples", {
                             time_interval = c("Years"),
                             minimum_representative_proportion = 0.5
   )
-  expect_true(nrow(prev)>=1)
+  expect_true(nrow(prev[["pr"]])>=1)
 
 
   dpop <- collect_denominator_pops(
@@ -114,7 +121,7 @@ test_that("mock db: working examples", {
     time_interval = c("Months"),
     minimum_representative_proportion = 0.5
   )
-  expect_true(nrow(prev)>=1)
+  expect_true(nrow(prev[["pr"]])>=1)
 
   dbDisconnect(db, shutdown=TRUE)
 
@@ -173,11 +180,11 @@ test_that("mock db: check study time periods", {
     verbose = FALSE
   )
 
-   # we expect 12 months of which the last in december
+   # we expect 12 months of which the last in December
    # the last month should also be included
    # as the person goes up to the last day of the month
-   expect_true(length(prev$calendar_year)==12)
-   expect_true(any(prev$calendar_month %in% 12))
+   expect_true(length(prev[["pr"]]$calendar_year)==12)
+   expect_true(any(prev[["pr"]]$calendar_month %in% 12))
 
    dbDisconnect(db, shutdown=TRUE)
 
@@ -256,7 +263,7 @@ test_that("mock db: check conversion of user inputs", {
                              cohort_id_denominator_pop = 1,
                              period = "Point"
   )
-  expect_true(nrow(prev)>=0)
+  expect_true(nrow(prev[["pr"]])>=0)
 
   dbDisconnect(db, shutdown=TRUE)
 

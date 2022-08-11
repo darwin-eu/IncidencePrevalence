@@ -166,8 +166,9 @@ collect_pop_prevalence <- function(db,
   )
 
   # get irs
-  prs <- lapply(study_specs, function(x) {
-    get_pop_prevalence(
+  prs_list <- lapply(study_specs, function(x) {
+
+    working_prev <- get_pop_prevalence(
       db = db,
       results_schema_outcome = results_schema_outcomes,
       table_name_outcome = table_name_outcomes,
@@ -178,7 +179,13 @@ collect_pop_prevalence <- function(db,
       time_interval = x$time_interval,
       minimum_representative_proportion = x$minimum_representative_proportion,
       verbose = x$verbose
-    ) %>%
+    )
+
+    working_prev_pr <- working_prev[["pr"]] %>%
+      dplyr::mutate(prevalence_analysis_id=x$prevalence_analysis_id)%>%
+      dplyr::relocate(.data$prevalence_analysis_id)
+
+    working_prev_analysis_settings <- working_prev[["analysis_settings"]]  %>%
       dplyr::mutate(
         cohort_id_outcome = x$cohort_id_outcome,
         cohort_id_denominator_pop = x$cohort_id_denominator_pop,
@@ -186,12 +193,37 @@ collect_pop_prevalence <- function(db,
         time_interval = x$time_interval,
         minimum_representative_proportion = x$minimum_representative_proportion,
         confidence_interval = confidence_interval,
-        minimum_cell_count= minimum_cell_count
-      )
+        minimum_cell_count= minimum_cell_count,
+        prevalence_analysis_id=x$prevalence_analysis_id) %>%
+      dplyr::relocate(.data$prevalence_analysis_id)
+
+    working_prev_attrition <- working_prev[["attrition"]] %>%
+      dplyr::mutate(prevalence_analysis_id=x$prevalence_analysis_id )%>%
+      dplyr::relocate(.data$prevalence_analysis_id)
+
+    result<-list()
+    result[["pr"]] <- working_prev_pr
+    result[["analysis_settings"]] <- working_prev_analysis_settings
+    result[["attrition"]] <- working_prev_attrition
+
+    return(result)
+
   })
-  # to tibble and add specification for each cohort
+
+  prs_list <- purrr::flatten(prs_list)
+
+  # analysis settings
+  analysis_settings<-prs_list[names(prs_list)=="analysis_settings"]
+  # to tibble
+  analysis_settings <- dplyr::bind_rows(analysis_settings,
+                                        .id = NULL
+  )
+
+  # prevalence estimates
+  prs<-prs_list[names(prs_list)=="pr"]
+  # to tibble
   prs <- dplyr::bind_rows(prs,
-    .id = "prevalence_analysis_id"
+                          .id = NULL
   )
 
   # get confidence intervals
@@ -217,5 +249,19 @@ collect_pop_prevalence <- function(db,
       dplyr::mutate(result_obscured="FALSE")
   }
 
-  return(prs)
+  # attrition summary
+  attrition<-prs_list[names(prs_list)=="attrition"]
+  # to tibble
+  attrition <- dplyr::bind_rows(attrition,
+                                .id = NULL
+  )
+
+  # results to return as a list
+  results<-list()
+  results[["prevalence_estimates"]]<-prs
+  results[["analysis_settings"]]<-analysis_settings
+  results[["attrition"]]<-attrition
+
+  return(results)
+
 }

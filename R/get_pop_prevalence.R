@@ -358,14 +358,21 @@ get_pop_prevalence <- function(db,
 
   pr <- dplyr::bind_rows(pr)
 
+  # study design related variables
   # add study design related variables
-  pr <- pr %>%
-    dplyr::mutate(required_days_prior_history =
-                    unique(study_pop$required_days_prior_history)) %>%
-    dplyr::mutate(age_strata = unique(study_pop$age_strata)) %>%
-    dplyr::mutate(sex_strata = unique(study_pop$sex_strata)) %>%
-    dplyr::mutate(period = .env$period) %>%
-    dplyr::mutate(time_interval = .env$time_interval)
+  analysis_settings <- tibble::tibble(
+   required_days_prior_history =
+                    unique(study_pop$required_days_prior_history),
+    age_strata = unique(study_pop$age_strata),
+    sex_strata = unique(study_pop$sex_strata),
+    period = .env$period,
+    time_interval = .env$time_interval)
 
-  return(pr)
+
+  results<-list()
+  results[["pr"]]<-pr
+  results[["analysis_settings"]]<-analysis_settings
+  results[["attrition"]]<-tibble::tibble(attrition="attrition") # placeholder
+
+  return(results)
 }

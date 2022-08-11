@@ -167,8 +167,9 @@ collect_pop_incidence <- function(db,
   )
 
   # get irs
-  irs <- lapply(study_specs, function(x) {
-    get_pop_incidence(
+  irs_list <- lapply(study_specs, function(x) {
+
+    working_inc<- get_pop_incidence(
       db = db,
       results_schema_outcome = results_schema_outcomes,
       table_name_outcome = table_name_outcomes,
@@ -179,20 +180,53 @@ collect_pop_incidence <- function(db,
       outcome_washout_window = x$outcome_washout_window,
       repetitive_events = x$repetitive_events,
       verbose = x$verbose
-    ) %>%
+    )
+
+    working_inc_ir <- working_inc[["ir"]] %>%
+      dplyr::mutate(incidence_analysis_id=x$incidence_analysis_id)%>%
+      dplyr::relocate(.data$incidence_analysis_id)
+
+    working_inc_analysis_settings <- working_inc[["analysis_settings"]] %>%
       dplyr::mutate(
-        cohort_id_outcome = x$cohort_id_outcome,
-        cohort_id_denominator_pop = x$cohort_id_denominator_pop,
-        time_interval = x$time_interval,
-        outcome_washout_window = x$outcome_washout_window,
-        repetitive_events = x$repetitive_events,
-        confidence_interval = confidence_interval,
-        minimum_cell_count= minimum_cell_count
-      )
+      cohort_id_outcome = x$cohort_id_outcome,
+      cohort_id_denominator_pop = x$cohort_id_denominator_pop,
+      time_interval = x$time_interval,
+      outcome_washout_window = x$outcome_washout_window,
+      repetitive_events = x$repetitive_events,
+      confidence_interval = .env$confidence_interval,
+      minimum_cell_count= .env$minimum_cell_count,
+      incidence_analysis_id=x$incidence_analysis_id
+    )%>%
+      dplyr::relocate(.data$incidence_analysis_id)
+
+
+    working_inc_attrition <- working_inc[["attrition"]] %>%
+      dplyr::mutate(incidence_analysis_id=x$incidence_analysis_id )%>%
+      dplyr::relocate(.data$incidence_analysis_id)
+
+    result<-list()
+    result[["ir"]] <- working_inc_ir
+    result[["analysis_settings"]] <- working_inc_analysis_settings
+    result[["attrition"]] <- working_inc_attrition
+
+    return(result)
   })
-  # to tibble and add specification for each cohort
+
+
+  irs_list <- purrr::flatten(irs_list)
+
+  # analysis settings
+  analysis_settings<-irs_list[names(irs_list)=="analysis_settings"]
+  # to tibble
+  analysis_settings <- dplyr::bind_rows(analysis_settings,
+                          .id = NULL
+  )
+
+  # incidence estimates
+  irs<-irs_list[names(irs_list)=="ir"]
+  # to tibble
   irs <- dplyr::bind_rows(irs,
-    .id = "incidence_analysis_id"
+    .id = NULL
   )
 
   # get confidence intervals
@@ -216,5 +250,19 @@ collect_pop_incidence <- function(db,
       dplyr::mutate(result_obscured="FALSE")
   }
 
-  return(irs)
+
+  # attrition summary
+  attrition<-irs_list[names(irs_list)=="attrition"]
+  # to tibble
+  attrition <- dplyr::bind_rows(attrition,
+                          .id = NULL
+  )
+
+  # results to return as a list
+  results<-list()
+  results[["incidence_estimates"]]<-irs
+  results[["analysis_settings"]]<-analysis_settings
+  results[["attrition"]]<-attrition
+
+  return(results)
 }

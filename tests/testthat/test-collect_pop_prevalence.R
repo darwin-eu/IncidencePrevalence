@@ -20,13 +20,14 @@ test_that("mock db: check output format", {
     confidence_interval="poisson"
   )
 
+  expect_true(class(prev) == "list")
+  expect_true(all(names(prev) %in%
+                    c("prevalence_estimates",
+                      "analysis_settings",  "attrition" )))
+
+  # check analysis settings tibble
   expect_true(all(c(
     "prevalence_analysis_id",
-    "numerator", "denominator",
-    "prev",
-    "prev_low",
-    "prev_high",
-    "calendar_month", "calendar_year",
     "required_days_prior_history",
     "age_strata", "sex_strata",
     "period",
@@ -35,11 +36,22 @@ test_that("mock db: check output format", {
     "cohort_id_outcome",
     "cohort_id_denominator_pop",
     "minimum_representative_proportion",
-    "minimum_cell_count",
+    "minimum_cell_count"
+  ) %in%
+    names(prev[["analysis_settings"]])))
+
+  # check estimates tibble
+  expect_true(all(c(
+    "prevalence_analysis_id",
+    "numerator", "denominator",
+    "prev",
+    "prev_low",
+    "prev_high",
+    "calendar_month", "calendar_year",
     "cohort_obscured",
     "result_obscured"
   ) %in%
-    names(prev)))
+    names(prev[["prevalence_estimates"]])))
 
   DBI::dbDisconnect(db, shutdown=TRUE)
 
@@ -94,7 +106,7 @@ test_that("mock db: checks on working example", {
     cohort_ids_denominator_pops = "1",
     study_denominator_pop = dpop
   )
-  expect_true(nrow(prev)>=1)
+  expect_true(nrow(prev[["prevalence_estimates"]])>=1)
 
   DBI::dbDisconnect(db, shutdown=TRUE)
 })
@@ -168,21 +180,21 @@ test_that("mock db: check minimum counts", {
     periods="Month",
     confidence_interval = "poisson"
   )
-  expect_true(prev$numerator[1] == 17)
-  expect_true(prev$numerator[2] == 3)
-  expect_true(prev$numerator[3] == 0)
-  expect_true(prev$denominator[1] == 20)
-  expect_true(prev$denominator[2] == 3)
-  expect_true(prev$denominator[3] == 3)
-  expect_true(!is.na(prev$prev[1]))
-  expect_true(!is.na(prev$prev[2]))
-  expect_true(!is.na(prev$prev[3]))
-  expect_true(!is.na(prev$prev_low[1]))
-  expect_true(!is.na(prev$prev_low[2]))
-  expect_true(!is.na(prev$prev_low[3]))
-  expect_true(!is.na(prev$prev_high[1]))
-  expect_true(!is.na(prev$prev_high[2]))
-  expect_true(!is.na(prev$prev_high[3]))
+  expect_true(prev[["prevalence_estimates"]]$numerator[1] == 17)
+  expect_true(prev[["prevalence_estimates"]]$numerator[2] == 3)
+  expect_true(prev[["prevalence_estimates"]]$numerator[3] == 0)
+  expect_true(prev[["prevalence_estimates"]]$denominator[1] == 20)
+  expect_true(prev[["prevalence_estimates"]]$denominator[2] == 3)
+  expect_true(prev[["prevalence_estimates"]]$denominator[3] == 3)
+  expect_true(!is.na(prev[["prevalence_estimates"]]$prev[1]))
+  expect_true(!is.na(prev[["prevalence_estimates"]]$prev[2]))
+  expect_true(!is.na(prev[["prevalence_estimates"]]$prev[3]))
+  expect_true(!is.na(prev[["prevalence_estimates"]]$prev_low[1]))
+  expect_true(!is.na(prev[["prevalence_estimates"]]$prev_low[2]))
+  expect_true(!is.na(prev[["prevalence_estimates"]]$prev_low[3]))
+  expect_true(!is.na(prev[["prevalence_estimates"]]$prev_high[1]))
+  expect_true(!is.na(prev[["prevalence_estimates"]]$prev_high[2]))
+  expect_true(!is.na(prev[["prevalence_estimates"]]$prev_high[3]))
 
   prev <- collect_pop_prevalence(
     db = db,
@@ -195,21 +207,21 @@ test_that("mock db: check minimum counts", {
     periods="Month",
     confidence_interval = "poisson"
   )
-  expect_true(prev$numerator[1] == 17)
-  expect_true(is.na(prev$numerator[2]))
-  expect_true(is.na(prev$numerator[3]))
-  expect_true(prev$denominator[1] == 20)
-  expect_true(is.na(prev$denominator[2]))
-  expect_true(is.na(prev$denominator[3]))
-  expect_true(!is.na(prev$prev[1]))
-  expect_true(is.na(prev$prev[2]))
-  expect_true(is.na(prev$prev[3]))
-  expect_true(!is.na(prev$prev_low[1]))
-  expect_true(is.na(prev$prev_low[2]))
-  expect_true(is.na(prev$prev_low[3]))
-  expect_true(!is.na(prev$prev_high[1]))
-  expect_true(is.na(prev$prev_high[2]))
-  expect_true(is.na(prev$prev_high[3]))
+  expect_true(prev[["prevalence_estimates"]]$numerator[1] == 17)
+  expect_true(is.na(prev[["prevalence_estimates"]]$numerator[2]))
+  expect_true(is.na(prev[["prevalence_estimates"]]$numerator[3]))
+  expect_true(prev[["prevalence_estimates"]]$denominator[1] == 20)
+  expect_true(is.na(prev[["prevalence_estimates"]]$denominator[2]))
+  expect_true(is.na(prev[["prevalence_estimates"]]$denominator[3]))
+  expect_true(!is.na(prev[["prevalence_estimates"]]$prev[1]))
+  expect_true(is.na(prev[["prevalence_estimates"]]$prev[2]))
+  expect_true(is.na(prev[["prevalence_estimates"]]$prev[3]))
+  expect_true(!is.na(prev[["prevalence_estimates"]]$prev_low[1]))
+  expect_true(is.na(prev[["prevalence_estimates"]]$prev_low[2]))
+  expect_true(is.na(prev[["prevalence_estimates"]]$prev_low[3]))
+  expect_true(!is.na(prev[["prevalence_estimates"]]$prev_high[1]))
+  expect_true(is.na(prev[["prevalence_estimates"]]$prev_high[2]))
+  expect_true(is.na(prev[["prevalence_estimates"]]$prev_high[3]))
 
   DBI::dbDisconnect(db, shutdown=TRUE)
 
@@ -235,7 +247,7 @@ test_that("mock db: check conversion of user inputs", {
     cohort_ids_denominator_pops = 1,
     study_denominator_pop = dpop
   )
-  expect_true(nrow(prev)>=1)
+  expect_true(nrow(prev[["prevalence_estimates"]])>=1)
 
 
   DBI::dbDisconnect(db, shutdown=TRUE)

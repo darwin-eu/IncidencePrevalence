@@ -12,7 +12,7 @@ test_that("mock db: check output format", {
   )
   inc <- collect_pop_incidence(
     db = db,
-    results_schema_outcome = NULL,
+    results_schema_outcomes = NULL,
     table_name_outcomes = "outcome",
     cohort_ids_outcomes = "1",
     cohort_ids_denominator_pops = "1",
@@ -24,10 +24,29 @@ test_that("mock db: check output format", {
     verbose = TRUE
   )
 
+  expect_true(class(inc) == "list")
+  expect_true(all(names(inc) %in%
+                    c("incidence_estimates",
+                    "analysis_settings",  "attrition" )))
+
+  # check analysis settings tibble
   expect_true(all(c(
     "incidence_analysis_id",
     "cohort_id_outcome",
     "cohort_id_denominator_pop",
+    "required_days_prior_history",
+    "age_strata", "sex_strata",
+    "outcome_washout_window",
+    "repetitive_events",
+    "time_interval",
+    "confidence_interval",
+    "minimum_cell_count"
+  ) %in%
+    names(inc[["analysis_settings"]])))
+
+  # check estimates tibble
+  expect_true(all(c(
+    "incidence_analysis_id",
     "n_persons",
     "person_days",
     "person_years",
@@ -36,17 +55,10 @@ test_that("mock db: check output format", {
     "ir_100000_pys_low",
     "ir_100000_pys_high",
     "calendar_month", "calendar_year",
-    "required_days_prior_history",
-    "age_strata", "sex_strata",
-    "outcome_washout_window",
-    "repetitive_events",
-    "time_interval",
-    "confidence_interval",
-    "minimum_cell_count",
     "cohort_obscured",
     "result_obscured"
   ) %in%
-    names(inc)))
+    names(inc[["incidence_estimates"]])))
 
   DBI::dbDisconnect(db, shutdown=TRUE)
 
@@ -105,7 +117,7 @@ test_that("mock db: checks on working example", {
     time_intervals = c("Months"),
     verbose = TRUE
   )
-  expect_true(nrow(inc)>=1)
+  expect_true(nrow(inc[["incidence_estimates"]])>=1)
 
 
   DBI::dbDisconnect(db, shutdown=TRUE)
@@ -169,24 +181,24 @@ test_that("mock db: check minimum counts", {
     study_denominator_pop = dpop,
     minimum_cell_count = NULL
   )
-  expect_true(inc$n_persons[1] == 20)
-  expect_true(inc$n_persons[2] == 3)
-  expect_true(inc$n_persons[3] == 0)
-  expect_true(!is.na(inc$person_days[1]))
-  expect_true(!is.na(inc$person_days[2]))
-  expect_true(!is.na(inc$person_days[3]))
-  expect_true(!is.na(inc$person_years[1]))
-  expect_true(!is.na(inc$person_years[2]))
-  expect_true(!is.na(inc$person_years[3]))
-  expect_true(inc$n_events[1] == 17)
-  expect_true(inc$n_events[2] == 3)
-  expect_true(inc$n_events[3] == 0)
-  expect_true(!is.na(inc$ir_100000_pys[1]))
-  expect_true(!is.na(inc$ir_100000_pys[2]))
-  expect_true(!is.na(inc$ir_100000_pys_low[1]))
-  expect_true(!is.na(inc$ir_100000_pys_low[2]))
-  expect_true(!is.na(inc$ir_100000_pys_high[1]))
-  expect_true(!is.na(inc$ir_100000_pys_high[2]))
+  expect_true(inc[["incidence_estimates"]]$n_persons[1] == 20)
+  expect_true(inc[["incidence_estimates"]]$n_persons[2] == 3)
+  expect_true(inc[["incidence_estimates"]]$n_persons[3] == 0)
+  expect_true(!is.na(inc[["incidence_estimates"]]$person_days[1]))
+  expect_true(!is.na(inc[["incidence_estimates"]]$person_days[2]))
+  expect_true(!is.na(inc[["incidence_estimates"]]$person_days[3]))
+  expect_true(!is.na(inc[["incidence_estimates"]]$person_years[1]))
+  expect_true(!is.na(inc[["incidence_estimates"]]$person_years[2]))
+  expect_true(!is.na(inc[["incidence_estimates"]]$person_years[3]))
+  expect_true(inc[["incidence_estimates"]]$n_events[1] == 17)
+  expect_true(inc[["incidence_estimates"]]$n_events[2] == 3)
+  expect_true(inc[["incidence_estimates"]]$n_events[3] == 0)
+  expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys[1]))
+  expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys[2]))
+  expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys_low[1]))
+  expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys_low[2]))
+  expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys_high[1]))
+  expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys_high[2]))
 
   inc <- collect_pop_incidence(
     db = db,
@@ -198,29 +210,28 @@ test_that("mock db: check minimum counts", {
     study_denominator_pop = dpop,
     minimum_cell_count = 5
   )
-  expect_true(inc$n_persons[1] == 20)
-  expect_true(is.na(inc$n_persons[2]))
-  expect_true(is.na(inc$n_persons[3]))
-  expect_true(!is.na(inc$person_days[1]))
-  expect_true(is.na(inc$person_days[2]))
-  expect_true(is.na(inc$person_days[3]))
-  expect_true(!is.na(inc$person_years[1]))
-  expect_true(is.na(inc$person_years[2]))
-  expect_true(is.na(inc$person_years[3]))
-  expect_true(inc$n_events[1] == 17)
-  expect_true(is.na(inc$n_events[2]))
-  expect_true(is.na(inc$n_events[3]))
-  expect_true(!is.na(inc$ir_100000_pys[1]))
-  expect_true(is.na(inc$ir_100000_pys[2]))
-  expect_true(!is.na(inc$ir_100000_pys_low[1]))
-  expect_true(is.na(inc$ir_100000_pys_low[2]))
-  expect_true(!is.na(inc$ir_100000_pys_high[1]))
-  expect_true(is.na(inc$ir_100000_pys_high[2]))
+  expect_true(inc[["incidence_estimates"]]$n_persons[1] == 20)
+  expect_true(is.na(inc[["incidence_estimates"]]$n_persons[2]))
+  expect_true(is.na(inc[["incidence_estimates"]]$n_persons[3]))
+  expect_true(!is.na(inc[["incidence_estimates"]]$person_days[1]))
+  expect_true(is.na(inc[["incidence_estimates"]]$person_days[2]))
+  expect_true(is.na(inc[["incidence_estimates"]]$person_days[3]))
+  expect_true(!is.na(inc[["incidence_estimates"]]$person_years[1]))
+  expect_true(is.na(inc[["incidence_estimates"]]$person_years[2]))
+  expect_true(is.na(inc[["incidence_estimates"]]$person_years[3]))
+  expect_true(inc[["incidence_estimates"]]$n_events[1] == 17)
+  expect_true(is.na(inc[["incidence_estimates"]]$n_events[2]))
+  expect_true(is.na(inc[["incidence_estimates"]]$n_events[3]))
+  expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys[1]))
+  expect_true(is.na(inc[["incidence_estimates"]]$ir_100000_pys[2]))
+  expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys_low[1]))
+  expect_true(is.na(inc[["incidence_estimates"]]$ir_100000_pys_low[2]))
+  expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys_high[1]))
+  expect_true(is.na(inc[["incidence_estimates"]]$ir_100000_pys_high[2]))
 
   DBI::dbDisconnect(db, shutdown=TRUE)
 
 })
-
 
 test_that("mock db: check conversion of user inputs", {
   library(DBI)
@@ -243,7 +254,7 @@ test_that("mock db: check conversion of user inputs", {
     outcome_washout_windows=NULL,
     study_denominator_pop = dpop
   )
-  expect_true(nrow(inc)>=1)
+  expect_true(nrow(inc[["incidence_estimates"]])>=1)
 
 
  DBI::dbDisconnect(db, shutdown=TRUE)

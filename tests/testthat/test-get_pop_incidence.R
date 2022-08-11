@@ -17,6 +17,7 @@ test_that("mock db: check output format", {
                            study_denominator_pop = dpop
   )
 
+  # incidence results
   expect_true(all(c(
     "n_persons",
     "person_days",
@@ -24,11 +25,19 @@ test_that("mock db: check output format", {
     "n_events",
     "ir_100000_pys",
     "calendar_month",
-    "calendar_year",
-    "age_strata",
-    "sex_strata"
+    "calendar_year"
   ) %in%
-    names(inc)))
+    names(inc[["ir"]])))
+
+  # analysis settings
+  expect_true(all(c(
+    "required_days_prior_history",
+    "age_strata",
+    "sex_strata",
+    "repetitive_events",
+    "time_interval"
+  ) %in%
+    names(inc[["analysis_settings"]])))
 
   dbDisconnect(db, shutdown=TRUE)
 
@@ -82,7 +91,7 @@ test_that("mock db: check working example", {
     repetitive_events = FALSE,
     outcome_washout_window = 0
   )
-  expect_true(sum(inc$n_events) == 1)
+  expect_true(sum(inc[["ir"]]$n_events) == 1)
 
   inc <- get_pop_incidence(db,
     results_schema_outcome = NULL,
@@ -92,7 +101,7 @@ test_that("mock db: check working example", {
     repetitive_events = TRUE,
     outcome_washout_window = 2
   )
-  expect_true(sum(inc$n_events) == 3)
+  expect_true(sum(inc[["ir"]]$n_events) == 3)
 
   inc <- get_pop_incidence(db,
     results_schema_outcome = NULL,
@@ -102,7 +111,7 @@ test_that("mock db: check working example", {
     repetitive_events = TRUE,
     outcome_washout_window = 10
   )
-  expect_true(sum(inc$n_events) == 2)
+  expect_true(sum(inc[["ir"]]$n_events) == 2)
 
   # even if repetitive_events = TRUE,
   # if outcome_washout_window=NULL (all of history)
@@ -115,7 +124,7 @@ test_that("mock db: check working example", {
     repetitive_events = TRUE,
     outcome_washout_window = NULL
   )
-  expect_true(sum(inc$n_events) == 1)
+  expect_true(sum(inc[["ir"]]$n_events) == 1)
 
 
   dbDisconnect(db, shutdown=TRUE)
@@ -173,8 +182,8 @@ test_that("mock db: check study periods ", {
    # we expect 12 months of which the last in december
    # the last month should also be included
    # as the person goes up to the last day of the month
-   expect_true(length(inc$calendar_year)==12)
-   expect_true(any(inc$calendar_month %in% 12))
+   expect_true(length(inc[["ir"]]$calendar_year)==12)
+   expect_true(any(inc[["ir"]]$calendar_month %in% 12))
 
   dbDisconnect(db, shutdown=TRUE)
 })
@@ -230,7 +239,7 @@ test_that("mock db: check washout windows", {
     outcome_washout_window = 0
   )
   # expect all events if we have zero days washout
-  expect_true(sum(inc_w0$n_events)==4)
+  expect_true(sum(inc_w0[["ir"]]$n_events)==4)
 
   inc_w1 <- get_pop_incidence(db,
     results_schema_outcome = NULL,
@@ -241,7 +250,7 @@ test_that("mock db: check washout windows", {
     outcome_washout_window = 1
   )
     # expect three events if we have one days washout
-    expect_true(sum(inc_w1$n_events)==3)
+    expect_true(sum(inc_w1[["ir"]]$n_events)==3)
 
   inc_w2 <- get_pop_incidence(db,
     results_schema_outcome = NULL,
@@ -252,7 +261,7 @@ test_that("mock db: check washout windows", {
     outcome_washout_window = 2
   )
   # expect two events if we have two days washout
-  expect_true(sum(inc_w2$n_events)==2)
+  expect_true(sum(inc_w2[["ir"]]$n_events)==2)
 
   inc_w365 <- get_pop_incidence(db,
     results_schema_outcome = NULL,
@@ -263,7 +272,7 @@ test_that("mock db: check washout windows", {
     outcome_washout_window = 365
   )
   # expect one event if we have 365 days washout
-  expect_true(sum(inc_w365$n_events)==1)
+  expect_true(sum(inc_w365[["ir"]]$n_events)==1)
 
   inc_null <- get_pop_incidence(db,
     results_schema_outcome = NULL,
@@ -274,11 +283,11 @@ test_that("mock db: check washout windows", {
     outcome_washout_window = NULL
   )
   # expect one event if we have NULL (all history washout)
-  expect_true(sum(inc_null$n_events)==1)
+  expect_true(sum(inc_null[["ir"]]$n_events)==1)
 
   # but, we will have move days when using the 365 day washout
   # as the person came back to contribute more time at risk
-  expect_true(sum(inc_null$person_days)<sum(inc_w365$person_days))
+  expect_true(sum(inc_null[["ir"]]$person_days)<sum(inc_w365[["ir"]]$person_days))
 
 
 })
@@ -392,7 +401,7 @@ repetitive_events = TRUE,
 outcome_washout_window = NULL,
 time_interval = "Years"
 )
-expect_true(sum(inc_without_rep$n_events)==1)
+expect_true(sum(inc_without_rep[["ir"]]$n_events)==1)
 
 inc_with_rep <- get_pop_incidence(db,
 results_schema_outcome = NULL,
@@ -403,7 +412,7 @@ repetitive_events = TRUE,
 outcome_washout_window = NULL,
 time_interval = "Years"
 )
-expect_true(sum(inc_with_rep$n_events)==1)
+expect_true(sum(inc_with_rep[["ir"]]$n_events)==1)
 
 })
 
@@ -436,7 +445,7 @@ test_that("mock db: check conversion of user inputs", {
                            cohort_id_outcome = 1, # to character in function
                            study_denominator_pop = dpop
   )
-  expect_true(nrow(inc)>=0)
+  expect_true(nrow(inc[["ir"]])>=0)
 
   inc <- get_pop_incidence(db,
                            results_schema_outcome = NULL,
@@ -444,7 +453,7 @@ test_that("mock db: check conversion of user inputs", {
                            cohort_id_denominator_pop = 1, # to character in function
                            study_denominator_pop = dpop
   )
-  expect_true(nrow(inc)>=0)
+  expect_true(nrow(inc[["ir"]])>=0)
 
   inc <- get_pop_incidence(db,
                            results_schema_outcome = NULL,
@@ -454,7 +463,7 @@ test_that("mock db: check conversion of user inputs", {
                            cohort_id_outcome = "1",
                            study_denominator_pop = dpop
   )
-  expect_true(nrow(inc)>=0)
+  expect_true(nrow(inc[["ir"]])>=0)
 
 
   inc <- get_pop_incidence(db,
@@ -464,7 +473,7 @@ test_that("mock db: check conversion of user inputs", {
                            cohort_id_outcome = 1,
                            study_denominator_pop = dpop
   )
-  expect_true(nrow(inc)>=0)
+  expect_true(nrow(inc[["ir"]])>=0)
 
   dbDisconnect(db, shutdown=TRUE)
 

@@ -499,7 +499,6 @@ get_pop_incidence <- function(db,
           )
       )
 
-
     ir[[paste0(i)]] <- working_pop %>%
       dplyr::summarise(
         n_persons = length(unique(working_pop$person_id)),
@@ -517,17 +516,20 @@ get_pop_incidence <- function(db,
 
   ir <- dplyr::bind_rows(ir)
 
-  # add study design related variables
-  ir <- ir %>%
-    dplyr::mutate(
-      required_days_prior_history =
-        unique(study_pop$required_days_prior_history)
-    ) %>%
-    dplyr::mutate(age_strata = unique(study_pop$age_strata)) %>%
-    dplyr::mutate(sex_strata = unique(study_pop$sex_strata)) %>%
-    dplyr::mutate(outcome_washout_window = outcome_washout_window) %>%
-    dplyr::mutate(repetitive_events = .env$repetitive_events) %>%
-    dplyr::mutate(time_interval = .env$time_interval)
+  # study design related variables
+  analysis_settings <- tibble::tibble(
+      required_days_prior_history = unique(study_pop$required_days_prior_history),
+      age_strata = unique(study_pop$age_strata),
+      sex_strata = unique(study_pop$sex_strata),
+      outcome_washout_window = .env$outcome_washout_window,
+      repetitive_events = .env$repetitive_events,
+      time_interval = .env$time_interval)
 
-  return(ir)
+  # return list
+  results<-list()
+  results[["ir"]]<-ir
+  results[["analysis_settings"]]<-analysis_settings
+  results[["attrition"]]<-tibble::tibble(attrition="attrition") # placeholder
+
+  return(results)
 }
