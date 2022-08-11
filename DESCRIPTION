@@ -32,6 +32,7 @@ Imports:
     glue,
     magrittr,
     rlang,
+    purrr,
     stringr,
     tidyr
 Depends:
