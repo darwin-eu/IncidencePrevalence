@@ -117,7 +117,7 @@ collect_denominator_pops <- function(db,
   if (is.null(study_start_date)) {
     pop_specs$study_start_date <- as.Date(NA)
   }
-  if (is.null(study_start_date)) {
+  if (is.null(study_end_date)) {
     pop_specs$study_end_date <- as.Date(NA)
   }
   pop_specs <- pop_specs %>%

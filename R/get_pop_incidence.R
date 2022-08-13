@@ -285,27 +285,46 @@ get_pop_incidence <- function(db,
   }
   checkmate::reportAssertions(collection = error_message)
 
+  # study dates
+  study_days<-tibble::tibble(dates=seq.Date(from=.env$start_date,
+                                            to=.env$end_date,
+                                            by="days")) %>%
+    dplyr::mutate(isoweek=lubridate::isoweek(.data$dates)) %>%
+    dplyr::mutate(month=lubridate::month(.data$dates)) %>%
+    dplyr::mutate(year=lubridate::year(.data$dates)) %>%
+    dplyr::mutate(year_month=glue::glue("{year}_{month}"))%>%
+    dplyr::mutate(year_month_isoweek=glue::glue("{year}_{month}_{isoweek}"))
+
+  if (time_interval == "Years") {
+  grouping<-"year"
+  }
+  if (time_interval == "Months") {
+  grouping<-"year_month"
+  }
+
+  study_days <- study_days %>%
+    dplyr::group_by(dplyr::across(dplyr::all_of(.env$grouping))) %>%
+    dplyr::summarise(start=min(.data$dates),
+                     end=max(.data$dates)) %>%
+    dplyr::arrange(.data$start) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(c("start", "end")) %>%
+    dplyr::mutate(working_t_days=as.numeric(difftime(.data$end +
+                                                       lubridate::days(1),
+                                              .data$start,
+                                              units = "days"
+    )))
+
+
+
   # fetch incidence rates
   # looping through each time interval
   ir <- list()
-  for (i in seq_along(1:(n_time + 1))) {
-    if (time_interval == "Years") {
-      working_t_start <- start_date + lubridate::years(i - 1)
-      working_t_end <- start_date + lubridate::years(i) - lubridate::days(1)
-      working_t_days <- as.numeric(difftime(working_t_end + lubridate::days(1),
-        working_t_start,
-        units = "days"
-      ))
-    }
-    if (time_interval == "Months") {
-      working_t_start <- start_date + months(i - 1)
-      working_t_end <- start_date + months(i) - lubridate::days(1)
-      working_t_days <- as.numeric(difftime(working_t_end +
-        lubridate::days(1),
-      working_t_start,
-      units = "days"
-      ))
-    }
+  for (i in seq_along(1:nrow(study_days))) {
+
+    working_t_start <- study_days$start[i]
+    working_t_end <- study_days$end[i]
+    working_t_days <- study_days$working_t_days[i]
 
     # drop people with end_date prior to working_t_start
     # drop people with start_date after working_t_end

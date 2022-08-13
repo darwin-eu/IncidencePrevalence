@@ -188,6 +188,89 @@ test_that("mock db: check study periods ", {
   dbDisconnect(db, shutdown=TRUE)
 })
 
+test_that("mock db: check periods follow calendar dates", {
+
+  # check that even if study_start_date as during a period
+  # periods still follow calendar dates
+
+  library(DBI)
+  library(dplyr)
+  library(tibble)
+
+  person <- tibble(
+    person_id = "1",
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observation_period <- tibble(
+    observation_period_id = "1",
+    person_id = "1",
+    observation_period_start_date = as.Date("2010-01-01"),
+    observation_period_end_date = as.Date("2012-12-31")
+  )
+  outcome <- tibble(
+    cohort_definition_id = "1",
+    subject_id = "1",
+    cohort_start_date = c(
+      as.Date("2010-03-01"),
+      as.Date("2011-01-31"),
+      as.Date("2011-02-01"),
+      as.Date("2011-03-01")
+    ),
+    cohort_end_date = c(
+      as.Date("2010-03-01"),
+      as.Date("2011-01-31"),
+      as.Date("2011-02-01"),
+      as.Date("2011-03-01")
+    )
+  )
+
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
+
+  # study_start_date during a year (with year as time_interval)
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL,
+    study_start_date=as.Date("2010-02-01")
+  )
+  inc<- get_pop_incidence(db,
+                          results_schema_outcome = NULL,
+                          table_name_outcome = "outcome",
+                          cohort_id_outcome = "1",
+                          study_denominator_pop = dpop,
+                          time_interval = c("Years"),
+                          repetitive_events = TRUE,
+                          outcome_washout_window=0
+  )
+  expect_true(inc[["ir"]]$n_events[1]==1)
+  expect_true(inc[["ir"]]$n_events[2]==3)
+
+
+  # study_start_date during a month (with month as time_interval)
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL,
+    study_start_date=as.Date("2011-01-15")
+  )
+  inc<- get_pop_incidence(db,
+                          results_schema_outcome = NULL,
+                          table_name_outcome = "outcome",
+                          cohort_id_outcome = "1",
+                          study_denominator_pop = dpop,
+                          time_interval = c("Months"),
+                          repetitive_events = TRUE,
+                          outcome_washout_window=0
+  )
+  expect_true(inc[["ir"]]$n_events[1]==1)
+  expect_true(inc[["ir"]]$n_events[2]==1)
+  expect_true(inc[["ir"]]$n_events[3]==1)
+
+})
+
 test_that("mock db: check washout windows", {
   db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
   person <- tibble::tibble(
@@ -612,8 +695,6 @@ test_that("mock db: check expected errors", {
 
   dbDisconnect(db)
 })
-
-
 
 # test_that("checks on working example", {
 #   library(DBI)
