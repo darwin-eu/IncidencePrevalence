@@ -274,7 +274,10 @@ test_that("mock db: check periods follow calendar dates", {
 })
 
 test_that("mock db: check washout windows", {
-  db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+  library(DBI)
+  library(dplyr)
+  library(tibble)
+
   person <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -447,7 +450,10 @@ DBI::dbDisconnect(db, shutdown=TRUE)
 
 test_that("mock db: check entry and event on same day", {
 
-db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
+  library(DBI)
+  library(dplyr)
+  library(tibble)
+
 person <- tibble::tibble(
 person_id = "1",
 gender_concept_id = "8507",
