@@ -4,18 +4,7 @@ test_that("mock db: check output format", {
   library(dplyr)
   library(tibble)
 
-  outcome <- tibble(
-    cohort_definition_id = "1",
-    subject_id = "1",
-    cohort_start_date = c(
-      as.Date("2010-02-05")
-    ),
-    cohort_end_date = c(
-      as.Date("2010-02-05")
-    )
-  )
-
-  db <- generate_mock_incidence_prevalence_db(outcome=outcome)
+  db <- generate_mock_incidence_prevalence_db()
 
   dpop <- collect_denominator_pops(
     db = db,
@@ -55,24 +44,9 @@ test_that("mock db: checks on working example", {
     observation_period_start_date = as.Date("2010-01-01"),
     observation_period_end_date = as.Date("2012-06-01")
   )
-  outcome <- tibble(
-    cohort_definition_id = "1",
-    subject_id = "1",
-    cohort_start_date = c(
-      as.Date("2010-02-05"),
-      as.Date("2010-02-08"),
-      as.Date("2010-02-20")
-    ),
-    cohort_end_date = c(
-      as.Date("2010-02-05"),
-      as.Date("2010-02-08"),
-      as.Date("2010-02-20")
-    )
-  )
 
   db <- generate_mock_incidence_prevalence_db(person=person,
-                                              observation_period=observation_period,
-                                              outcome=outcome)
+                                              observation_period=observation_period)
   # some pops with people, but some without
   dpops <- collect_denominator_pops(db,
     cdm_database_schema = NULL,
@@ -116,23 +90,8 @@ test_that("mock db check age strata entry and exit", {
     observation_period_start_date = as.Date("2008-01-01"),
     observation_period_end_date = as.Date("2018-06-01")
   )
-  outcome <- tibble(
-    cohort_definition_id = "1",
-    subject_id = "1",
-    cohort_start_date = c(
-      as.Date("2010-02-05"),
-      as.Date("2010-02-08"),
-      as.Date("2010-02-20")
-    ),
-    cohort_end_date = c(
-      as.Date("2010-02-05"),
-      as.Date("2010-02-08"),
-      as.Date("2010-02-20")
-    )
-  )
   db <- generate_mock_incidence_prevalence_db(person=person,
-                                              observation_period=observation_period,
-                                              outcome=outcome)
+                                              observation_period=observation_period)
 
   # if we have two age groups 1) 11 to 12, and 2) 13 to 14
   # we expect the person to be in the first cohort up
@@ -170,18 +129,7 @@ test_that("mock db: check expected errors", {
   library(dplyr)
   library(tibble)
 
-  outcome <- tibble(
-    cohort_definition_id = "1",
-    subject_id = "1",
-    cohort_start_date = c(
-      as.Date("2010-02-05")
-    ),
-    cohort_end_date = c(
-      as.Date("2010-02-05")
-    )
-  )
-
-  db <- generate_mock_incidence_prevalence_db(outcome=outcome)
+  db <- generate_mock_incidence_prevalence_db()
 
 
 

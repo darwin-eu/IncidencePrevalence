@@ -76,7 +76,9 @@ test_that("mock db: check working example", {
     )
   )
 
-  db <- generate_mock_incidence_prevalence_db(outcome=outcome)
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
 
   dpop <- collect_denominator_pops(
     db = db,
@@ -306,7 +308,9 @@ test_that("mock db: check washout windows", {
     )
   )
 
-  db <- generate_mock_incidence_prevalence_db(outcome=outcome)
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
 
   dpop <- collect_denominator_pops(
     db = db,
@@ -468,7 +472,9 @@ as.Date("2010-01-28")
 )
 )
 
-db <- generate_mock_incidence_prevalence_db(outcome=outcome)
+db <- generate_mock_incidence_prevalence_db(person=person,
+                                            observation_period=observation_period,
+                                            outcome=outcome)
 
 dpop <- collect_denominator_pops(
 db = db,
@@ -515,7 +521,9 @@ test_that("mock db: check conversion of user inputs", {
     )
   )
 
-  db <- generate_mock_incidence_prevalence_db(outcome=outcome)
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
 
   dpop <- collect_denominator_pops(
     db = db,

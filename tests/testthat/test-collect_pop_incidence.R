@@ -265,8 +265,6 @@ test_that("expected errors with mock", {
   library(dplyr)
   library(tibble)
 
-  # duckdb mock database
-  db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
   person <- tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -294,21 +292,9 @@ test_that("expected errors with mock", {
       as.Date("2010-02-20")
     )
   )
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "person", person,
-      overwrite = TRUE
-    )
-  })
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "observation_period", observation_period,
-      overwrite = TRUE
-    )
-  })
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "outcome", outcome,
-      overwrite = TRUE
-    )
-  })
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
   dpop <- collect_denominator_pops(
     db = db,
     cdm_database_schema = NULL

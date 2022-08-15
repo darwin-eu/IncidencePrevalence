@@ -64,7 +64,8 @@ test_that("mock db: check example we expect to work", {
     observation_period_end_date = as.Date("2015-06-01")
   )
   # mock database
-  db <- generate_mock_incidence_prevalence_db(person, observation_period)
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period)
 
   dpop <- get_denominator_pop(
     db = db,
@@ -110,7 +111,8 @@ test_that("mock db: check example with multiple observation periods", {
     observation_period_end_date = c(as.Date("2010-06-01"),
                                     as.Date("2011-06-01"))
   )
-  db <- generate_mock_incidence_prevalence_db(person, observation_period)
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period)
 
   # expect two rows
   # one per observation period
@@ -166,7 +168,8 @@ test_that("mock db: check example with restriction on sex", {
     observation_period_end_date = rep(as.Date("2015-06-01"),3)
   )
   # mock database
-  db <- generate_mock_incidence_prevalence_db(person, observation_period)
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period)
 
 
 dpop1 <- get_denominator_pop(
@@ -203,7 +206,8 @@ observation_period <- tibble(
   observation_period_end_date = as.Date("2015-06-01")
 )
 # mock database
-db <- generate_mock_incidence_prevalence_db(person, observation_period)
+db <- generate_mock_incidence_prevalence_db(person=person,
+                                            observation_period=observation_period)
 
 dpop1 <- get_denominator_pop(
   db = db,
@@ -250,7 +254,8 @@ test_that("mock db: check example with restriction on age", {
     observation_period_end_date = rep(as.Date("2015-06-01"),3)
   )
   # mock database
-  db <- generate_mock_incidence_prevalence_db(person, observation_period)
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period)
 
 # check min_age
 dpop1 <- get_denominator_pop(
@@ -341,7 +346,8 @@ observation_period <- tibble(
   observation_period_end_date = rep(as.Date("2015-06-01"),4)
 )
 
-db <- generate_mock_incidence_prevalence_db(person, observation_period)
+db <- generate_mock_incidence_prevalence_db(person=person,
+                                            observation_period=observation_period)
 
 dpop <- get_denominator_pop(
   db = db,
@@ -393,7 +399,8 @@ test_that("mock db: check edge cases (zero results expected)", {
     observation_period_end_date = as.Date("2015-06-01")
   )
   # mock database
-  db <- generate_mock_incidence_prevalence_db(person, observation_period)
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period)
 
 
 expect_true(is.null(get_denominator_pop(
