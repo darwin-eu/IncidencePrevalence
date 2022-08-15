@@ -11,8 +11,8 @@ get_pop_prevalence(
   cohort_id_outcome = NULL,
   study_denominator_pop,
   cohort_id_denominator_pop = NULL,
-  period = "Point",
-  time_interval = c("Months"),
+  period = "point",
+  time_interval = c("months"),
   minimum_representative_proportion = 0.5,
   verbose = FALSE
 )

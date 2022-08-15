@@ -177,7 +177,7 @@ test_that("mock db: check minimum counts", {
     cohort_ids_denominator_pops = "1",
     study_denominator_pop = dpop,
     minimum_cell_count = NULL,
-    periods="Month",
+    periods="month",
     confidence_interval = "poisson"
   )
   expect_true(prev[["prevalence_estimates"]]$numerator[1] == 17)
@@ -204,7 +204,7 @@ test_that("mock db: check minimum counts", {
     cohort_ids_denominator_pops = "1",
     study_denominator_pop = dpop,
     minimum_cell_count = 5,
-    periods="Month",
+    periods="month",
     confidence_interval = "poisson"
   )
   expect_true(prev[["prevalence_estimates"]]$numerator[1] == 17)

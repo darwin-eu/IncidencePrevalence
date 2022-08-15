@@ -11,7 +11,7 @@ get_pop_incidence(
   cohort_id_outcome = NULL,
   study_denominator_pop,
   cohort_id_denominator_pop = NULL,
-  time_interval = c("Months"),
+  time_interval = c("months"),
   outcome_washout_window = NULL,
   repetitive_events = FALSE,
   verbose = FALSE

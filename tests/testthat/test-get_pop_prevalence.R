@@ -15,7 +15,7 @@ test_that("mock db: check output format", {
                      results_schema_outcome = NULL,
                      table_name_outcome = "outcome",
                      study_denominator_pop = dpop,
-                     period = "Point"
+                     period = "point"
   )
 
   # prevalence results
@@ -87,8 +87,8 @@ test_that("mock db: working examples", {
     cohort_id_outcome = "1",
     study_denominator_pop = dpop,
     cohort_id_denominator_pop = "1",
-    period = "Point",
-    time_interval = c("Months"),
+    period = "point",
+    time_interval = c("months"),
     minimum_representative_proportion = 0.5
   )
   expect_true(nrow(prev[["pr"]])>=1)
@@ -99,8 +99,8 @@ test_that("mock db: working examples", {
                             cohort_id_outcome = "1",
                             study_denominator_pop = dpop,
                             cohort_id_denominator_pop = "1",
-                            period = "Point",
-                            time_interval = c("Years"),
+                            period = "point",
+                            time_interval = c("years"),
                             minimum_representative_proportion = 0.5
   )
   expect_true(nrow(prev[["pr"]])>=1)
@@ -117,8 +117,8 @@ test_that("mock db: working examples", {
     cohort_id_outcome = "1",
     study_denominator_pop = dpop,
     cohort_id_denominator_pop = "1",
-    period = "Month",
-    time_interval = c("Months"),
+    period = "month",
+    time_interval = c("months"),
     minimum_representative_proportion = 0.5
   )
   expect_true(nrow(prev[["pr"]])>=1)
@@ -174,8 +174,8 @@ test_that("mock db: check study time periods", {
     cohort_id_outcome = "1",
     study_denominator_pop = dpop,
     cohort_id_denominator_pop = "1",
-    period = "Point",
-    time_interval = c("Months"),
+    period = "point",
+    time_interval = c("months"),
     minimum_representative_proportion = 0.5,
     verbose = FALSE
   )
@@ -245,8 +245,8 @@ test_that("mock db: check periods follow calendar dates", {
                             cohort_id_outcome = "1",
                             study_denominator_pop = dpop,
                             cohort_id_denominator_pop = "1",
-                            period = "Point",
-                            time_interval = c("Months"),
+                            period = "point",
+                            time_interval = c("months"),
                             minimum_representative_proportion = 0.5
   )
   # expect_true(prev[["pr"]]$prev[2]==1)
@@ -282,7 +282,7 @@ test_that("mock db: check messages when vebose is true", {
                                     results_schema_outcome = NULL,
                                     table_name_outcome = "outcome",
                                     study_denominator_pop = dpop,
-                                    period = "Point",
+                                    period = "point",
                                     verbose = TRUE
   ))
 
@@ -290,7 +290,7 @@ test_that("mock db: check messages when vebose is true", {
                                     results_schema_outcome = NULL,
                                     table_name_outcome = "outcome",
                                     study_denominator_pop = dpop,
-                                    period = "Month",
+                                    period = "month",
                                     verbose = TRUE
   ))
 
@@ -298,7 +298,7 @@ test_that("mock db: check messages when vebose is true", {
                                     results_schema_outcome = NULL,
                                     table_name_outcome = "outcome",
                                     study_denominator_pop = dpop,
-                                    period =  "Year",
+                                    period =  "year",
                                     verbose = TRUE
   ))
 
@@ -326,7 +326,7 @@ test_that("mock db: check conversion of user inputs", {
                              study_denominator_pop = dpop,
                              # converted to character
                              cohort_id_denominator_pop = 1,
-                             period = "Point"
+                             period = "point"
   )
   expect_true(nrow(prev[["pr"]])>=0)
 
@@ -351,7 +351,7 @@ test_that("mock db: check expected errors", {
                                   results_schema_outcome = NULL,
                                   table_name_outcome = "outcome",
                                   study_denominator_pop = dpop,
-                                  period = "Point"
+                                  period = "point"
   ))
 
   # no study pop
@@ -360,7 +360,7 @@ test_that("mock db: check expected errors", {
                                   table_name_outcome = "outcome",
                                   study_denominator_pop = dpop,
                                   cohort_id_denominator_pop="999",
-                                  period = "Point"
+                                  period = "point"
   ))
 
   # no outcomes
@@ -369,7 +369,7 @@ test_that("mock db: check expected errors", {
                                   table_name_outcome = "outcome",
                                   cohort_id_outcome="999",
                                   study_denominator_pop = dpop,
-                                  period = "Point"
+                                  period = "point"
   ))
 
 
@@ -409,14 +409,14 @@ test_that("mock db: check expected errors", {
                                   results_schema_outcome = NULL,
                                   table_name_outcome = "outcome",
                                   study_denominator_pop = dpop,
-                                  period = "Point"
+                                  period = "point"
   ))
   expect_error(get_pop_prevalence(db,
                                   results_schema_outcome = NULL,
                                   table_name_outcome = "outcome",
                                   study_denominator_pop = dpop,
-                                  time_interval = c("Years"),
-                                  period = "Point"
+                                  time_interval = c("years"),
+                                  period = "point"
   ))
 
   dbDisconnect(db)

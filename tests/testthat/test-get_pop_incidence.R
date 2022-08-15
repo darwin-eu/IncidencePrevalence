@@ -244,7 +244,7 @@ test_that("mock db: check periods follow calendar dates", {
                           table_name_outcome = "outcome",
                           cohort_id_outcome = "1",
                           study_denominator_pop = dpop,
-                          time_interval = c("Years"),
+                          time_interval = c("years"),
                           repetitive_events = TRUE,
                           outcome_washout_window=0
   )
@@ -263,7 +263,7 @@ test_that("mock db: check periods follow calendar dates", {
                           table_name_outcome = "outcome",
                           cohort_id_outcome = "1",
                           study_denominator_pop = dpop,
-                          time_interval = c("Months"),
+                          time_interval = c("months"),
                           repetitive_events = TRUE,
                           outcome_washout_window=0
   )
@@ -426,14 +426,14 @@ test_that("mock db: compare results from months and years", {
     results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     study_denominator_pop = dpop,
-    time_interval = c("Months"),
+    time_interval = c("months"),
   )
   inc_years <- get_pop_incidence(
     db = db,
     results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     study_denominator_pop = dpop,
-    time_interval = c("Years"),
+    time_interval = c("years"),
   )
 
 # consistent results for months and years
@@ -494,7 +494,7 @@ cohort_id_outcome = "1",
 study_denominator_pop = dpop,
 repetitive_events = TRUE,
 outcome_washout_window = NULL,
-time_interval = "Years"
+time_interval = "years"
 )
 expect_true(sum(inc_without_rep[["ir"]]$n_events)==1)
 
@@ -505,7 +505,7 @@ cohort_id_outcome = "1",
 study_denominator_pop = dpop,
 repetitive_events = TRUE,
 outcome_washout_window = NULL,
-time_interval = "Years"
+time_interval = "years"
 )
 expect_true(sum(inc_with_rep[["ir"]]$n_events)==1)
 
@@ -653,7 +653,7 @@ test_that("mock db: check expected errors", {
   expect_error(get_pop_incidence(db="a",
                                  results_schema_outcome = NULL,
                                  table_name_outcome = "outcome",
-                                 time_interval = c("Months"),
+                                 time_interval = c("months"),
                                  study_denominator_pop = dpop
   ))
 
@@ -661,7 +661,7 @@ test_that("mock db: check expected errors", {
   expect_error(get_pop_incidence(db,
                     results_schema_outcome = NULL,
                     table_name_outcome = "outcome",
-                    time_interval = c("Months"),
+                    time_interval = c("months"),
                     study_denominator_pop = dpop,
                     cohort_id_denominator_pop="999"
   ))
@@ -670,7 +670,7 @@ test_that("mock db: check expected errors", {
   expect_error(get_pop_incidence(db,
                     results_schema_outcome = NULL,
                     table_name_outcome = "outcome",
-                    time_interval = c("Months"),
+                    time_interval = c("months"),
                     cohort_id_outcome="999",
                     study_denominator_pop = dpop
   ))
@@ -710,13 +710,13 @@ test_that("mock db: check expected errors", {
   expect_error(get_pop_incidence(db,
                                  results_schema_outcome = NULL,
                                  table_name_outcome = "outcome",
-                                 time_interval = c("Months"),
+                                 time_interval = c("months"),
                                  study_denominator_pop = dpop
   ))
   expect_error(get_pop_incidence(db,
                                  results_schema_outcome = NULL,
                                  table_name_outcome = "outcome",
-                                 time_interval = c("Years"),
+                                 time_interval = c("years"),
                                  cohort_id_outcome = "1",
                                  study_denominator_pop = dpop
   ))
@@ -755,7 +755,7 @@ test_that("mock db: check expected errors", {
 #                                     cohort_id_outcome=1,
 #                                     study_denominator_pop=study_pops,
 #                                     cohort_id_denominator_pop="17",
-#                                     time_interval=c("Months"),
+#                                     time_interval=c("months"),
 #                                     outcome_washout_window=NULL,
 #                                     repetitive_events=FALSE,
 #                                     verbose=FALSE)

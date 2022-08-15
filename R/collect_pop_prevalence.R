@@ -43,8 +43,8 @@ collect_pop_prevalence <- function(db,
                                   cohort_ids_outcomes,
                                   study_denominator_pop,
                                   cohort_ids_denominator_pops,
-                                  periods = "Point",
-                                  time_intervals = "Months",
+                                  periods = "point",
+                                  time_intervals = "months",
                                   minimum_representative_proportions = 0.5,
                                   confidence_interval = "none",
                                   minimum_cell_count = 5,
@@ -59,13 +59,13 @@ collect_pop_prevalence <- function(db,
     cohort_ids_denominator_pops <- as.character(cohort_ids_denominator_pops)
   }
   if (is.character(periods)) {
-    periods <- stringr::str_to_sentence(periods)
+    periods <- tolower(periods)
   }
   if (is.character(time_intervals)) {
-    time_intervals <- stringr::str_to_sentence(time_intervals)
+    time_intervals <- tolower(time_intervals)
   }
   if (is.character(confidence_interval)) {
-    confidence_interval <- stringr::str_to_lower(confidence_interval)
+    confidence_interval <- tolower(confidence_interval)
   }
 
   ## check for standard types of user error
@@ -125,10 +125,10 @@ collect_pop_prevalence <- function(db,
     add = error_message,
     null.ok = TRUE
   )
-  checkmate::assertTRUE(all(periods %in% c("Point", "Month", "Year")),
+  checkmate::assertTRUE(all(periods %in% c("point", "month", "year")),
     add = error_message
   )
-  checkmate::assertTRUE(all(time_intervals %in% c("Months", "Years")),
+  checkmate::assertTRUE(all(time_intervals %in% c("months", "years")),
     add = error_message
   )
   checkmate::assert_numeric(minimum_representative_proportions,

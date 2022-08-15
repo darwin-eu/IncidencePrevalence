@@ -39,7 +39,7 @@ get_pop_incidence <- function(db,
                               cohort_id_outcome = NULL,
                               study_denominator_pop,
                               cohort_id_denominator_pop = NULL,
-                              time_interval = c("Months"),
+                              time_interval = c("months"),
                               outcome_washout_window = NULL,
                               repetitive_events = FALSE,
                               verbose = FALSE) {
@@ -58,7 +58,7 @@ get_pop_incidence <- function(db,
     cohort_id_denominator_pop <- as.character(cohort_id_denominator_pop)
   }
   if (is.character(time_interval)) {
-    time_interval <- stringr::str_to_sentence(time_interval)
+    time_interval <- tolower(time_interval)
   }
 
   ## check for standard types of user error
@@ -118,7 +118,7 @@ get_pop_incidence <- function(db,
     null.ok = TRUE
   )
   checkmate::assert_choice(time_interval,
-    choices = c("Months", "Years"),
+    choices = c("months", "years"),
     add = error_message
   )
   checkmate::assert_numeric(outcome_washout_window,
@@ -207,13 +207,13 @@ get_pop_incidence <- function(db,
   # start date
   start_date <- min(study_pop$cohort_start_date)
   # end date to the last day of last available full period
-  if (time_interval == "Years") {
+  if (time_interval == "years") {
     end_date <- lubridate::floor_date(max(study_pop$cohort_end_date) +
       lubridate::days(1),
     unit = "years"
     ) - lubridate::days(1)
   }
-  if (time_interval == "Months") {
+  if (time_interval == "months") {
     end_date <- lubridate::floor_date(max(study_pop$cohort_end_date) +
       lubridate::days(1),
     unit = "months"
@@ -249,7 +249,7 @@ get_pop_incidence <- function(db,
 
   # will give error if no full months/ years
   error_message <- checkmate::makeAssertCollection()
-  if (time_interval == "Years") {
+  if (time_interval == "years") {
     n_time <- lubridate::interval(
       lubridate::ymd(start_date),
       lubridate::ymd(end_date)
@@ -266,7 +266,7 @@ get_pop_incidence <- function(db,
       )
     }
   }
-  if (time_interval == "Months") {
+  if (time_interval == "months") {
     n_time <- lubridate::interval(
       lubridate::ymd(start_date),
       lubridate::ymd(end_date)
@@ -295,10 +295,10 @@ get_pop_incidence <- function(db,
     dplyr::mutate(year_month=glue::glue("{year}_{month}"))%>%
     dplyr::mutate(year_month_isoweek=glue::glue("{year}_{month}_{isoweek}"))
 
-  if (time_interval == "Years") {
+  if (time_interval == "years") {
   grouping<-"year"
   }
-  if (time_interval == "Months") {
+  if (time_interval == "months") {
   grouping<-"year_month"
   }
 
@@ -526,7 +526,7 @@ get_pop_incidence <- function(db,
         n_events = sum(!is.na(.data$outcome_start_date))
       ) %>%
       dplyr::mutate(ir_100000_pys = (.data$n_events / .data$person_years) * 100000) %>%
-      dplyr::mutate(calendar_month = ifelse(time_interval == "Months",
+      dplyr::mutate(calendar_month = ifelse(time_interval == "months",
         lubridate::month(.env$working_t_start),
         NA
       )) %>%

@@ -19,7 +19,7 @@ test_that("mock db: check output format", {
     outcome_washout_windows = 0,
     repetitive_events = FALSE,
     study_denominator_pop = dpop,
-    time_intervals = c("Months"),
+    time_intervals = c("months"),
     confidence_interval = "none",
     verbose = TRUE
   )
@@ -114,7 +114,7 @@ test_that("mock db: checks on working example", {
     outcome_washout_windows = 0,
     repetitive_events = FALSE,
     study_denominator_pop = dpop,
-    time_intervals = c("Months"),
+    time_intervals = c("months"),
     verbose = TRUE
   )
   expect_true(nrow(inc[["incidence_estimates"]])>=1)

@@ -38,8 +38,8 @@ get_pop_prevalence <- function(db,
                                cohort_id_outcome = NULL,
                                study_denominator_pop,
                                cohort_id_denominator_pop = NULL,
-                               period = "Point",
-                               time_interval = c("Months"),
+                               period = "point",
+                               time_interval = c("months"),
                                minimum_representative_proportion = 0.5,
                                verbose = FALSE) {
 
@@ -51,7 +51,7 @@ get_pop_prevalence <- function(db,
     cohort_id_denominator_pop <- as.character(cohort_id_denominator_pop)
   }
   if (is.character(time_interval)) {
-    time_interval <- stringr::str_to_sentence(time_interval)
+    time_interval <- tolower(time_interval)
   }
 
   ## check for standard types of user error
@@ -111,11 +111,11 @@ get_pop_prevalence <- function(db,
     null.ok = TRUE
   )
   checkmate::assert_choice(period,
-    choices = c("Point", "Month", "Year"),
+    choices = c("point", "month", "year"),
     add = error_message
   )
   checkmate::assert_choice(time_interval,
-    choices = c("Months", "Years"),
+    choices = c("months", "years"),
     add = error_message
   )
   checkmate::assert_logical(verbose,
@@ -214,13 +214,13 @@ get_pop_prevalence <- function(db,
   # start date
   start_date <- min(study_pop$cohort_start_date)
   # end date to the last day of last available full period
-  if (time_interval == "Years") {
+  if (time_interval == "years") {
     end_date <- lubridate::floor_date(max(study_pop$cohort_end_date) +
                                         lubridate::days(1),
       unit = "years"
     ) - lubridate::days(1)
   }
-  if (time_interval == "Months") {
+  if (time_interval == "months") {
     end_date <- lubridate::floor_date(max(study_pop$cohort_end_date) +
                                         lubridate::days(1),
       unit = "months"
@@ -229,7 +229,7 @@ get_pop_prevalence <- function(db,
 
   # will give error if no full months/ years
   error_message <- checkmate::makeAssertCollection()
-  if (time_interval == "Years") {
+  if (time_interval == "years") {
     n_time <- lubridate::interval(
       lubridate::ymd(start_date),
       lubridate::ymd(end_date)
@@ -246,7 +246,7 @@ get_pop_prevalence <- function(db,
       )
     }
   }
-  if (time_interval == "Months") {
+  if (time_interval == "months") {
     n_time <- lubridate::interval(
       lubridate::ymd(start_date),
       lubridate::ymd(end_date)
@@ -269,19 +269,19 @@ get_pop_prevalence <- function(db,
   # looping through each time interval
   pr <- list()
   for (i in seq_along(1:(n_time + 1))) {
-    if (time_interval == "Years") {
+    if (time_interval == "years") {
       working_t_start <- start_date + lubridate::years(i - 1)
     }
-    if (time_interval == "Months") {
+    if (time_interval == "months") {
       working_t_start <- start_date + months(i - 1)
     }
-    if (period == "Point") {
+    if (period == "point") {
       working_t_end <- working_t_start
     }
-    if (period == "Month") {
+    if (period == "month") {
       working_t_end <- working_t_start + months(1) - lubridate::days(1)
     }
-    if (period == "Year") {
+    if (period == "year") {
       working_t_end <- working_t_start + lubridate::years(1) - lubridate::days(1)
     }
     working_period <- as.numeric(working_t_end - working_t_start) + 1
@@ -348,7 +348,7 @@ get_pop_prevalence <- function(db,
       numerator = numerator,
       denominator = denominator,
       prev = numerator / denominator,
-      calendar_month = ifelse(time_interval == "Months",
+      calendar_month = ifelse(time_interval == "months",
         lubridate::month(working_t_start),
         NA
       ),

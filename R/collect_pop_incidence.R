@@ -57,10 +57,10 @@ collect_pop_incidence <- function(db,
     cohort_ids_denominator_pops <- as.character(cohort_ids_denominator_pops)
   }
   if (is.character(time_intervals)) {
-    time_intervals <- stringr::str_to_sentence(time_intervals)
+    time_intervals <- tolower(time_intervals)
   }
   if (is.character(confidence_interval)) {
-    confidence_intervals <- stringr::str_to_lower(confidence_interval)
+    confidence_intervals <- tolower(confidence_interval)
   }
 
 
@@ -123,7 +123,7 @@ collect_pop_incidence <- function(db,
     add = error_message,
     null.ok = TRUE
   )
-  checkmate::assertTRUE(all(time_intervals %in% c("Months", "Years")),
+  checkmate::assertTRUE(all(time_intervals %in% c("months", "years")),
     add = error_message
   )
   checkmate::assert_numeric(outcome_washout_windows,
