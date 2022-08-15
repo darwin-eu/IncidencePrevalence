@@ -510,6 +510,20 @@ test_that("mock db: check conversion of user inputs", {
   library(dplyr)
   library(tibble)
 
+  person <- tibble(
+    person_id = "1",
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observation_period <- tibble(
+    observation_period_id = "1",
+    person_id = "1",
+    observation_period_start_date = as.Date("2010-01-01"),
+    observation_period_end_date = as.Date("2012-06-01")
+  )
+
   outcome <- tibble(
     cohort_definition_id = "1",
     subject_id = "1",
