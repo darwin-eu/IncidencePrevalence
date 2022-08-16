@@ -8,8 +8,8 @@ generate_mock_incidence_prevalence_db(
   person = NULL,
   observation_period = NULL,
   outcome = NULL,
-  sample_size = 100,
-  out_pre = 0.1,
+  sample_size = 1,
+  out_pre = 1,
   seed = 444
 )
 }

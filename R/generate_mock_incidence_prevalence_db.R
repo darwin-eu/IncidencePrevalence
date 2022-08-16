@@ -57,7 +57,6 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
                                                   sample_size = 1,
                                                   out_pre = 1,
                                                   seed = 444) {
-
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assert_tibble(person, null.ok = TRUE)
   checkmate::assert_tibble(observation_period, null.ok = TRUE)
@@ -69,77 +68,89 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
 
   set.seed(seed)
 
-  if(is.null(person) | is.null(observation_period)){
-  # person table
-  id <- as.character(seq(1:sample_size))
-  # person gender
-  gender_id <- sample(c("8507", "8532"),
-                      sample_size, replace = TRUE)
-  # person date of birth
-  # random date of birth
-  DOB <- sample(seq(as.Date("1920-01-01"),
-                    as.Date("2000-01-01"),
-                    by = "day"),
-                sample_size,
-                replace = TRUE)
-  # year, month, day
-  DOB_year <- as.numeric(format(DOB, "%Y"))
-  DOB_month <- as.numeric(format(DOB, "%m"))
-  DOB_day <- as.numeric(format(DOB, "%d"))
-
-  # observation_period table
-  # create a list of observational_period_id
-  obs_start_date <-
-    sample(seq(as.Date("2005-01-01"), as.Date("2010-01-01"), by = "day"),
-           sample_size, replace = TRUE) # start date for the period
-  obs_end_date <- obs_start_date + lubridate::days(sample(1:1000,
-                                               sample_size, replace = TRUE))
-  if (is.null(person)) {
-    person <- tibble::tibble(
-      person_id = id,
-      gender_concept_id = gender_id,
-      year_of_birth = DOB_year,
-      month_of_birth = DOB_month,
-      day_of_birth = DOB_day
+  if (is.null(person) | is.null(observation_period)) {
+    # person table
+    id <- as.character(seq(1:sample_size))
+    # person gender
+    gender_id <- sample(c("8507", "8532"),
+      sample_size,
+      replace = TRUE
     )
-  }
-
-  if (is.null(observation_period)) {
-    observation_period <- tibble::tibble(
-      observation_period_id = id,
-      person_id = id,
-      observation_period_start_date = obs_start_date,
-      observation_period_end_date = obs_end_date
+    # person date of birth
+    # random date of birth
+    DOB <- sample(seq(as.Date("1920-01-01"),
+      as.Date("2000-01-01"),
+      by = "day"
+    ),
+    sample_size,
+    replace = TRUE
     )
-  }
+    # year, month, day
+    DOB_year <- as.numeric(format(DOB, "%Y"))
+    DOB_month <- as.numeric(format(DOB, "%m"))
+    DOB_day <- as.numeric(format(DOB, "%d"))
+
+    # observation_period table
+    # create a list of observational_period_id
+    obs_start_date <-
+      sample(seq(as.Date("2005-01-01"), as.Date("2010-01-01"), by = "day"),
+        sample_size,
+        replace = TRUE
+      ) # start date for the period
+    obs_end_date <- obs_start_date + lubridate::days(sample(1:1000,
+      sample_size,
+      replace = TRUE
+    ))
+    if (is.null(person)) {
+      person <- tibble::tibble(
+        person_id = id,
+        gender_concept_id = gender_id,
+        year_of_birth = DOB_year,
+        month_of_birth = DOB_month,
+        day_of_birth = DOB_day
+      )
+    }
+
+    if (is.null(observation_period)) {
+      observation_period <- tibble::tibble(
+        observation_period_id = id,
+        person_id = id,
+        observation_period_start_date = obs_start_date,
+        observation_period_end_date = obs_end_date
+      )
+    }
   }
 
   if (is.null(outcome)) {
-  # outcome table
-  # note, only one outcome cohort
-  subject_id <- sample(person$person_id,
-                       round(nrow(person) * out_pre, digits = 0),
-                       replace = FALSE)
+    # outcome table
+    # note, only one outcome cohort
+    subject_id <- sample(person$person_id,
+      round(nrow(person) * out_pre, digits = 0),
+      replace = FALSE
+    )
 
-  outcome<- observation_period %>%
-    rename("subject_id"="person_id") %>%
-    filter(.data$subject_id %in% .env$subject_id) %>%
-    mutate(obs_days=as.numeric(difftime(.data$observation_period_end_date,
-                                        .data$observation_period_start_date,
-                               units= "days")))  %>%
-    mutate(days_to_outcome=round(runif(length(.env$subject_id),
-                                 min = 1,
-                                 max=.data$obs_days))) %>%
-    mutate(cohort_start_date = .data$observation_period_start_date +
-             .data$days_to_outcome) %>%
-    mutate(cohort_end_date = .data$cohort_start_date +
-             lubridate::days(1)) %>%
-    select("subject_id",
-           "cohort_start_date",
-           "cohort_end_date") %>%
-    mutate(cohort_definition_id = c("1")) %>%
-    relocate(cohort_definition_id)
-
+    outcome <- observation_period %>%
+      dplyr::rename("subject_id" = "person_id") %>%
+      dplyr::filter(.data$subject_id %in% .env$subject_id) %>%
+      dplyr::mutate(obs_days = as.numeric(difftime(.data$observation_period_end_date,
+        .data$observation_period_start_date,
+        units = "days"
+      ))) %>%
+      dplyr::mutate(days_to_outcome = round(stas::runif(length(.env$subject_id),
+        min = 1,
+        max = .data$obs_days
+      ))) %>%
+      dplyr::mutate(cohort_start_date = .data$observation_period_start_date +
+        .data$days_to_outcome) %>%
+      dplyr::mutate(cohort_end_date = .data$cohort_start_date +
+        lubridate::days(1)) %>%
+      dplyr::select(
+        "subject_id",
+        "cohort_start_date",
+        "cohort_end_date"
+      ) %>%
+      dplyr::mutate(cohort_definition_id = c("1")) %>%
+      dplyr::relocate(.data$cohort_definition_id)
   }
 
   # into in-memory database
