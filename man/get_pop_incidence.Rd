@@ -38,9 +38,6 @@ get_pop_incidence(
 
 \item{verbose}{verbose}
 }
-\value{
-
-}
 \description{
 Get population incidence estimates
 }

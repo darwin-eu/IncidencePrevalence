@@ -7,7 +7,10 @@
 generate_mock_incidence_prevalence_db(
   person = NULL,
   observation_period = NULL,
-  outcome = NULL
+  outcome = NULL,
+  sample_size = 100,
+  out_pre = 0.1,
+  seed = 444
 )
 }
 \arguments{
@@ -16,6 +19,12 @@ generate_mock_incidence_prevalence_db(
 \item{observation_period}{observation_period table.}
 
 \item{outcome}{outcome table.}
+
+\item{sample_size}{number of unique patient}
+
+\item{out_pre}{\% of patient with an event}
+
+\item{seed}{seed for simulating the dataset use same seed to get same dataset}
 }
 \value{
 DBIConnection to duckdb database with mock data

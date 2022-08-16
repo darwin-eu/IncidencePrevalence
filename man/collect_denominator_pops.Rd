@@ -41,9 +41,6 @@ the study cohort.}
 \item{verbose}{Either TRUE or FALSE.
 If TRUE, progress will be reported.}
 }
-\value{
-
-}
 \description{
 Identify a set of denominator populations
 }
