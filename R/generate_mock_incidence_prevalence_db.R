@@ -136,7 +136,7 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
         .data$observation_period_start_date,
         units = "days"
       ))) %>%
-      dplyr::mutate(days_to_outcome = round(stas::runif(length(.env$subject_id),
+      dplyr::mutate(days_to_outcome = round(stats::runif(length(.env$subject_id),
         min = 1,
         max = .data$obs_days
       ))) %>%
