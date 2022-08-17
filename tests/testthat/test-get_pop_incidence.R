@@ -206,13 +206,13 @@ observation_period <- tibble(
   observation_period_id = c("1","2"),
   person_id = c("1","2"),
   observation_period_start_date = c(as.Date("2007-01-01"),as.Date("2007-01-01")),
-  observation_period_end_date = c(as.Date("2022-12-31"),as.Date("2022-12-31"))
+  observation_period_end_date = c(as.Date("2022-12-31"),as.Date("2022-10-05"))
 )
 outcome <- tibble(
   cohort_definition_id = "1",
   subject_id = "1",
-  cohort_start_date = c(as.Date("2022-06-27")),
-  cohort_end_date = c(as.Date("2022-07-19"))
+  cohort_start_date = c(as.Date("2021-06-27")),
+  cohort_end_date = c(as.Date("2021-06-27"))
 )
 
 
@@ -225,36 +225,49 @@ dpop <- collect_denominator_pops(
   cdm_database_schema = NULL,
   study_age_stratas = list(c(20,30))
 )
-inc <- collect_pop_incidence(
+inc <- get_pop_incidence(
   db = db,
   results_schema_outcome = NULL,
-  table_name_outcomes = "outcome",
-  cohort_ids_outcomes = "1",
-  cohort_ids_denominator_pops = "1",
-  outcome_washout_windows = 180,
-  repetitive_events = TRUE,
+  table_name_outcome = "outcome",
+  cohort_id_outcome = "1",
+  cohort_id_denominator_pop = "1",
+  repetitive_event = FALSE,
   study_denominator_pop = dpop,
-  time_intervals = c("Years"),
-  verbose = TRUE,
-  minimum_cell_count = 0
+  time_interval = c("Years"),
+  verbose = TRUE
 )
 
-# in 2020 we expect person 2 to contribute from 1st july to end of december
-expect_true(inc$incidence_estimates$person_days[1]==
-              as.numeric(difftime(as.Date("2020-12-31"),
-                                  as.Date("2020-07-01")))+1)
+# in 2019 we expect person 2 to contribute from 1st july to end of december
+expect_true(inc$ir$person_days[1]==
+              as.numeric(difftime(as.Date("2019-12-31"),
+                                  as.Date("2019-07-01")))+1)
+
+# in 2020 we expect person 2 to contribute all year
+# and person 1 from 1st january to end of december
+expect_true(inc$ir$person_days[2]==
+              (as.numeric(difftime(as.Date("2020-12-31"),
+                                  as.Date("2020-07-01")))+1)+
+              (as.numeric(difftime(as.Date("2020-12-31"),
+                                     as.Date("2020-01-01"))+1))
+            )
 
 # in 2021 we expect person 2 to contribute all year
-# and person 1 from 1st january to end of december
-# expect_true(inc$incidence_estimates$person_days[2]==
-#               (as.numeric(difftime(as.Date("2021-12-31"),
-#                                   as.Date("2021-07-01")))+1)+
-#               (as.numeric(difftime(as.Date("2021-12-31"),
-#                                      as.Date("2021-01-01"))+1))
-#             )
+# and person 1 from 1st january up to 27th june (date of their outcome)
+expect_true(inc$ir$person_days[3]==
+              (as.numeric(difftime(as.Date("2021-12-31"),
+                                   as.Date("2021-01-01")))+1)+
+              (as.numeric(difftime(as.Date("2021-06-27"),
+                                   as.Date("2021-01-01"))+1))
+)
+
+# in 2022 we expect person 2 to contribute all year
+# (person 1 is out- they have had an event)
+expect_true(inc$ir$person_days[4]==
+              (as.numeric(difftime(as.Date("2021-10-05"),
+                                   as.Date("2021-01-01")))+1)
+            )
 
 dbDisconnect(db)
-
 
 })
 
