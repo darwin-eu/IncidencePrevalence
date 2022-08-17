@@ -278,9 +278,9 @@ get_denominator_pop <- function(db,
   } else {
 
     # get date of birth
-    # fill in missing day (to 15th of month) if only day missing,
-    # month (July) if missing if only month missing,
-    # month (July) and day (to 1st of month) if both missing
+    # fill in missing day to start of month if only day missing,
+    # month (January) if only month missing,
+    # month (January) and day (to 1st of month) if both missing
     # ie to impute to the centre of the period
 
     study_pop <- study_pop %>%
@@ -289,7 +289,7 @@ get_denominator_pop <- function(db,
           is.na(.data$day_of_birth),
         as.Date(
           paste(.data$year_of_birth,
-            "07",
+            "01",
             "01",
             sep = "/"
           ),
@@ -299,7 +299,7 @@ get_denominator_pop <- function(db,
           !is.na(.data$day_of_birth),
         as.Date(
           paste(.data$year_of_birth,
-            "07",
+            "01",
             .data$day_of_birth,
             sep = "/"
           ),
@@ -310,7 +310,7 @@ get_denominator_pop <- function(db,
         as.Date(
           paste(.data$year_of_birth,
             .data$month_of_birth,
-            "15",
+            "01",
             sep = "/"
           ),
           "%Y/%m/%d"

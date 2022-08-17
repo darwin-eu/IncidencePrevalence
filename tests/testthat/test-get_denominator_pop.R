@@ -362,15 +362,15 @@ expect_true(dpop %>%
   pull())
 expect_true(dpop %>%
   filter(person_id=="2") %>%
-  summarise(check=cohort_start_date==as.Date("2010-07-03")) %>%
+  summarise(check=cohort_start_date==as.Date("2010-01-03")) %>%
   pull())
 expect_true(dpop %>%
   filter(person_id=="3") %>%
-  summarise(check=cohort_start_date==as.Date("2010-03-15")) %>%
+  summarise(check=cohort_start_date==as.Date("2010-03-01")) %>%
   pull())
 expect_true(dpop %>%
   filter(person_id=="4") %>%
-  summarise(check=cohort_start_date==as.Date("2010-07-01")) %>%
+  summarise(check=cohort_start_date==as.Date("2010-01-01")) %>%
   pull())
 
 DBI::dbDisconnect(db, shutdown=TRUE)
