@@ -352,6 +352,8 @@ test_that("mock db: check periods follow calendar dates", {
   expect_true(inc[["ir"]]$n_events[2]==1)
   expect_true(inc[["ir"]]$n_events[3]==1)
 
+  dbDisconnect(db)
+
 })
 
 test_that("mock db: check washout windows", {
@@ -459,6 +461,64 @@ test_that("mock db: check washout windows", {
   # but, we will have move days when using the 365 day washout
   # as the person came back to contribute more time at risk
   expect_true(sum(inc_null[["ir"]]$person_days)<sum(inc_w365[["ir"]]$person_days))
+
+  dbDisconnect(db)
+
+})
+
+test_that("mock db: check events overlapping with start of a period", {
+
+  library(DBI)
+  library(dplyr)
+  library(tibble)
+
+person <- tibble(
+  person_id = c("1","2"),
+  gender_concept_id = c("8507","8532"),
+  year_of_birth = c(2000,1999),
+  month_of_birth = c(07,07),
+  day_of_birth = c(01,01)
+)
+observation_period <- tibble(
+  observation_period_id = c("1","2"),
+  person_id = c("1","2"),
+  observation_period_start_date = c(as.Date("2000-01-21"),as.Date("2007-01-01")),
+  observation_period_end_date = c(as.Date("2022-12-31"),as.Date("2022-12-31"))
+)
+outcome <- tibble(
+  cohort_definition_id = "1",
+  subject_id = "1",
+  cohort_start_date = c(as.Date("2020-06-27")),
+  cohort_end_date = c(as.Date("2020-07-19"))
+)
+
+
+db <- generate_mock_incidence_prevalence_db(person=person,
+                                            observation_period=observation_period,
+                                            outcome=outcome)
+
+dpop <- collect_denominator_pops(
+  db = db,
+  cdm_database_schema = NULL,
+  study_age_stratas = list(c(20,30))
+)
+
+inc <- get_pop_incidence(
+  db = db,
+  results_schema_outcome = NULL,
+  table_name_outcome = "outcome",
+  cohort_id_outcome = "1",
+  cohort_id_denominator_pop = "1",
+  outcome_washout_window = NULL,
+  repetitive_events = TRUE,
+  study_denominator_pop = dpop,
+  time_interval = c("Years"),
+  verbose = TRUE
+)
+
+expect_true(all(inc$ir$n_persons==1))
+
+dbDisconnect(db)
 
 
 })

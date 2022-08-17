@@ -15,6 +15,7 @@ Authors:
 \itemize{
   \item Berta Raventos \email{braventos@idiapjgol.info} (\href{https://orcid.org/0000-0002-4668-2970}{ORCID})
   \item Marti Catala \email{marti.catalasabate@ndorms.ox.ac.uk} (\href{https://orcid.org/0000-0003-3308-9905}{ORCID})
+  \item Mike Du \email{mike.du@ndorms.ox.ac.uk} (\href{https://orcid.org/0000-0002-9517-8834}{ORCID})
 }
 
 }

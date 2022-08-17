@@ -140,7 +140,7 @@ get_pop_incidence <- function(db,
 
 
   ## Analysis code
-  # bring in study popupulation
+  # bring in study population
   study_pop <- study_denominator_pop
   if (!is.null(cohort_id_denominator_pop)) {
     study_pop <- study_pop %>%
@@ -361,11 +361,32 @@ get_pop_incidence <- function(db,
           dplyr::inner_join(working_pop,
             by = "person_id"
           ) %>%
-          dplyr::filter(.data$outcome_start_date %within%
-            lubridate::interval(.data$t_start_date, .data$t_end_date)) %>%
-          dplyr::select("person_id", "outcome_start_date", "outcome_end_date"),
+          dplyr::filter(
+            lubridate::int_overlaps(
+              lubridate::interval(.data$t_start_date,
+                                  .data$t_end_date),
+              lubridate::interval(.data$outcome_start_date,
+                                  .data$outcome_end_date))) %>%
+          dplyr::select("person_id", "outcome_start_date",
+                        "outcome_end_date"),
         by = "person_id"
       )
+
+    # if someone has an ongoing event then
+    # update t_start_date to the end of the event
+    working_pop <- working_pop %>%
+      dplyr::mutate(
+        t_start_date=dplyr::if_else(
+          !is.na(.data$outcome_start_date) &
+          (.data$t_start_date <= .data$outcome_end_date) &
+          (.data$t_start_date > .data$outcome_start_date),
+         .data$outcome_end_date + lubridate::days(1),
+         .data$t_start_date
+        )
+      )
+    # drop if start is now after end for anyone
+    working_pop <- working_pop %>%
+      dplyr::filter(.data$t_start_date <= .data$t_end_date)
 
     # now we may have multiple rows
     # if repetitive events=TRUE,
