@@ -190,6 +190,74 @@ test_that("mock db: check study periods ", {
   dbDisconnect(db, shutdown=TRUE)
 })
 
+test_that("mock db: check person days", {
+  library(DBI)
+  library(dplyr)
+  library(tibble)
+
+person <- tibble(
+  person_id = c("1","2"),
+  gender_concept_id = c("8507","8532"),
+  year_of_birth = c(2000,1999),
+  month_of_birth = c(07,07),
+  day_of_birth = c(01,01)
+)
+observation_period <- tibble(
+  observation_period_id = c("1","2"),
+  person_id = c("1","2"),
+  observation_period_start_date = c(as.Date("2007-01-01"),as.Date("2007-01-01")),
+  observation_period_end_date = c(as.Date("2022-12-31"),as.Date("2022-12-31"))
+)
+outcome <- tibble(
+  cohort_definition_id = "1",
+  subject_id = "1",
+  cohort_start_date = c(as.Date("2022-06-27")),
+  cohort_end_date = c(as.Date("2022-07-19"))
+)
+
+
+db <- generate_mock_incidence_prevalence_db(person=person,
+                                            observation_period=observation_period,
+                                            outcome=outcome)
+
+dpop <- collect_denominator_pops(
+  db = db,
+  cdm_database_schema = NULL,
+  study_age_stratas = list(c(20,30))
+)
+inc <- collect_pop_incidence(
+  db = db,
+  results_schema_outcome = NULL,
+  table_name_outcomes = "outcome",
+  cohort_ids_outcomes = "1",
+  cohort_ids_denominator_pops = "1",
+  outcome_washout_windows = 180,
+  repetitive_events = TRUE,
+  study_denominator_pop = dpop,
+  time_intervals = c("Years"),
+  verbose = TRUE,
+  minimum_cell_count = 0
+)
+
+# in 2020 we expect person 2 to contribute from 1st july to end of december
+expect_true(inc$incidence_estimates$person_days[1]==
+              as.numeric(difftime(as.Date("2020-12-31"),
+                                  as.Date("2020-07-01")))+1)
+
+# in 2021 we expect person 2 to contribute all year
+# and person 1 from 1st january to end of december
+# expect_true(inc$incidence_estimates$person_days[2]==
+#               (as.numeric(difftime(as.Date("2021-12-31"),
+#                                   as.Date("2021-07-01")))+1)+
+#               (as.numeric(difftime(as.Date("2021-12-31"),
+#                                      as.Date("2021-01-01"))+1))
+#             )
+
+dbDisconnect(db)
+
+
+})
+
 test_that("mock db: check periods follow calendar dates", {
 
   # check that even if study_start_date as during a period
