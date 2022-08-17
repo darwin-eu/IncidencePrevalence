@@ -7,7 +7,9 @@ Authors@R: c(
     person("Berta", "Raventos", email = "braventos@idiapjgol.info", role = c("aut"), 
     comment = c(ORCID = "0000-0002-4668-2970")), 
     person("Marti", "Catala", email = "marti.catalasabate@ndorms.ox.ac.uk", role = c("aut"), 
-    comment = c(ORCID = "0000-0003-3308-9905"))
+    comment = c(ORCID = "0000-0003-3308-9905")),
+    person("Mike", "Du", email = "mike.du@ndorms.ox.ac.uk", role = c("aut"), 
+    comment = c(ORCID = "0000-0002-9517-8834"))
     )
 Description: Calculate population incidence and prevalence using data mapped to the OMOP common data model.
 License: Apache License (>= 2)
