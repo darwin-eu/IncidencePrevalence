@@ -372,21 +372,36 @@ get_pop_incidence <- function(db,
         by = "person_id"
       )
 
-    # if someone has an ongoing event then
+    # if someone has an ongoing event at the start of the period then
     # update t_start_date to the end of the event
-    working_pop <- working_pop %>%
-      dplyr::mutate(
-        t_start_date=dplyr::if_else(
-          !is.na(.data$outcome_start_date) &
-          (.data$t_start_date <= .data$outcome_end_date) &
-          (.data$t_start_date > .data$outcome_start_date),
-         .data$outcome_end_date + lubridate::days(1),
-         .data$t_start_date
-        )
-      )
+    ongoing_events <- working_pop %>%
+      dplyr::filter(!is.na(.data$outcome_start_date) &
+                    (.data$t_start_date <= .data$outcome_end_date) &
+                    (.data$t_start_date > .data$outcome_start_date))
+
+    if(nrow(ongoing_events)>=1){
+    ongoing_events <-  ongoing_events %>%
+      dplyr::mutate(new_t_start_date=.data$outcome_end_date + lubridate::days(1)) %>%
+      dplyr::select("person_id", "new_t_start_date")
+
+    working_pop<- working_pop %>%
+      dplyr::full_join(ongoing_events,
+                by="person_id") %>%
+      dplyr::mutate(t_start_date=dplyr::if_else(
+        is.na(.data$new_t_start_date), .data$t_start_date,
+        .data$new_t_start_date
+      )) %>%
+      dplyr::select(-"new_t_start_date")
+
+    # drop any outcomes now before start
+    working_pop<- working_pop %>%
+      dplyr::filter(is.na(.data$outcome_end_date) |
+               .data$outcome_end_date >= .data$t_start_date)
     # drop if start is now after end for anyone
     working_pop <- working_pop %>%
       dplyr::filter(.data$t_start_date <= .data$t_end_date)
+    }
+
 
     # now we may have multiple rows
     # if repetitive events=TRUE,

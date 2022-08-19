@@ -518,6 +518,51 @@ inc <- get_pop_incidence(
 
 expect_true(all(inc$ir$n_persons==1))
 
+# another example
+person <- tibble(
+  person_id = c("1","2"),
+  gender_concept_id = c("8507","8532"),
+  year_of_birth = c(2000,1999),
+  month_of_birth = c(07,07),
+  day_of_birth = c(01,01)
+)
+observation_period <- tibble(
+  observation_period_id = c("1","2"),
+  person_id = c("1","2"),
+  observation_period_start_date = c(as.Date("2000-01-21"),as.Date("2007-01-01")),
+  observation_period_end_date = c(as.Date("2022-12-31"),as.Date("2022-12-31"))
+)
+outcome <- tibble(
+  cohort_definition_id = c("1","1"),
+  subject_id = c("1","1"),
+  cohort_start_date = c(as.Date("2020-06-27"), as.Date("2020-07-30")),
+  cohort_end_date = c(as.Date("2020-07-19"), as.Date("2020-08-20"))
+)
+
+db <- generate_mock_incidence_prevalence_db(person=person,
+                                            observation_period=observation_period,
+                                            outcome=outcome)
+
+dpop <- collect_denominator_pops(
+  db = db,
+  cdm_database_schema = NULL,
+  study_age_stratas = list(c(20,30))
+)
+inc2 <- get_pop_incidence(
+  db = db,
+  results_schema_outcome = NULL,
+  table_name_outcome = "outcome",
+  cohort_id_outcome = "1",
+  cohort_id_denominator_pop = "1",
+  outcome_washout_window = NULL,
+  repetitive_events = TRUE,
+  study_denominator_pop = dpop,
+  time_interval = c("Years"),
+  verbose = TRUE
+)
+expect_true(all(inc2$ir$n_persons==1))
+
+
 dbDisconnect(db)
 
 
