@@ -1,5 +1,5 @@
 ---
-title: "a02_Creating denominator populations"
+title: "Creating denominator populations"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{a02_Creating_denominator_populations}
@@ -10,8 +10,11 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.width=7, 
+  fig.height=5
 )
+
 ```
 
 ```{r, message= FALSE, warning=FALSE, echo=FALSE}
@@ -27,225 +30,372 @@ library(knitr)
 library(IncidencePrevalence)
 ```
 
-## Introduction
-We can use the `collect_denominator_pop()` function to identify the denominator population for a given set of criteria, including age, sex, and prior history requirement. In addition, we can also specify the study period we are interested in.
+# Introduction
+Calculating incidence or prevalence requires first identifying an appropriate denominator population. To find such a denominator population (or multiple denominator populations) we can use the `collect_denominator_pops()` function. This function will identify the time that people satisfy a set of criteria related to the study period and individuals´ age, sex, and amount of prior observed history. 
 
-The `collect_denominator_pop()` function is designed to be called against databases mapped to the OMOP CDM format, as it requires information registered in the person and observation_period tables. It does not require any information on outcome occurrences, as it will be requested in subsequent functions, including `collect_pop_incidence()` and `collect_pop_prevalence()`.
+The `collect_denominator_pops()` function is designed to be used with data mapped to the OMOP CDM format. Unless otherwise specified (see the next vignette "Creating denominator population using a cohort"), it will use information from the person and observation_period tables of the OMOP CDM to identify denominator populations. To note, identifying the denominator population does not require any information on specific outcome occurrences. 
 
-The output of this function consists on a table with information on all the individuals who fulfill the given criteria at any point during the study period. It also includes information on the specific start and end dates in which individuals contributed to the denominator population (cohort_start_date and cohort_end_date). Each patient will be recorded in a different row. For those databases that allow individuals to have multiple non-overlapping observation periods, one row for each patient and observation period will be considered.
-
-## Rationale for contributing time
-The number of individuals and the duration of time in which they will be included in the denominator population will depend on their characteristics (as defined in the person and observation_period tables of our OMOP CDM database) and the set of criteria chosen to run the `collect_denominator_pop()` function.
-
-Individuals will be included in the denominator population once they fulfill the age and prior history requirements specified in the function. Individuals will only contribute time during the time period they were present in the database, and therefore observed, within the desired study period.
-
-Index date (cohort_start_date) is defined as the latest of the following: 
+When using `collect_denominator_pops()`, individuals will enter a denominator population on the respective date of the latest of the following: 
 
 1. Study start date
-2. Start of observation period  
-3. Date in which they turn the minimum age
+2. Date at which they have sufficient prior history (if there is no requirement for prior history, this date will coincide with the date at which their observation period starts)  
+3. Date at which they reach a minimum age
 
-The end of contribution (cohort_end_date) is defined as the earliest of the following: 
+They will then exit on the respective date of the earliest of the following: 
+
 1. Study end date
-2. End of observation period
-3. Last day in which they have the maximum age
+2. Date at which their observation period ends
+3. The last day in which they have the maximum age
+
+
+Let´s go through a few examples to make this a little more concrete.
+
+### No specific requirements
+The simplest case is that no study start and end dates are specified, no prior history requirement is imposed, nor any age or sex criteria. In this case individuals will enter the denominator population once they have entered the database (start of observation period) and will leave when they exit the database (end of observation period). Note that in some databases a person can have multiple observation periods, in which case their contribution of person time would look like the the last person below.
 
 ```{r,echo=FALSE, out.width="80%"}
-knitr::include_graphics(here("vignettes/denominator_pop_inclusion_fig1.png"))
+knitr::include_graphics(here("vignettes/dpop1.png"))
 ```
 
-If prior history is required, individuals will be forced to have been present in the database for a specific period of time at index date. If needed, index date will be postponed to fulfill this requirement.
+### Specified study period
+If we specify a study start and end date then only observation time during this period will be included.
 
 ```{r,echo=FALSE, out.width="80%"}
-knitr::include_graphics(here("vignettes/denominator_pop_inclusion_fig2.png"))
+knitr::include_graphics(here("vignettes/dpop2.png"))
 ```
 
-Study start and end date, age and prior history requirements will be defined as part of the `collect_denominator_pop()` function. The start and end of observation period will be obtained from the observation_period table of our OMOP CDM database. 
-
-In addition, individuals can have one or multiple non-overlapping observation periods. The time contribution of each individual will be calculated for each of their observation periods.
+### Specified study period and prior history requirement
+If we also add some requirement of prior history then somebody will only contribute time at risk once this is reached.
 
 ```{r,echo=FALSE, out.width="80%"}
-knitr::include_graphics(here("vignettes/denominator_pop_inclusion_fig3.png"))
+knitr::include_graphics(here("vignettes/dpop3.png"))
 ```
 
-## Mock database
-Let's say we have a mock database with five hypothetical patients with different observation periods. This database contains the person and observation_period tables in the OMOP CDM format.
 
-The structure of each of these tables is described in detail at: https://ohdsi.github.io/CommonDataModel/cdm53.html
+### Specified study period, prior history requirement, and age and sex criteria
 
-```{r, message=FALSE, warning=FALSE, echo=FALSE, results='hide'}
-db <- duckdb::dbConnect(duckdb::duckdb(), ":memory:")
-person<-tibble(person_id=c("1", "2", "3", "4", "5"),
-               gender_concept_id=c("8507","8507", "8532", "8532", "8507"),
-               year_of_birth=c(2000,2010, 2003, 2001, 2012),
-               month_of_birth=c(01,10,04,06,11),
-               day_of_birth=c(01, 01, 01,01,01))
+Lastly we can also impose age and sex criteria, and now individuals will only contribute time when they also satisfy these criteria. Not shown in the below figure is a person´s sex, but we could also stratify a denominator population by this as well.
 
-observation_period<-tibble(observation_period_id=c("1","1", "1","1", "1"),
-                           person_id=c("1", "2", "3", "4", "5"),
-                           observation_period_start_date=c(as.Date("2010-01-01"),as.Date("2013-10-10"), as.Date("2011-10-01"), as.Date("2013-02-01"), as.Date("2015-04-01")),
-                           observation_period_end_date=c(as.Date("2014-06-01"),as.Date("2015-12-31"), as.Date("2015-03-01"), as.Date("2015-11-01"), as.Date("2015-12-31")))
-
-DBI::dbWithTransaction(db, {
-  DBI::dbWriteTable(db, "person", person,
-                    overwrite = TRUE)
-})
-DBI::dbWithTransaction(db, {
-  DBI::dbWriteTable(db, "observation_period", observation_period,
-                    overwrite = TRUE
-  )
-})
+```{r,echo=FALSE, out.width="80%"}
+knitr::include_graphics(here("vignettes/dpop4.png"))
 ```
 
-```{r}
-dbReadTable(db, "person")
-dbReadTable(db, "observation_period")
+# Using collect_denominator_pops()
+`collect_denominator_pops()` is the function we use to identify a set of denominator populations. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 500 example patients using the `generate_mock_incidence_prevalence_db()` function.
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+library(IncidencePrevalence)
+library(ggplot2)
+library(tidyr)
+
+db<-generate_mock_incidence_prevalence_db(sample_size=500)
 ```
 
-We can plot their observation periods:
 
-```{r,echo=FALSE, out.width="60%"}
-knitr::include_graphics(here("vignettes/mock_db_fig1.png"))
-```
+### No specific requirements
 
-## Arguments
-To use the `collect_denominator_pop()` function, connection details and the name of the schema which contains the OMOP CDM person and observation_period tables must be indicated. If the other arguments are not specified, default arguments will be automatically assigned.
+We can get a denominator population without including any particular requirements like so
 
-Default arguments for this function include no age and no sex stratification, and no prior history requirement. All individuals aged between 0 to 150 years old are included, and results are reported for both sexes. If not provided, study start and end date are considered as the earliest and latest observation start and end date recorded in the observation_period table, respectively. All this information is specified in the output table (age_strata, sex_strata, required_days_prior_history).
+```{r, message=FALSE, warning=FALSE}
+dpop <- collect_denominator_pops(db = db,
+                                 cdm_database_schema = NULL,
+                                 study_start_date = NULL,
+                                 study_end_date = NULL,
+                                 study_age_stratas = NULL,
+                                 study_sex_stratas = "Both",
+                                 study_days_prior_history = 0)
 
-```{r}
-dpop<-collect_denominator_pops(db=db,
-                                cdm_database_schema=NULL)
-glimpse(dpop)
-```
-### Set a study period 
-To set a study period, we can specify a study_start_date and a study_end_date. By setting these arguments, individuals will only contribute time to the denominator population during this period of time. 
+dpop %>%  glimpse()
 
-Given these dates, only four out of our five individuals will contribute to the denominator population.
-
-```{r}
-dpop<-collect_denominator_pops(db=db,
-                               cdm_database_schema=NULL,
-                               study_start_date= as.Date("2012-01-01"),
-                               study_end_date= as.Date("2014-12-31"),
-                               verbose= FALSE)
-glimpse(dpop)
-```
-```{r,echo=FALSE, out.width="60%"}
-knitr::include_graphics(here("vignettes/mock_db_fig2.png"))
-```
-
-Study_start_date and study_end_date are also reported in the output table.
-
-### Define age & sex stratifications
-We can identify the denominator population for different age groups. To do so, we need to set the argument study_age_stratas indicating the age groups to be considered. For sex, we can set study_sex_stratas with the sex stratification in which results are desired ("Male", "Female", "Both"). 
-
-The number of participants included in the denominator population will depend on the characteristics defined. In this case, only three participants fulfill the age criteria during the study period.
-
-```{r}
-dpop_sp<-collect_denominator_pops(db=db,
-                                      cdm_database_schema=NULL,
-                                      study_start_date= as.Date("2012-01-01"),
-                                      study_end_date= as.Date("2014-12-31"),
-                                      study_age_stratas=list(c(8,12)),
-                                      study_sex_stratas=c("Both"), 
-                                      verbose= FALSE)
-glimpse(dpop_sp)
-```
-We can check that the rational for this, computing the age at study_start_date and study_end_date. 
-```{r, echo=FALSE}
-person_dob <-person %>% filter(person_id !=5)%>%
-  mutate(dob=ymd(paste(year_of_birth, month_of_birth, day_of_birth, sep="-")))%>%
-  mutate(gender = ifelse(gender_concept_id == "8507", "Male",
-        ifelse(gender_concept_id == "8532", "Female", NA)))%>%
-  select(person_id, dob, gender)
-
-person_dob <- person_dob %>% 
-              mutate(age_start_date = as.numeric(floor((as.Date("2012-01-01") -dob)/365.25)))%>%
-              mutate(age_end_date = as.numeric(floor((as.Date("2014-12-31") -dob)/365.25)))%>%
-              mutate(age.criteria = ifelse(age_start_date <= 12 & age_end_date >= 8, TRUE, FALSE))
-person_dob 
+dpop %>%
+  filter(person_id %in% c("1", "2", "3", "4", "5")) 
 
 ```
 
-Furthermore, if we set study_sex_stratas to Female, our denominator population will be restricted to two participants.
+Let´s have a look at the included time of the first five patients
 
-```{r}
-dpop_sp<-collect_denominator_pops(db=db,
-                                      cdm_database_schema=NULL,
-                                      study_start_date= as.Date("2012-01-01"),
-                                      study_end_date= as.Date("2014-12-31"),
-                                      study_age_stratas=list(c(8,12)),
-                                      study_sex_stratas=c("Female"), 
-                                      verbose= FALSE)
-glimpse(dpop_sp)
+```{r, message=FALSE, warning=FALSE}
+dpop %>%
+  filter(person_id %in% c("1", "2", "3", "4", "5"))  %>% 
+  pivot_longer(cols = c("cohort_start_date",
+                        "cohort_end_date")) %>%
+  ggplot()+
+  geom_point(aes(x=value,  y=person_id))+
+  geom_line(aes(x=value,  y=person_id))+
+  theme_minimal()+
+  xlab("Year")
+
 ```
 
-### Prior history requirement
-We can set study_days_prior_history to indicate the number of days of prior history requirement at index date. If a participant does not fulfill this criteria at index date, their inclusion will be postponed until the number of days defined in the study_days_prior_history is achieved.
-
-
-```{r}
-dpop_sp<-collect_denominator_pops(db=db,
-                                      cdm_database_schema=NULL,
-                                      study_start_date= as.Date("2012-01-01"),
-                                      study_end_date= as.Date("2014-12-31"),
-                                      study_age_stratas=list(c(8,12)),
-                                      study_sex_stratas=c("Female"), 
-                                      study_days_prior_history= 180,
-                                      verbose= FALSE)
-glimpse(dpop_sp)
+We can also plot a histogram of start and end dates
+```{r, message=FALSE, warning=FALSE}
+dpop %>% 
+  ggplot() + 
+  theme_minimal()+
+  geom_histogram(aes(cohort_start_date),
+                 colour="black", fill="grey") 
 ```
 
-We can check the observation period of these participants in the observation_period table:
+```{r, message=FALSE, warning=FALSE}
+dpop %>% 
+  ggplot() + 
+  theme_minimal()+
+  geom_histogram(aes(cohort_end_date),
+                 colour="black", fill="grey")
 
-```{r, echo=FALSE}
-observation_period %>% 
-  filter(person_id == "3"|person_id == "4")
 ```
-In this example, we can see that the cohort_start_date of these two patients does not equal the observation_period_start_date reported in the observation_period_table. Given the prior history requirement, cohort_start_date is postponed 180 days following the observation_period_start_date for both cases. Here, study_days_prior_history is plotted in red.
 
-```{r,echo=FALSE, out.width="60%"}
-knitr::include_graphics(here("vignettes/mock_db_fig3.png"))
+### Specified study period
+We can get specify a study period like so
+
+```{r, message=FALSE, warning=FALSE}
+dpop <- collect_denominator_pops(db = db,
+                                 cdm_database_schema = NULL,
+                                 study_start_date= as.Date("2008-01-01"),
+                                 study_end_date= as.Date("2010-01-01"),
+                                 study_age_stratas = NULL,
+                                 study_sex_stratas = "Both",
+                                 study_days_prior_history = 0)
+dpop %>%  glimpse()
+
+dpop %>%
+  filter(person_id %in% c("1", "2", "3", "4", "5")) 
+```
+
+Now we can see the person "3" and "5" haven´t been included as they don´t have any observation time during the study period. Indeed, we´re now including 328 of the original 500 simulated patients.
+
+```{r, message=FALSE, warning=FALSE}
+dpop %>%
+  filter(person_id %in% c("1", "2", "3", "4", "5")) %>% 
+  pivot_longer(cols = c("cohort_start_date",
+                        "cohort_end_date")) %>%
+  ggplot()+
+  geom_point(aes(x=value,  y=person_id))+
+  geom_line(aes(x=value,  y=person_id))+
+  theme_minimal()+
+  xlab("Year")
+
+```
+
+We can also plot a histogram of start and end dates and we can see that now most people enter at the start of the study period and leave at the end.
+```{r, message=FALSE, warning=FALSE}
+dpop %>% 
+  ggplot() + 
+  theme_minimal()+
+  geom_histogram(aes(cohort_start_date),
+                 colour="black", fill="grey") 
+```
+
+```{r, message=FALSE, warning=FALSE}
+dpop %>% 
+  ggplot() + 
+  theme_minimal()+
+  geom_histogram(aes(cohort_end_date),
+                 colour="black", fill="grey")
+
+```
+
+
+### Specified study period and prior history requirement
+We can add some requirement of prior history
+
+```{r, message=FALSE, warning=FALSE}
+dpop <- collect_denominator_pops(db = db,
+                                 cdm_database_schema = NULL,
+                                 study_start_date= as.Date("2008-01-01"),
+                                 study_end_date= as.Date("2010-01-01"),
+                                 study_age_stratas = NULL,
+                                 study_sex_stratas = "Both",
+                                 study_days_prior_history = 365)
+dpop %>%  glimpse()
+
+dpop %>%
+  filter(person_id %in% c("1", "2", "3", "4", "5")) 
+```
+
+Now we only include patient "4" of the original first five and we´re now including 178 of the original 500 simulated patients.
+
+```{r, message=FALSE, warning=FALSE}
+dpop %>%
+  filter(person_id %in% c("1", "2", "3", "4", "5")) %>% 
+  pivot_longer(cols = c("cohort_start_date",
+                        "cohort_end_date")) %>%
+  ggplot()+
+  geom_point(aes(x=value,  y=person_id))+
+  geom_line(aes(x=value,  y=person_id))+
+  theme_minimal()+
+  xlab("Year")
+
+```
+
+With the histograms of start and end dates now looking like
+```{r, message=FALSE, warning=FALSE}
+dpop %>% 
+  ggplot() + 
+  theme_minimal()+
+  geom_histogram(aes(cohort_start_date),
+                 colour="black", fill="grey") 
+```
+
+```{r, message=FALSE, warning=FALSE}
+dpop %>% 
+  ggplot() + 
+  theme_minimal()+
+  geom_histogram(aes(cohort_end_date),
+                 colour="black", fill="grey")
+
+```
+
+### Specified study period, prior history requirement, and age and sex criteria
+In addition to all the above we could also add some requirements around age and sex. One thing to note is when the upper limit is 65 below, that means we will include time from a person up to and including the day before their 66th birthday.
+
+```{r, message=FALSE, warning=FALSE}
+dpop <- collect_denominator_pops(db = db,
+                                 cdm_database_schema = NULL,
+                                 study_start_date= as.Date("2008-01-01"),
+                                 study_end_date= as.Date("2010-01-01"),
+                                 study_age_stratas = list(c(18,65)),
+                                 study_sex_stratas = "Female",
+                                 study_days_prior_history = 365)
+dpop %>%  glimpse()
+
+dpop %>%
+  filter(person_id %in% c("1", "2", "3", "4", "5")) 
+```
+
+Now none of the original first five are included and we´re including 48 of the original 500 simulated patients.
+
+The histograms of start and end dates now looking like
+```{r, message=FALSE, warning=FALSE}
+dpop %>% 
+  ggplot() + 
+  theme_minimal()+
+  geom_histogram(aes(cohort_start_date),
+                 colour="black", fill="grey") 
+```
+
+```{r, message=FALSE, warning=FALSE}
+dpop %>% 
+  ggplot() + 
+  theme_minimal()+
+  geom_histogram(aes(cohort_end_date),
+                 colour="black", fill="grey")
+
+```
+
+### Multiple options to return multiple denominator populations 
+More than one age, sex and prior history requirements can be specified at the same time. First, we can take a look at having two age strata. We can see below that those individuals who have their 41st birthday during the study period will go from the first cohort (age_strata: 0;40) to the second (age_strata: 41;100) on this day.
+```{r, message=FALSE, warning=FALSE}
+dpop <- collect_denominator_pops(db = db,
+                                 cdm_database_schema = NULL,
+                                 study_start_date= as.Date("2008-01-01"),
+                                 study_end_date= as.Date("2010-01-01"),
+                                 study_age_stratas = list(c(0,40),
+                                                          c(41,100)),
+                                 study_sex_stratas = "Both",
+                                 study_days_prior_history = 0)
+
+dpop %>%  glimpse()
+
+dpop %>% group_by(cohort_definition_id, age_strata) %>% tally()
+
+dpop %>%
+  filter(person_id %in% c("1","3","57", "353", "393", "496"))  %>% 
+  pivot_longer(cols = c("cohort_start_date",
+                        "cohort_end_date")) %>%
+  ggplot(aes(x=person_id,  y=value, colour=cohort_definition_id))+
+  geom_point(position=position_dodge(width=0.5))+
+  geom_line(position=position_dodge(width=0.5))+
+  theme_minimal()+
+  theme(legend.position = "top")+
+  ylab("Year")+
+  coord_flip()
+
+```
+
+We can then also 
+```{r, message=FALSE, warning=FALSE, fig.height=8}
+dpop <- collect_denominator_pops(db = db,
+                                 cdm_database_schema = NULL,
+                                 study_start_date= as.Date("2008-01-01"),
+                                 study_end_date= as.Date("2010-01-01"),
+                                 study_age_stratas = list(c(0,40),
+                                                          c(41,100)),
+                                 study_sex_stratas = c("Male", "Female","Both"),
+                                 study_days_prior_history = 0)
+
+dpop %>%  glimpse()
+
+dpop %>% group_by(cohort_definition_id, age_strata, sex_strata) %>% tally()
+
+dpop %>%
+  filter(person_id %in% c("1","3","57", "353", "393", "496"))  %>% 
+  pivot_longer(cols = c("cohort_start_date",
+                        "cohort_end_date")) %>%
+  ggplot(aes(x=person_id,  y=value, colour=cohort_definition_id))+
+  facet_grid(sex_strata ~ ., space = "free_y") +
+  geom_point(position=position_dodge(width=0.5))+
+  geom_line(position=position_dodge(width=0.5))+
+  theme_bw()+
+  theme(legend.position = "top")+
+  ylab("Year")+
+  coord_flip()
+
+```
+
+
+And then also specifying multiple prior history requirements 
+```{r, message=FALSE, warning=FALSE, fig.height=10}
+dpop <- collect_denominator_pops(db = db,
+                                 cdm_database_schema = NULL,
+                                 study_start_date= as.Date("2008-01-01"),
+                                 study_end_date= as.Date("2010-01-01"),
+                                 study_age_stratas = list(c(0,40),
+                                                          c(41,100)),
+                                 study_sex_stratas = c("Male", "Female","Both"),
+                                 study_days_prior_history = c(0,365))
+
+dpop %>%  glimpse()
+
+dpop %>% 
+  group_by(cohort_definition_id, age_strata, sex_strata, required_days_prior_history) %>% 
+  tally()
+
+dpop %>%
+  filter(person_id %in% c("1","3","57", "353", "393", "496"))  %>% 
+  pivot_longer(cols = c("cohort_start_date",
+                        "cohort_end_date")) %>%
+  ggplot(aes(x=person_id,  y=value, colour=cohort_definition_id))+
+  facet_grid(sex_strata+required_days_prior_history ~ ., space = "free_y") +
+  geom_point(position=position_dodge(width=0.5))+
+  geom_line(position=position_dodge(width=0.5))+
+  theme_bw()+
+  theme(legend.position = "top")+
+  ylab("Year")+
+  coord_flip()
+
 ```
 
 ### Verbose
-We can set verbose=TRUE to report progress as code is running. By default, no progress is reported (verbose=FALSE).
+We can set verbose=TRUE to report progress as code is running. By default, no progress is reported (verbose=FALSE). 
 
-## Multiple options
-More than one age, sex and prior history requirements can be specified at the same time. Overlapping of different age groups is allowed. 
-
-```{r}
-dpop_sp<-collect_denominator_pops(db=db,
-                                      cdm_database_schema=NULL,
-                                      study_start_date= as.Date("2012-01-01"),
-                                      study_end_date= as.Date("2014-12-31"),
-                                      study_age_stratas=list(c(0,10), c(8,12)),
-                                      study_sex_stratas=c("Male", "Female", "Both"), 
-                                      study_days_prior_history= c(0,180),
-                                      verbose= FALSE)
-glimpse(dpop_sp)
-```
-A specific denominator population will be created for each combination of requirements. In this case, we have: 2 age groups, 2 prior history requirements and 3 sex categories, which result in 12 different denominator populations. 
-
-```{r,echo=FALSE}
-options <-expand.grid(dpop_sp%>%select(age_strata)%>% distinct()%>%pull(),
-             dpop_sp%>%select(sex_strata)%>%distinct()%>%pull(),
-             dpop_sp%>%select(required_days_prior_history)%>%distinct()%>%pull()
-            )%>%
-          rename(age_strata=Var1)%>%
-          rename(sex_strata=Var2)%>%
-          rename(required_prior_history=Var3)
-options
+```{r, message=TRUE, warning=FALSE}
+dpop <- collect_denominator_pops(db = db,
+                                 cdm_database_schema = NULL,
+                                 study_start_date= as.Date("2008-01-01"),
+                                 study_end_date= as.Date("2010-01-01"),
+                                 study_age_stratas = list(c(0,40),
+                                                          c(41,100)),
+                                 study_sex_stratas = c("Male", "Female","Both"),
+                                 study_days_prior_history = c(0,365),
+                                 verbose=TRUE)
 ```
 
-### Alternative to identify denominator populations
-This package allows the user to identify the denominator population without the need to used the `collect_denominator_pop()` function. Therefore,`collect_pop_incidence()` and `collect_pop_prevalence()`functions can be used against populations not created with the`collect_denominator_pop()`function. 
+### Output 
+The output of this function consists on a list of tibbles with information on all the individuals who fulfill the given criteria at any point during the study period. It also includes information on the specific start and end dates in which individuals contributed to the denominator population (cohort_start_date and cohort_end_date). Each patient will be recorded in a different row. For those databases that allow individuals to have multiple non-overlapping observation periods, one row for each patient and observation period will be considered.
 
-If the user prefers to do so, he/she can create a dataframe containing the denominator population of interest. Individuals included in this dataframe can be identified by bespoke code or by other OHDSI tools such as ATLAS.
 
-However, the structure of the dataframe containing the denominator population must be the same that the one created by `collect_denominator_pop()`, and must include the following columns:
+1) Denominator population
+2) Attrition
 
-```{r, fig.show='hold', echo=FALSE, warning=FALSE}
-colnames(dpop)
-```
+To add ....

@@ -1,8 +1,8 @@
 ---
-title: "a01_Introduction_to_OmopPopEpi"
+title: "Creating denominator population using a cohort"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{a01_Introduction_to_OmopPopEpi}
+  %\VignetteIndexEntry{a03_Creating_denominator_population_using_a_cohort}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
