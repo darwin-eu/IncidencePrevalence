@@ -697,6 +697,60 @@ expect_true(sum(inc_with_rep[["ir"]]$n_events)==1)
 
 })
 
+test_that("mock db: cohort start overlaps with the outcome", {
+
+  library(DBI)
+  library(dplyr)
+  library(tibble)
+
+  person <- tibble(
+    person_id = c("1","2"),
+    gender_concept_id = c("8507","8532"),
+    year_of_birth = c(1995,1995),
+    month_of_birth = c(07,07),
+    day_of_birth = c(01,01)
+  )
+  observation_period <- tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2020-05-09"),as.Date("2019-01-01")),
+    observation_period_end_date = c(as.Date("2020-12-31"),as.Date("2020-12-31"))
+  )
+  outcome <- tibble(
+    cohort_definition_id = c("1","1"),
+    subject_id = c("1","1"),
+    cohort_start_date = c(as.Date("2020-04-28")),
+    cohort_end_date = c(as.Date("2020-05-19"))
+  )
+
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome[1,])
+
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL,
+    study_age_stratas = list(c(20,30))
+  )
+
+  inc <- collect_pop_incidence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcomes = "outcome",
+    cohort_ids_outcomes = "1",
+    cohort_ids_denominator_pops = "1",
+    outcome_washout_windows = 180,
+    repetitive_events = TRUE,
+    study_denominator_pop = dpop,
+    time_intervals = c("Years"),
+    verbose = TRUE,
+    minimum_cell_count = 0
+  )
+
+  expect_true(all(inc$incidence_estimates$n_persons == c(1,2)))
+
+})
+
 test_that("mock db: check full period requirement - year", {
 
   library(DBI)

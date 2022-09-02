@@ -384,7 +384,7 @@ get_pop_incidence <- function(db,
       dplyr::mutate(new_t_start_date=.data$outcome_end_date + lubridate::days(1)) %>%
       dplyr::select("person_id", "new_t_start_date")
 
-    working_pop<- working_pop %>%
+    working_pop <- working_pop %>%
       dplyr::full_join(ongoing_events,
                 by="person_id") %>%
       dplyr::mutate(t_start_date=dplyr::if_else(
@@ -396,10 +396,21 @@ get_pop_incidence <- function(db,
     # drop any outcomes now before start
     working_pop<- working_pop %>%
       dplyr::filter(is.na(.data$outcome_end_date) |
-               .data$outcome_end_date >= .data$t_start_date)
+               .data$outcome_end_date <= .data$t_start_date)
     # drop if start is now after end for anyone
     working_pop <- working_pop %>%
       dplyr::filter(.data$t_start_date <= .data$t_end_date)
+    # outcome to NA if now before the start date
+    working_pop <- working_pop %>%
+      dplyr::mutate(outcome_start_date =
+                     dplyr::if_else(.data$outcome_start_date <
+                       .data$t_start_date , as.Date(NA),
+                     .data$outcome_start_date)) %>%
+      dplyr::mutate(outcome_end_date =
+                      dplyr::if_else(is.na(.data$outcome_start_date),
+                                     as.Date(NA),
+                                     .data$outcome_end_date))
+
     }
 
 
