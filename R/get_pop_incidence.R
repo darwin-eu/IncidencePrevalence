@@ -252,7 +252,7 @@ get_pop_incidence <- function(db,
   if (time_interval == "years") {
     n_time <- lubridate::interval(
       lubridate::ymd(start_date),
-      lubridate::ymd(end_date)
+      lubridate::ymd(end_date) + lubridate::days(1)
     ) %/%
       lubridate::years(1)
 
@@ -269,7 +269,7 @@ get_pop_incidence <- function(db,
   if (time_interval == "months") {
     n_time <- lubridate::interval(
       lubridate::ymd(start_date),
-      lubridate::ymd(end_date)
+      lubridate::ymd(end_date) + lubridate::days(1)
     ) %/%
       months(1)
 

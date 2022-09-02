@@ -697,6 +697,303 @@ expect_true(sum(inc_with_rep[["ir"]]$n_events)==1)
 
 })
 
+test_that("mock db: check full period requirement - year", {
+
+  library(DBI)
+  library(dplyr)
+  library(tibble)
+
+
+# expected to work
+  person <- tibble(
+    person_id = c("1","2"),
+    gender_concept_id = c("8507","8532"),
+    year_of_birth = c(1995,1995),
+    month_of_birth = c(07,07),
+    day_of_birth = c(01,01)
+  )
+  observation_period <- tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2020-05-09"),as.Date("2020-01-01")),
+    observation_period_end_date = c(as.Date("2021-06-06"),as.Date("2021-06-06"))
+  )
+  outcome <- tibble(
+    cohort_definition_id = c("1"),
+    subject_id = c("1"),
+    cohort_start_date = c(as.Date("2020-04-28")),
+    cohort_end_date = c(as.Date("2020-05-19"))
+  )
+
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
+
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL,
+    study_age_stratas = list(c(20,30))
+  )
+
+  inc <- get_pop_incidence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    cohort_id_denominator_pop = "1",
+    outcome_washout_window = NULL,
+    repetitive_events = TRUE,
+    study_denominator_pop = dpop,
+    time_interval = c("Years"),
+    verbose = TRUE
+  )
+  expect_true(inc$ir$n_persons == 1)
+
+
+# edge case first day to last of the year
+# still expect this to work
+person <- tibble(
+  person_id = c("1","2"),
+  gender_concept_id = c("8507","8532"),
+  year_of_birth = c(1995,1995),
+  month_of_birth = c(07,07),
+  day_of_birth = c(01,01)
+)
+observation_period <- tibble(
+  observation_period_id = c("1","2"),
+  person_id = c("1","2"),
+  observation_period_start_date = c(as.Date("2020-05-09"),as.Date("2020-01-01")),
+  observation_period_end_date = c(as.Date("2020-12-31"),as.Date("2020-12-31"))
+)
+outcome <- tibble(
+  cohort_definition_id = c("1"),
+  subject_id = c("1"),
+  cohort_start_date = c(as.Date("2020-04-28")),
+  cohort_end_date = c(as.Date("2020-05-19"))
+)
+
+db <- generate_mock_incidence_prevalence_db(person=person,
+                                            observation_period=observation_period,
+                                            outcome=outcome)
+
+dpop <- collect_denominator_pops(
+  db = db,
+  cdm_database_schema = NULL,
+  study_age_stratas = list(c(20,30))
+)
+
+inc <- get_pop_incidence(
+  db = db,
+  results_schema_outcome = NULL,
+  table_name_outcome = "outcome",
+  cohort_id_outcome = "1",
+  cohort_id_denominator_pop = "1",
+  outcome_washout_window = NULL,
+  repetitive_events = TRUE,
+  study_denominator_pop = dpop,
+  time_interval = c("Years"),
+  verbose = TRUE
+)
+expect_true(inc$ir$n_persons == 1)
+
+
+# expected error case first day to day before last of the year
+# now we expect an error
+person <- tibble(
+  person_id = c("1","2"),
+  gender_concept_id = c("8507","8532"),
+  year_of_birth = c(1995,1995),
+  month_of_birth = c(07,07),
+  day_of_birth = c(01,01)
+)
+observation_period <- tibble(
+  observation_period_id = c("1","2"),
+  person_id = c("1","2"),
+  observation_period_start_date = c(as.Date("2020-05-09"),as.Date("2020-01-01")),
+  observation_period_end_date = c(as.Date("2020-12-30"),as.Date("2020-12-30"))
+)
+outcome <- tibble(
+  cohort_definition_id = c("1"),
+  subject_id = c("1"),
+  cohort_start_date = c(as.Date("2020-04-28")),
+  cohort_end_date = c(as.Date("2020-05-19"))
+)
+
+db <- generate_mock_incidence_prevalence_db(person=person,
+                                            observation_period=observation_period,
+                                            outcome=outcome)
+
+dpop <- collect_denominator_pops(
+  db = db,
+  cdm_database_schema = NULL,
+  study_age_stratas = list(c(20,30))
+)
+
+expect_error(get_pop_incidence(
+  db = db,
+  results_schema_outcome = NULL,
+  table_name_outcome = "outcome",
+  cohort_id_outcome = "1",
+  cohort_id_denominator_pop = "1",
+  outcome_washout_window = NULL,
+  repetitive_events = TRUE,
+  study_denominator_pop = dpop,
+  time_interval = c("Years"),
+  verbose = TRUE
+))
+
+
+})
+
+test_that("mock db: check full period requirement - month", {
+
+  library(DBI)
+  library(dplyr)
+  library(tibble)
+
+
+  # expected to work
+  person <- tibble(
+    person_id = c("1","2"),
+    gender_concept_id = c("8507","8532"),
+    year_of_birth = c(1995,1995),
+    month_of_birth = c(07,07),
+    day_of_birth = c(01,01)
+  )
+  observation_period <- tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2020-05-09"),as.Date("2020-01-01")),
+    observation_period_end_date = c(as.Date("2020-06-06"),as.Date("2020-06-06"))
+  )
+  outcome <- tibble(
+    cohort_definition_id = c("1"),
+    subject_id = c("1"),
+    cohort_start_date = c(as.Date("2020-04-28")),
+    cohort_end_date = c(as.Date("2020-05-19"))
+  )
+
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
+
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL,
+    study_age_stratas = list(c(20,30))
+  )
+
+  inc <- get_pop_incidence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    cohort_id_denominator_pop = "1",
+    outcome_washout_window = NULL,
+    repetitive_events = TRUE,
+    study_denominator_pop = dpop,
+    time_interval = c("Months"),
+    verbose = TRUE
+  )
+  expect_true(nrow(inc$ir)>= 1)
+
+
+  # edge case first day to last of the month
+  # still expect this to work
+  person <- tibble(
+    person_id = c("1","2"),
+    gender_concept_id = c("8507","8532"),
+    year_of_birth = c(1995,1995),
+    month_of_birth = c(07,07),
+    day_of_birth = c(01,01)
+  )
+  observation_period <- tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2020-05-09"),as.Date("2020-01-01")),
+    observation_period_end_date = c(as.Date("2020-01-31"),as.Date("2020-01-31"))
+  )
+  outcome <- tibble(
+    cohort_definition_id = c("1"),
+    subject_id = c("1"),
+    cohort_start_date = c(as.Date("2020-04-28")),
+    cohort_end_date = c(as.Date("2020-05-19"))
+  )
+
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
+
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL,
+    study_age_stratas = list(c(20,30))
+  )
+
+  inc <- get_pop_incidence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    cohort_id_denominator_pop = "1",
+    outcome_washout_window = NULL,
+    repetitive_events = TRUE,
+    study_denominator_pop = dpop,
+    time_interval = c("Months"),
+    verbose = TRUE
+  )
+  expect_true(inc$ir$n_persons == 1)
+  expect_true(nrow(inc$ir)>= 1)
+
+
+  # expected error case first day to day before last of the year
+  # now we expect an error
+  person <- tibble(
+    person_id = c("1","2"),
+    gender_concept_id = c("8507","8532"),
+    year_of_birth = c(1995,1995),
+    month_of_birth = c(07,07),
+    day_of_birth = c(01,01)
+  )
+  observation_period <- tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2020-05-09"),as.Date("2020-01-01")),
+    observation_period_end_date = c(as.Date("2020-01-30"),as.Date("2020-01-30"))
+  )
+  outcome <- tibble(
+    cohort_definition_id = c("1"),
+    subject_id = c("1"),
+    cohort_start_date = c(as.Date("2020-04-28")),
+    cohort_end_date = c(as.Date("2020-05-19"))
+  )
+
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
+
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL,
+    study_age_stratas = list(c(20,30))
+  )
+
+  expect_error(get_pop_incidence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    cohort_id_denominator_pop = "1",
+    outcome_washout_window = NULL,
+    repetitive_events = TRUE,
+    study_denominator_pop = dpop,
+    time_interval = c("Months"),
+    verbose = TRUE
+  ))
+
+
+})
+
 test_that("mock db: check conversion of user inputs", {
   library(DBI)
   library(dplyr)
