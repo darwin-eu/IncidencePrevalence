@@ -10,7 +10,10 @@ generate_mock_incidence_prevalence_db(
   outcome = NULL,
   sample_size = 1,
   out_pre = 1,
-  seed = 444
+  seed = 444,
+  age_beta = NULL,
+  gender_beta = NULL,
+  intercept = NULL
 )
 }
 \arguments{
@@ -25,6 +28,12 @@ generate_mock_incidence_prevalence_db(
 \item{out_pre}{\% of patient with an event}
 
 \item{seed}{seed for simulating the dataset use same seed to get same dataset}
+
+\item{age_beta}{the beta for the standardized age in logistics regression outcome model}
+
+\item{gender_beta}{the beta for the gender flag in logistics regression outcome model}
+
+\item{intercept}{the beta for the intercept in the logistics regression outcome model}
 }
 \value{
 DBIConnection to duckdb database with mock data

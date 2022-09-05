@@ -23,6 +23,9 @@
 #' @param sample_size number of unique patient
 #' @param out_pre % of patient with an event
 #' @param seed seed for simulating the dataset use same seed to get same dataset
+#' @param age_beta the beta for the standardized age in logistics regression outcome model
+#' @param gender_beta the beta for the gender flag in logistics regression outcome model
+#' @param intercept the beta for the intercept in the logistics regression outcome model
 #' @return DBIConnection to duckdb database with mock data
 #' @export
 #'
@@ -56,7 +59,10 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
                                                   outcome = NULL,
                                                   sample_size = 1,
                                                   out_pre = 1,
-                                                  seed = 444) {
+                                                  seed = 444,
+                                                  age_beta = NULL,
+                                                  gender_beta = NULL,
+                                                  intercept = NULL) {
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assert_tibble(person, null.ok = TRUE)
   checkmate::assert_tibble(observation_period, null.ok = TRUE)
@@ -64,6 +70,9 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
   checkmate::assert_int(sample_size, lower = 1)
   checkmate::assert_numeric(out_pre, lower = 0, upper = 1)
   checkmate::assert_int(seed, lower = 1)
+  checkmate::assert_numeric(age_beta, null.ok = TRUE)
+  checkmate::assert_numeric(gender_beta, null.ok = TRUE)
+  checkmate::assert_numeric(intercept, null.ok = TRUE)
   checkmate::reportAssertions(collection = errorMessage)
 
   set.seed(seed)
@@ -73,14 +82,14 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
     id <- as.character(seq(1:sample_size))
     # person gender
     gender_id <- sample(c("8507", "8532"),
-      sample_size,
-      replace = TRUE
+                        sample_size,
+                        replace = TRUE
     )
     # person date of birth
     # random date of birth
     DOB <- sample(seq(as.Date("1920-01-01"),
-      as.Date("2000-01-01"),
-      by = "day"
+                      as.Date("2000-01-01"),
+                      by = "day"
     ),
     sample_size,
     replace = TRUE
@@ -94,12 +103,12 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
     # create a list of observational_period_id
     obs_start_date <-
       sample(seq(as.Date("2005-01-01"), as.Date("2010-01-01"), by = "day"),
-        sample_size,
-        replace = TRUE
+             sample_size,
+             replace = TRUE
       ) # start date for the period
     obs_end_date <- obs_start_date + lubridate::days(sample(1:1000,
-      sample_size,
-      replace = TRUE
+                                                            sample_size,
+                                                            replace = TRUE
     ))
     if (is.null(person)) {
       person <- tibble::tibble(
@@ -122,28 +131,30 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
   }
 
   if (is.null(outcome)) {
+
+    if(is.null(age_beta)||is.null(gender_beta)||is.null(intercept)) {
     # outcome table
     # note, only one outcome cohort
     subject_id <- sample(person$person_id,
-      round(nrow(person) * out_pre, digits = 0),
-      replace = FALSE
+                         round(nrow(person) * out_pre, digits = 0),
+                         replace = FALSE
     )
 
     outcome <- observation_period %>%
       dplyr::rename("subject_id" = "person_id") %>%
       dplyr::filter(.data$subject_id %in% .env$subject_id) %>%
       dplyr::mutate(obs_days = as.numeric(difftime(.data$observation_period_end_date,
-        .data$observation_period_start_date,
-        units = "days"
+                                                   .data$observation_period_start_date,
+                                                   units = "days"
       ))) %>%
       dplyr::mutate(days_to_outcome = round(stats::runif(length(.env$subject_id),
-        min = 1,
-        max = .data$obs_days
+                                                         min = 1,
+                                                         max = .data$obs_days
       ))) %>%
       dplyr::mutate(cohort_start_date = .data$observation_period_start_date +
-        .data$days_to_outcome) %>%
+                      .data$days_to_outcome) %>%
       dplyr::mutate(cohort_end_date = .data$cohort_start_date +
-        lubridate::days(1)) %>%
+                      lubridate::days(1)) %>%
       dplyr::select(
         "subject_id",
         "cohort_start_date",
@@ -151,32 +162,87 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
       ) %>%
       dplyr::mutate(cohort_definition_id = c("1")) %>%
       dplyr::relocate(.data$cohort_definition_id)
+    }
+    else {   # outcome table
+      # calulate outcome
+
+      person_cal <-
+        person %>% dplyr::mutate(age =  floor(as.numeric(difftime(
+          Sys.Date(), DOB, units = "weeks"# calculating age from dob
+        )) / 52.25)) %>% dplyr::mutate_at("age", ~ (scale(.) %>% as.vector)) %>% # standardizing age variable to have mean 0
+        dplyr::mutate(male_flag = ifelse(gender_id == "8507", 1, 0)) %>% # binary variable for gender
+        dplyr::mutate(
+          pre = exp(
+            .env$age_beta * .data$age + .env$gender_beta * .data$male_flag + .env$intercept
+          ) / (
+            1 + exp(
+              .env$age_beta * .data$age + .env$gender_beta * .data$male_flag + .env$intercept
+            )
+          )
+        ) %>% # outcome pre calculator for each person in the person table
+        dplyr::mutate(outcome_flag = sapply(.data$pre, function(x) {
+          binary_flag <- stats::rbinom(n = 1,
+                                       size = 1,
+                                       prob = min(x, 1))
+          return(binary_flag)
+        }))# generate binary outcome with adjust_pre
+
+      outcome_1 <-
+        person_cal %>% dplyr::filter(.data$outcome_flag == 1) # subset of person with outcome
+      subject_id <- outcome_1$person_id # define subject_id
+
+      outcome <- observation_period %>%
+        dplyr::rename("subject_id" = "person_id") %>%
+        dplyr::filter(.data$subject_id %in% .env$subject_id) %>%
+        dplyr::mutate(obs_days = as.numeric(difftime(.data$observation_period_end_date,
+                                                     .data$observation_period_start_date,
+                                                     units = "days"
+        ))) %>%
+        dplyr::mutate(days_to_outcome = round(stats::runif(length(.env$subject_id),
+                                                           min = 1,
+                                                           max = .data$obs_days
+        ))) %>%
+        dplyr::mutate(cohort_start_date = .data$observation_period_start_date +
+                        .data$days_to_outcome) %>%
+        dplyr::mutate(cohort_end_date = .data$cohort_start_date +
+                        lubridate::days(1)) %>%
+        dplyr::select(
+          "subject_id",
+          "cohort_start_date",
+          "cohort_end_date"
+        ) %>%
+        dplyr::mutate(cohort_definition_id = c("1")) %>%
+        dplyr::relocate(.data$cohort_definition_id)}
   }
+
+
 
   # into in-memory database
   db <- DBI::dbConnect(duckdb::duckdb(), ":memory:")
 
   DBI::dbWithTransaction(db, {
     DBI::dbWriteTable(db, "person",
-      person,
-      overwrite = TRUE
+                      person,
+                      overwrite = TRUE
     )
   })
   DBI::dbWithTransaction(db, {
     DBI::dbWriteTable(db,
-      "observation_period",
-      observation_period,
-      overwrite = TRUE
+                      "observation_period",
+                      observation_period,
+                      overwrite = TRUE
     )
   })
 
   DBI::dbWithTransaction(db, {
     DBI::dbWriteTable(db, "outcome",
-      outcome,
-      overwrite = TRUE
+                      outcome,
+                      overwrite = TRUE
     )
   })
 
 
   return(db)
 }
+
+
