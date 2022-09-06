@@ -121,3 +121,72 @@ test_that("check expected errors", {
 
 
 })
+
+test_that("check working example sample size and outcome prevalence option", {
+  library(DBI)
+  library(duckdb)
+  library(dplyr)
+
+
+  db<-generate_mock_incidence_prevalence_db(sample_size = 100, out_pre = 0.2)
+
+  expect_true(nrow(dplyr::tbl(db, "person") %>%
+                     collect())==100)
+
+  expect_true(nrow(dplyr::tbl(db, "outcome") %>%
+                     collect())==20)
+
+  outcome_db_names <- c(
+    "cohort_definition_id", "subject_id",
+    "cohort_start_date", "cohort_end_date"
+  )
+  outcome_db_names_check <- all(outcome_db_names %in%
+                                  names(dplyr::tbl(db, "outcome") %>%
+                                          utils::head(1) %>%
+                                          dplyr::collect() %>%
+                                          dplyr::rename_with(tolower)))
+  expect_true(outcome_db_names_check)
+
+  dbDisconnect(db, shutdown=TRUE)
+
+
+})
+
+test_that("check working example sample size and outcome varies by gender and age option", {
+  library(DBI)
+  library(duckdb)
+  library(dplyr)
+
+
+  db<-generate_mock_incidence_prevalence_db(sample_size = 100, out_pre = 0.2, gender_beta = -1, age_beta = 1, intercept = -1)
+
+  db2<-generate_mock_incidence_prevalence_db(sample_size = 100, out_pre = 0.2, gender_beta = -1, age_beta = 1)
+
+  expect_true(nrow(dplyr::tbl(db, "person") %>%
+                     collect())==100)
+
+  expect_true(nrow(dplyr::tbl(db2, "person") %>%
+                     collect())==100)
+
+  expect_true(nrow(dplyr::tbl(db, "outcome") %>%
+                     collect())!=20)
+
+  expect_true(nrow(dplyr::tbl(db2, "outcome") %>%
+                     collect())==20)
+
+
+  outcome_db_names <- c(
+    "cohort_definition_id", "subject_id",
+    "cohort_start_date", "cohort_end_date"
+  )
+  outcome_db_names_check <- all(outcome_db_names %in%
+                                  names(dplyr::tbl(db, "outcome") %>%
+                                          utils::head(1) %>%
+                                          dplyr::collect() %>%
+                                          dplyr::rename_with(tolower)))
+  expect_true(outcome_db_names_check)
+
+  dbDisconnect(db, shutdown=TRUE)
+
+
+})
