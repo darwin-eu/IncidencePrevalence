@@ -515,6 +515,98 @@ test_that("mock db: expected errors", {
 
 })
 
+test_that("mock db: check example #2 we expect to work", {
+  library(tibble)
+  library(dplyr)
+  library(DBI)
+  library(duckdb)
+  
+  # 5 person, 1 observation periods
+  person <- tibble(
+    person_id = c("1","2","3","4","5"),
+    gender_concept_id = c("8507","8532","8507", "8532","8532"),
+    year_of_birth = c(1995,1993,1994,1996,NA),
+    month_of_birth = c(07,NA,06,05,04),
+    day_of_birth = c(25,NA,01,02,03)
+  )
+  observation_period <- tibble(
+    observation_period_id = c("1","2","3","4","5"),
+    person_id = c("1","2","3","4","5"),
+    observation_period_start_date = rep(as.Date("2000-01-01"),5),
+    observation_period_end_date = rep(as.Date("2015-06-01"),5)
+  )
+  # mock database
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period)
+  
+  dpop <- get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL
+  )
+  
+  #throw year NA row
+  expect_true(nrow(dpop$denominator_population) == 4)
+  expect_true(all(dpop$denominator_population$cohort_start_date == as.Date("2000-01-01")))
+  expect_true(all(dpop$denominator_population$cohort_end_date == as.Date("2015-06-01")))
+  
+  
+  
+  
+  dpop <- get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    min_age = 10
+  )
+  #check min age change cohort start date
+  #check imputation
+  dpop$denominator_population %>%
+    filter(person_id=="1") %>%
+    summarise(check=cohort_start_date==as.Date("2005-07-25"))
+  dpop$denominator_population %>%
+    filter(person_id=="2") %>%
+    summarise(check=cohort_start_date==as.Date("2003-01-01"))
+  dpop$denominator_population %>%
+    filter(person_id=="3") %>%
+    summarise(check=cohort_start_date==as.Date("2004-06-01"))
+  dpop$denominator_population %>%
+    filter(person_id=="4") %>%
+    summarise(check=cohort_start_date==as.Date("2006-05-02"))
+  
+  #check max age change cohort start date
+  #check imputation
+  dpop <- get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    max_age = 10
+  )
+  dpop$denominator_population %>%
+    filter(person_id=="1") %>%
+    summarise(check=cohort_end_date==as.Date("2006-07-24"))
+  dpop$denominator_population %>%
+    filter(person_id=="2") %>%
+    summarise(check=cohort_end_date==as.Date("2003-12-31"))
+  dpop$denominator_population %>%
+    filter(person_id=="3") %>%
+    summarise(check=cohort_end_date==as.Date("2005-05-31"))
+  dpop$denominator_population %>%
+    filter(person_id=="4") %>%
+    summarise(check=cohort_end_date==as.Date("2007-05-01"))
+  
+  
+  dpop <- get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    start_date = as.Date("2010-02-15"),
+    end_date = as.Date("2010-05-15")
+  )
+  expect_true(nrow(dpop$denominator_population) == 4)
+  expect_true(all(dpop$denominator_population$cohort_start_date == as.Date("2010-02-15")))
+  expect_true(all(dpop$denominator_population$cohort_end_date == as.Date("2010-05-15")))
+  
+  DBI::dbDisconnect(db, shutdown=TRUE)
+})
+
+
 # test_that("various checks for working example full db", {
 # # full database
 #   library(DBI)
