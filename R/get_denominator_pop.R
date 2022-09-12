@@ -271,11 +271,8 @@ get_denominator_pop <- function(db,
   study_pop <- study_pop_db %>%
     dplyr::collect()
 
-  if (nrow(study_pop) == 0) {
-    # return NULL if we don´t find anyone
-    message("-- No people found for denominator population")
-    return(NULL)
-  } else {
+  if (nrow(study_pop) > 0) {
+    # only if we have found people
 
     # get date of birth
     # fill in missing day to start of month if only day missing,
@@ -413,11 +410,29 @@ get_denominator_pop <- function(db,
       ))
     }
 
-    if (nrow(study_pop) == 0) {
-      message("-- No people found for denominator population")
-      return(NULL)
-    } else {
-      return(study_pop)
-    }
   }
+  if (nrow(study_pop) == 0) {
+    message("-- No people found for denominator population")
+    study_pop <- NULL
+  }
+
+    # settings
+    study_pop_settings <- tibble::tibble(
+        # add specification for each population to output
+          study_start_date = start_date,
+          study_end_date = end_date,
+          age_strata = paste0(min_age, ";",max_age),
+          sex_strata = sex,
+          required_days_prior_history = days_prior_history
+        )
+
+      # return list
+      dpop<-list()
+      dpop[["denominator_population"]]<-study_pop
+      dpop[["denominator_settings"]]<- study_pop_settings
+      dpop[["attrition"]]<-tibble::tibble(attrition="attrition") # placeholder
+
+      return(dpop)
+
+
 }

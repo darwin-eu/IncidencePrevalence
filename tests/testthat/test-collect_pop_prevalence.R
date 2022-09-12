@@ -10,6 +10,7 @@ test_that("mock db: check output format", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
   prev <- collect_pop_prevalence(
     db = db,
     results_schema_outcome = NULL,
@@ -28,8 +29,6 @@ test_that("mock db: check output format", {
   # check analysis settings tibble
   expect_true(all(c(
     "prevalence_analysis_id",
-    "required_days_prior_history",
-    "age_strata", "sex_strata",
     "period",
     "time_interval",
     "confidence_interval",
@@ -98,6 +97,7 @@ test_that("mock db: checks on working example", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
   prev <- collect_pop_prevalence(
     db = db,
     results_schema_outcome = NULL,
@@ -168,6 +168,7 @@ test_that("mock db: check minimum counts", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
 
   prev <- collect_pop_prevalence(
     db = db,
@@ -238,6 +239,7 @@ test_that("mock db: check conversion of user inputs", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
 
   prev<-collect_pop_prevalence(
     db = db,
@@ -293,6 +295,7 @@ test_that("mock db: check expected errors", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
 
   expect_error(collect_pop_prevalence(
     db = "a",
@@ -302,9 +305,6 @@ test_that("mock db: check expected errors", {
     cohort_ids_denominator_pops = 1,
     study_denominator_pop = dpop
   ))
-
-
-
 
   DBI::dbDisconnect(db, shutdown=TRUE)
 })

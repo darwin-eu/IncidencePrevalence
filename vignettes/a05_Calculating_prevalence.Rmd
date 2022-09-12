@@ -61,6 +61,7 @@ dpop <- collect_denominator_pops(db = db,
                                  study_age_stratas = NULL,
                                  study_sex_stratas = "Both",
                                  study_days_prior_history = 0)
+dpop<-dpop$denominator_population 
 dpop %>%  
   glimpse()
 ```

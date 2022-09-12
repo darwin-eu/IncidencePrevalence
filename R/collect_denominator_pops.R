@@ -154,25 +154,50 @@ collect_denominator_pops <- function(db,
       sex = x$sex,
       days_prior_history = x$study_days_prior_history
     )
-    if (!is.null(denominator_pop)) {
-      denominator_pop <- denominator_pop %>%
-        # add specification for each population to output
-        dplyr::mutate(
-          study_start_date = x$study_start_date,
-          study_end_date = x$study_end_date,
-          age_strata = x$age_range,
-          sex_strata = x$sex,
-          required_days_prior_history = x$study_days_prior_history
-        )
-    }
+
+if(!is.null(denominator_pop$denominator_population)){
+    denominator_pop$denominator_population <-
+      denominator_pop$denominator_population  %>%
+      dplyr::mutate(cohort_definition_id=x$cohort_definition_id) %>%
+      dplyr::relocate(.data$cohort_definition_id)
+}
+
+    denominator_pop$denominator_settings <-
+      denominator_pop$denominator_settings  %>%
+      dplyr::mutate(cohort_definition_id=x$cohort_definition_id) %>%
+      dplyr::relocate(.data$cohort_definition_id)
+
+    denominator_pop$attrition <-
+      denominator_pop$attrition  %>%
+      dplyr::mutate(cohort_definition_id=x$cohort_definition_id) %>%
+      dplyr::relocate(.data$cohort_definition_id)
 
     return(denominator_pop)
   })
 
+  study_populations <- purrr::flatten(study_populations)
+
+  # denominator settings
+  denominator_settings<-study_populations[names(study_populations)=="denominator_settings"]
   # to tibble
-  study_populations <- dplyr::bind_rows(study_populations,
-    .id = "cohort_definition_id"
+  denominator_settings <- dplyr::bind_rows(denominator_settings,
+                                        .id = NULL
   )
+
+  # denominator population
+  dpop<-study_populations[names(study_populations)=="denominator_population"]
+  # to tibble
+  dpop <- dplyr::bind_rows(dpop,
+                          .id = NULL
+  )
+
+  # attrition summary
+  attrition<-study_populations[names(study_populations)=="attrition"]
+  # to tibble
+  attrition <- dplyr::bind_rows(attrition,
+                                .id = NULL
+  )
+
 
   if (verbose == TRUE) {
     duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
@@ -181,10 +206,17 @@ collect_denominator_pops <- function(db,
     ))
   }
 
-  if (nrow(study_populations) == 0) {
+  if (nrow(dpop) == 0) {
     message("- No people found for any denominator population")
-    return(NULL)
-  } else {
-    return(study_populations)
   }
+
+  # results to return as a list
+  results<-list()
+  results[["denominator_populations"]]<-dpop
+  results[["denominator_settings"]]<-denominator_settings
+  results[["attrition"]]<-attrition
+
+  return(results)
+
+
 }

@@ -15,12 +15,19 @@ test_that("mock db: check output format", {
       "cohort_definition_id",
       "person_id",
       "cohort_start_date",
-      "cohort_end_date",
+      "cohort_end_date"
+    ) %in%
+      names(dpop$denominator_populations)))
+
+    expect_true(all(c(
+      "cohort_definition_id",
+      "study_start_date",
+      "study_end_date",
       "age_strata",
       "sex_strata",
       "required_days_prior_history"
     ) %in%
-      names(dpop)))
+      names(dpop$denominator_settings)))
 
   DBI::dbDisconnect(db, shutdown=TRUE)
 
@@ -56,7 +63,7 @@ test_that("mock db: checks on working example", {
     study_sex_stratas = c("Female", "Male", "Both"),
     verbose = TRUE
   )
-  expect_true(nrow(dpops)>=1)
+  expect_true(nrow(dpops$denominator_populations)>=1)
 
   # all pops without anyone
   expect_message(dpops <- collect_denominator_pops(db,
@@ -66,7 +73,7 @@ test_that("mock db: checks on working example", {
     study_age_stratas = list(c(50, 59), c(60, 69)),
     study_days_prior_history = c(0, 365)
   ))
- expect_null(dpops)
+  expect_true(nrow(dpops$denominator_population)==0)
 
 
   DBI::dbDisconnect(db, shutdown=TRUE)
@@ -103,19 +110,19 @@ cdm_database_schema = NULL,
 study_age_stratas = list(c(11, 12),
                          c(13,14))
 )
-expect_true(dpops %>%
+expect_true(dpops$denominator_populations %>%
   filter(cohort_definition_id==1) %>%
   select(cohort_start_date) %>%
   pull() == as.Date("2011-01-01"))
-expect_true(dpops %>%
+expect_true(dpops$denominator_populations %>%
   filter(cohort_definition_id==1) %>%
   select(cohort_end_date) %>%
   pull() == as.Date("2012-12-31"))
-expect_true(dpops %>%
+expect_true(dpops$denominator_populations %>%
   filter(cohort_definition_id==2) %>%
   select(cohort_start_date) %>%
   pull() == as.Date("2013-01-01"))
-expect_true(dpops %>%
+expect_true(dpops$denominator_populations %>%
   filter(cohort_definition_id==2) %>%
   select(cohort_end_date) %>%
   pull() == as.Date("2014-12-31"))

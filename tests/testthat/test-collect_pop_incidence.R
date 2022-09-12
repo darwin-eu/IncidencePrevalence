@@ -10,6 +10,8 @@ test_that("mock db: check output format", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
+
   inc <- collect_pop_incidence(
     db = db,
     results_schema_outcomes = NULL,
@@ -34,8 +36,6 @@ test_that("mock db: check output format", {
     "incidence_analysis_id",
     "cohort_id_outcome",
     "cohort_id_denominator_pop",
-    "required_days_prior_history",
-    "age_strata", "sex_strata",
     "outcome_washout_window",
     "repetitive_events",
     "time_interval",
@@ -105,6 +105,8 @@ test_that("mock db: checks on working example", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
+
   inc <- collect_pop_incidence(
     db = db,
     results_schema_outcome = NULL,
@@ -171,6 +173,7 @@ test_that("mock db: check minimum counts", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
   inc <- collect_pop_incidence(
     db = db,
     results_schema_outcome = NULL,
@@ -244,6 +247,7 @@ test_that("mock db: check conversion of user inputs", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
 
   inc<-collect_pop_incidence(
     db = db,
@@ -299,6 +303,7 @@ test_that("expected errors with mock", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
 
   expect_error(collect_pop_incidence(
     db = "a",

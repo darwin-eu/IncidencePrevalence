@@ -10,6 +10,7 @@ test_that("mock db: check output format", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
 
   prev <- get_pop_prevalence(db,
                      results_schema_outcome = NULL,
@@ -30,9 +31,6 @@ test_that("mock db: check output format", {
 
   # analysis settings
   expect_true(all(c(
-    "required_days_prior_history",
-    "age_strata",
-    "sex_strata",
     "period",
     "time_interval"
   ) %in%
@@ -81,6 +79,7 @@ test_that("mock db: working examples", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
   prev<- get_pop_prevalence(db,
     results_schema_outcome = NULL,
     table_name_outcome = "outcome",
@@ -111,6 +110,8 @@ test_that("mock db: working examples", {
     cdm_database_schema = NULL,
     study_age_stratas = list(c(0, 100), c(0, 100))
   )
+  dpop<-dpop$denominator_populations
+
   prev<- get_pop_prevalence(db,
     results_schema_outcome = NULL,
     table_name_outcome = "outcome",
@@ -168,6 +169,8 @@ test_that("mock db: check study time periods", {
     db = db,
     cdm_database_schema = NULL
   )
+    dpop<-dpop$denominator_populations
+
  prev<- get_pop_prevalence(db,
     results_schema_outcome = NULL,
     table_name_outcome = "outcome",
@@ -239,6 +242,7 @@ test_that("mock db: check periods follow calendar dates", {
     cdm_database_schema = NULL,
     study_start_date=as.Date("2011-01-15")
   )
+  dpop<-dpop$denominator_populations
   prev<- get_pop_prevalence(db,
                             results_schema_outcome = NULL,
                             table_name_outcome = "outcome",
@@ -253,7 +257,6 @@ test_that("mock db: check periods follow calendar dates", {
   # expect_true(prev[["pr"]]$prev[3]==1)
 
 })
-
 
 test_that("mock db: check messages when vebose is true", {
   library(DBI)
@@ -277,6 +280,7 @@ test_that("mock db: check messages when vebose is true", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
 
   expect_message(get_pop_prevalence(db,
                                     results_schema_outcome = NULL,
@@ -317,6 +321,7 @@ test_that("mock db: check conversion of user inputs", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
 
   prev <- get_pop_prevalence(db,
                              results_schema_outcome = NULL,
@@ -345,6 +350,7 @@ test_that("mock db: check expected errors", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
 
   # not a db connection
   expect_error(get_pop_prevalence("a",
@@ -402,6 +408,7 @@ test_that("mock db: check expected errors", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
 
   # expect error because less than one month between
   # cohort_start_date and cohort_end_date among dpop

@@ -10,6 +10,7 @@ test_that("mock db: check output format", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
 
   inc <- get_pop_incidence(db,
                            results_schema_outcome = NULL,
@@ -31,9 +32,6 @@ test_that("mock db: check output format", {
 
   # analysis settings
   expect_true(all(c(
-    "required_days_prior_history",
-    "age_strata",
-    "sex_strata",
     "repetitive_events",
     "time_interval"
   ) %in%
@@ -84,6 +82,8 @@ test_that("mock db: check working example", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
+
 
   inc <- get_pop_incidence(db,
     results_schema_outcome = NULL,
@@ -173,6 +173,8 @@ test_that("mock db: check study periods ", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
+
 
  inc<- get_pop_incidence(db,
     results_schema_outcome = NULL,
@@ -225,6 +227,8 @@ dpop <- collect_denominator_pops(
   cdm_database_schema = NULL,
   study_age_stratas = list(c(20,30))
 )
+dpop<-dpop$denominator_populations
+
 inc <- get_pop_incidence(
   db = db,
   results_schema_outcome = NULL,
@@ -320,6 +324,8 @@ test_that("mock db: check periods follow calendar dates", {
     cdm_database_schema = NULL,
     study_start_date=as.Date("2010-02-01")
   )
+  dpop<-dpop$denominator_populations
+
   inc<- get_pop_incidence(db,
                           results_schema_outcome = NULL,
                           table_name_outcome = "outcome",
@@ -339,6 +345,8 @@ test_that("mock db: check periods follow calendar dates", {
     cdm_database_schema = NULL,
     study_start_date=as.Date("2011-01-15")
   )
+  dpop<-dpop$denominator_populations
+
   inc<- get_pop_incidence(db,
                           results_schema_outcome = NULL,
                           table_name_outcome = "outcome",
@@ -402,6 +410,8 @@ test_that("mock db: check washout windows", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
+
 
   inc_w0 <- get_pop_incidence(db,
     results_schema_outcome = NULL,
@@ -502,6 +512,7 @@ dpop <- collect_denominator_pops(
   cdm_database_schema = NULL,
   study_age_stratas = list(c(20,30))
 )
+dpop<-dpop$denominator_populations
 
 inc <- get_pop_incidence(
   db = db,
@@ -548,6 +559,8 @@ dpop <- collect_denominator_pops(
   cdm_database_schema = NULL,
   study_age_stratas = list(c(20,30))
 )
+dpop<-dpop$denominator_populations
+
 inc2 <- get_pop_incidence(
   db = db,
   results_schema_outcome = NULL,
@@ -607,6 +620,8 @@ test_that("mock db: compare results from months and years", {
     study_start_date = as.Date("2010-01-01"),
     study_end_date = as.Date("2011-12-31")
   )
+  dpop<-dpop$denominator_populations
+
   inc_months <- get_pop_incidence(
     db = db,
     results_schema_outcome = NULL,
@@ -672,6 +687,8 @@ dpop <- collect_denominator_pops(
 db = db,
 cdm_database_schema = NULL
 )
+dpop<-dpop$denominator_populations
+
 
 inc_without_rep <- get_pop_incidence(db,
 results_schema_outcome = NULL,
@@ -732,19 +749,20 @@ test_that("mock db: cohort start overlaps with the outcome", {
     cdm_database_schema = NULL,
     study_age_stratas = list(c(20,30))
   )
+  dpop<-dpop$denominator_populations
 
-  inc <- collect_pop_incidence(
+
+  inc <- get_pop_incidence(
     db = db,
     results_schema_outcome = NULL,
-    table_name_outcomes = "outcome",
-    cohort_ids_outcomes = "1",
-    cohort_ids_denominator_pops = "1",
-    outcome_washout_windows = 180,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    cohort_id_denominator_pop = "1",
+    outcome_washout_window = 180,
     repetitive_events = TRUE,
     study_denominator_pop = dpop,
-    time_intervals = c("Years"),
-    verbose = TRUE,
-    minimum_cell_count = 0
+    time_interval = c("Years"),
+    verbose = TRUE
   )
 
   expect_true(all(inc$incidence_estimates$n_persons == c(1,2)))
@@ -788,6 +806,8 @@ test_that("mock db: check full period requirement - year", {
     cdm_database_schema = NULL,
     study_age_stratas = list(c(20,30))
   )
+  dpop<-dpop$denominator_populations
+
 
   inc <- get_pop_incidence(
     db = db,
@@ -835,6 +855,8 @@ dpop <- collect_denominator_pops(
   cdm_database_schema = NULL,
   study_age_stratas = list(c(20,30))
 )
+dpop<-dpop$denominator_populations
+
 
 inc <- get_pop_incidence(
   db = db,
@@ -882,6 +904,8 @@ dpop <- collect_denominator_pops(
   cdm_database_schema = NULL,
   study_age_stratas = list(c(20,30))
 )
+dpop<-dpop$denominator_populations
+
 
 expect_error(get_pop_incidence(
   db = db,
@@ -936,6 +960,8 @@ test_that("mock db: check full period requirement - month", {
     cdm_database_schema = NULL,
     study_age_stratas = list(c(20,30))
   )
+  dpop<-dpop$denominator_populations
+
 
   inc <- get_pop_incidence(
     db = db,
@@ -983,6 +1009,8 @@ test_that("mock db: check full period requirement - month", {
     cdm_database_schema = NULL,
     study_age_stratas = list(c(20,30))
   )
+  dpop<-dpop$denominator_populations
+
 
   inc <- get_pop_incidence(
     db = db,
@@ -1031,6 +1059,8 @@ test_that("mock db: check full period requirement - month", {
     cdm_database_schema = NULL,
     study_age_stratas = list(c(20,30))
   )
+  dpop<-dpop$denominator_populations
+
 
   expect_error(get_pop_incidence(
     db = db,
@@ -1086,6 +1116,8 @@ test_that("mock db: check conversion of user inputs", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
+
 
   inc <- get_pop_incidence(db,
                            results_schema_outcome = NULL,
@@ -1164,6 +1196,8 @@ test_that("mock db: check messages when vebose is true", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
+
 
   expect_message(get_pop_incidence(db,
                          results_schema_outcome = NULL,
@@ -1256,6 +1290,8 @@ test_that("mock db: check expected errors", {
     db = db,
     cdm_database_schema = NULL
   )
+  dpop<-dpop$denominator_populations
+
 
   # expect error because less than one month between
   # cohort_start_date and cohort_end_date among dpop

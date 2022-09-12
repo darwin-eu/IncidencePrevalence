@@ -13,24 +13,24 @@ test_that("mock db: check output format", {
   )
 
     # variable names
-    expect_true(length(names(dpop))==3)
+    expect_true(length(names(dpop$denominator_population))==3)
     expect_true(all(c(
       "person_id",
       "cohort_start_date", "cohort_end_date"
     ) %in%
-      names(dpop)))
+      names(dpop$denominator_population)))
     # types
-    expect_true(class(dpop$person_id) == "character")
-    expect_true(class(dpop$cohort_start_date) == "Date")
-    expect_true(class(dpop$cohort_end_date) == "Date")
+    expect_true(class(dpop$denominator_population$person_id) == "character")
+    expect_true(class(dpop$denominator_population$cohort_start_date) == "Date")
+    expect_true(class(dpop$denominator_population$cohort_end_date) == "Date")
 
     # no missing values
-     testthat::expect_true(!is.null(dpop$person_id) &
-         (sum(is.na(dpop$person_id)) == 0))
-     testthat::expect_true(!is.null(dpop$cohort_start_date) &
-         (sum(is.na(dpop$cohort_start_date)) == 0))
-     testthat::expect_true(!is.null(dpop$cohort_end_date) &
-         (sum(is.na(dpop$cohort_end_date)) == 0))
+     testthat::expect_true(!is.null(dpop$denominator_population$person_id) &
+         (sum(is.na(dpop$denominator_population$person_id)) == 0))
+     testthat::expect_true(!is.null(dpop$denominator_population$cohort_start_date) &
+         (sum(is.na(dpop$denominator_population$cohort_start_date)) == 0))
+     testthat::expect_true(!is.null(dpop$denominator_population$cohort_end_date) &
+         (sum(is.na(dpop$denominator_population$cohort_end_date)) == 0))
 
      # check verbose
      expect_message(get_denominator_pop(
@@ -71,9 +71,9 @@ test_that("mock db: check example we expect to work", {
     db = db,
     cdm_database_schema = NULL
   )
-  expect_true(nrow(dpop) == 1)
-  expect_true(dpop$cohort_start_date == as.Date("2010-01-01"))
-  expect_true(dpop$cohort_end_date == as.Date("2015-06-01"))
+  expect_true(nrow(dpop$denominator_population) == 1)
+  expect_true(dpop$denominator_population$cohort_start_date == as.Date("2010-01-01"))
+  expect_true(dpop$denominator_population$cohort_end_date == as.Date("2015-06-01"))
 
 
   dpop <- get_denominator_pop(
@@ -82,9 +82,9 @@ test_that("mock db: check example we expect to work", {
     start_date = as.Date("2010-02-15"),
     end_date = as.Date("2010-05-15")
   )
-  expect_true(nrow(dpop) == 1)
-  expect_true(dpop$cohort_start_date == as.Date("2010-02-15"))
-  expect_true(dpop$cohort_end_date == as.Date("2010-05-15"))
+  expect_true(nrow(dpop$denominator_population) == 1)
+  expect_true(dpop$denominator_population$cohort_start_date == as.Date("2010-02-15"))
+  expect_true(dpop$denominator_population$cohort_end_date == as.Date("2010-05-15"))
 
   DBI::dbDisconnect(db, shutdown=TRUE)
 })
@@ -120,7 +120,7 @@ test_that("mock db: check example with multiple observation periods", {
     db = db,
     cdm_database_schema = NULL
   )
-  expect_true(nrow(dpop) == 2)
+  expect_true(nrow(dpop$denominator_population) == 2)
 
   # expect one rows- if start date is 1st Jan 2011
   dpop <- get_denominator_pop(
@@ -128,9 +128,9 @@ test_that("mock db: check example with multiple observation periods", {
     cdm_database_schema = NULL,
     start_date = as.Date("2011-01-01")
   )
-  expect_true(nrow(dpop) == 1)
-  expect_true(dpop$cohort_start_date == as.Date("2011-01-01"))
-  expect_true(dpop$cohort_end_date == as.Date("2011-06-01"))
+  expect_true(nrow(dpop$denominator_population) == 1)
+  expect_true(dpop$denominator_population$cohort_start_date == as.Date("2011-01-01"))
+  expect_true(dpop$denominator_population$cohort_end_date == as.Date("2011-06-01"))
 
   # expect one rows- if start date is end of 2020
   dpop <- get_denominator_pop(
@@ -138,9 +138,9 @@ test_that("mock db: check example with multiple observation periods", {
     cdm_database_schema = NULL,
     end_date = as.Date("2010-12-31")
   )
-  expect_true(nrow(dpop) == 1)
-  expect_true(dpop$cohort_start_date == as.Date("2010-01-01"))
-  expect_true(dpop$cohort_end_date == as.Date("2010-06-01"))
+  expect_true(nrow(dpop$denominator_population) == 1)
+  expect_true(dpop$denominator_population$cohort_start_date == as.Date("2010-01-01"))
+  expect_true(dpop$denominator_population$cohort_end_date == as.Date("2010-06-01"))
 
   DBI::dbDisconnect(db, shutdown=TRUE)
 
@@ -187,9 +187,9 @@ dpop3 <- get_denominator_pop(
   cdm_database_schema = NULL,
   sex = "Female"
 )
-expect_true(nrow(dpop1) == 2)
-expect_true(nrow(dpop2) == 3)
-expect_true(nrow(dpop3) == 1)
+expect_true(nrow(dpop1$denominator_population) == 2)
+expect_true(nrow(dpop2$denominator_population) == 3)
+expect_true(nrow(dpop3$denominator_population) == 1)
 
 
 # one male only
@@ -224,9 +224,9 @@ dpop3 <- get_denominator_pop(
   cdm_database_schema = NULL,
   sex = "Female"
 )
-expect_true(nrow(dpop1) == 1)
-expect_true(nrow(dpop2) == 1)
-expect_true(is.null(dpop3))
+expect_true(nrow(dpop1$denominator_population) == 1)
+expect_true(nrow(dpop2$denominator_population) == 1)
+expect_true(is.null(dpop3$denominator_population))
 
 DBI::dbDisconnect(db, shutdown=TRUE)
 
@@ -279,10 +279,10 @@ dpop4 <- get_denominator_pop(
   min_age = 40
 )
 
-expect_true(nrow(dpop1) == 3)
-expect_true(nrow(dpop2) == 2)
-expect_true(nrow(dpop3) == 1)
-expect_true(is.null(dpop4))
+expect_true(nrow(dpop1$denominator_population) == 3)
+expect_true(nrow(dpop2$denominator_population) == 2)
+expect_true(nrow(dpop3$denominator_population) == 1)
+expect_true(is.null(dpop4$denominator_population))
 
 
 
@@ -309,7 +309,7 @@ dpop <- get_denominator_pop(
   min_age = 10
 )
 # start date is now date of 10th birthday
-expect_true(dpop$cohort_start_date == as.Date("2010-06-01"))
+expect_true(dpop$denominator_population$cohort_start_date == as.Date("2010-06-01"))
 
 
 # exit once they reach the max age criteria
@@ -319,7 +319,7 @@ dpop <- get_denominator_pop(
   max_age = 10
 )
 # end date is the day before their 11th birthday
-expect_true(dpop$cohort_end_date==as.Date("2011-05-31"))
+expect_true(dpop$denominator_population$cohort_end_date==as.Date("2011-05-31"))
 
 DBI::dbDisconnect(db, shutdown=TRUE)
 
@@ -354,21 +354,21 @@ dpop <- get_denominator_pop(
   cdm_database_schema = NULL,
   min_age = 10
 )
-expect_true(nrow(dpop) == 4)
+expect_true(nrow(dpop$denominator_population) == 4)
 
-expect_true(dpop %>%
+expect_true(dpop$denominator_population %>%
   filter(person_id=="1") %>%
   summarise(check=cohort_start_date==as.Date("2010-03-03")) %>%
   pull())
-expect_true(dpop %>%
+expect_true(dpop$denominator_population %>%
   filter(person_id=="2") %>%
   summarise(check=cohort_start_date==as.Date("2010-01-03")) %>%
   pull())
-expect_true(dpop %>%
+expect_true(dpop$denominator_population %>%
   filter(person_id=="3") %>%
   summarise(check=cohort_start_date==as.Date("2010-03-01")) %>%
   pull())
-expect_true(dpop %>%
+expect_true(dpop$denominator_population %>%
   filter(person_id=="4") %>%
   summarise(check=cohort_start_date==as.Date("2010-01-01")) %>%
   pull())
@@ -402,40 +402,44 @@ test_that("mock db: check edge cases (zero results expected)", {
   db <- generate_mock_incidence_prevalence_db(person=person,
                                               observation_period=observation_period)
 
+ dpop<- get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    start_date = as.Date("2100-01-01")
+  )
+expect_true(is.null(dpop$denominator_population))
 
-expect_true(is.null(get_denominator_pop(
-  db = db,
-  cdm_database_schema = NULL,
-  start_date = as.Date("2100-01-01")
-)))
-
-expect_true(is.null(get_denominator_pop(
+dpop<-get_denominator_pop(
   db = db,
   cdm_database_schema = NULL,
   end_date = as.Date("1800-01-01")
-)))
+)
+expect_true(is.null(dpop$denominator_population))
 
-expect_true(is.null(get_denominator_pop(
+dpop<-get_denominator_pop(
   db = db,
   cdm_database_schema = NULL,
   min_age = 155
-)))
+)
+expect_true(is.null(dpop$denominator_population))
 
 # note could include people as it would go up to day before first birthday
 # but given observation period, here we would expect a null
-expect_true(is.null(get_denominator_pop(
+dpop<-get_denominator_pop(
   db = db,
   cdm_database_schema = NULL,
   max_age = 0
-)))
+)
+expect_true(is.null(dpop$denominator_population))
 
-expect_true(is.null(get_denominator_pop(
+dpop<-get_denominator_pop(
   db = db,
   cdm_database_schema = NULL,
   max_age = 15,
   days_prior_history = 365*50,
   verbose = FALSE
-)))
+)
+expect_true(is.null(dpop$denominator_population))
 
 DBI::dbDisconnect(db, shutdown=TRUE)
 

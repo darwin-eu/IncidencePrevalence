@@ -104,6 +104,7 @@ dpop <- collect_denominator_pops(db = db,
                                  study_age_stratas = NULL,
                                  study_sex_stratas = "Both",
                                  study_days_prior_history = 0)
+dpop<-dpop$denominator_population
 
 dpop %>%  glimpse()
 
@@ -156,6 +157,8 @@ dpop <- collect_denominator_pops(db = db,
                                  study_age_stratas = NULL,
                                  study_sex_stratas = "Both",
                                  study_days_prior_history = 0)
+dpop<-dpop$denominator_population
+
 dpop %>%  glimpse()
 
 dpop %>%
@@ -207,6 +210,8 @@ dpop <- collect_denominator_pops(db = db,
                                  study_age_stratas = NULL,
                                  study_sex_stratas = "Both",
                                  study_days_prior_history = 365)
+dpop<-dpop$denominator_population
+
 dpop %>%  glimpse()
 
 dpop %>%
@@ -257,6 +262,8 @@ dpop <- collect_denominator_pops(db = db,
                                  study_age_stratas = list(c(18,65)),
                                  study_sex_stratas = "Female",
                                  study_days_prior_history = 365)
+dpop<-dpop$denominator_population
+
 dpop %>%  glimpse()
 
 dpop %>%
@@ -294,6 +301,8 @@ dpop <- collect_denominator_pops(db = db,
                                                           c(41,100)),
                                  study_sex_stratas = "Both",
                                  study_days_prior_history = 0)
+dpop<-dpop$denominator_population %>% 
+  left_join(dpop$denominator_settings)
 
 dpop %>%  glimpse()
 
@@ -323,6 +332,9 @@ dpop <- collect_denominator_pops(db = db,
                                                           c(41,100)),
                                  study_sex_stratas = c("Male", "Female","Both"),
                                  study_days_prior_history = 0)
+dpop<-dpop$denominator_population %>% 
+  left_join(dpop$denominator_settings)
+
 
 dpop %>%  glimpse()
 
@@ -354,6 +366,9 @@ dpop <- collect_denominator_pops(db = db,
                                                           c(41,100)),
                                  study_sex_stratas = c("Male", "Female","Both"),
                                  study_days_prior_history = c(0,365))
+dpop<-dpop$denominator_population %>% 
+  left_join(dpop$denominator_settings)
+
 
 dpop %>%  glimpse()
 
@@ -389,6 +404,8 @@ dpop <- collect_denominator_pops(db = db,
                                  study_sex_stratas = c("Male", "Female","Both"),
                                  study_days_prior_history = c(0,365),
                                  verbose=TRUE)
+dpop<-dpop$denominator_population
+
 ```
 
 ### Output 

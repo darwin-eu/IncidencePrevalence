@@ -97,19 +97,10 @@ get_pop_incidence <- function(db,
     sum(is.na(study_denominator_pop$cohort_start_date)) == 0)
   checkmate::assertTRUE(!is.null(study_denominator_pop$cohort_end_date) &
     sum(is.na(study_denominator_pop$cohort_end_date)) == 0)
-  checkmate::assertTRUE(!is.null(study_denominator_pop$age_strata) &
-    sum(is.na(study_denominator_pop$age_strata)) == 0)
-  checkmate::assertTRUE(!is.null(study_denominator_pop$sex_strata) &
-    sum(is.na(study_denominator_pop$sex_strata)) == 0)
-  checkmate::assertTRUE(
-    !is.null(study_denominator_pop$required_days_prior_history) &
-      sum(is.na(study_denominator_pop$required_days_prior_history)) == 0
-  )
   checkmate::assertTRUE(all(c(
     "cohort_definition_id",
     "person_id",
-    "cohort_start_date", "cohort_end_date",
-    "age_strata", "sex_strata", "required_days_prior_history"
+    "cohort_start_date", "cohort_end_date"
   ) %in%
     names(study_denominator_pop)))
 
@@ -584,9 +575,6 @@ get_pop_incidence <- function(db,
 
   # study design related variables
   analysis_settings <- tibble::tibble(
-      required_days_prior_history = unique(study_pop$required_days_prior_history),
-      age_strata = unique(study_pop$age_strata),
-      sex_strata = unique(study_pop$sex_strata),
       outcome_washout_window = .env$outcome_washout_window,
       repetitive_events = .env$repetitive_events,
       time_interval = .env$time_interval)
