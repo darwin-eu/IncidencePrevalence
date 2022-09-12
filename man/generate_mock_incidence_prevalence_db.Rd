@@ -13,7 +13,13 @@ generate_mock_incidence_prevalence_db(
   seed = 444,
   age_beta = NULL,
   gender_beta = NULL,
-  intercept = NULL
+  intercept = NULL,
+  earliest_date_of_birth = NULL,
+  latest_date_of_birth = NULL,
+  earliest_observation_start_date = NULL,
+  latest_observation_start_date = NULL,
+  min_days_to_observation_end = NULL,
+  max_days_to_observation_end = NULL
 )
 }
 \arguments{
@@ -27,13 +33,25 @@ generate_mock_incidence_prevalence_db(
 
 \item{out_pre}{\% of patient with an event}
 
-\item{seed}{seed for simulating the dataset use same seed to get same dataset}
+\item{seed}{seed for simulating the data set use same seed to get same data set}
 
 \item{age_beta}{the beta for the standardized age in logistics regression outcome model}
 
 \item{gender_beta}{the beta for the gender flag in logistics regression outcome model}
 
 \item{intercept}{the beta for the intercept in the logistics regression outcome model}
+
+\item{earliest_date_of_birth}{the earliest date of birth of patient in person table format "dd-mm-yyyy"}
+
+\item{latest_date_of_birth}{the latest date of birth for patient in person table format "dd-mm-yyyy"}
+
+\item{earliest_observation_start_date}{the earliest observation start date for patient format "dd-mm-yyyy"}
+
+\item{latest_observation_start_date}{the latest observation start date for patient format "dd-mm-yyyy"}
+
+\item{min_days_to_observation_end}{the minimum number of days of the observational integer}
+
+\item{max_days_to_observation_end}{the maximum number of days of the observation period integer}
 }
 \value{
 DBIConnection to duckdb database with mock data

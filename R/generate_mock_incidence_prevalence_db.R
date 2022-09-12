@@ -22,10 +22,16 @@
 #' @param outcome outcome table.
 #' @param sample_size number of unique patient
 #' @param out_pre % of patient with an event
-#' @param seed seed for simulating the dataset use same seed to get same dataset
+#' @param seed seed for simulating the data set use same seed to get same data set
 #' @param age_beta the beta for the standardized age in logistics regression outcome model
 #' @param gender_beta the beta for the gender flag in logistics regression outcome model
 #' @param intercept the beta for the intercept in the logistics regression outcome model
+#' @param earliest_date_of_birth the earliest date of birth of patient in person table format "dd-mm-yyyy"
+#' @param latest_date_of_birth the latest date of birth for patient in person table format "dd-mm-yyyy"
+#' @param earliest_observation_start_date the earliest observation start date for patient format "dd-mm-yyyy"
+#' @param latest_observation_start_date the latest observation start date for patient format "dd-mm-yyyy"
+#' @param min_days_to_observation_end the minimum number of days of the observational integer
+#' @param max_days_to_observation_end the maximum number of days of the observation period integer
 #' @return DBIConnection to duckdb database with mock data
 #' @export
 #'
@@ -62,7 +68,13 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
                                                   seed = 444,
                                                   age_beta = NULL,
                                                   gender_beta = NULL,
-                                                  intercept = NULL) {
+                                                  intercept = NULL,
+                                                  earliest_date_of_birth = NULL,
+                                                  latest_date_of_birth = NULL,
+                                                  earliest_observation_start_date = NULL,
+                                                  latest_observation_start_date = NULL,
+                                                  min_days_to_observation_end = NULL,
+                                                  max_days_to_observation_end = NULL) {
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assert_tibble(person, null.ok = TRUE)
   checkmate::assert_tibble(observation_period, null.ok = TRUE)
@@ -73,6 +85,12 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
   checkmate::assert_numeric(age_beta, null.ok = TRUE)
   checkmate::assert_numeric(gender_beta, null.ok = TRUE)
   checkmate::assert_numeric(intercept, null.ok = TRUE)
+  checkmate::assertDate(as.Date(earliest_date_of_birth), null.ok = TRUE)
+  checkmate::assertDate(as.Date(latest_date_of_birth), null.ok = TRUE)
+  checkmate::assertDate(as.Date(earliest_observation_start_date), null.ok = TRUE)
+  checkmate::assertDate(as.Date(latest_observation_start_date),  null.ok = TRUE)
+  checkmate::assert_int(min_days_to_observation_end, lower = 1, null.ok = TRUE)
+  checkmate::assert_int(max_days_to_observation_end, lower = 1, null.ok = TRUE)
   checkmate::reportAssertions(collection = errorMessage)
 
   set.seed(seed)
@@ -85,31 +103,89 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
                         sample_size,
                         replace = TRUE
     )
-    # person date of birth
-    # random date of birth
-    DOB <- sample(seq(as.Date("1920-01-01"),
-                      as.Date("2000-01-01"),
-                      by = "day"
+
+  #Define earliest possible date of birth for person table
+  if (is.null(earliest_date_of_birth))
+  {
+    earliest_date_of_birth = as.Date("1920-01-01")
+
+  } else {
+    earliest_date_of_birth = as.Date(earliest_date_of_birth)
+  }
+  #Define latest possible date of birth for person table
+  if (is.null(latest_date_of_birth))
+  {
+    latest_date_of_birth = as.Date("2000-01-01")
+
+  } else {
+    latest_date_of_birth = as.Date(max(as.Date(latest_date_of_birth),as.Date(earliest_date_of_birth)))
+  }
+
+
+  DOB <- sample(seq(
+    as.Date(earliest_date_of_birth),
+    as.Date(latest_date_of_birth),
+    by = "day"
+  ),
+  sample_size,
+  replace = TRUE)
+  # year, month, day
+  DOB_year <- as.numeric(format(DOB, "%Y"))
+  DOB_month <- as.numeric(format(DOB, "%m"))
+  DOB_day <- as.numeric(format(DOB, "%d"))
+
+  # observation_period table
+  # create a list of observational_period_id
+
+  #define earliest observation start date for obs table
+  if (is.null(earliest_observation_start_date))
+  {
+    earliest_observation_start_date = as.Date(max(as.Date("2005-01-01"), latest_date_of_birth))
+
+  } else {
+    earliest_observation_start_date = as.Date(max(
+      as.Date(earliest_observation_start_date),
+      latest_date_of_birth
+    ))
+  }
+  #define latest observation start date for obs table
+  if (is.null(latest_observation_start_date))
+  {
+    latest_observation_start_date = as.Date(max(as.Date("2010-01-01"), latest_date_of_birth))
+
+  } else {
+    latest_observation_start_date = as.Date(max(
+      as.Date(latest_observation_start_date),
+      latest_date_of_birth
+    ))
+  }
+  obs_start_date <-
+    sample(seq(
+      as.Date(earliest_observation_start_date),
+      as.Date(latest_observation_start_date),
+      by = "day"
     ),
     sample_size,
-    replace = TRUE
-    )
-    # year, month, day
-    DOB_year <- as.numeric(format(DOB, "%Y"))
-    DOB_month <- as.numeric(format(DOB, "%m"))
-    DOB_day <- as.numeric(format(DOB, "%d"))
+    replace = TRUE) # start date for the period
 
-    # observation_period table
-    # create a list of observational_period_id
-    obs_start_date <-
-      sample(seq(as.Date("2005-01-01"), as.Date("2010-01-01"), by = "day"),
-             sample_size,
-             replace = TRUE
-      ) # start date for the period
-    obs_end_date <- obs_start_date + lubridate::days(sample(1:1000,
-                                                            sample_size,
-                                                            replace = TRUE
-    ))
+
+  #define min and max day to observation end
+
+  if (is.null(min_days_to_observation_end)) {
+    min_days_to_observation_end = 1
+  }
+  if (is.null(max_days_to_observation_end)) {
+    max_days_to_observation_end = 1000
+  }
+
+  obs_end_date <-
+    obs_start_date + lubridate::days(
+      sample(
+        min_days_to_observation_end:max_days_to_observation_end,
+        sample_size,
+        replace = TRUE
+      )
+    )
     if (is.null(person)) {
       person <- tibble::tibble(
         person_id = id,
