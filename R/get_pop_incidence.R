@@ -384,13 +384,16 @@ get_pop_incidence <- function(db,
       )) %>%
       dplyr::select(-"new_t_start_date")
 
-    # drop any outcomes now before start
-    working_pop<- working_pop %>%
-      dplyr::filter(is.na(.data$outcome_end_date) |
-               .data$outcome_end_date <= .data$t_start_date)
+
     # drop if start is now after end for anyone
     working_pop <- working_pop %>%
       dplyr::filter(.data$t_start_date <= .data$t_end_date)
+
+    # # drop any outcomes now before start
+    # working_pop<- working_pop %>%
+    #   dplyr::filter(is.na(.data$outcome_end_date) |
+    #                   .data$outcome_end_date <= .data$t_start_date)
+
     # outcome to NA if now before the start date
     working_pop <- working_pop %>%
       dplyr::mutate(outcome_start_date =
