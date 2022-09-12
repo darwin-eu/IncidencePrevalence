@@ -30,37 +30,43 @@ remotes::install_github("darwin-eu/IncidencePrevalence")
 library(DBI)
 library(RPostgres)
 library(IncidencePrevalence)
+#> Loading required package: lubridate
+#> 
+#> Attaching package: 'lubridate'
+#> The following objects are masked from 'package:base':
+#> 
+#>     date, intersect, setdiff, union
 
-db <- DBI::dbConnect(RPostgres::Postgres(),
-  dbname = Sys.getenv("SERVER"),
-  port = Sys.getenv("PORT"),
-  host = Sys.getenv("HOST"),
-  user = Sys.getenv("USER"),
-  password = Sys.getenv("PASSWORD")
-)
+db<-generate_mock_incidence_prevalence_db(sample_size=5000)
 
 # where the tables with patient data
 # in the format of the OMOP common data model 
 # are in a schema called ´cdm´ 
 dpop <- collect_denominator_pops(
   db = db,
-  cdm_database_schema = "cdm"
+  cdm_database_schema = NULL
 )
+
+denominator<-dpop$denominator_population
 
 # where the table with the outcome cohort is 
 # in a table called ´outcome´
 # schema called ´results´
 inc <- collect_pop_incidence(db,
-  results_schema_outcome = "results",
+  results_schema_outcome = NULL,
   table_name_outcomes = "outcome",
-  study_denominator_pop = dpop
+  study_denominator_pop = denominator,
+  cohort_ids_outcomes = "1",
+  cohort_ids_denominator_pops="1"
 )
 
 prev <- collect_pop_prevalence(
   db = db,
-  results_schema_outcome = "results",
+  results_schema_outcome = NULL,
   table_name_outcomes = "outcome",
-  study_denominator_pop = dpop
+  study_denominator_pop = denominator,
+  cohort_ids_outcomes = "1",
+  cohort_ids_denominator_pops="1"
 )
 ```
 
