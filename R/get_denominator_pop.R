@@ -254,16 +254,11 @@ get_denominator_pop <- function(db,
                               tibble::tibble(current_n=study_pop_db %>%dplyr::tally()%>%dplyr::collect()%>%base::as.numeric(),
                                              excluded= base::as.numeric(attrition$current_n[NROW(attrition)])-current_n,
                                              reason= "Missing gender"))
-  if (sex == "Male") {
-    study_pop_db <- study_pop_db %>%
-      dplyr::filter(.data$gender == "Male") %>%
-      dplyr::compute()
-  }
-  if (sex == "Female") {
-    study_pop_db <- study_pop_db %>%
-      dplyr::filter(.data$gender == "Female") %>%
-      dplyr::compute()
-  }
+ if (sex == "Male" || sex == "Female") {
+   study_pop_db <- study_pop_db %>%
+     dplyr::filter(.data$gender == sex) %>%
+     dplyr::compute()
+ }
 
  attrition <-dplyr::bind_rows(attrition,
                               tibble::tibble(current_n=study_pop_db %>%dplyr::tally()%>%dplyr::collect()%>%base::as.numeric(),
@@ -313,48 +308,13 @@ get_denominator_pop <- function(db,
     # ie to impute to the centre of the period
 
     study_pop <- study_pop %>%
-      dplyr::mutate(dob = dplyr::if_else(
-        is.na(.data$month_of_birth) &
-          is.na(.data$day_of_birth),
-        as.Date(
-          paste(.data$year_of_birth,
-            "01",
-            "01",
-            sep = "/"
-          ),
-          "%Y/%m/%d"
-        ),
-        dplyr::if_else(is.na(.data$month_of_birth) &
-          !is.na(.data$day_of_birth),
-        as.Date(
-          paste(.data$year_of_birth,
-            "01",
-            .data$day_of_birth,
-            sep = "/"
-          ),
-          "%Y/%m/%d"
-        ),
-        dplyr::if_else(!is.na(.data$month_of_birth) &
-          is.na(.data$day_of_birth),
-        as.Date(
-          paste(.data$year_of_birth,
-            .data$month_of_birth,
-            "01",
-            sep = "/"
-          ),
-          "%Y/%m/%d"
-        ),
-        as.Date(
-          paste(.data$year_of_birth,
-            .data$month_of_birth,
-            .data$day_of_birth,
-            sep = "/"
-          ),
-          "%Y/%m/%d"
-        )
-        )
-        )
-      ))
+      dplyr::mutate(dob = as.Date(paste(.data$year_of_birth,
+                                        dplyr::if_else(is.na(.data$month_of_birth), "01",
+                                                       as.character(as.numeric(.data$month_of_birth))),
+                                        dplyr::if_else(is.na(.data$day_of_birth), "01",
+                                                       as.character(as.numeric(.data$day_of_birth))),
+                                        sep = "/"), "%Y/%m/%d"))
+
 
     study_pop <- study_pop %>%
       # Date at which they reach minimum and maximum age
