@@ -693,6 +693,31 @@ test_that("mock db: check attrition table", {
   )
   expect_true(dpop$attrition$excluded[7] == 1)
 
+  # multiple observation periods per person
+  person <- tibble(
+    person_id = "1",
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 06,
+    day_of_birth = 01
+  )
+  observation_period <- tibble(
+    observation_period_id = c("1","2","3"),
+    person_id = c("1"),
+    observation_period_start_date = c(as.Date("2008-01-01"),
+                                      as.Date("2009-01-01"),
+                                      as.Date("2010-01-01")),
+    observation_period_end_date = c(as.Date("2008-06-01"),
+                                    as.Date("2009-06-01"),
+                                    as.Date("2010-06-01"))
+  )
+  # mock database
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period)
+  dpop <- get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL)
+ expect_true(all(dpop$attrition$current_n == 1))
 
   DBI::dbDisconnect(db, shutdown=TRUE)
 

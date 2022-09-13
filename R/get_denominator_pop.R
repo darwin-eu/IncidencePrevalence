@@ -311,7 +311,11 @@ get_denominator_pop <- function(db,
   # filtering on database side
   # drop anyone missing year_of_birth or gender_concept_id
   attrition <- tibble::tibble(
-    current_n = person_db %>% dplyr::tally() %>% dplyr::collect() %>% base::as.numeric(),
+    current_n = person_db %>%
+      dplyr::select("person_id") %>%
+      dplyr::distinct() %>%
+      dplyr::tally()  %>%
+      dplyr::pull(),
     reason = NA
   )
 
@@ -324,7 +328,11 @@ get_denominator_pop <- function(db,
   attrition <- attrition <- dplyr::bind_rows(
     attrition,
     tibble::tibble(
-      current_n = study_pop_db %>% dplyr::tally() %>% dplyr::collect() %>% base::as.numeric(),
+      current_n = study_pop_db %>%
+        dplyr::select("person_id") %>%
+        dplyr::distinct() %>%
+        dplyr::tally()  %>%
+        dplyr::pull(),
       reason = "Missing year of birth"
     )
   )
@@ -339,7 +347,11 @@ get_denominator_pop <- function(db,
   attrition <- dplyr::bind_rows(
     attrition,
     tibble::tibble(
-      current_n = study_pop_db %>% dplyr::tally() %>% dplyr::collect() %>% base::as.numeric(),
+      current_n = study_pop_db %>%
+        dplyr::select("person_id") %>%
+        dplyr::distinct() %>%
+        dplyr::tally()  %>%
+        dplyr::pull(),
       reason = "Missing gender"
     )
   )
@@ -353,7 +365,11 @@ get_denominator_pop <- function(db,
   attrition <- dplyr::bind_rows(
     attrition,
     tibble::tibble(
-      current_n = study_pop_db %>% dplyr::tally() %>% dplyr::collect() %>% base::as.numeric(),
+      current_n = study_pop_db %>%
+        dplyr::select("person_id") %>%
+        dplyr::distinct() %>%
+        dplyr::tally()  %>%
+        dplyr::pull(),
       reason = "Doesn't satisfy the sex criteria"
     )
   )
@@ -373,7 +389,11 @@ get_denominator_pop <- function(db,
   attrition <- dplyr::bind_rows(
     attrition,
     tibble::tibble(
-      current_n = study_pop_db %>% dplyr::tally() %>% dplyr::collect() %>% base::as.numeric(),
+      current_n = study_pop_db %>%
+        dplyr::select("person_id") %>%
+        dplyr::distinct() %>%
+        dplyr::tally()  %>%
+        dplyr::pull(),
       reason = "Doesn't satisfy age criteria during the study period"
     )
   )
@@ -388,7 +408,11 @@ get_denominator_pop <- function(db,
   attrition <- attrition <- dplyr::bind_rows(
     attrition,
     tibble::tibble(
-      current_n = study_pop_db %>% dplyr::tally() %>% dplyr::collect() %>% base::as.numeric(),
+      current_n = study_pop_db %>%
+        dplyr::select("person_id") %>%
+        dplyr::distinct() %>%
+        dplyr::tally()  %>%
+        dplyr::pull(),
       reason = "No observation time available during study period"
     )
   )
@@ -449,7 +473,11 @@ get_denominator_pop <- function(db,
     attrition <- dplyr::bind_rows(
       attrition,
       tibble::tibble(
-        current_n = study_pop %>% dplyr::tally() %>% dplyr::collect() %>% base::as.numeric(),
+        current_n = study_pop %>%
+          dplyr::select("person_id") %>%
+          dplyr::distinct() %>%
+          dplyr::tally()  %>%
+          dplyr::pull(),
         reason = "Doesn't satisfy age criteria during the study period"
       )
     )
@@ -462,7 +490,11 @@ get_denominator_pop <- function(db,
     attrition <- dplyr::bind_rows(
       attrition,
       tibble::tibble(
-        current_n = study_pop %>% dplyr::tally() %>% dplyr::collect() %>% base::as.numeric(),
+        current_n = study_pop %>%
+          dplyr::select("person_id") %>%
+          dplyr::distinct() %>%
+          dplyr::tally()  %>%
+          dplyr::pull(),
         reason = "Prior history requirement not fullfilled during study period"
       )
     )
@@ -508,7 +540,11 @@ get_denominator_pop <- function(db,
     attrition <- dplyr::bind_rows(
       attrition,
       tibble::tibble(
-        current_n = study_pop %>% dplyr::tally() %>% dplyr::collect() %>% base::as.numeric(),
+        current_n = study_pop %>%
+          dplyr::select("person_id") %>%
+          dplyr::distinct() %>%
+          dplyr::tally()  %>%
+          dplyr::pull(),
         reason = "Prior history requirement not fullfilled during study period"
       )
     )
