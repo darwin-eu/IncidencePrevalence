@@ -78,50 +78,6 @@ test_that("check working example with outcome table", {
 
 })
 
-
-test_that("check expected errors", {
-  library(DBI)
-  library(duckdb)
-  library(dplyr)
-
-  db<-generate_mock_incidence_prevalence_db()
-
-  db_inherits_check <- inherits(db, "DBIConnection")
-  expect_true(db_inherits_check)
-
-  expect_true(nrow(dplyr::tbl(db, "person") %>%
-                     collect())>=1)
-  expect_true(nrow(dplyr::tbl(db, "observation_period") %>%
-                     collect())>=1)
-
-
-  person_db_names <- c(
-    "person_id", "gender_concept_id", "year_of_birth",
-    "month_of_birth", "day_of_birth"
-  )
-  person_db_names_check <- all(person_db_names %in%
-                                 names(dplyr::tbl(db, "person") %>%
-                                         utils::head(1) %>%
-                                         dplyr::collect() %>%
-                                         dplyr::rename_with(tolower)))
-  expect_true(person_db_names_check)
-
-  obs_period_db_names <- c(
-    "observation_period_id", "person_id",
-    "observation_period_start_date", "observation_period_end_date"
-  )
-  obs_period_db_names_check <- all(obs_period_db_names %in%
-                                     names(dplyr::tbl(db, "observation_period") %>%
-                                             utils::head(1) %>%
-                                             dplyr::collect() %>%
-                                             dplyr::rename_with(tolower)))
-  expect_true(obs_period_db_names_check)
-
-  dbDisconnect(db, shutdown=TRUE)
-
-
-})
-
 test_that("check working example sample size and outcome prevalence option", {
   library(DBI)
   library(duckdb)
@@ -187,6 +143,41 @@ test_that("check working example sample size and outcome varies by gender and ag
   expect_true(outcome_db_names_check)
 
   dbDisconnect(db, shutdown=TRUE)
+
+
+})
+
+test_that("check expected errors", {
+  library(DBI)
+  library(duckdb)
+  library(dplyr)
+
+  testthat::expect_error(
+    generate_mock_incidence_prevalence_db(person = "x"))
+  testthat::expect_error(
+    generate_mock_incidence_prevalence_db(observation_period = "x"))
+  testthat::expect_error(
+    generate_mock_incidence_prevalence_db(outcome = "x"))
+  testthat::expect_error(
+    generate_mock_incidence_prevalence_db(sample_size = -1))
+  testthat::expect_error(
+    generate_mock_incidence_prevalence_db(sample_size = 100,
+                                          out_pre = -0.2))
+  testthat::expect_error(
+    generate_mock_incidence_prevalence_db(
+      earliest_date_of_birth = as.Date("2000-01-01"),
+      latest_date_of_birth = as.Date("1999-01-01")
+    ))
+  testthat::expect_error(
+    generate_mock_incidence_prevalence_db(
+      earliest_observation_start_date = as.Date("2000-01-01"),
+      latest_observation_start_date = as.Date("1999-01-01")
+    ))
+  testthat::expect_error(
+    generate_mock_incidence_prevalence_db(
+      min_days_to_observation_end = 10,
+      max_days_to_observation_end = 1
+    ))
 
 
 })
