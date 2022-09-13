@@ -633,18 +633,19 @@ test_that("mock db: check attrition table", {
     db = db,
     cdm_database_schema = NULL
   )
-  expect_true(nrow(dpop$attrition) == 9)
+  expect_true(nrow(dpop$attrition) == 7)
 
   # check last n_current equals the number of rows of the denominator pop
-  expect_true(nrow(dpop$denominator_population)==dpop$attrition$current_n[9])
-
+  expect_true(nrow(dpop$denominator_population)==dpop$attrition$current_n[7])
 
   # check names
-  expect_true(all(c(NA, "Missing year of birth", "Missing gender", "Sex criteria",
-                    "Age criteria (considering study start and end dates)", "Observation period out of study period",
-                    "Age criteria (considering each individual start and end dates)", "Prior history requirement not fullfilled at end date",
-                    "Elegible after end date"
-          )%in%
+  expect_true(all(c(NA, "Missing year of birth",
+                    "Missing gender",
+                    "Doesn't satisfy the sex criteria",
+                    "No observation time available during study period",
+                    "Doesn't satisfy age criteria during the study period" ,
+                    "Prior history requirement not fullfilled during study period"
+          ) %in%
         dpop$attrition$reason))
 
 
@@ -671,7 +672,7 @@ test_that("mock db: check attrition table", {
     min_age = 24,
     max_age = 25
   )
-  expect_true(dpop$attrition$excluded[5] == 1)
+  expect_true(dpop$attrition$excluded[6] == 1)
 
   # check observation criteria
   dpop <- get_denominator_pop(
@@ -680,7 +681,7 @@ test_that("mock db: check attrition table", {
     start_date = as.Date("2010-01-01"),
     end_date = as.Date("2012-01-01")
   )
-  expect_true(dpop$attrition$excluded[6] == 2)
+  expect_true(dpop$attrition$excluded[5] == 2)
 
   # check prior observation criteria
   dpop <- get_denominator_pop(
@@ -690,7 +691,7 @@ test_that("mock db: check attrition table", {
     end_date = as.Date("2016-06-30"),
     days_prior_history = 365
   )
-  expect_true(dpop$attrition$excluded[8] == 1)
+  expect_true(dpop$attrition$excluded[7] == 1)
 
 
   DBI::dbDisconnect(db, shutdown=TRUE)
