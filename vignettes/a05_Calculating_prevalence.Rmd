@@ -184,11 +184,16 @@ where age is the scaled age with mean 0 and male_flag is the binary value for ge
 Let's plot the period prevalence by month again and notice between the difference between the previous plot.
 
 ```{r, message= FALSE, warning=FALSE}
-db2<-generate_mock_incidence_prevalence_db(sample_size=50000,
+db2<-generate_mock_incidence_prevalence_db(sample_size=500000,
                                            out_pre=0.5,
-                                           age_beta = 1,
-                                           gender_beta = -1,
-                                           intercept = -1)
+                                           age_beta = 5,
+                                           gender_beta = 2,
+                                           intercept = -1,
+                                           earliest_observation_start_date=
+                                             as.Date("2007-01-01"),
+                                           latest_observation_start_date=
+                                             as.Date("2016-01-01")
+                                           )
 
 print(nrow(dplyr::tbl(db2, "person") %>% collect()))
 print(nrow(dplyr::tbl(db2, "outcome") %>% collect()))
@@ -196,28 +201,37 @@ print(nrow(dplyr::tbl(db2, "outcome") %>% collect()))
 dpop2 <- collect_denominator_pops(db = db2,
                                   cdm_database_schema = NULL,
                                   study_start_date= as.Date("2008-01-01"),
-                                  study_end_date= as.Date("2012-01-01"),
-                                  study_age_stratas = NULL,
-                                  study_sex_stratas = "Both",
-                                  study_days_prior_history = 0)$denominator_population
+                                  study_end_date= as.Date("2016-01-01"),
+                                  study_age_stratas = list(c(0,39),
+                                                           c(40,59),
+                                                           c(60,150)),
+                                  study_sex_stratas = c("Male", "Female"),
+                                  study_days_prior_history = 0)
 
 prev2 <- collect_pop_prevalence(
   db = db2,
   results_schema_outcome = NULL,
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
-  cohort_ids_denominator_pops = "1",
-  study_denominator_pop = dpop2,
-  time_intervals="Months",
-  periods = "Month",
+  cohort_ids_denominator_pops = unique(
+    dpop2$denominator_populations$cohort_definition_id),
+  study_denominator_pop = dpop2$denominator_population,
+  time_intervals="Years",
+  periods = "month",
   minimum_cell_count = 0
 )
 
+
+
 prev2$prevalence_estimates %>% 
-    mutate(calendar_month=as.Date(paste0(calendar_year,"-", calendar_month, "-01"))) %>% 
-  ggplot(aes(calendar_month, prev))+
+  left_join(prev2$analysis_settings,
+            by = "prevalence_analysis_id") %>% 
+  left_join(dpop2$denominator_settings,
+            by=c("cohort_id_denominator_pop"="cohort_definition_id")) %>% 
+  ggplot(aes(calendar_year, prev))+
+  facet_grid(age_strata ~ sex_strata)+
   geom_point()+
   scale_y_continuous(labels = scales::percent,
                      limits = c(0,NA))+
-  theme_minimal()
+  theme_bw()
 ```
