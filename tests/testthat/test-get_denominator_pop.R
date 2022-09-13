@@ -520,7 +520,7 @@ test_that("mock db: check example #2 we expect to work", {
   library(dplyr)
   library(DBI)
   library(duckdb)
-  
+
   # 5 person, 1 observation periods
   person <- tibble(
     person_id = c("1","2","3","4","5"),
@@ -538,20 +538,20 @@ test_that("mock db: check example #2 we expect to work", {
   # mock database
   db <- generate_mock_incidence_prevalence_db(person=person,
                                               observation_period=observation_period)
-  
+
   dpop <- get_denominator_pop(
     db = db,
     cdm_database_schema = NULL
   )
-  
+
   #throw year NA row
   expect_true(nrow(dpop$denominator_population) == 4)
   expect_true(all(dpop$denominator_population$cohort_start_date == as.Date("2000-01-01")))
   expect_true(all(dpop$denominator_population$cohort_end_date == as.Date("2015-06-01")))
-  
-  
-  
-  
+
+
+
+
   dpop <- get_denominator_pop(
     db = db,
     cdm_database_schema = NULL,
@@ -571,7 +571,7 @@ test_that("mock db: check example #2 we expect to work", {
   dpop$denominator_population %>%
     filter(person_id=="4") %>%
     summarise(check=cohort_start_date==as.Date("2006-05-02"))
-  
+
   #check max age change cohort start date
   #check imputation
   dpop <- get_denominator_pop(
@@ -591,8 +591,8 @@ test_that("mock db: check example #2 we expect to work", {
   dpop$denominator_population %>%
     filter(person_id=="4") %>%
     summarise(check=cohort_end_date==as.Date("2007-05-01"))
-  
-  
+
+
   dpop <- get_denominator_pop(
     db = db,
     cdm_database_schema = NULL,
@@ -602,11 +602,100 @@ test_that("mock db: check example #2 we expect to work", {
   expect_true(nrow(dpop$denominator_population) == 4)
   expect_true(all(dpop$denominator_population$cohort_start_date == as.Date("2010-02-15")))
   expect_true(all(dpop$denominator_population$cohort_end_date == as.Date("2010-05-15")))
-  
+
   DBI::dbDisconnect(db, shutdown=TRUE)
 })
 
+test_that("mock db: check attrition table", {
+  library(tibble)
+  library(dplyr)
 
+  # 7 person, 1 observation periods
+  person <- tibble(
+    person_id = c("1","2","3","4","5","6","7"),
+    gender_concept_id = c("8507","8532","8507", "8532","8532", "8507", NA),
+    year_of_birth = c(1995,1993,1994,1996,1998, NA, 1993),
+    month_of_birth = c(07,02,06,05,04,10,01),
+    day_of_birth = c(25,14,01,02,03,10,12)
+  )
+  observation_period <- tibble(
+    observation_period_id = c("1","2","3","4","5","6","7"),
+    person_id = c("1","2","3","4","5","6","7"),
+    observation_period_start_date = c(as.Date("2017-01-01"),rep(as.Date("2000-01-01"),3),rep(as.Date("2016-01-01"),3)),
+    observation_period_end_date = c(as.Date("2020-06-01"), rep(as.Date("2017-06-01"),3),rep(as.Date("2020-06-01"),3))
+  )
+
+  # mock database
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period)
+  # check number of rows
+  dpop <- get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL
+  )
+  expect_true(nrow(dpop$attrition) == 9)
+
+  # check last n_current equals the number of rows of the denominator pop
+  expect_true(nrow(dpop$denominator_population)==dpop$attrition$current_n[9])
+
+
+  # check names
+  expect_true(all(c(NA, "Missing year of birth", "Missing gender", "Sex criteria",
+                    "Age criteria (considering study start and end dates)", "Observation period out of study period",
+                    "Age criteria (considering each individual start and end dates)", "Prior history requirement not fullfilled at end date",
+                    "Elegible after end date"
+          )%in%
+        dpop$attrition$reason))
+
+
+  # check missings
+  dpop <- get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL
+  )
+  expect_true(dpop$attrition$excluded[2]== 1)
+  expect_true(dpop$attrition$excluded[3]== 1)
+
+  # check sex criteria
+  dpop <- get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    sex= "Female"
+  )
+  expect_true(dpop$attrition$excluded[4] == 2)
+
+  # check age criteria
+  dpop <- get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    min_age = 24,
+    max_age = 25
+  )
+  expect_true(dpop$attrition$excluded[5] == 1)
+
+  # check observation criteria
+  dpop <- get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    start_date = as.Date("2010-01-01"),
+    end_date = as.Date("2012-01-01")
+  )
+  expect_true(dpop$attrition$excluded[6] == 2)
+
+  # check prior observation criteria
+  dpop <- get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    start_date = as.Date("2015-01-01"),
+    end_date = as.Date("2016-06-30"),
+    days_prior_history = 365
+  )
+  expect_true(dpop$attrition$excluded[8] == 1)
+
+
+  DBI::dbDisconnect(db, shutdown=TRUE)
+
+})
 # test_that("various checks for working example full db", {
 # # full database
 #   library(DBI)
