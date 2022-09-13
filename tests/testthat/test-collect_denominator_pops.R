@@ -1,9 +1,5 @@
 
 test_that("mock db: check output format", {
-  library(DBI)
-  library(dplyr)
-  library(tibble)
-
   db <- generate_mock_incidence_prevalence_db()
 
   dpop <- collect_denominator_pops(
@@ -34,18 +30,14 @@ test_that("mock db: check output format", {
 })
 
 test_that("mock db: checks on working example", {
-  library(DBI)
-  library(dplyr)
-  library(tibble)
-
-  person <- tibble(
+  person <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observation_period <- tibble(
+  observation_period <- tibble::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-01"),
@@ -80,18 +72,14 @@ test_that("mock db: checks on working example", {
 })
 
 test_that("mock db check age strata entry and exit", {
-  library(DBI)
-  library(dplyr)
-  library(tibble)
-
-  person <- tibble(
+  person <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observation_period <- tibble(
+  observation_period <- tibble::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2008-01-01"),
@@ -111,43 +99,38 @@ study_age_stratas = list(c(11, 12),
                          c(13,14))
 )
 expect_true(dpops$denominator_populations %>%
-  filter(cohort_definition_id==1) %>%
-  select(cohort_start_date) %>%
-  pull() == as.Date("2011-01-01"))
+  dplyr::filter(cohort_definition_id==1) %>%
+  dplyr::select(cohort_start_date) %>%
+  dplyr::pull() == as.Date("2011-01-01"))
 expect_true(dpops$denominator_populations %>%
-  filter(cohort_definition_id==1) %>%
-  select(cohort_end_date) %>%
-  pull() == as.Date("2012-12-31"))
+  dplyr::filter(cohort_definition_id==1) %>%
+  dplyr::select(cohort_end_date) %>%
+  dplyr::pull() == as.Date("2012-12-31"))
 expect_true(dpops$denominator_populations %>%
-  filter(cohort_definition_id==2) %>%
-  select(cohort_start_date) %>%
-  pull() == as.Date("2013-01-01"))
+  dplyr::filter(cohort_definition_id==2) %>%
+  dplyr::select(cohort_start_date) %>%
+  dplyr::pull() == as.Date("2013-01-01"))
 expect_true(dpops$denominator_populations %>%
-  filter(cohort_definition_id==2) %>%
-  select(cohort_end_date) %>%
-  pull() == as.Date("2014-12-31"))
+  dplyr::filter(cohort_definition_id==2) %>%
+  dplyr::select(cohort_end_date) %>%
+  dplyr::pull() == as.Date("2014-12-31"))
 
   DBI::dbDisconnect(db, shutdown=TRUE)
 })
 
 test_that("mock db: check expected errors", {
-
-  library(DBI)
-  library(dplyr)
-  library(tibble)
-
   db <- generate_mock_incidence_prevalence_db()
 
 
 
 # not a dbi connection
 expect_error(collect_denominator_pops(db="a",
-                                                cdm_database_schema,
-                                                study_start_date = NULL,
-                                                study_end_date = NULL,
-                                                study_age_stratas = list(c(10, 15), c(16, 20)),
-                                                study_sex_stratas = c("Female", "Male", "Both"),
-                                                study_days_prior_history = c(0, 365)
+                                      cdm_database_schema,
+                                      study_start_date = NULL,
+                                      study_end_date = NULL,
+                                      study_age_stratas = list(c(10, 15), c(16, 20)),
+                                      study_sex_stratas = c("Female", "Male", "Both"),
+                                      study_days_prior_history = c(0, 365)
 ))
 
 
