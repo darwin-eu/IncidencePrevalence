@@ -697,6 +697,171 @@ test_that("mock db: check attrition table", {
   DBI::dbDisconnect(db, shutdown=TRUE)
 
 })
+
+test_that("mock db: subset denominator by cohort", {
+  library(tibble)
+  library(dplyr)
+  library(DBI)
+  library(duckdb)
+
+  # one person, one observation periods
+  person <- tibble(
+    person_id = c("1","2","3"),
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 06,
+    day_of_birth = 01
+  )
+  observation_period <- tibble(
+    observation_period_id = c("1","2","3"),
+    person_id = c("1","2","3"),
+    observation_period_start_date = as.Date("2010-01-01"),
+    observation_period_end_date = as.Date("2015-06-01")
+  )
+  # mock database
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period)
+
+  # add stratifying cohort
+  strata_cohort<-  tibble(
+    cohort_definition_id="1",
+      subject_id=c("1","2"),
+    cohort_start_date=as.Date("2012-06-06"),
+    cohort_end_date=as.Date("2013-06-06")
+  )
+  DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "strata_cohort",
+                      strata_cohort,
+                      overwrite = TRUE
+    )})
+
+  # without using strata cohort
+  dpop <- get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL
+  )
+  expect_true(all(dpop$denominator_population$person_id %in%
+                    c("1", "2", "3")))
+  expect_true(all(dpop$denominator_population$cohort_start_date ==
+                    "2010-01-01"))
+  expect_true(all(dpop$denominator_population$cohort_end_date ==
+                    "2015-06-01"))
+
+  # using strata cohort
+  dpop <- get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    strata_schema = NULL,
+    table_name_strata = "strata_cohort",
+    strata_cohort_id = "1",
+  )
+  expect_true(all(dpop$denominator_population$person_id %in%
+                    c("1", "2")))
+  expect_true(all(!dpop$denominator_population$person_id  %in%
+                    c("3")))
+  expect_true(all(dpop$denominator_population$cohort_start_date ==
+                    "2012-06-06"))
+  expect_true(all(dpop$denominator_population$cohort_end_date ==
+                    "2013-06-06"))
+
+
+  # stratifying cohort multiple events per person
+  strata_cohort<-  tibble(
+    cohort_definition_id="1",
+    subject_id=c("1","2","2"),
+    cohort_start_date=c(as.Date("2012-06-06"),
+                        as.Date("2012-06-06"),
+                        as.Date("2013-11-01")),
+    cohort_end_date=c(as.Date("2013-06-06"),
+                      as.Date("2013-06-06"),
+                      as.Date("2014-02-01"))
+  )
+  DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "strata_cohort",
+                      strata_cohort,
+                      overwrite = TRUE
+    )})
+  dpop <- get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    strata_schema = NULL,
+    table_name_strata = "strata_cohort",
+    strata_cohort_id = "1",
+  )
+  expect_true(all(dpop$denominator_population$person_id %in%
+                    c("1", "2")))
+  expect_true(all(!dpop$denominator_population$person_id  %in%
+                    c("3")))
+  expect_true(sum(dpop$denominator_population$person_id=="1")==1)
+  expect_true(sum(dpop$denominator_population$person_id=="2")==2)
+
+  expect_true(all(dpop$denominator_population$cohort_start_date %in%
+                    as.Date(c("2012-06-06", "2013-11-01"))))
+  expect_true(all(dpop$denominator_population$cohort_end_date %in%
+                    as.Date(c("2013-06-06", "2014-02-01"))))
+
+
+  # multiple observation periods and multiple outcomes for a person
+  # one person, one observation periods
+  person <- tibble(
+    person_id = "1",
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 06,
+    day_of_birth = 01
+  )
+  observation_period <- tibble(
+    observation_period_id = c("1","2","3"),
+    person_id = c("1"),
+    observation_period_start_date = c(as.Date("2008-01-01"),
+                                      as.Date("2009-01-01"),
+                                      as.Date("2010-01-01")),
+    observation_period_end_date = c(as.Date("2008-06-01"),
+                                    as.Date("2009-06-01"),
+                                    as.Date("2010-06-01"))
+  )
+  # mock database
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period)
+
+  # add stratifying cohort
+  strata_cohort<-  tibble(
+    cohort_definition_id="1",
+    subject_id=c("1","1","1"),
+    cohort_start_date=c(as.Date("2008-02-01"),
+                        as.Date("2009-02-01"),
+                        as.Date("2010-02-01")),
+    cohort_end_date=c(as.Date("2008-04-01"),
+                      as.Date("2009-04-01"),
+                      as.Date("2010-04-01"))
+  )
+  DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "strata_cohort",
+                      strata_cohort,
+                      overwrite = TRUE
+    )})
+  dpop <- get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    strata_schema = NULL,
+    table_name_strata = "strata_cohort",
+    strata_cohort_id = "1",
+  )
+  expect_true(sum(dpop$denominator_population$person_id=="1")==3)
+  expect_true(dpop$denominator_population$cohort_start_date[1]=="2008-02-01")
+  expect_true(dpop$denominator_population$cohort_start_date[2]=="2009-02-01")
+  expect_true(dpop$denominator_population$cohort_start_date[3]=="2010-02-01")
+
+  expect_true(dpop$denominator_population$cohort_end_date[1]=="2008-04-01")
+  expect_true(dpop$denominator_population$cohort_end_date[2]=="2009-04-01")
+  expect_true(dpop$denominator_population$cohort_end_date[3]=="2010-04-01")
+
+
+  DBI::dbDisconnect(db, shutdown=TRUE)
+
+})
+
+
 # test_that("various checks for working example full db", {
 # # full database
 #   library(DBI)

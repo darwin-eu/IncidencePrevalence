@@ -76,6 +76,33 @@ test_that("mock db: checks on working example", {
   expect_true(nrow(dpops$denominator_population)==0)
 
 
+  # using cohort strata
+  # add stratifying cohort
+  strata_cohort<-  tibble(
+    cohort_definition_id="1",
+    subject_id=c("1","2"),
+    cohort_start_date=as.Date("2010-03-15"),
+    cohort_end_date=as.Date("2012-03-15")
+  )
+  DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "strata_cohort",
+                      strata_cohort,
+                      overwrite = TRUE
+    )})
+
+  # using strata cohort
+  dpop <- get_denominator_pop(
+    db = db,
+    cdm_database_schema = NULL,
+    strata_schema =  NULL,
+    table_name_strata = "strata_cohort",
+    strata_cohort_id = "1"
+  )
+  expect_true(dpop$denominator_population$cohort_start_date ==
+                "2010-03-15")
+  expect_true(dpop$denominator_population$cohort_end_date ==
+                "2012-03-15")
+
   DBI::dbDisconnect(db, shutdown=TRUE)
 })
 

@@ -31,6 +31,9 @@
 #' @param sex Sex of the cohort
 #' @param days_prior_history Days of prior history required to enter
 #' the study cohort.
+#' @param strata_schema strata_schema
+#' @param table_name_strata table_name_strata
+#' @param strata_cohort_id strata_cohort_id
 #' @param verbose Either TRUE or FALSE.
 #' If TRUE, progress will be reported.
 #'
@@ -47,6 +50,9 @@ get_denominator_pop <- function(db,
                                 max_age = NULL,
                                 sex = "Both",
                                 days_prior_history = 0,
+                                strata_schema = NULL,
+                                table_name_strata = NULL,
+                                strata_cohort_id = NULL,
                                 verbose = FALSE) {
   if (verbose == TRUE) {
     start <- Sys.time()
@@ -172,6 +178,7 @@ get_denominator_pop <- function(db,
   ) %>%
     dplyr::compute()
 
+  error_message <- checkmate::makeAssertCollection()
   # check variable names
   # person table
   person_db_names <- c(
@@ -196,6 +203,80 @@ get_denominator_pop <- function(db,
       dplyr::collect() %>%
       dplyr::rename_with(tolower)))
   checkmate::assertTRUE(obs_period_db_names_check, add = error_message)
+  checkmate::reportAssertions(collection = error_message)
+
+
+  # stratify population on cohort
+  if(!is.null(table_name_strata)){
+
+    error_message <- checkmate::makeAssertCollection()
+    checkmate::assert_character(strata_cohort_id,
+                                add = error_message
+    )
+    checkmate::reportAssertions(collection = error_message)
+
+    if (!is.null(strata_schema)) {
+      strata_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
+        "SELECT * FROM {strata_schema}.{table_name_strata}"
+      )))
+    } else {
+      strata_db <- dplyr::tbl(db, table_name_strata)
+    }
+
+    strata_db <- strata_db %>%
+      dplyr::filter(.data$cohort_definition_id == .env$strata_cohort_id)
+
+  # drop anyone not in the strata cohort
+    person_db <- person_db %>%
+      dplyr::inner_join(strata_db %>%
+                          dplyr::rename("person_id"="subject_id") %>%
+                          dplyr::select("person_id") %>%
+                          dplyr::distinct(),
+                by="person_id") %>%
+      dplyr::compute()
+    observation_period_db <- observation_period_db %>%
+      dplyr::inner_join(strata_db %>%
+                          dplyr::rename("person_id"="subject_id") %>%
+                          dplyr::select("person_id") %>%
+                          dplyr::distinct(),
+                        by="person_id") %>%
+      dplyr::compute()
+
+  # update observation start date to cohort start date
+  # if cohort start date is after observation start date
+  # update observation end date to match cohort end date
+  # if cohort end date is before observation start date
+   observation_period_db <- observation_period_db %>%
+      dplyr::inner_join(strata_db %>%
+                          dplyr::rename("person_id"="subject_id") %>%
+                          dplyr::select("person_id",
+                                        "cohort_start_date",
+                                        "cohort_end_date"),
+                        by="person_id")
+
+   # to deal with potential multiple observation periods
+   # make sure outcome started during joined observation period
+   # if not, drop
+   observation_period_db <- observation_period_db %>%
+     dplyr::filter(.data$observation_period_start_date<= .data$cohort_start_date &
+                     .data$observation_period_end_date>= .data$cohort_start_date)
+
+   observation_period_db <- observation_period_db %>%
+      dplyr::mutate(observation_period_start_date=
+                      dplyr::if_else(.data$observation_period_start_date<=
+                              .data$cohort_start_date,
+                              .data$cohort_start_date,
+                              .data$observation_period_start_date)) %>%
+      dplyr::mutate(observation_period_end_date=
+                      dplyr::if_else(.data$observation_period_end_date>=
+                              .data$cohort_end_date,
+                              .data$cohort_end_date,
+                              .data$observation_period_end_date)) %>%
+     dplyr::select(!c("cohort_start_date", "cohort_end_date")) %>%
+     dplyr::compute()
+
+
+  }
 
   ## Identifying population of interest
   # Optional arguments to values
@@ -435,6 +516,9 @@ get_denominator_pop <- function(db,
     # variables to keep
     study_pop <- study_pop %>%
       dplyr::select("person_id", "cohort_start_date", "cohort_end_date")
+    # order by id and start date
+    study_pop <-  study_pop[order(study_pop$person_id,
+                                  study_pop$cohort_start_date),]
 
 
     if (verbose == TRUE) {
@@ -449,6 +533,8 @@ get_denominator_pop <- function(db,
     message("-- No people found for denominator population")
     study_pop <- NULL
   }
+
+
 
     # settings
     study_pop_settings <- tibble::tibble(
