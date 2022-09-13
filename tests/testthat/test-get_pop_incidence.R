@@ -769,6 +769,183 @@ test_that("mock db: cohort start overlaps with the outcome", {
 
 })
 
+test_that("mock db: multiple overlapping outcomes", {
+  library(DBI)
+  library(dplyr)
+  library(tibble)
+
+# two
+person <- tibble(
+  person_id = c("1","2"),
+  gender_concept_id = c("8507","8532"),
+  year_of_birth = c(1995,1995),
+  month_of_birth = c(07,07),
+  day_of_birth = c(01,01)
+)
+observation_period <- tibble(
+  observation_period_id = c("1","2"),
+  person_id = c("1","2"),
+  observation_period_start_date = c(as.Date("2020-04-29"),as.Date("2019-01-01")),
+  observation_period_end_date = c(as.Date("2020-12-31"),as.Date("2021-12-31"))
+)
+outcome <- tibble(
+  cohort_definition_id = c("1","1"),
+  subject_id = c("1","1"),
+  cohort_start_date = c(as.Date("2020-04-26"),as.Date("2020-11-10")),
+  cohort_end_date = c(as.Date("2020-05-17"),as.Date("2020-12-17"))
+)
+
+db <- generate_mock_incidence_prevalence_db(person=person,
+                                            observation_period=observation_period,
+                                            outcome=outcome)
+
+dpop <- collect_denominator_pops(
+  db = db,
+  cdm_database_schema = NULL
+)
+dpop<-dpop$denominator_populations
+inc <- get_pop_incidence(
+  db = db,
+  results_schema_outcome = NULL,
+  table_name_outcome = "outcome",
+  cohort_id_outcome = "1",
+  cohort_id_denominator_pop = "1",
+  outcome_washout_window = 180,
+  repetitive_events = TRUE,
+  study_denominator_pop = dpop,
+  time_interval = c("Years"),
+  verbose = TRUE
+)
+
+expect_true(all(inc$ir$n_persons) == 1)
+
+# three
+person <- tibble(
+  person_id = c("1","2"),
+  gender_concept_id = c("8507","8532"),
+  year_of_birth = c(1995,1995),
+  month_of_birth = c(07,07),
+  day_of_birth = c(01,01)
+)
+observation_period <- tibble(
+  observation_period_id = c("1","2"),
+  person_id = c("1","2"),
+  observation_period_start_date = c(as.Date("2020-04-29"),as.Date("2019-01-01")),
+  observation_period_end_date = c(as.Date("2020-12-31"),as.Date("2021-12-31"))
+)
+outcome <- tibble(
+  cohort_definition_id = c("1","1","1"),
+  subject_id = c("1","1","1"),
+  cohort_start_date = c(as.Date("2020-04-26"),
+                        as.Date("2020-11-08"),
+                        as.Date("2020-11-10")),
+  cohort_end_date = c(as.Date("2020-05-17"),
+                      as.Date("2020-11-09"),
+                      as.Date("2020-12-17"))
+)
+
+db <- generate_mock_incidence_prevalence_db(person=person,
+                                            observation_period=observation_period,
+                                            outcome=outcome)
+
+dpop <- collect_denominator_pops(
+  db = db,
+  cdm_database_schema = NULL
+)
+dpop<-dpop$denominator_populations
+inc <- get_pop_incidence(
+  db = db,
+  results_schema_outcome = NULL,
+  table_name_outcome = "outcome",
+  cohort_id_outcome = "1",
+  cohort_id_denominator_pop = "1",
+  outcome_washout_window = 180,
+  repetitive_events = TRUE,
+  study_denominator_pop = dpop,
+  time_interval = c("Years"),
+  verbose = TRUE
+)
+
+expect_true(all(inc$ir$n_persons) == 1)
+
+dbDisconnect(db)
+
+})
+
+test_that("mock db: cohort before start of period and ending after end of period", {
+
+  library(DBI)
+  library(dplyr)
+  library(tibble)
+
+  person <- tibble(
+    person_id = c("1","2"),
+    gender_concept_id = c("8507","8532"),
+    year_of_birth = c(1990,1990),
+    month_of_birth = c(01,01),
+    day_of_birth = c(01,01)
+  )
+  observation_period <- tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2000-07-31"),as.Date("2000-07-31")),
+    observation_period_end_date = c(as.Date("2010-01-01"),as.Date("2010-01-01"))
+  )
+  outcome <- tibble(
+    cohort_definition_id = c("1", "1"),
+    subject_id = c("1", "2"),
+    cohort_start_date = c(as.Date("2000-08-02"),as.Date("2001-06-01")),
+    cohort_end_date = c(as.Date("2020-01-01"), as.Date("2001-07-01"))
+  )
+
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
+
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL,
+    study_start_date=as.Date(as.Date("2001-01-01")),
+    study_end_date=as.Date(as.Date("2002-01-01"))
+  )
+  dpop<-dpop$denominator_populations
+
+ # regardless of washout we expect one event
+ # with only one participant
+ # person 1s outcome starts before period and ends after
+
+ # no wahsout
+  inc <- get_pop_incidence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    cohort_id_denominator_pop = "1",
+    outcome_washout_window = 0,
+    repetitive_events = FALSE,
+    study_denominator_pop = dpop,
+    time_interval = c("Years"),
+    verbose = TRUE
+  )
+  expect_true(all(inc$ir$n_events == c(1)))
+
+  # washout
+  inc <- get_pop_incidence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    cohort_id_denominator_pop = "1",
+    outcome_washout_window = NULL,
+    repetitive_events = FALSE,
+    study_denominator_pop = dpop,
+    time_interval = c("Years"),
+    verbose = TRUE
+  )
+  expect_true(all(inc$ir$n_events == c(1)))
+
+})
+
 test_that("mock db: check full period requirement - year", {
 
   library(DBI)

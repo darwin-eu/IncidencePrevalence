@@ -373,7 +373,8 @@ get_pop_incidence <- function(db,
     if(nrow(ongoing_events)>=1){
     ongoing_events <-  ongoing_events %>%
       dplyr::mutate(new_t_start_date=.data$outcome_end_date + lubridate::days(1)) %>%
-      dplyr::select("person_id", "new_t_start_date")
+      dplyr::select("person_id", "new_t_start_date") %>%
+      dplyr::mutate(with_overlap=1)
 
     working_pop <- working_pop %>%
       dplyr::full_join(ongoing_events,
@@ -384,13 +385,16 @@ get_pop_incidence <- function(db,
       )) %>%
       dplyr::select(-"new_t_start_date")
 
-    # drop any outcomes now before start
-    working_pop<- working_pop %>%
-      dplyr::filter(is.na(.data$outcome_end_date) |
-               .data$outcome_end_date <= .data$t_start_date)
+
     # drop if start is now after end for anyone
     working_pop <- working_pop %>%
       dplyr::filter(.data$t_start_date <= .data$t_end_date)
+
+    # # drop any outcomes now before start
+    # working_pop<- working_pop %>%
+    #   dplyr::filter(is.na(.data$outcome_end_date) |
+    #                   .data$outcome_end_date <= .data$t_start_date)
+
     # outcome to NA if now before the start date
     working_pop <- working_pop %>%
       dplyr::mutate(outcome_start_date =
@@ -401,6 +405,21 @@ get_pop_incidence <- function(db,
                       dplyr::if_else(is.na(.data$outcome_start_date),
                                      as.Date(NA),
                                      .data$outcome_end_date))
+
+    # if person has multiple rows
+    # and had an overlap
+    # drop first as the second (and others have an outcome)
+    working_pop<-working_pop %>%
+      dplyr::group_by(.data$person_id)%>%
+      dplyr::mutate(seq=1:length(.data$person_id)) %>%
+      dplyr::mutate(tot=length(.data$person_id))
+    working_pop<-working_pop %>%
+      dplyr::mutate(drop=dplyr::if_else(
+        .data$with_overlap==1 & .data$tot>1 &  .data$seq==1,
+        1,0))
+    working_pop<-working_pop %>%
+      dplyr::filter(.data$drop==0) %>%
+      dplyr::select(!c("with_overlap","tot","seq","drop"))
 
     }
 
