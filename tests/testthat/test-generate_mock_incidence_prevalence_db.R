@@ -185,22 +185,18 @@ test_that("check working example for multiple outcome options", {
 
 
 
-  outcome_db_names <- c("cohort_definition_id",
-                        "subject_id",
-                        "cohort_start_date",
-                        "cohort_end_date")
-  outcome_db_names_check <- all(
-    outcome_db_names %in%
-      names(
-        dplyr::tbl(db, "outcome") %>%
-          utils::head(1) %>%
-          dplyr::collect() %>%
-          dplyr::rename_with(tolower)
-      )
+  outcome_db_names <- c(
+    "cohort_definition_id", "subject_id",
+    "cohort_start_date", "cohort_end_date"
   )
+  outcome_db_names_check <- all(outcome_db_names %in%
+                                  names(dplyr::tbl(db, "outcome") %>%
+                                          utils::head(1) %>%
+                                          dplyr::collect() %>%
+                                          dplyr::rename_with(tolower)))
   expect_true(outcome_db_names_check)
 
-  DBI::dbDisconnect(db, shutdown = TRUE)
+  DBI::dbDisconnect(db, shutdown=TRUE)
 
 
 })
