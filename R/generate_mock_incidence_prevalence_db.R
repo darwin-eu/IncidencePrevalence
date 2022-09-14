@@ -21,7 +21,7 @@
 #' @param observation_period observation_period table.
 #' @param outcome outcome table.
 #' @param sample_size number of unique patient
-#' @param out_pre % of patient with an event
+#' @param out_pre fraction of patient with an event
 #' @param seed seed for simulating the data set use same seed to get same data set
 #' @param age_beta the beta for the standardized age in logistics regression outcome model
 #' @param gender_beta the beta for the gender flag in logistics regression outcome model

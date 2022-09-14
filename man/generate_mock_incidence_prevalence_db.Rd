@@ -34,7 +34,7 @@ generate_mock_incidence_prevalence_db(
 
 \item{sample_size}{number of unique patient}
 
-\item{out_pre}{\% of patient with an event}
+\item{out_pre}{fraction of patient with an event}
 
 \item{seed}{seed for simulating the data set use same seed to get same data set}
 

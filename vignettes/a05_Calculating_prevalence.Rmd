@@ -172,3 +172,66 @@ prev$prevalence_estimates %>%
   theme_minimal()
 
 ```
+
+### Influence prevalence by modifing mock data
+We can influence the prevalence by setting certain parameters of the mock data. These parameters are gender_beta, age_beta and intercept and they are components in the (logistics regression) outcome model. The pre factor is calculated like this:
+
+```{r calc_pre, eval=FALSE}
+pre = exp(age_beta * age + gender_beta * male_flag + intercept) / 
+      (1 + exp(age_beta * age + gender_beta * male_flag + intercept))
+```
+where age is the scaled age with mean 0 and male_flag is the binary value for gender (1 = male, 0 = female).
+Let's plot the period prevalence by month again and notice between the difference between the previous plot.
+
+```{r, message= FALSE, warning=FALSE}
+db2<-generate_mock_incidence_prevalence_db(sample_size=500000,
+                                           out_pre=0.5,
+                                           age_beta = 5,
+                                           gender_beta = 2,
+                                           intercept = -1,
+                                           earliest_observation_start_date=
+                                             as.Date("2007-01-01"),
+                                           latest_observation_start_date=
+                                             as.Date("2016-01-01")
+                                           )
+
+print(nrow(dplyr::tbl(db2, "person") %>% collect()))
+print(nrow(dplyr::tbl(db2, "outcome") %>% collect()))
+
+dpop2 <- collect_denominator_pops(db = db2,
+                                  cdm_database_schema = NULL,
+                                  study_start_date= as.Date("2008-01-01"),
+                                  study_end_date= as.Date("2016-01-01"),
+                                  study_age_stratas = list(c(0,39),
+                                                           c(40,59),
+                                                           c(60,150)),
+                                  study_sex_stratas = c("Male", "Female"),
+                                  study_days_prior_history = 0)
+
+prev2 <- collect_pop_prevalence(
+  db = db2,
+  results_schema_outcome = NULL,
+  table_name_outcomes = "outcome",
+  cohort_ids_outcomes = "1",
+  cohort_ids_denominator_pops = unique(
+    dpop2$denominator_populations$cohort_definition_id),
+  study_denominator_pop = dpop2$denominator_population,
+  time_intervals="Years",
+  periods = "month",
+  minimum_cell_count = 0
+)
+
+
+
+prev2$prevalence_estimates %>% 
+  left_join(prev2$analysis_settings,
+            by = "prevalence_analysis_id") %>% 
+  left_join(dpop2$denominator_settings,
+            by=c("cohort_id_denominator_pop"="cohort_definition_id")) %>% 
+  ggplot(aes(calendar_year, prev))+
+  facet_grid(age_strata ~ sex_strata)+
+  geom_point()+
+  scale_y_continuous(labels = scales::percent,
+                     limits = c(0,NA))+
+  theme_bw()
+```

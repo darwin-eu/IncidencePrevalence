@@ -119,6 +119,7 @@ test_that("check working example sample size and outcome varies by gender and ag
   expect_true(outcome_db_names_check)
 
   DBI::dbDisconnect(db, shutdown=TRUE)
+
 })
 
 test_that("check working example for multiple outcome options", {
@@ -198,6 +199,7 @@ test_that("check working example for multiple outcome options", {
   expect_true(outcome_db_names_check)
 
   DBI::dbDisconnect(db, shutdown=TRUE)
+
 
 
 })
