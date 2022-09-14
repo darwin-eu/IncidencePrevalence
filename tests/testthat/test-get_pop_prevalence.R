@@ -1,9 +1,4 @@
 test_that("mock db: check output format", {
-
-  library(DBI)
-  library(dplyr)
-  library(tibble)
-
   db <- generate_mock_incidence_prevalence_db()
 
   dpop <- collect_denominator_pops(
@@ -36,29 +31,24 @@ test_that("mock db: check output format", {
   ) %in%
     names(prev[["analysis_settings"]])))
 
-  dbDisconnect(db, shutdown=TRUE)
-
+  DBI::dbDisconnect(db, shutdown=TRUE)
 })
 
 test_that("mock db: working examples", {
-  library(DBI)
-  library(dplyr)
-  library(tibble)
-
-  person <- tibble(
+  person <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observation_period <- tibble(
+  observation_period <- tibble::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-01"),
     observation_period_end_date = as.Date("2012-06-01")
   )
-  outcome <- tibble(
+  outcome <- tibble::tibble(
     cohort_definition_id = "1",
     subject_id = "1",
     cohort_start_date = c(
@@ -124,29 +114,25 @@ test_that("mock db: working examples", {
   )
   expect_true(nrow(prev[["pr"]])>=1)
 
-  dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(db, shutdown=TRUE)
 
 })
 
 test_that("mock db: check study time periods", {
-  library(DBI)
-  library(dplyr)
-  library(tibble)
-
-  person <- tibble(
+  person <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observation_period <- tibble(
+  observation_period <- tibble::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-01"),
     observation_period_end_date = as.Date("2010-12-31")
   )
-  outcome <- tibble(
+  outcome <- tibble::tibble(
     cohort_definition_id = "1",
     subject_id = "1",
     cohort_start_date = c(
@@ -189,7 +175,7 @@ test_that("mock db: check study time periods", {
    expect_true(length(prev[["pr"]]$calendar_year)==12)
    expect_true(any(prev[["pr"]]$calendar_month %in% 12))
 
-   dbDisconnect(db, shutdown=TRUE)
+   DBI::dbDisconnect(db, shutdown=TRUE)
 
  })
 
@@ -197,25 +183,20 @@ test_that("mock db: check periods follow calendar dates", {
 
   # check that even if study_start_date as during a period
   # periods still follow calendar dates
-
-  library(DBI)
-  library(dplyr)
-  library(tibble)
-
-  person <- tibble(
+  person <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observation_period <- tibble(
+  observation_period <- tibble::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-01"),
     observation_period_end_date = as.Date("2012-12-31")
   )
-  outcome <- tibble(
+  outcome <- tibble::tibble(
     cohort_definition_id = "1",
     subject_id = "1",
     cohort_start_date = c(
@@ -259,11 +240,7 @@ test_that("mock db: check periods follow calendar dates", {
 })
 
 test_that("mock db: check messages when vebose is true", {
-  library(DBI)
-  library(dplyr)
-  library(tibble)
-
-  outcome <- tibble(
+  outcome <- tibble::tibble(
     cohort_definition_id = "1",
     subject_id = "1",
     cohort_start_date = c(
@@ -306,15 +283,11 @@ test_that("mock db: check messages when vebose is true", {
                                     verbose = TRUE
   ))
 
-  dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(db, shutdown=TRUE)
 
 })
 
 test_that("mock db: check conversion of user inputs", {
-  library(DBI)
-  library(dplyr)
-  library(tibble)
-
   db <- generate_mock_incidence_prevalence_db()
 
   dpop <- collect_denominator_pops(
@@ -335,15 +308,11 @@ test_that("mock db: check conversion of user inputs", {
   )
   expect_true(nrow(prev[["pr"]])>=0)
 
-  dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(db, shutdown=TRUE)
 
 })
 
 test_that("mock db: check expected errors", {
-  library(DBI)
-  library(dplyr)
-  library(tibble)
-
   db <- generate_mock_incidence_prevalence_db()
 
   dpop <- collect_denominator_pops(
@@ -380,20 +349,20 @@ test_that("mock db: check expected errors", {
 
 
 
-  person <- tibble(
+  person <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observation_period <- tibble(
+  observation_period <- tibble::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-01"),
     observation_period_end_date = as.Date("2010-01-05")
   )
-  outcome <- tibble(
+  outcome <- tibble::tibble(
     cohort_definition_id = "1",
     subject_id = "1",
     cohort_start_date = c(as.Date("2010-01-04")),
@@ -426,5 +395,5 @@ test_that("mock db: check expected errors", {
                                   period = "point"
   ))
 
-  dbDisconnect(db)
+  DBI::dbDisconnect(db)
 })

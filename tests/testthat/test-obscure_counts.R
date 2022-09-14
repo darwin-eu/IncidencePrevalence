@@ -1,8 +1,4 @@
 test_that("check for incidence", {
-
-  library(tibble)
-  library(dplyr)
-
 inc<-  tibble::tibble(
     incidence_analysis_id=c("1","2"),
     n_persons=c(4,200),
@@ -35,10 +31,6 @@ expect_true(!is.na(inc$ir_100000_pys_high[2]))
 })
 
 test_that("check for prevalence", {
-
-  library(tibble)
-  library(dplyr)
-
   prev<-  tibble::tibble(
     incidence_analysis_id=c("1","2"),
     denominator=c(4,100),
