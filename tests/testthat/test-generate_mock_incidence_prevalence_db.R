@@ -207,7 +207,7 @@ test_that("check working example for multiple outcome options", {
       )
   )
 
-  outcome_tbl <- dplyr::tbl(db4, "outcome")
+
   #checking cohort_start_date of 2nd outcome comes after 1st outcome end date
   expect_true(
     dplyr::tbl(db4, "outcome") %>% filter(row_number() == 1) %>% select(cohort_end_date) %>% collect() <
