@@ -211,33 +211,6 @@ get_pop_incidence <- function(db,
     ) - lubridate::days(1)
   }
 
-  # update cohort_end_date if repetitive events=FALSE
-  # no more time at risk or outcomes
-  if (repetitive_events == FALSE) {
-    first_outcome_fu <- outcome %>%
-      dplyr::left_join(study_pop %>%
-        dplyr::select("person_id", "cohort_start_date", "cohort_end_date"),
-      by = "person_id"
-      ) %>%
-      dplyr::filter(.data$outcome_start_date >= .data$cohort_start_date) %>%
-      dplyr::filter(.data$outcome_start_date <= .data$cohort_end_date) %>%
-      dplyr::group_by(.data$person_id) %>%
-      dplyr::summarise(first_outcome_date_fu = min(.data$outcome_start_date))
-
-    study_pop <- study_pop %>%
-      dplyr::left_join(first_outcome_fu,
-        by = "person_id"
-      )
-
-    # update cohort_end_date for those with outcome
-    study_pop <- study_pop %>%
-      dplyr::mutate(cohort_end_date = dplyr::if_else(
-        !is.na(.data$first_outcome_date_fu), .data$first_outcome_date_fu,
-        .data$cohort_end_date
-      )) %>%
-      dplyr::select(-"first_outcome_date_fu")
-  }
-
   # will give error if no full months/ years
   error_message <- checkmate::makeAssertCollection()
   if (time_interval == "years") {
@@ -306,7 +279,188 @@ get_pop_incidence <- function(db,
                                               units = "days"
     )))
 
+  # select only the interesting variables of study_pop
+study_pop <- study_pop %>%
+  dplyr::select("person_id", "cohort_start_date", "cohort_end_date")
+# get only the outcomes of the study population
+outcome <- outcome %>%
+  dplyr::inner_join(study_pop %>%
+    dplyr::select("person_id") %>%
+    dplyr::distinct(),
+  by = "person_id"
+  )
+# get study dates of the individuals that present an outcome
+study_pop_outcome <- study_pop %>%
+  dplyr::inner_join(outcome %>%
+    dplyr::select("person_id") %>%
+    dplyr::distinct(),
+  by = "person_id"
+  )
 
+  if (nrow(outcome) > 0) {
+    if (is.null(outcome_washout_window)) {
+      study_pop <- study_pop %>%
+        dplyr::anti_join(outcome, by = "person_id") %>%
+        dplyr::mutate(outcome_start_date = base::as.Date(NA)) %>%
+        dplyr::union_all(outcome %>%
+          dplyr::group_by(.data$person_id) %>%
+          dplyr::summarise(outcome_start_date = min(.data$outcome_start_date, na.rm = TRUE)) %>%
+          dplyr::ungroup() %>%
+          dplyr::left_join(study_pop_outcome,
+            by = "person_id"
+          ) %>%
+          dplyr::mutate(cohort_end_date = dplyr::if_else(
+            .data$outcome_start_date < .data$cohort_end_date,
+            .data$outcome_start_date,
+            .data$cohort_end_date
+          )) %>%
+          dplyr::filter(.data$cohort_end_date >= .data$cohort_start_date))
+    } else {
+      if (repetitive_events == TRUE) {
+        # add the study dates to the outcome
+        outcome <- outcome %>%
+          dplyr::left_join(study_pop_outcome,
+            by = "person_id"
+          )
+        # get last event previous the start date
+        outcome_previous <- outcome %>%
+          dplyr::filter(.data$outcome_start_date < .data$cohort_start_date) %>%
+          dplyr::select("person_id", "outcome_end_date", "cohort_start_date")
+        if (nrow(outcome_previous) > 0) {
+          outcome_previous <- outcome_previous %>%
+            dplyr::group_by(.data$person_id, .data$cohort_start_date) %>%
+            dplyr::summarise(outcome_end_date = max(.data$outcome_end_date)) %>%
+            dplyr::ungroup()
+        }
+        # get event after the start date in the period
+        outcome_post <- outcome %>%
+          dplyr::filter(.data$outcome_start_date >= .data$cohort_start_date) %>%
+          dplyr::filter(.data$outcome_start_date <= .data$cohort_end_date) %>%
+          dplyr::select("person_id", "cohort_start_date", "outcome_start_date", "outcome_end_date")
+
+        if (nrow(outcome_post) > 0) {
+          # get first event after the start date
+          outcome_first <- outcome_post %>%
+            dplyr::select(-"outcome_end_date") %>%
+            dplyr::group_by(.data$person_id, .data$cohort_start_date) %>%
+            dplyr::filter(.data$outcome_start_date == min(.data$outcome_start_date, na.rm = TRUE)) %>%
+            dplyr::ungroup()
+          # sort outcomes inside the observation period
+          outcome_post <- outcome_post %>%
+            dplyr::group_by(.data$person_id, .data$cohort_start_date) %>%
+            dplyr::arrange(.data$outcome_start_date) %>%
+            dplyr::mutate(index = dplyr::row_number()) %>%
+            dplyr::ungroup()
+        }
+
+        if (nrow(outcome_post) == 0) {
+          outcome_pairs <- outcome_previous %>%
+            dplyr::rename("outcome_end_date_prev" = "outcome_end_date") %>%
+            dplyr::mutate(outcome_start_date = as.Date(NA))
+        } else if (nrow(outcome_previous) == 0) {
+          outcome_pairs <- outcome_first %>%
+            dplyr::mutate(outcome_end_date_prev = as.Date(NA)) %>%
+            dplyr::union_all(outcome_post %>%
+                               dplyr::select(-"outcome_end_date") %>%
+                               dplyr::right_join(outcome_post %>%
+                                                   dplyr::mutate(index = .data$index + 1) %>%
+                                                   dplyr::rename("outcome_end_date_prev" = "outcome_end_date") %>%
+                                                   dplyr::select("person_id", "outcome_end_date_prev", "index", "cohort_start_date"),
+                                                 by = c("person_id", "index", "cohort_start_date")
+                               ) %>%
+                               dplyr::select("person_id", "outcome_end_date_prev", "cohort_start_date", "outcome_start_date"))
+        } else {
+          # get the pairs of previous + first outcome
+          outcome_pairs <- outcome_previous %>%
+            dplyr::rename("outcome_end_date_prev" = "outcome_end_date") %>%
+            dplyr::full_join(outcome_first, by = c("person_id", "cohort_start_date"))
+          # get next pairs
+          outcome_pairs <- outcome_pairs %>%
+            dplyr::union_all(outcome_post %>%
+              dplyr::select(-"outcome_end_date") %>%
+              dplyr::right_join(outcome_post %>%
+                dplyr::mutate(index = .data$index + 1) %>%
+                dplyr::rename("outcome_end_date_prev" = "outcome_end_date") %>%
+                dplyr::select("person_id", "outcome_end_date_prev", "index", "cohort_start_date"),
+              by = c("person_id", "index", "cohort_start_date")
+              ) %>%
+              dplyr::select("person_id", "outcome_end_date_prev", "cohort_start_date", "outcome_start_date"))
+        }
+      } else {
+        # The same but just the first pair
+        # add the study dates to the outcome
+        outcome <- outcome %>%
+          dplyr::left_join(study_pop_outcome %>%
+            dplyr::group_by(.data$person_id) %>%
+            dplyr::filter(.data$cohort_start_date == min(.data$cohort_start_date, na.rm = TRUE)) %>%
+            dplyr::ungroup(),
+          by = "person_id"
+          )
+        # get last event previous the start date
+        outcome_previous <- outcome %>%
+          dplyr::filter(.data$outcome_start_date < .data$cohort_start_date) %>%
+          dplyr::select("person_id", "outcome_end_date", "cohort_start_date")
+        if (nrow(outcome_previous) > 0) {
+          outcome_previous <- outcome_previous %>%
+            dplyr::group_by(.data$person_id) %>%
+            dplyr::filter(.data$outcome_end_date == max(.data$outcome_end_date)) %>%
+            dplyr::ungroup()
+        }
+        # get event after the start date
+        outcome_post <- outcome %>%
+          dplyr::filter(.data$outcome_start_date >= .data$cohort_start_date) %>%
+          dplyr::filter(.data$outcome_start_date <= .data$cohort_end_date) %>%
+          dplyr::select(-"outcome_end_date")
+        if (nrow(outcome_post) > 0) {
+          outcome_post <- outcome_post %>%
+            dplyr::group_by(.data$person_id) %>%
+            dplyr::filter(.data$outcome_start_date == min(.data$outcome_start_date, na.rm = TRUE)) %>%
+            dplyr::ungroup()
+        }
+        # get the pairs of previous + first outcome
+        if (nrow(outcome_post) == 0) {
+          outcome_pairs <- outcome_previous %>%
+            dplyr::rename("outcome_end_date_prev" = "outcome_end_date") %>%
+            dplyr::mutate(outcome_start_date = as.Date(NA))
+        } else if (nrow(outcome_previous) == 0) {
+          outcome_pairs <- outcome_post %>%
+            dplyr::select(-"cohort_end_date") %>%
+            dplyr::mutate(outcome_end_date_prev = as.Date(NA))
+        } else {
+          outcome_pairs <- outcome_previous %>%
+            dplyr::rename("outcome_end_date_prev" = "outcome_end_date") %>%
+            dplyr::full_join(outcome_post, by = c("person_id", "cohort_start_date")) %>%
+            dplyr::select("person_id", "outcome_end_date_prev", "cohort_start_date", "outcome_start_date")
+        }
+      }
+      study_pop <- study_pop %>%
+        dplyr::anti_join(outcome_pairs %>%
+          dplyr::select("person_id"),
+        by = "person_id"
+        ) %>%
+        dplyr::mutate(outcome_start_date = base::as.Date(NA)) %>%
+        dplyr::union_all(outcome_pairs %>%
+          dplyr::inner_join(study_pop,
+            by = c("person_id", "cohort_start_date")
+          ) %>%
+          dplyr::mutate(outcome_end_date_prev = .data$outcome_end_date_prev + outcome_washout_window + 1) %>% # I think that it needs a + 1
+          dplyr::mutate(cohort_start_date = dplyr::if_else(.data$cohort_start_date > .data$outcome_end_date_prev,
+            .data$cohort_start_date,
+            .data$outcome_end_date_prev,
+            .data$cohort_start_date
+          )) %>%
+          dplyr::mutate(cohort_end_date = dplyr::if_else(.data$outcome_start_date < .data$cohort_end_date,
+            .data$outcome_start_date,
+            .data$cohort_end_date,
+            .data$cohort_end_date
+          )) %>%
+          dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date) %>%
+          dplyr::select(-"outcome_end_date_prev"))
+    }
+  } else {
+    study_pop <- study_pop %>%
+      dplyr::mutate(outcome_start_date = as.Date(NA))
+  }
 
   # fetch incidence rates
   # looping through each time interval
@@ -343,237 +497,26 @@ get_pop_incidence <- function(db,
       )
 
     working_pop <- working_pop %>%
-      dplyr::select("person_id", "t_start_date", "t_end_date")
+      dplyr::select("person_id", "t_start_date", "t_end_date","outcome_start_date")
 
-    # Add outcomes during period
+    # compute working days and
+    # erase outcome_start_date if not
+    # inside interval
     working_pop <- working_pop %>%
-      dplyr::left_join(
-        outcome %>%
-          dplyr::inner_join(working_pop,
-            by = "person_id"
-          ) %>%
-          dplyr::filter(
-            lubridate::int_overlaps(
-              lubridate::interval(.data$t_start_date,
-                                  .data$t_end_date),
-              lubridate::interval(.data$outcome_start_date,
-                                  .data$outcome_end_date))) %>%
-          dplyr::select("person_id", "outcome_start_date",
-                        "outcome_end_date"),
-        by = "person_id"
-      )
-
-    # if someone has an ongoing event at the start of the period then
-    # update t_start_date to the end of the event
-    ongoing_events <- working_pop %>%
-      dplyr::filter(!is.na(.data$outcome_start_date) &
-                    (.data$t_start_date <= .data$outcome_end_date) &
-                    (.data$t_start_date > .data$outcome_start_date))
-
-    if(nrow(ongoing_events)>=1){
-    ongoing_events <-  ongoing_events %>%
-      dplyr::mutate(new_t_start_date=.data$outcome_end_date + lubridate::days(1)) %>%
-      dplyr::select("person_id", "new_t_start_date") %>%
-      dplyr::mutate(with_overlap=1)
-
-    working_pop <- working_pop %>%
-      dplyr::full_join(ongoing_events,
-                by="person_id") %>%
-      dplyr::mutate(t_start_date=dplyr::if_else(
-        is.na(.data$new_t_start_date), .data$t_start_date,
-        .data$new_t_start_date
-      )) %>%
-      dplyr::select(-"new_t_start_date")
-
-
-    # drop if start is now after end for anyone
-    working_pop <- working_pop %>%
-      dplyr::filter(.data$t_start_date <= .data$t_end_date)
-
-    # # drop any outcomes now before start
-    # working_pop<- working_pop %>%
-    #   dplyr::filter(is.na(.data$outcome_end_date) |
-    #                   .data$outcome_end_date <= .data$t_start_date)
-
-    # outcome to NA if now before the start date
-    working_pop <- working_pop %>%
-      dplyr::mutate(outcome_start_date =
-                     dplyr::if_else(.data$outcome_start_date <
-                       .data$t_start_date , as.Date(NA),
-                     .data$outcome_start_date)) %>%
-      dplyr::mutate(outcome_end_date =
-                      dplyr::if_else(is.na(.data$outcome_start_date),
-                                     as.Date(NA),
-                                     .data$outcome_end_date))
-
-    # if person has multiple rows
-    # and had an overlap
-    # drop first as the second (and others have an outcome)
-    working_pop<-working_pop %>%
-      dplyr::group_by(.data$person_id)%>%
-      dplyr::mutate(seq=1:length(.data$person_id)) %>%
-      dplyr::mutate(tot=length(.data$person_id))
-    working_pop<-working_pop %>%
-      dplyr::mutate(drop=dplyr::if_else(
-        .data$with_overlap==1 & .data$tot>1 &  .data$seq==1,
-        1,0))
-    working_pop<-working_pop %>%
-      dplyr::filter(.data$drop==0) %>%
-      dplyr::select(!c("with_overlap","tot","seq","drop"))
-
-    }
-
-
-    # now we may have multiple rows
-    # if repetitive events=TRUE,
-    # so we will reformat
-    # t_start_date for subsequent events starts at end date of last outcome
-    # extra period of time at risk after last event
-    # applies only to people with an outcome, so split and then bind
-    if (repetitive_events == TRUE) {
-      working_outcome_pop <- working_pop %>%
-        dplyr::filter(!is.na(.data$outcome_start_date))
-      # add one more row per person, with no outcome
-      working_outcome_pop <- dplyr::bind_rows(
-        working_outcome_pop,
-        working_outcome_pop %>%
-          dplyr::select("person_id", "t_start_date", "t_end_date") %>%
-          dplyr::distinct() %>%
-          dplyr::mutate(outcome_start_date = as.Date(NA)) %>%
-          dplyr::mutate(outcome_end_date = as.Date(NA))
-      ) %>%
-        dplyr::arrange(.data$person_id)
-      # update t_start_date
-      working_outcome_pop <- working_outcome_pop %>%
-        dplyr::group_by(.data$person_id) %>%
-        dplyr::mutate(
-          t_start_date_new = dplyr::lag(.data$outcome_end_date) +
-            lubridate::days(1),
-          t_end_date_prev = dplyr::lag(.data$t_end_date)
-        )
-      # drop if t_start_date is same as t_end_date_prev
-      working_outcome_pop <- working_outcome_pop %>%
-        dplyr::filter(is.na(.data$t_start_date_new) |
-          !.data$t_start_date_new == .data$t_end_date_prev) %>%
-        dplyr::select(-"t_end_date_prev")
-      # update t_start_date
-      working_outcome_pop <- working_outcome_pop %>%
-        dplyr::mutate(
-          t_start_date =
-            dplyr::if_else(!is.na(.data$t_start_date_new),
-              .data$t_start_date_new,
-              .data$t_start_date
-            )
-        ) %>%
-        dplyr::select(-"t_start_date_new")
-      # drop if this t_start_date is after t_end_date
-      working_outcome_pop <- working_outcome_pop %>%
-        dplyr::filter(.data$t_start_date <= .data$t_end_date)
-
-      # t_end_date to outcome_start_date
-      working_outcome_pop <- working_outcome_pop %>%
-        dplyr::mutate(t_end_date = dplyr::if_else(
-          !is.na(.data$outcome_start_date) &
-            .data$t_end_date > .data$outcome_start_date,
-          .data$outcome_start_date, .data$t_end_date
-        ))
-
-
-      working_pop <- dplyr::bind_rows(
-        working_pop %>%
-          dplyr::filter(is.na(.data$outcome_start_date)),
-        working_outcome_pop
-      ) %>%
-        dplyr::arrange(.data$person_id)
-    }
-
-    # Exclusions based on events prior to current start date
-    outcome_prior <- outcome %>%
-      dplyr::rename("prior_outcome_end_date" = "outcome_end_date") %>%
-      dplyr::select("person_id", "prior_outcome_end_date") %>%
-      dplyr::inner_join(working_pop %>%
-        dplyr::select("person_id", "t_start_date"),
-      by = "person_id"
-      ) %>%
-      dplyr::mutate(diff_days = as.numeric(difftime(.data$t_start_date,
-        .data$prior_outcome_end_date,
+      dplyr::mutate(working_days = as.numeric(difftime(.data$t_end_date + lubridate::days(1),
+        .data$t_start_date,
         units = "days"
       ))) %>%
-      dplyr::filter(.data$diff_days > 0)
-
-    # keep most recent
-    if (nrow(outcome_prior) >= 1) {
-      outcome_prior <- outcome_prior %>%
-        dplyr::group_by(.data$person_id, .data$t_start_date) %>%
-        dplyr::summarise(
-          diff_days = min(.data$diff_days),
-          .groups = "drop"
-        )
-    }
-
-    if (nrow(outcome_prior) >= 1) {
-      # check outcome washout window for events
-      if (is.null(outcome_washout_window)) {
-        # If outcome_washout_window is null,
-        # we exclude people with an event at any point before their index date
-        working_pop <- working_pop %>%
-          dplyr::anti_join(outcome_prior,
-            by = c("person_id", "t_start_date")
-          )
-      }
-
-      if (is.numeric(outcome_washout_window)) {
-        # If a number of days is specified,
-        # first get outcomes that occurred in this window of time
-        outcome_prior <- outcome_prior %>%
-          dplyr::filter(.data$diff_days <= .env$outcome_washout_window)
-
-        # calculate time at which individuals satisfied the outcome
-        # washout window requirement
-        working_pop <- working_pop %>%
-          dplyr::left_join(outcome_prior,
-            by = c("person_id", "t_start_date")
-          )
-        # update t_start_date to when individuals satisfied the
-        # outcome washout window requirement
-        # as in by this new date, they are now eligible
-        working_pop <- working_pop %>%
-          dplyr::mutate(t_start_date = dplyr::if_else(
-            is.na(.data$diff_days),
-            .data$t_start_date,
-            .data$t_start_date +
-              lubridate::days(outcome_washout_window + 1 - .data$diff_days)
-          ))
-        # But, we need to now exclude people who reach the required
-        # washout period after the end date
-        # and outcome_start_date
-        working_pop <- working_pop %>%
-          dplyr::filter(.data$t_start_date <= .data$t_end_date) %>%
-          dplyr::filter(is.na(.data$outcome_start_date) |
-            .data$t_start_date <= .data$outcome_start_date)
-
-        working_pop <- working_pop %>%
-          dplyr::select(-"diff_days")
-      }
-    }
-
-    # number of days contributed in working time
-    # no outcome: t_start_date to t_end_date
-    # outcome: t_start_date to t_end_date
-    working_pop <- working_pop %>%
-      dplyr::mutate(
-        working_days =
-          dplyr::if_else(is.na(.data$outcome_start_date),
-            as.numeric(difftime(.data$t_end_date + lubridate::days(1),
-              .data$t_start_date,
-              units = "days"
-            )),
-            as.numeric(difftime(.data$outcome_start_date + lubridate::days(1),
-              .data$t_start_date,
-              units = "days"
-            ))
-          )
-      )
+      dplyr::mutate(outcome_start_date = dplyr::if_else(.data$outcome_start_date <= .data$t_end_date,
+        .data$outcome_start_date,
+        as.Date(NA),
+        .data$outcome_start_date
+      )) %>%
+      dplyr::mutate(outcome_start_date = dplyr::if_else(.data$outcome_start_date >= .data$t_start_date,
+        .data$outcome_start_date,
+        as.Date(NA),
+        .data$outcome_start_date
+      ))
 
     ir[[paste0(i)]] <- working_pop %>%
       dplyr::summarise(
