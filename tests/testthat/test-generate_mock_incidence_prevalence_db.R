@@ -1,17 +1,13 @@
 test_that("check working example with defaults", {
-  library(DBI)
-  library(duckdb)
-  library(dplyr)
-
   db<-generate_mock_incidence_prevalence_db()
 
   db_inherits_check <- inherits(db, "DBIConnection")
   expect_true(db_inherits_check)
 
   expect_true(nrow(dplyr::tbl(db, "person") %>%
-    collect())>=1)
+                     dplyr::collect())>=1)
   expect_true(nrow(dplyr::tbl(db, "observation_period") %>%
-                     collect())>=1)
+                     dplyr::collect())>=1)
 
 
   person_db_names <- c(
@@ -36,17 +32,11 @@ test_that("check working example with defaults", {
                                              dplyr::rename_with(tolower)))
   expect_true(obs_period_db_names_check)
 
-  dbDisconnect(db, shutdown=TRUE)
-
-
+  DBI::dbDisconnect(db, shutdown=TRUE)
 })
 
 test_that("check working example with outcome table", {
-  library(DBI)
-  library(duckdb)
-  library(dplyr)
-
-  outcome <- tibble(
+  outcome <- tibble::tibble(
     cohort_definition_id = "1",
     subject_id = "1",
     cohort_start_date = c(
@@ -60,37 +50,7 @@ test_that("check working example with outcome table", {
   db<-generate_mock_incidence_prevalence_db(outcome=outcome)
 
   expect_true(nrow(dplyr::tbl(db, "outcome") %>%
-                     collect())==1)
-
-  outcome_db_names <- c(
-    "cohort_definition_id", "subject_id",
-    "cohort_start_date", "cohort_end_date"
-  )
-  outcome_db_names_check <- all(outcome_db_names %in%
-                                 names(dplyr::tbl(db, "outcome") %>%
-                                         utils::head(1) %>%
-                                         dplyr::collect() %>%
-                                         dplyr::rename_with(tolower)))
-  expect_true(outcome_db_names_check)
-
-  dbDisconnect(db, shutdown=TRUE)
-
-
-})
-
-test_that("check working example sample size and outcome prevalence option", {
-  library(DBI)
-  library(duckdb)
-  library(dplyr)
-
-
-  db<-generate_mock_incidence_prevalence_db(sample_size = 100, out_pre = 0.2)
-
-  expect_true(nrow(dplyr::tbl(db, "person") %>%
-                     collect())==100)
-
-  expect_true(nrow(dplyr::tbl(db, "outcome") %>%
-                     collect())==20)
+                     dplyr::collect())==1)
 
   outcome_db_names <- c(
     "cohort_definition_id", "subject_id",
@@ -103,32 +63,48 @@ test_that("check working example sample size and outcome prevalence option", {
                                           dplyr::rename_with(tolower)))
   expect_true(outcome_db_names_check)
 
-  dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(db, shutdown=TRUE)
+})
 
+test_that("check working example sample size and outcome prevalence option", {
+  db<-generate_mock_incidence_prevalence_db(sample_size = 100, out_pre = 0.2)
 
+  expect_true(nrow(dplyr::tbl(db, "person") %>%
+                     dplyr::collect())==100)
+
+  expect_true(nrow(dplyr::tbl(db, "outcome") %>%
+                     dplyr::collect())==20)
+
+  outcome_db_names <- c(
+    "cohort_definition_id", "subject_id",
+    "cohort_start_date", "cohort_end_date"
+  )
+  outcome_db_names_check <- all(outcome_db_names %in%
+                                  names(dplyr::tbl(db, "outcome") %>%
+                                          utils::head(1) %>%
+                                          dplyr::collect() %>%
+                                          dplyr::rename_with(tolower)))
+  expect_true(outcome_db_names_check)
+
+  DBI::dbDisconnect(db, shutdown=TRUE)
 })
 
 test_that("check working example sample size and outcome varies by gender and age option", {
-  library(DBI)
-  library(duckdb)
-  library(dplyr)
-
-
   db<-generate_mock_incidence_prevalence_db(sample_size = 100, out_pre = 0.2, gender_beta = -1, age_beta = 1, intercept = -1)
 
   db2<-generate_mock_incidence_prevalence_db(sample_size = 100, out_pre = 0.2, gender_beta = -1, age_beta = 1)
 
   expect_true(nrow(dplyr::tbl(db, "person") %>%
-                     collect())==100)
+                     dplyr::collect())==100)
 
   expect_true(nrow(dplyr::tbl(db2, "person") %>%
-                     collect())==100)
+                     dplyr::collect())==100)
 
   expect_true(nrow(dplyr::tbl(db, "outcome") %>%
-                     collect())!=20)
+                     dplyr::collect())!=20)
 
   expect_true(nrow(dplyr::tbl(db2, "outcome") %>%
-                     collect())==20)
+                     dplyr::collect())==20)
 
 
   outcome_db_names <- c(
@@ -142,16 +118,9 @@ test_that("check working example sample size and outcome varies by gender and ag
                                           dplyr::rename_with(tolower)))
   expect_true(outcome_db_names_check)
 
-  dbDisconnect(db, shutdown=TRUE)
-
-
+  DBI::dbDisconnect(db, shutdown=TRUE)
 })
-
 test_that("check working example for multiple outcome options", {
-  library(DBI)
-  library(duckdb)
-  library(dplyr)
-
 
   db <-
     generate_mock_incidence_prevalence_db(
@@ -179,39 +148,39 @@ test_that("check working example for multiple outcome options", {
     )
 
   expect_true(nrow(dplyr::tbl(db, "outcome") %>%
-                     collect()) == 40)
+                     dplyr::collect()) == 40)
 
   expect_true(nrow(dplyr::tbl(db2, "outcome") %>%
-                     collect()) > nrow(dplyr::tbl(db, "outcome") %>%
-                                         collect()))
+                     dplyr::collect()) > nrow(dplyr::tbl(db, "outcome") %>%
+                                                dplyr::collect()))
 
   expect_true(nrow(dplyr::tbl(db3, "outcome") %>%
-                     collect()) > nrow(dplyr::tbl(db2, "outcome") %>%
-                                         collect()))
+                     dplyr::collect()) > nrow(dplyr::tbl(db2, "outcome") %>%
+                                                dplyr::collect()))
 
   expect_true(
     nrow(
-      dplyr::tbl(db, "outcome") %>% distinct(subject_id) %>% collect()
+      dplyr::tbl(db, "outcome") %>% dplyr::distinct(subject_id) %>% dplyr::collect()
     ) ==
       nrow(
-        dplyr::tbl(db2, "outcome") %>% distinct(subject_id) %>% collect()
+        dplyr::tbl(db2, "outcome") %>% dplyr::distinct(subject_id) %>% dplyr::collect()
       )
   )
 
   expect_true(
     nrow(
-      dplyr::tbl(db2, "outcome") %>% distinct(subject_id) %>% collect()
+      dplyr::tbl(db2, "outcome") %>% dplyr::distinct(subject_id) %>% dplyr::collect()
     ) ==
       nrow(
-        dplyr::tbl(db3, "outcome") %>% distinct(subject_id) %>% collect()
+        dplyr::tbl(db3, "outcome") %>% dplyr::distinct(subject_id) %>% dplyr::collect()
       )
   )
 
 
   #checking cohort_start_date of 2nd outcome comes after 1st outcome end date
   expect_true(
-    dplyr::tbl(db4, "outcome") %>% filter(row_number() == 1) %>% select(cohort_end_date) %>% collect() <
-      dplyr::tbl(db4, "outcome") %>% filter(row_number() == 2) %>% select(cohort_start_date) %>% collect()
+    dplyr::tbl(db4, "outcome") %>% dplyr::filter(row_number() == 1) %>% dplyr::select(cohort_end_date) %>% dplyr::collect() <
+      dplyr::tbl(db4, "outcome") %>% dplyr::filter(row_number() == 2) %>% dplyr::select(cohort_start_date) %>% dplyr::collect()
   )
 
 
@@ -231,22 +200,11 @@ test_that("check working example for multiple outcome options", {
   )
   expect_true(outcome_db_names_check)
 
-  dbDisconnect(db, shutdown = TRUE)
+  DBI::dbDisconnect(db, shutdown = TRUE)
 
 
 })
-
-
-
-
-
-
-
 test_that("check expected errors", {
-  library(DBI)
-  library(duckdb)
-  library(dplyr)
-
   testthat::expect_error(
     generate_mock_incidence_prevalence_db(person = "x"))
   testthat::expect_error(
