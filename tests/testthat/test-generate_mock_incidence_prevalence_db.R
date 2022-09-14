@@ -153,50 +153,85 @@ test_that("check working example for multiple outcome options", {
   library(dplyr)
 
 
-  db<-generate_mock_incidence_prevalence_db(sample_size = 200, out_pre = 0.2, max_outcomes_per_person = 1)
-  db2<-generate_mock_incidence_prevalence_db(sample_size = 200, out_pre = 0.2, max_outcomes_per_person = 2)
-  db3<-generate_mock_incidence_prevalence_db(sample_size = 200, out_pre = 0.2, max_outcomes_per_person = 3)
-  db4<-generate_mock_incidence_prevalence_db(sample_size = 1, out_pre = 1, max_outcomes_per_person = 10)
+  db <-
+    generate_mock_incidence_prevalence_db(
+      sample_size = 200,
+      out_pre = 0.2,
+      max_outcomes_per_person = 1
+    )
+  db2 <-
+    generate_mock_incidence_prevalence_db(
+      sample_size = 200,
+      out_pre = 0.2,
+      max_outcomes_per_person = 2
+    )
+  db3 <-
+    generate_mock_incidence_prevalence_db(
+      sample_size = 200,
+      out_pre = 0.2,
+      max_outcomes_per_person = 3
+    )
+  db4 <-
+    generate_mock_incidence_prevalence_db(
+      sample_size = 1,
+      out_pre = 1,
+      max_outcomes_per_person = 10
+    )
 
   expect_true(nrow(dplyr::tbl(db, "outcome") %>%
-                     collect())==40)
+                     collect()) == 40)
 
   expect_true(nrow(dplyr::tbl(db2, "outcome") %>%
-                     collect())>nrow(dplyr::tbl(db, "outcome") %>%
-                                        collect()))
+                     collect()) > nrow(dplyr::tbl(db, "outcome") %>%
+                                         collect()))
 
   expect_true(nrow(dplyr::tbl(db3, "outcome") %>%
-                     collect())>nrow(dplyr::tbl(db2, "outcome") %>%
-                                        collect()))
+                     collect()) > nrow(dplyr::tbl(db2, "outcome") %>%
+                                         collect()))
 
-  expect_true(nrow(dplyr::tbl(db, "outcome") %>% distinct(subject_id) %>% collect())==
-                nrow(dplyr::tbl(db2, "outcome") %>% distinct(subject_id) %>% collect()))
+  expect_true(
+    nrow(
+      dplyr::tbl(db, "outcome") %>% distinct(subject_id) %>% collect()
+    ) ==
+      nrow(
+        dplyr::tbl(db2, "outcome") %>% distinct(subject_id) %>% collect()
+      )
+  )
 
-  expect_true(nrow(dplyr::tbl(db2, "outcome") %>% distinct(subject_id) %>% collect())==
-                nrow(dplyr::tbl(db3, "outcome") %>% distinct(subject_id) %>% collect()))
-
-  expect_true(nrow(dplyr::tbl(db4, "outcome") %>% distinct(subject_id) %>% collect())==
-                nrow(dplyr::tbl(db3, "outcome") %>% distinct(subject_id) %>% collect()))
+  expect_true(
+    nrow(
+      dplyr::tbl(db2, "outcome") %>% distinct(subject_id) %>% collect()
+    ) ==
+      nrow(
+        dplyr::tbl(db3, "outcome") %>% distinct(subject_id) %>% collect()
+      )
+  )
 
   outcome_tbl <- dplyr::tbl(db4, "outcome")
-#checking cohort_start_date of 2nd outcome comes after 1st outcome end date
-  expect_true(dplyr::tbl(db4, "outcome") %>% filter( row_number() == 1) %>% select(cohort_end_date) %>% collect()<
-                dplyr::tbl(db4, "outcome") %>% filter( row_number() == 2) %>% select(cohort_start_date) %>% collect())
-
-  outcome_tbl$cohort_definition_id
-
-  outcome_db_names <- c(
-    "cohort_definition_id", "subject_id",
-    "cohort_start_date", "cohort_end_date"
+  #checking cohort_start_date of 2nd outcome comes after 1st outcome end date
+  expect_true(
+    dplyr::tbl(db4, "outcome") %>% filter(row_number() == 1) %>% select(cohort_end_date) %>% collect() <
+      dplyr::tbl(db4, "outcome") %>% filter(row_number() == 2) %>% select(cohort_start_date) %>% collect()
   )
-  outcome_db_names_check <- all(outcome_db_names %in%
-                                  names(dplyr::tbl(db, "outcome") %>%
-                                          utils::head(1) %>%
-                                          dplyr::collect() %>%
-                                          dplyr::rename_with(tolower)))
+
+
+
+  outcome_db_names <- c("cohort_definition_id",
+                        "subject_id",
+                        "cohort_start_date",
+                        "cohort_end_date")
+  outcome_db_names_check <- all(
+    outcome_db_names %in%
+      names(
+        dplyr::tbl(db, "outcome") %>%
+          utils::head(1) %>%
+          dplyr::collect() %>%
+          dplyr::rename_with(tolower)
+      )
+  )
   expect_true(outcome_db_names_check)
 
-  dbDisconnect(db, shutdown=TRUE)
+  dbDisconnect(db, shutdown = TRUE)
 
 
 })
