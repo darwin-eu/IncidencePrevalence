@@ -120,6 +120,7 @@ test_that("check working example sample size and outcome varies by gender and ag
 
   DBI::dbDisconnect(db, shutdown=TRUE)
 })
+
 test_that("check working example for multiple outcome options", {
 
   db <-
@@ -200,6 +201,7 @@ test_that("check working example for multiple outcome options", {
 
 
 })
+
 test_that("check expected errors", {
   testthat::expect_error(
     generate_mock_incidence_prevalence_db(person = "x"))
