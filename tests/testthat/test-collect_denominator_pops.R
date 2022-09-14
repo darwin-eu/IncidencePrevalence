@@ -70,7 +70,7 @@ test_that("mock db: checks on working example", {
 
   # using cohort strata
   # add stratifying cohort
-  strata_cohort<-  tibble(
+  strata_cohort<-  tibble::tibble(
     cohort_definition_id="1",
     subject_id=c("1","2"),
     cohort_start_date=as.Date("2010-03-15"),
