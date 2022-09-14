@@ -19,7 +19,10 @@ generate_mock_incidence_prevalence_db(
   earliest_observation_start_date = NULL,
   latest_observation_start_date = NULL,
   min_days_to_observation_end = NULL,
-  max_days_to_observation_end = NULL
+  max_days_to_observation_end = NULL,
+  min_outcome_days = 1,
+  max_outcome_days = 10,
+  max_outcomes_per_person = 1
 )
 }
 \arguments{
@@ -52,6 +55,12 @@ generate_mock_incidence_prevalence_db(
 \item{min_days_to_observation_end}{the minimum number of days of the observational integer}
 
 \item{max_days_to_observation_end}{the maximum number of days of the observation period integer}
+
+\item{min_outcome_days}{the minimum number of days of the outcome period default set to 1}
+
+\item{max_outcome_days}{the maximum number of days of the outcome period default set to 10}
+
+\item{max_outcomes_per_person}{the maximum possible number of outcomes per person can have default set to 1}
 }
 \value{
 DBIConnection to duckdb database with mock data

@@ -32,6 +32,9 @@
 #' @param latest_observation_start_date the latest observation start date for patient format "dd-mm-yyyy"
 #' @param min_days_to_observation_end the minimum number of days of the observational integer
 #' @param max_days_to_observation_end the maximum number of days of the observation period integer
+#' @param min_outcome_days the minimum number of days of the outcome period default set to 1
+#' @param max_outcome_days the maximum number of days of the outcome period default set to 10
+#' @param max_outcomes_per_person the maximum possible number of outcomes per person can have default set to 1
 #' @return DBIConnection to duckdb database with mock data
 #' @export
 #'
@@ -74,7 +77,11 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
                                                   earliest_observation_start_date = NULL,
                                                   latest_observation_start_date = NULL,
                                                   min_days_to_observation_end = NULL,
-                                                  max_days_to_observation_end = NULL) {
+                                                  max_days_to_observation_end = NULL,
+                                                  min_outcome_days = 1,
+                                                  max_outcome_days = 10,
+                                                  max_outcomes_per_person = 1) {
+
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assert_tibble(person, null.ok = TRUE)
   checkmate::assert_tibble(observation_period, null.ok = TRUE)
@@ -91,6 +98,9 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
   checkmate::assertDate(as.Date(latest_observation_start_date), null.ok = TRUE)
   checkmate::assert_int(min_days_to_observation_end, lower = 1, null.ok = TRUE)
   checkmate::assert_int(max_days_to_observation_end, lower = 1, null.ok = TRUE)
+  checkmate::assert_int(min_outcome_days, lower = 1)
+  checkmate::assert_int(max_outcome_days, lower = 1)
+  checkmate::assert_int(max_outcomes_per_person, lower = 1)
   if (!is.null(latest_date_of_birth) &
     !is.null(earliest_date_of_birth)) {
     checkmate::assertTRUE(latest_date_of_birth >= earliest_date_of_birth)
@@ -219,7 +229,7 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
         dplyr::mutate(cohort_start_date = .data$observation_period_start_date +
           .data$days_to_outcome) %>%
         dplyr::mutate(cohort_end_date = .data$cohort_start_date +
-          lubridate::days(1)) %>%
+          lubridate::days(sample(min_outcome_days:max_outcome_days, 1))) %>%
         dplyr::select(
           "subject_id",
           "cohort_start_date",
@@ -274,7 +284,7 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
         dplyr::mutate(cohort_start_date = .data$observation_period_start_date +
           .data$days_to_outcome) %>%
         dplyr::mutate(cohort_end_date = .data$cohort_start_date +
-          lubridate::days(1)) %>%
+          lubridate::days(sample(min_outcome_days:max_outcome_days, 1))) %>%
         dplyr::select(
           "subject_id",
           "cohort_start_date",
@@ -282,6 +292,48 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
         ) %>%
         dplyr::mutate(cohort_definition_id = c("1")) %>%
         dplyr::relocate(.data$cohort_definition_id)
+
+
+
+      }
+
+    if (max_outcomes_per_person > 1) {
+      #create empty table
+      outcome1 <- data.frame()
+      #seed for loops
+      set.seed(seed)
+      seed_outcome <- sample(1:99999, 1000)
+      #work out minimum outcome start date for each subject in outcome table
+      min_out_start_date <-
+        aggregate(cohort_end_date ~ subject_id, data = outcome, max)
+
+      for (i in 1:(max_outcomes_per_person - 1)) {
+        set.seed(seed_outcome[i])
+        #create cohort start date and end date for the possible extra outcomes
+        min_out_start_date <-
+          min_out_start_date %>%
+          dplyr::mutate(cohort_start_date = .data$cohort_end_date + lubridate::days(sample(1:100, 1))) %>%
+          dplyr::mutate(cohort_end_date = .data$cohort_start_date + lubridate::days(sample(min_outcome_days:max_outcome_days, 1)))
+
+        #randomly select which subject to have extra outcome                                                                                                                                           )))
+        dup_outcome <-
+          sample(0:1, nrow(outcome), replace = TRUE)
+        #linking the id from outcome table for extra outcome
+        dup_outcome_id <-
+          outcome[rep(1:nrow(outcome), dup_outcome), c(1, 2)]
+        #link extra outcome to cohort start and end date
+        extra_outcome <- dplyr::inner_join(dup_outcome_id,
+                                           min_out_start_date,
+                                           by = "subject_id")
+        #create table with extra outcomes
+        outcome1 <- rbind(outcome1, extra_outcome)
+        #work out minimum outcome start date for each subject in new outcome table
+        min_out_start_date <-
+          aggregate(cohort_end_date ~ subject_id, data = rbind(outcome,outcome1), max)
+      }
+
+      outcome <- rbind(outcome,outcome1)
+
     }
   }
 
