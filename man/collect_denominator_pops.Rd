@@ -12,6 +12,9 @@ collect_denominator_pops(
   study_age_stratas = NULL,
   study_sex_stratas = "Both",
   study_days_prior_history = 0,
+  strata_schema = NULL,
+  table_name_strata = NULL,
+  strata_cohort_id = NULL,
   verbose = FALSE
 )
 }
@@ -37,6 +40,12 @@ will be used.}
 
 \item{study_days_prior_history}{Days of prior history required to enter
 the study cohort.}
+
+\item{strata_schema}{strata_schema}
+
+\item{table_name_strata}{table_name_strata}
+
+\item{strata_cohort_id}{strata_cohort_id}
 
 \item{verbose}{Either TRUE or FALSE.
 If TRUE, progress will be reported.}

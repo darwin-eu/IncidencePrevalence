@@ -31,6 +31,9 @@
 #' @param sex Sex of the cohort
 #' @param days_prior_history Days of prior history required to enter
 #' the study cohort.
+#' @param strata_schema strata_schema
+#' @param table_name_strata table_name_strata
+#' @param strata_cohort_id strata_cohort_id
 #' @param verbose Either TRUE or FALSE.
 #' If TRUE, progress will be reported.
 #'
@@ -47,6 +50,9 @@ get_denominator_pop <- function(db,
                                 max_age = NULL,
                                 sex = "Both",
                                 days_prior_history = 0,
+                                strata_schema = NULL,
+                                table_name_strata = NULL,
+                                strata_cohort_id = NULL,
                                 verbose = FALSE) {
   if (verbose == TRUE) {
     start <- Sys.time()
@@ -172,6 +178,7 @@ get_denominator_pop <- function(db,
   ) %>%
     dplyr::compute()
 
+  error_message <- checkmate::makeAssertCollection()
   # check variable names
   # person table
   person_db_names <- c(
@@ -196,6 +203,80 @@ get_denominator_pop <- function(db,
       dplyr::collect() %>%
       dplyr::rename_with(tolower)))
   checkmate::assertTRUE(obs_period_db_names_check, add = error_message)
+  checkmate::reportAssertions(collection = error_message)
+
+
+  # stratify population on cohort
+  if(!is.null(table_name_strata)){
+
+    error_message <- checkmate::makeAssertCollection()
+    checkmate::assert_character(strata_cohort_id,
+                                add = error_message
+    )
+    checkmate::reportAssertions(collection = error_message)
+
+    if (!is.null(strata_schema)) {
+      strata_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
+        "SELECT * FROM {strata_schema}.{table_name_strata}"
+      )))
+    } else {
+      strata_db <- dplyr::tbl(db, table_name_strata)
+    }
+
+    strata_db <- strata_db %>%
+      dplyr::filter(.data$cohort_definition_id == .env$strata_cohort_id)
+
+  # drop anyone not in the strata cohort
+    person_db <- person_db %>%
+      dplyr::inner_join(strata_db %>%
+                          dplyr::rename("person_id"="subject_id") %>%
+                          dplyr::select("person_id") %>%
+                          dplyr::distinct(),
+                by="person_id") %>%
+      dplyr::compute()
+    observation_period_db <- observation_period_db %>%
+      dplyr::inner_join(strata_db %>%
+                          dplyr::rename("person_id"="subject_id") %>%
+                          dplyr::select("person_id") %>%
+                          dplyr::distinct(),
+                        by="person_id") %>%
+      dplyr::compute()
+
+  # update observation start date to cohort start date
+  # if cohort start date is after observation start date
+  # update observation end date to match cohort end date
+  # if cohort end date is before observation start date
+   observation_period_db <- observation_period_db %>%
+      dplyr::inner_join(strata_db %>%
+                          dplyr::rename("person_id"="subject_id") %>%
+                          dplyr::select("person_id",
+                                        "cohort_start_date",
+                                        "cohort_end_date"),
+                        by="person_id")
+
+   # to deal with potential multiple observation periods
+   # make sure outcome started during joined observation period
+   # if not, drop
+   observation_period_db <- observation_period_db %>%
+     dplyr::filter(.data$observation_period_start_date<= .data$cohort_start_date &
+                     .data$observation_period_end_date>= .data$cohort_start_date)
+
+   observation_period_db <- observation_period_db %>%
+      dplyr::mutate(observation_period_start_date=
+                      dplyr::if_else(.data$observation_period_start_date<=
+                              .data$cohort_start_date,
+                              .data$cohort_start_date,
+                              .data$observation_period_start_date)) %>%
+      dplyr::mutate(observation_period_end_date=
+                      dplyr::if_else(.data$observation_period_end_date>=
+                              .data$cohort_end_date,
+                              .data$cohort_end_date,
+                              .data$observation_period_end_date)) %>%
+     dplyr::select(!c("cohort_start_date", "cohort_end_date")) %>%
+     dplyr::compute()
+
+
+  }
 
   ## Identifying population of interest
   # Optional arguments to values
@@ -229,9 +310,14 @@ get_denominator_pop <- function(db,
 
   # filtering on database side
   # drop anyone missing year_of_birth or gender_concept_id
-  attrition <-tibble::tibble(current_n =person_db %>%dplyr::tally()%>%dplyr::collect()%>%base::as.numeric(),
-                     excluded=NA,
-                     reason=NA)
+  attrition <- tibble::tibble(
+    current_n = person_db %>%
+      dplyr::select("person_id") %>%
+      dplyr::distinct() %>%
+      dplyr::tally()  %>%
+      dplyr::pull(),
+    reason = NA
+  )
 
   study_pop_db <- person_db %>%
     dplyr::left_join(observation_period_db,
@@ -239,36 +325,54 @@ get_denominator_pop <- function(db,
     ) %>%
     dplyr::filter(!is.na(.data$year_of_birth))
 
-  attrition <- attrition <-dplyr::bind_rows(attrition,
-                                            tibble::tibble(current_n=study_pop_db %>%dplyr::tally()%>%dplyr::collect()%>%base::as.numeric(),
-                                                           excluded= base::as.numeric(attrition$current_n[NROW(attrition)])-current_n,
-                                                           reason= "Missing year of birth"))
- study_pop_db <- study_pop_db %>%
+  attrition <- attrition <- dplyr::bind_rows(
+    attrition,
+    tibble::tibble(
+      current_n = study_pop_db %>%
+        dplyr::select("person_id") %>%
+        dplyr::distinct() %>%
+        dplyr::tally()  %>%
+        dplyr::pull(),
+      reason = "Missing year of birth"
+    )
+  )
+
+  study_pop_db <- study_pop_db %>%
     dplyr::mutate(gender = ifelse(.data$gender_concept_id == "8507", "Male",
       ifelse(.data$gender_concept_id == "8532", "Female", NA)
     )) %>%
     dplyr::filter(!is.na(.data$gender)) %>%
     dplyr::compute()
 
- attrition <-dplyr::bind_rows(attrition,
-                              tibble::tibble(current_n=study_pop_db %>%dplyr::tally()%>%dplyr::collect()%>%base::as.numeric(),
-                                             excluded= base::as.numeric(attrition$current_n[NROW(attrition)])-current_n,
-                                             reason= "Missing gender"))
-  if (sex == "Male") {
-    study_pop_db <- study_pop_db %>%
-      dplyr::filter(.data$gender == "Male") %>%
-      dplyr::compute()
-  }
-  if (sex == "Female") {
-    study_pop_db <- study_pop_db %>%
-      dplyr::filter(.data$gender == "Female") %>%
-      dplyr::compute()
-  }
+  attrition <- dplyr::bind_rows(
+    attrition,
+    tibble::tibble(
+      current_n = study_pop_db %>%
+        dplyr::select("person_id") %>%
+        dplyr::distinct() %>%
+        dplyr::tally()  %>%
+        dplyr::pull(),
+      reason = "Missing gender"
+    )
+  )
 
- attrition <-dplyr::bind_rows(attrition,
-                              tibble::tibble(current_n=study_pop_db %>%dplyr::tally()%>%dplyr::collect()%>%base::as.numeric(),
-                                             excluded= base::as.numeric(attrition$current_n[NROW(attrition)])-current_n,
-                                             reason= "Sex criteria"))
+ if (sex == "Male" || sex == "Female") {
+   study_pop_db <- study_pop_db %>%
+     dplyr::filter(.data$gender == sex) %>%
+     dplyr::compute()
+ }
+
+  attrition <- dplyr::bind_rows(
+    attrition,
+    tibble::tibble(
+      current_n = study_pop_db %>%
+        dplyr::select("person_id") %>%
+        dplyr::distinct() %>%
+        dplyr::tally()  %>%
+        dplyr::pull(),
+      reason = "Doesn't satisfy the sex criteria"
+    )
+  )
 
 
   # filter
@@ -282,10 +386,17 @@ get_denominator_pop <- function(db,
     # drop people too young even at study end
     dplyr::filter(.data$year_of_birth + .env$min_age <= .env$last_year)
 
-  attrition <-dplyr::bind_rows(attrition,
-                               tibble::tibble(current_n=study_pop_db %>%dplyr::tally()%>%dplyr::collect()%>%base::as.numeric(),
-                                              excluded= base::as.numeric(attrition$current_n[NROW(attrition)])-current_n,
-                                              reason= "Age criteria (considering study start and end dates)"))
+  attrition <- dplyr::bind_rows(
+    attrition,
+    tibble::tibble(
+      current_n = study_pop_db %>%
+        dplyr::select("person_id") %>%
+        dplyr::distinct() %>%
+        dplyr::tally()  %>%
+        dplyr::pull(),
+      reason = "Doesn't satisfy age criteria during the study period"
+    )
+  )
 
   study_pop_db <- study_pop_db%>%
     # drop people with observation_period_star_date after study end
@@ -294,10 +405,17 @@ get_denominator_pop <- function(db,
     dplyr::filter(.data$observation_period_end_date >= .env$start_date) %>%
     dplyr::compute()
 
-  attrition <- attrition <-dplyr::bind_rows(attrition,
-                                            tibble::tibble(current_n=study_pop_db %>%dplyr::tally()%>%dplyr::collect()%>%base::as.numeric(),
-                                                           excluded= base::as.numeric(attrition$current_n[NROW(attrition)])-current_n,
-                                                           reason= "Observation period out of study period"))
+  attrition <- attrition <- dplyr::bind_rows(
+    attrition,
+    tibble::tibble(
+      current_n = study_pop_db %>%
+        dplyr::select("person_id") %>%
+        dplyr::distinct() %>%
+        dplyr::tally()  %>%
+        dplyr::pull(),
+      reason = "No observation time available during study period"
+    )
+  )
 
   ## bring in to memory and finalise population
   study_pop <- study_pop_db %>%
@@ -313,48 +431,13 @@ get_denominator_pop <- function(db,
     # ie to impute to the centre of the period
 
     study_pop <- study_pop %>%
-      dplyr::mutate(dob = dplyr::if_else(
-        is.na(.data$month_of_birth) &
-          is.na(.data$day_of_birth),
-        as.Date(
-          paste(.data$year_of_birth,
-            "01",
-            "01",
-            sep = "/"
-          ),
-          "%Y/%m/%d"
-        ),
-        dplyr::if_else(is.na(.data$month_of_birth) &
-          !is.na(.data$day_of_birth),
-        as.Date(
-          paste(.data$year_of_birth,
-            "01",
-            .data$day_of_birth,
-            sep = "/"
-          ),
-          "%Y/%m/%d"
-        ),
-        dplyr::if_else(!is.na(.data$month_of_birth) &
-          is.na(.data$day_of_birth),
-        as.Date(
-          paste(.data$year_of_birth,
-            .data$month_of_birth,
-            "01",
-            sep = "/"
-          ),
-          "%Y/%m/%d"
-        ),
-        as.Date(
-          paste(.data$year_of_birth,
-            .data$month_of_birth,
-            .data$day_of_birth,
-            sep = "/"
-          ),
-          "%Y/%m/%d"
-        )
-        )
-        )
-      ))
+      dplyr::mutate(dob = as.Date(paste(.data$year_of_birth,
+                                        dplyr::if_else(is.na(.data$month_of_birth), "01",
+                                                       as.character(as.numeric(.data$month_of_birth))),
+                                        dplyr::if_else(is.na(.data$day_of_birth), "01",
+                                                       as.character(as.numeric(.data$day_of_birth))),
+                                        sep = "/"), "%Y/%m/%d"))
+
 
     study_pop <- study_pop %>%
       # Date at which they reach minimum and maximum age
@@ -387,20 +470,34 @@ get_denominator_pop <- function(db,
       dplyr::filter(.data$date_min_age <= .env$end_date) %>%
       dplyr::filter(.data$date_max_age >= .env$start_date)
 
-    attrition <-dplyr::bind_rows(attrition,
-                                 tibble::tibble(current_n=study_pop%>%dplyr::tally()%>%dplyr::collect()%>%base::as.numeric(),
-                                                excluded= base::as.numeric(attrition$current_n[NROW(attrition)])-current_n,
-                                                reason= "Age criteria (considering each individual start and end dates)"))
+    attrition <- dplyr::bind_rows(
+      attrition,
+      tibble::tibble(
+        current_n = study_pop %>%
+          dplyr::select("person_id") %>%
+          dplyr::distinct() %>%
+          dplyr::tally()  %>%
+          dplyr::pull(),
+        reason = "Doesn't satisfy age criteria during the study period"
+      )
+    )
 
     # 2) and they satisfy priory history criteria at some point in the study
     study_pop <- study_pop %>%
       dplyr::filter(.data$date_with_prior_history <= .env$end_date) %>%
       dplyr::filter(.data$date_with_prior_history <= .data$observation_period_end_date)
 
-    attrition <-dplyr::bind_rows(attrition,
-                                 tibble::tibble(current_n=study_pop %>%dplyr::tally()%>%dplyr::collect()%>%base::as.numeric(),
-                                                excluded= base::as.numeric(attrition$current_n[NROW(attrition)])-current_n,
-                                                reason= "Prior history requirement not fullfilled at end date"))
+    attrition <- dplyr::bind_rows(
+      attrition,
+      tibble::tibble(
+        current_n = study_pop %>%
+          dplyr::select("person_id") %>%
+          dplyr::distinct() %>%
+          dplyr::tally()  %>%
+          dplyr::pull(),
+        reason = "Prior history requirement not fullfilled during study period"
+      )
+    )
 
     ## Get cohort start and end dates
     # Start date:
@@ -440,14 +537,24 @@ get_denominator_pop <- function(db,
       dplyr::filter(.data$cohort_start_date <=
         .data$cohort_end_date)
 
-    attrition <- dplyr::bind_rows(attrition,
-                                 tibble::tibble(current_n=study_pop %>%dplyr::tally()%>%dplyr::collect()%>%base::as.numeric(),
-                                                excluded= base::as.numeric(attrition$current_n[NROW(attrition)])-current_n,
-                                                reason="Elegible after end date"))
+    attrition <- dplyr::bind_rows(
+      attrition,
+      tibble::tibble(
+        current_n = study_pop %>%
+          dplyr::select("person_id") %>%
+          dplyr::distinct() %>%
+          dplyr::tally()  %>%
+          dplyr::pull(),
+        reason = "Prior history requirement not fullfilled during study period"
+      )
+    )
 
     # variables to keep
     study_pop <- study_pop %>%
       dplyr::select("person_id", "cohort_start_date", "cohort_end_date")
+    # order by id and start date
+    study_pop <-  study_pop[order(study_pop$person_id,
+                                  study_pop$cohort_start_date),]
 
 
     if (verbose == TRUE) {
@@ -463,6 +570,8 @@ get_denominator_pop <- function(db,
     study_pop <- NULL
   }
 
+
+
     # settings
     study_pop_settings <- tibble::tibble(
         # add specification for each population to output
@@ -472,6 +581,23 @@ get_denominator_pop <- function(db,
           sex_strata = sex,
           required_days_prior_history = days_prior_history
         )
+
+    # attrition
+    attrition <- attrition %>%
+      dplyr::mutate(excluded=dplyr::lag(.data$current_n)-.data$current_n)
+
+    # combine the two age exclusions
+    attrition <- attrition %>%
+      dplyr::select(!"excluded") %>%
+      dplyr::left_join(attrition %>%
+                         dplyr::group_by(.data$reason) %>%
+                         dplyr::summarise(excluded=sum(.data$excluded)),
+                       by = "reason") %>%
+      dplyr::mutate(seq=1:length(.data$reason)) %>%
+      dplyr::group_by(.data$reason) %>%
+      dplyr::slice_tail() %>%
+      dplyr::arrange(.data$seq) %>%
+      dplyr::select(!"seq")
 
       # return list
       dpop<-list()
