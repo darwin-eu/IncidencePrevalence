@@ -76,13 +76,13 @@ get_denominator_pop <- function(db,
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
-  db_inherits_check <- inherits(db, "DBIConnection")
+  db_inherits_check <- inherits(db, "cdm_reference")
   checkmate::assertTRUE(db_inherits_check,
     add = error_message
   )
   if (!isTRUE(db_inherits_check)) {
     error_message$push(
-      "- db must be a database connection via DBI::dbConnect()"
+      "- db must be a CDMConnector CDM reference object"
     )
   }
   checkmate::assert_character(cdm_database_schema,
@@ -151,30 +151,11 @@ get_denominator_pop <- function(db,
   checkmate::reportAssertions(collection = error_message)
 
 
-  ## check person and observation_period tables exist
-  # connect to relevant tables
-  # note, will return informative error if they are not found
-  if (!is.null(cdm_database_schema)) {
-    person_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
-      "SELECT * FROM {cdm_database_schema}.person"
-    )))
-  } else {
-    person_db <- dplyr::tbl(db, "person")
-  }
-
-  if (!is.null(cdm_database_schema)) {
-    observation_period_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
-      "SELECT * FROM {cdm_database_schema}.observation_period"
-    )))
-  } else {
-    observation_period_db <- dplyr::tbl(db, "observation_period")
-  }
-
   # make sure names are lowercase
-  person_db <- dplyr::rename_with(person_db, tolower) %>%
+  person_db <- dplyr::rename_with(db$person, tolower) %>%
     dplyr::compute()
   observation_period_db <- dplyr::rename_with(
-    observation_period_db, tolower
+    db$observation_period, tolower
   ) %>%
     dplyr::compute()
 

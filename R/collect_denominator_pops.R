@@ -64,13 +64,13 @@ collect_denominator_pops <- function(db,
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
-  db_inherits_check <- inherits(db, "DBIConnection")
+  db_inherits_check <- inherits(db, "cdm_reference")
   checkmate::assertTRUE(db_inherits_check,
     add = error_message
   )
   if (!isTRUE(db_inherits_check)) {
     error_message$push(
-      "- db must be a database connection via DBI::dbConnect()"
+      "- db must be a CDMConnector CDM reference object"
     )
   }
   checkmate::assert_date(study_start_date,

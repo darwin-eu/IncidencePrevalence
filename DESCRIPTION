@@ -35,7 +35,8 @@ Imports:
     magrittr,
     rlang,
     purrr,
-    tidyr
+    tidyr,
+    CDMConnector
 Depends:
     lubridate
 VignetteBuilder: knitr

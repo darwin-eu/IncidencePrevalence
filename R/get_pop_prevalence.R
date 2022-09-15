@@ -56,13 +56,13 @@ get_pop_prevalence <- function(db,
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
-  db_inherits_check <- inherits(db, "DBIConnection")
+  db_inherits_check <- inherits(db, "cdm_reference")
   checkmate::assertTRUE(db_inherits_check,
     add = error_message
   )
   if (!isTRUE(db_inherits_check)) {
     error_message$push(
-      "- db must be a database connection via DBI::dbConnect()"
+      "- db must be a CDMConnector CDM reference object"
     )
   }
   checkmate::assert_character(results_schema_outcome,
@@ -151,19 +151,11 @@ get_pop_prevalence <- function(db,
     message("Check passed: one or more people in denominator")
   }
 
-  # link to outcome cohort
-  if (!is.null(results_schema_outcome)) {
-    outcome_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
-      "SELECT * FROM {results_schema_outcome}.{table_name_outcome}"
-    )))
-  } else {
-    outcome_db <- dplyr::tbl(db, "outcome")
-  }
   error_message <- checkmate::makeAssertCollection()
-  checkmate::assertTRUE(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0,
+  checkmate::assertTRUE(db$outcome %>% dplyr::tally() %>% dplyr::pull() > 0,
     add = error_message
   )
-  if (!outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0) {
+  if (!db$outcome %>% dplyr::tally() %>% dplyr::pull() > 0) {
     error_message$push(
       glue::glue("- Zero rows in {results_schema_outcome}.{table_name_outcome}")
     )
@@ -171,7 +163,7 @@ get_pop_prevalence <- function(db,
   checkmate::reportAssertions(collection = error_message)
 
   if (!is.null(cohort_id_outcome)) {
-    outcome_db <- outcome_db %>%
+    outcome_db <- db$outcome %>%
       dplyr::filter(.data$cohort_definition_id == .env$cohort_id_outcome) %>%
       dplyr::compute()
   }
