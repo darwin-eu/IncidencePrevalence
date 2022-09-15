@@ -42,7 +42,6 @@ When using `collect_denominator_pops()`, individuals will enter a denominator po
 3. Date at which they reach a minimum age
 
 They will then exit on the respective date of the earliest of the following: 
-
 1. Study end date
 2. Date at which their observation period ends
 3. The last day in which they have the maximum age
@@ -106,7 +105,7 @@ dpop <- collect_denominator_pops(db = db,
                                  study_days_prior_history = 0)
 dpop<-dpop$denominator_population
 
-dpop %>%  glimpse()
+dpop %>%glimpse()
 
 dpop %>%
   filter(person_id %in% c("1", "2", "3", "4", "5")) 
@@ -128,7 +127,7 @@ dpop %>%
 
 ```
 
-We can also plot a histogram of start and end dates
+We can also plot a histogram of start and end dates of the 500 simulated patients 
 ```{r, message=FALSE, warning=FALSE}
 dpop %>% 
   ggplot() + 
@@ -165,7 +164,7 @@ dpop %>%
   filter(person_id %in% c("1", "2", "3", "4", "5")) 
 ```
 
-Now we can see the person "3" and "5" haven´t been included as they don´t have any observation time during the study period. Indeed, we´re now including 328 of the original 500 simulated patients.
+Now we can see the person "2", "4" and "5" haven´t been included as they don´t have any observation time during the study period. Indeed, we´re now including 328 of the original 500 simulated patients.
 
 ```{r, message=FALSE, warning=FALSE}
 dpop %>%
@@ -218,7 +217,7 @@ dpop %>%
   filter(person_id %in% c("1", "2", "3", "4", "5")) 
 ```
 
-Now we only include patient "4" of the original first five and we´re now including 178 of the original 500 simulated patients.
+Now we only include patient "1" of the original first five and we´re now including 178 of the original 500 simulated patients.
 
 ```{r, message=FALSE, warning=FALSE}
 dpop %>%
@@ -252,7 +251,7 @@ dpop %>%
 ```
 
 ### Specified study period, prior history requirement, and age and sex criteria
-In addition to all the above we could also add some requirements around age and sex. One thing to note is when the upper limit is 65 below, that means we will include time from a person up to and including the day before their 66th birthday.
+In addition to all the above we could also add some requirements around age and sex. One thing to note is that the age upper limit will include time from a person up to the day before their reach the age upper limit + 1 year. For instance, when the upper limit is 65, that means we will include time from a person up to and including the day before their 66th birthday.
 
 ```{r, message=FALSE, warning=FALSE}
 dpop <- collect_denominator_pops(db = db,
@@ -404,15 +403,50 @@ dpop <- collect_denominator_pops(db = db,
                                  study_sex_stratas = c("Male", "Female","Both"),
                                  study_days_prior_history = c(0,365),
                                  verbose=TRUE)
-dpop<-dpop$denominator_population
-
 ```
 
 ### Output 
-The output of this function consists on a list of tibbles with information on all the individuals who fulfill the given criteria at any point during the study period. It also includes information on the specific start and end dates in which individuals contributed to the denominator population (cohort_start_date and cohort_end_date). Each patient will be recorded in a different row. For those databases that allow individuals to have multiple non-overlapping observation periods, one row for each patient and observation period will be considered.
-
+The output of this function consists on a list of three tibbles.
 
 1) Denominator population
-2) Attrition
+2) Denominator settings
+3) Attrition
 
-To add ....
+The denominator population includes the information on all the individuals who fulfill the given criteria at any point during the study period. It also includes information on the specific start and end dates in which individuals contributed to the denominator population (cohort_start_date and cohort_end_date). Each patient is recorded in a different row. For those databases that allow individuals to have multiple non-overlapping observation periods, one row for each patient and observation period is considered.
+
+Considering the following example, we can see:
+
+```{r, message=TRUE, warning=FALSE}
+dpop <- collect_denominator_pops(db = db,
+                                 cdm_database_schema = NULL,
+                                 study_start_date= as.Date("2008-01-01"),
+                                 study_end_date= as.Date("2010-01-01"),
+                                 study_age_stratas = list(c(0,18),
+                                                          c(19,100)),
+                                 study_sex_stratas = c("Male","Female"),
+                                 study_days_prior_history = c(0,365))
+
+head(dpop$denominator_populations, 8)
+```
+
+The denominator settings will report the characteristics of the denominator populations created as a result of running this function. More than one age, sex and prior history requirements can be specified at the same time. Therefore, each combination of these variables will result in a different cohort, which be analyzed and identified with a unique cohort_definition_id. This tibble includes information on the study start and end dates, and its characteristics in terms of age and sex groups and the amount of prior history required.
+
+In this example, we have 8 different cohorts.
+
+```{r, message=TRUE, warning=FALSE}
+dpop$denominator_settings
+```
+
+The attrition list includes information on the number of individuals who are excluded of the denominator population and the reason behind its exclusion, such as missing crucial information or not satisfying the sex or age criteria required, among others. 
+
+In this example we only show the attrition list for the first cohort, but it's generated for every cohort of our analysis (in this case, eight).
+
+```{r, message=TRUE, warning=FALSE}
+head(dpop$attrition, 8)
+```
+
+
+To do: Add information about attrition for incidence 
+
+### Creating a denominator population using a cohort
+The `collect_denominator_pops()` function can also be run for a subset of the population with a particular characteristic recorded in our database, such as sociodemographic groups (ethnicity, socioeconomic status...), conditions or users of a particular medication, among others. This feature is further explained in the next vignette (see the vignette "Creating denominator population using a cohort"). 
