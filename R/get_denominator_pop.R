@@ -146,7 +146,6 @@ get_denominator_pop <- function(db,
   # report initial assertions
   checkmate::reportAssertions(collection = error_message)
 
-
   ## check person and observation_period tables exist
   # connect to relevant tables
   # note, will return informative error if they are not found
@@ -200,7 +199,6 @@ get_denominator_pop <- function(db,
       dplyr::rename_with(tolower)))
   checkmate::assertTRUE(obs_period_db_names_check, add = error_message)
   checkmate::reportAssertions(collection = error_message)
-
 
   # stratify population on cohort
   if(!is.null(table_name_strata)){
@@ -270,8 +268,6 @@ get_denominator_pop <- function(db,
                               .data$observation_period_end_date)) %>%
      dplyr::select(!c("cohort_start_date", "cohort_end_date")) %>%
      dplyr::compute()
-
-
   }
 
   ## Identifying population of interest
