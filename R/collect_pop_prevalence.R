@@ -192,9 +192,14 @@ collect_pop_prevalence <- function(db,
       dplyr::mutate(prevalence_analysis_id=x$prevalence_analysis_id )%>%
       dplyr::relocate(.data$prevalence_analysis_id)
 
+    working_prev_person_table <- working_prev[["person_table"]] %>%
+      dplyr::mutate(prevalence_analysis_id=x$prevalence_analysis_id )%>%
+      dplyr::relocate(.data$prevalence_analysis_id)
+
     result<-list()
     result[["pr"]] <- working_prev_pr
     result[["analysis_settings"]] <- working_prev_analysis_settings
+    result[["person_table"]] <- working_prev_person_table
     result[["attrition"]] <- working_prev_attrition
 
     return(result)
@@ -208,6 +213,13 @@ collect_pop_prevalence <- function(db,
   # to tibble
   analysis_settings <- dplyr::bind_rows(analysis_settings,
                                         .id = NULL
+  )
+
+  # analysis settings
+  person_table<-prs_list[names(prs_list)=="person_table"]
+  # to tibble
+  person_table <- dplyr::bind_rows(person_table,
+                                   .id = NULL
   )
 
   # prevalence estimates
@@ -251,6 +263,7 @@ collect_pop_prevalence <- function(db,
   results<-list()
   results[["prevalence_estimates"]]<-prs
   results[["analysis_settings"]]<-analysis_settings
+  results[["person_table"]]<-person_table
   results[["attrition"]]<-attrition
 
   return(results)

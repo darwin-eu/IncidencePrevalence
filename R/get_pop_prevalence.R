@@ -359,6 +359,7 @@ get_pop_prevalence <- function(db,
   results<-list()
   results[["pr"]]<-pr
   results[["analysis_settings"]]<-analysis_settings
+  results[["person_table"]]<-study_pop
   results[["attrition"]]<-tibble::tibble(attrition="attrition") # placeholder
 
   return(results)
