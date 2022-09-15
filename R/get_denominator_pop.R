@@ -59,15 +59,11 @@ get_denominator_pop <- function(db,
   }
 
   # to handle NAs passed by collect denominator
-  if (!is.null(start_date)) {
-    if (is.na(start_date)) {
-      start_date <- NULL
-    }
+  if (!is.null(start_date) && is.na(start_date)) {
+    start_date <- NULL
   }
-  if (!is.null(end_date)) {
-    if (is.na(end_date)) {
-      end_date <- NULL
-    }
+  if (!is.null(end_date) && is.na(end_date)) {
+    end_date <- NULL
   }
 
   if (verbose == TRUE) {
@@ -150,7 +146,6 @@ get_denominator_pop <- function(db,
   # report initial assertions
   checkmate::reportAssertions(collection = error_message)
 
-
   ## check person and observation_period tables exist
   # connect to relevant tables
   # note, will return informative error if they are not found
@@ -205,7 +200,6 @@ get_denominator_pop <- function(db,
   checkmate::assertTRUE(obs_period_db_names_check, add = error_message)
   checkmate::reportAssertions(collection = error_message)
 
-
   # stratify population on cohort
   if(!is.null(table_name_strata)){
 
@@ -226,7 +220,7 @@ get_denominator_pop <- function(db,
     strata_db <- strata_db %>%
       dplyr::filter(.data$cohort_definition_id == .env$strata_cohort_id)
 
-  # drop anyone not in the strata cohort
+    # drop anyone not in the strata cohort
     person_db <- person_db %>%
       dplyr::inner_join(strata_db %>%
                           dplyr::rename("person_id"="subject_id") %>%
@@ -274,8 +268,6 @@ get_denominator_pop <- function(db,
                               .data$observation_period_end_date)) %>%
      dplyr::select(!c("cohort_start_date", "cohort_end_date")) %>%
      dplyr::compute()
-
-
   }
 
   ## Identifying population of interest
@@ -310,14 +302,7 @@ get_denominator_pop <- function(db,
 
   # filtering on database side
   # drop anyone missing year_of_birth or gender_concept_id
-  attrition <- tibble::tibble(
-    current_n = person_db %>%
-      dplyr::select("person_id") %>%
-      dplyr::distinct() %>%
-      dplyr::tally()  %>%
-      dplyr::pull(),
-    reason = NA
-  )
+  attrition <- create_attrition_tibble(person_db, NA)
 
   study_pop_db <- person_db %>%
     dplyr::left_join(observation_period_db,
@@ -327,14 +312,7 @@ get_denominator_pop <- function(db,
 
   attrition <- attrition <- dplyr::bind_rows(
     attrition,
-    tibble::tibble(
-      current_n = study_pop_db %>%
-        dplyr::select("person_id") %>%
-        dplyr::distinct() %>%
-        dplyr::tally()  %>%
-        dplyr::pull(),
-      reason = "Missing year of birth"
-    )
+    create_attrition_tibble(study_pop_db, "Missing year of birth")
   )
 
   study_pop_db <- study_pop_db %>%
@@ -346,14 +324,7 @@ get_denominator_pop <- function(db,
 
   attrition <- dplyr::bind_rows(
     attrition,
-    tibble::tibble(
-      current_n = study_pop_db %>%
-        dplyr::select("person_id") %>%
-        dplyr::distinct() %>%
-        dplyr::tally()  %>%
-        dplyr::pull(),
-      reason = "Missing gender"
-    )
+    create_attrition_tibble(study_pop_db, "Missing gender")
   )
 
  if (sex == "Male" || sex == "Female") {
@@ -364,16 +335,8 @@ get_denominator_pop <- function(db,
 
   attrition <- dplyr::bind_rows(
     attrition,
-    tibble::tibble(
-      current_n = study_pop_db %>%
-        dplyr::select("person_id") %>%
-        dplyr::distinct() %>%
-        dplyr::tally()  %>%
-        dplyr::pull(),
-      reason = "Doesn't satisfy the sex criteria"
-    )
+    create_attrition_tibble(study_pop_db, "Doesn't satisfy the sex criteria")
   )
-
 
   # filter
   # on year for simplicity
@@ -388,14 +351,7 @@ get_denominator_pop <- function(db,
 
   attrition <- dplyr::bind_rows(
     attrition,
-    tibble::tibble(
-      current_n = study_pop_db %>%
-        dplyr::select("person_id") %>%
-        dplyr::distinct() %>%
-        dplyr::tally()  %>%
-        dplyr::pull(),
-      reason = "Doesn't satisfy age criteria during the study period"
-    )
+    create_attrition_tibble(study_pop_db, "Doesn't satisfy age criteria during the study period")
   )
 
   study_pop_db <- study_pop_db%>%
@@ -407,14 +363,7 @@ get_denominator_pop <- function(db,
 
   attrition <- attrition <- dplyr::bind_rows(
     attrition,
-    tibble::tibble(
-      current_n = study_pop_db %>%
-        dplyr::select("person_id") %>%
-        dplyr::distinct() %>%
-        dplyr::tally()  %>%
-        dplyr::pull(),
-      reason = "No observation time available during study period"
-    )
+    create_attrition_tibble(study_pop_db, "No observation time available during study period")
   )
 
   ## bring in to memory and finalise population
@@ -429,7 +378,6 @@ get_denominator_pop <- function(db,
     # month (January) if only month missing,
     # month (January) and day (to 1st of month) if both missing
     # ie to impute to the centre of the period
-
     study_pop <- study_pop %>%
       dplyr::mutate(dob = as.Date(paste(.data$year_of_birth,
                                         dplyr::if_else(is.na(.data$month_of_birth), "01",
@@ -472,14 +420,7 @@ get_denominator_pop <- function(db,
 
     attrition <- dplyr::bind_rows(
       attrition,
-      tibble::tibble(
-        current_n = study_pop %>%
-          dplyr::select("person_id") %>%
-          dplyr::distinct() %>%
-          dplyr::tally()  %>%
-          dplyr::pull(),
-        reason = "Doesn't satisfy age criteria during the study period"
-      )
+      create_attrition_tibble(study_pop, "Doesn't satisfy age criteria during the study period")
     )
 
     # 2) and they satisfy priory history criteria at some point in the study
@@ -489,14 +430,7 @@ get_denominator_pop <- function(db,
 
     attrition <- dplyr::bind_rows(
       attrition,
-      tibble::tibble(
-        current_n = study_pop %>%
-          dplyr::select("person_id") %>%
-          dplyr::distinct() %>%
-          dplyr::tally()  %>%
-          dplyr::pull(),
-        reason = "Prior history requirement not fullfilled during study period"
-      )
+      create_attrition_tibble(study_pop, "Prior history requirement not fullfilled during study period")
     )
 
     ## Get cohort start and end dates
@@ -539,14 +473,7 @@ get_denominator_pop <- function(db,
 
     attrition <- dplyr::bind_rows(
       attrition,
-      tibble::tibble(
-        current_n = study_pop %>%
-          dplyr::select("person_id") %>%
-          dplyr::distinct() %>%
-          dplyr::tally()  %>%
-          dplyr::pull(),
-        reason = "Prior history requirement not fullfilled during study period"
-      )
+      create_attrition_tibble(study_pop, "Prior history requirement not fullfilled during study period")
     )
 
     # variables to keep
@@ -570,42 +497,57 @@ get_denominator_pop <- function(db,
     study_pop <- NULL
   }
 
+  # settings
+  study_pop_settings <- tibble::tibble(
+      # add specification for each population to output
+        study_start_date = start_date,
+        study_end_date = end_date,
+        age_strata = paste0(min_age, ";",max_age),
+        sex_strata = sex,
+        required_days_prior_history = days_prior_history
+      )
 
+  # attrition
+  attrition <- attrition %>%
+    dplyr::mutate(excluded=dplyr::lag(.data$current_n)-.data$current_n)
 
-    # settings
-    study_pop_settings <- tibble::tibble(
-        # add specification for each population to output
-          study_start_date = start_date,
-          study_end_date = end_date,
-          age_strata = paste0(min_age, ";",max_age),
-          sex_strata = sex,
-          required_days_prior_history = days_prior_history
-        )
+  # combine the two age exclusions
+  attrition <- attrition %>%
+    dplyr::select(!"excluded") %>%
+    dplyr::left_join(attrition %>%
+                       dplyr::group_by(.data$reason) %>%
+                       dplyr::summarise(excluded=sum(.data$excluded)),
+                     by = "reason") %>%
+    dplyr::mutate(seq=1:length(.data$reason)) %>%
+    dplyr::group_by(.data$reason) %>%
+    dplyr::slice_tail() %>%
+    dplyr::arrange(.data$seq) %>%
+    dplyr::select(!"seq")
 
-    # attrition
-    attrition <- attrition %>%
-      dplyr::mutate(excluded=dplyr::lag(.data$current_n)-.data$current_n)
+    # return list
+    dpop<-list()
+    dpop[["denominator_population"]]<-study_pop
+    dpop[["denominator_settings"]]<- study_pop_settings
+    dpop[["attrition"]]<-attrition
 
-    # combine the two age exclusions
-    attrition <- attrition %>%
-      dplyr::select(!"excluded") %>%
-      dplyr::left_join(attrition %>%
-                         dplyr::group_by(.data$reason) %>%
-                         dplyr::summarise(excluded=sum(.data$excluded)),
-                       by = "reason") %>%
-      dplyr::mutate(seq=1:length(.data$reason)) %>%
-      dplyr::group_by(.data$reason) %>%
-      dplyr::slice_tail() %>%
-      dplyr::arrange(.data$seq) %>%
-      dplyr::select(!"seq")
+    return(dpop)
+}
 
-      # return list
-      dpop<-list()
-      dpop[["denominator_population"]]<-study_pop
-      dpop[["denominator_settings"]]<- study_pop_settings
-      dpop[["attrition"]]<-attrition
+#' Creates an attrition tibble
+#'
+#' @param db_table Database table that contains a person_id
+#' @param reason the reason for the attrition
+#' @return a tibble
+create_attrition_tibble <- function(db_table, reason = NULL) {
+  checkmate::assertTRUE("tbl" %in% class(db_table), na.ok = FALSE)
+  checkmate::assert_character(reason, null.ok = TRUE)
 
-      return(dpop)
-
-
+  tibble::tibble(
+    current_n = db_table %>%
+      dplyr::select("person_id") %>%
+      dplyr::distinct() %>%
+      dplyr::tally()  %>%
+      dplyr::pull(),
+    reason = reason
+  )
 }
