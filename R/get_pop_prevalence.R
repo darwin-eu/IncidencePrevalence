@@ -355,10 +355,13 @@ get_pop_prevalence <- function(db,
     period = .env$period,
     time_interval = .env$time_interval)
 
+  study_pop <- study_pop %>%
+    dplyr::select("person_id","cohort_start_date","cohort_end_date")
 
   results<-list()
   results[["pr"]]<-pr
   results[["analysis_settings"]]<-analysis_settings
+  results[["person_table"]]<-study_pop
   results[["attrition"]]<-tibble::tibble(attrition="attrition") # placeholder
 
   return(results)

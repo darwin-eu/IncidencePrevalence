@@ -541,10 +541,14 @@ study_pop_outcome <- study_pop %>%
       repetitive_events = .env$repetitive_events,
       time_interval = .env$time_interval)
 
+  study_pop <- study_pop %>%
+    dplyr::select("person_id","cohort_start_date","cohort_end_date")
+
   # return list
   results<-list()
   results[["ir"]]<-ir
   results[["analysis_settings"]]<-analysis_settings
+  results[["person_table"]]<-study_pop
   results[["attrition"]]<-tibble::tibble(attrition="attrition") # placeholder
 
   return(results)

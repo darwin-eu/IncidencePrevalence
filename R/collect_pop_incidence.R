@@ -177,6 +177,10 @@ collect_pop_incidence <- function(db,
       dplyr::mutate(incidence_analysis_id=x$incidence_analysis_id)%>%
       dplyr::relocate(.data$incidence_analysis_id)
 
+    working_inc_person_table <- working_inc[["person_table"]] %>%
+      dplyr::mutate(incidence_analysis_id=x$incidence_analysis_id)%>%
+      dplyr::relocate(.data$incidence_analysis_id)
+
     working_inc_analysis_settings <- working_inc[["analysis_settings"]] %>%
       dplyr::mutate(
       cohort_id_outcome = x$cohort_id_outcome,
@@ -198,6 +202,7 @@ collect_pop_incidence <- function(db,
     result<-list()
     result[["ir"]] <- working_inc_ir
     result[["analysis_settings"]] <- working_inc_analysis_settings
+    result[["person_table"]] <- working_inc_person_table
     result[["attrition"]] <- working_inc_attrition
 
     return(result)
@@ -241,6 +246,12 @@ collect_pop_incidence <- function(db,
       dplyr::mutate(result_obscured="FALSE")
   }
 
+  # person_table summary
+  person_table<-irs_list[names(irs_list)=="person_table"]
+  # to tibble
+  person_table <- dplyr::bind_rows(person_table,
+                                   .id = NULL
+  )
 
   # attrition summary
   attrition<-irs_list[names(irs_list)=="attrition"]
@@ -253,6 +264,7 @@ collect_pop_incidence <- function(db,
   results<-list()
   results[["incidence_estimates"]]<-irs
   results[["analysis_settings"]]<-analysis_settings
+  results[["person_table"]]<-person_table
   results[["attrition"]]<-attrition
 
   return(results)
