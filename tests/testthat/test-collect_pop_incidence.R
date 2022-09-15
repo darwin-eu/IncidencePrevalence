@@ -25,7 +25,9 @@ test_that("mock db: check output format", {
   expect_true(class(inc) == "list")
   expect_true(all(names(inc) %in%
                     c("incidence_estimates",
-                    "analysis_settings",  "attrition" )))
+                    "analysis_settings",
+                    "person_table",
+                    "attrition" )))
 
   # check analysis settings tibble
   expect_true(all(c(
