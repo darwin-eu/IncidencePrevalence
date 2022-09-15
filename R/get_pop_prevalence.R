@@ -17,7 +17,7 @@
 
 #' Get population prevalence estimates
 #'
-#' @param db db
+#' @param db CDMConnector CDM reference object
 #' @param results_schema_outcome results_schema_outcome
 #' @param table_name_outcome table_name_outcome
 #' @param cohort_id_outcome cohort_id_outcome
@@ -151,11 +151,12 @@ get_pop_prevalence <- function(db,
     message("Check passed: one or more people in denominator")
   }
 
+  outcome_db <- db$outcome
   error_message <- checkmate::makeAssertCollection()
-  checkmate::assertTRUE(db$outcome %>% dplyr::tally() %>% dplyr::pull() > 0,
+  checkmate::assertTRUE(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0,
     add = error_message
   )
-  if (!db$outcome %>% dplyr::tally() %>% dplyr::pull() > 0) {
+  if (!outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0) {
     error_message$push(
       glue::glue("- Zero rows in {results_schema_outcome}.{table_name_outcome}")
     )
@@ -163,7 +164,7 @@ get_pop_prevalence <- function(db,
   checkmate::reportAssertions(collection = error_message)
 
   if (!is.null(cohort_id_outcome)) {
-    outcome_db <- db$outcome %>%
+    outcome_db <- outcome_db %>%
       dplyr::filter(.data$cohort_definition_id == .env$cohort_id_outcome) %>%
       dplyr::compute()
   }

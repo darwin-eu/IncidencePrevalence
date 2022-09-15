@@ -17,7 +17,7 @@
 
 #' Identify a set of denominator populations
 #'
-#' @param db Database connection via DBI::dbConnect()
+#' @param db CDMConnector CDM reference object
 #' @param cdm_database_schema Name of the schema which contains the
 #' omop cdm person and observation_period tables
 #' @param study_start_date Date indicating the start of the study

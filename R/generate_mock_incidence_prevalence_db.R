@@ -32,7 +32,7 @@
 #' @param latest_observation_start_date the latest observation start date for patient format "dd-mm-yyyy"
 #' @param min_days_to_observation_end the minimum number of days of the observational integer
 #' @param max_days_to_observation_end the maximum number of days of the observation period integer
-#' @return DBIConnection to duckdb database with mock data
+#' @return CDMConnector CDM reference object to duckdb database with mock data
 #' @export
 #'
 #' @examples

@@ -17,7 +17,7 @@
 
 #' Get population incidence estimates
 #'
-#' @param db db
+#' @param db CDMConnector CDM reference object
 #' @param results_schema_outcome results_schema_outcome
 #' @param table_name_outcome table_name_outcome
 #' @param cohort_id_outcome cohort_id_outcome
@@ -63,13 +63,13 @@ get_pop_incidence <- function(db,
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
-  db_inherits_check <- inherits(db, "DBIConnection")
+  db_inherits_check <- inherits(db, "cdm_reference")
   checkmate::assertTRUE(db_inherits_check,
     add = error_message
   )
   if (!isTRUE(db_inherits_check)) {
     error_message$push(
-      "- db must be a database connection via DBI::dbConnect()"
+      "- db must be a DMConnector CDM reference object"
     )
   }
   checkmate::assert_character(results_schema_outcome,
@@ -129,7 +129,6 @@ get_pop_incidence <- function(db,
     message("Inputs checked and all initial assertions passed")
   }
 
-
   ## Analysis code
   # bring in study population
   study_pop <- study_denominator_pop
@@ -158,14 +157,15 @@ get_pop_incidence <- function(db,
   }
 
 
-  # link to outcome cohort
-  if (!is.null(results_schema_outcome)) {
-    outcome_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
-      "SELECT * FROM {results_schema_outcome}.{table_name_outcome}"
-    )))
-  } else {
-    outcome_db <- dplyr::tbl(db, "outcome")
-  }
+  # # link to outcome cohort
+  # if (!is.null(results_schema_outcome)) {
+  #   outcome_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
+  #     "SELECT * FROM {results_schema_outcome}.{table_name_outcome}"
+  #   )))
+  # } else {
+  #   outcome_db <- dplyr::tbl(db, "outcome")
+  # }
+  outcome_db <- db$outcome
   error_message <- checkmate::makeAssertCollection()
   if (!is.null(cohort_id_outcome)) {
     outcome_db <- outcome_db %>%

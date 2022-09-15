@@ -17,7 +17,7 @@
 
 #' Collect population prevalence estimates
 #'
-#' @param db Database connection via DBI::dbConnect()
+#' @param db CDMConnector CDM reference object
 #' @param results_schema_outcomes Name of the schema which contains
 #' the outcome table
 #' @param table_name_outcomes Name of the table with the outcome cohorts
