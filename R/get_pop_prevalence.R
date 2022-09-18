@@ -244,17 +244,30 @@ get_pop_prevalence <- function(db,
                            choices = c("days","weeks","months","quarters","years"),
                            add = error_message
   )
+  if (type == "period"){
+    null_period <- TRUE
+  } else {
+    null_period <- FALSE
+  }
+  if (type == "point"){
+    null_point <- TRUE
+  } else {
+    null_point <- FALSE
+  }
   checkmate::assert_choice(point,
                            choices = c("start", "middle", "end"),
+                           null.ok = null_period,
                            add = error_message
   )
   checkmate::assert_logical(full_period_required,
+                            null.ok = null_point,
                             add = error_message
   )
   checkmate::assert_logical(verbose,
                             add = error_message
   )
   checkmate::assert_numeric(minimum_representative_proportion,
+                            null.ok = null_point,
                             add = error_message,
                             lower = 0,
                             upper = 1
