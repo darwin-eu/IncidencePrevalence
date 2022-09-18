@@ -24,8 +24,10 @@
 #' @param cohort_ids_outcomes Outcome cohort ids
 #' @param study_denominator_pop Tibble with denominator populations
 #' @param cohort_ids_denominator_pops Cohort ids of denominator populations
-#' @param periods Periods to compute the prevalence
+#' @param type type of prevalence, point or period
+#' @param points where to compute the point prevalence
 #' @param time_intervals Time intervals for prevalence estimates
+#' @param full_period_requireds If full period is required
 #' @param minimum_representative_proportions Minimum proportions that
 #' individuals must have to contribute
 #' @param confidence_interval Method for confidence intervals
@@ -43,8 +45,10 @@ collect_pop_prevalence <- function(db,
                                   cohort_ids_outcomes,
                                   study_denominator_pop,
                                   cohort_ids_denominator_pops,
-                                  periods = "point",
+                                  type = "point",
                                   time_intervals = "months",
+                                  full_period_requireds = TRUE,
+                                  points = "start",
                                   minimum_representative_proportions = 0.5,
                                   confidence_interval = "none",
                                   minimum_cell_count = 5,
@@ -58,14 +62,17 @@ collect_pop_prevalence <- function(db,
   if (is.numeric(cohort_ids_denominator_pops)) {
     cohort_ids_denominator_pops <- as.character(cohort_ids_denominator_pops)
   }
-  if (is.character(periods)) {
-    periods <- tolower(periods)
+  if (is.character(type)) {
+    type <- tolower(type)
   }
   if (is.character(time_intervals)) {
     time_intervals <- tolower(time_intervals)
   }
   if (is.character(confidence_interval)) {
     confidence_interval <- tolower(confidence_interval)
+  }
+  if (is.character(points)) {
+    points <- tolower(points)
   }
 
   ## check for standard types of user error
@@ -116,10 +123,14 @@ collect_pop_prevalence <- function(db,
     add = error_message,
     null.ok = TRUE
   )
-  checkmate::assertTRUE(all(periods %in% c("point", "month", "year")),
+  checkmate::assert_choice(type,
+    choices = c("point","period"),
     add = error_message
   )
-  checkmate::assertTRUE(all(time_intervals %in% c("months", "years")),
+  checkmate::assertTRUE(all(time_intervals %in% c("days","weeks","months","quarters","years")),
+    add = error_message
+  )
+  checkmate::assertTRUE(all(points %in% c("start","middle","end")),
     add = error_message
   )
   checkmate::assert_numeric(minimum_representative_proportions,
@@ -128,6 +139,9 @@ collect_pop_prevalence <- function(db,
     upper = 1
   )
   checkmate::assert_logical(verbose,
+    add = error_message
+  )
+  checkmate::assert_logical(full_period_requireds,
     add = error_message
   )
   checkmate::assert_choice(confidence_interval,
@@ -142,8 +156,9 @@ collect_pop_prevalence <- function(db,
   study_specs <- tidyr::expand_grid(
     cohort_id_outcome = cohort_ids_outcomes,
     cohort_id_denominator_pop = cohort_ids_denominator_pops,
-    period = periods,
     time_interval = time_intervals,
+    full_period_required = full_period_requireds,
+    point = points,
     minimum_representative_proportion = minimum_representative_proportions,
     verbose = verbose
   )
@@ -156,7 +171,7 @@ collect_pop_prevalence <- function(db,
     study_specs[, c("prevalence_analysis_id")]
   )
 
-  # get irs
+  # get prs
   prs_list <- lapply(study_specs, function(x) {
 
     working_prev <- get_pop_prevalence(
@@ -166,8 +181,10 @@ collect_pop_prevalence <- function(db,
       cohort_id_outcome = x$cohort_id_outcome,
       study_denominator_pop = study_denominator_pop,
       cohort_id_denominator_pop = x$cohort_id_denominator_pop,
-      period = x$period,
+      type = type,
       time_interval = x$time_interval,
+      full_period_required = x$full_period_required,
+      point = x$point,
       minimum_representative_proportion = x$minimum_representative_proportion,
       verbose = x$verbose
     )
@@ -180,8 +197,10 @@ collect_pop_prevalence <- function(db,
       dplyr::mutate(
         cohort_id_outcome = x$cohort_id_outcome,
         cohort_id_denominator_pop = x$cohort_id_denominator_pop,
-        period = x$period,
+        type = type,
         time_interval = x$time_interval,
+        full_period_required = x$full_period_required,
+        point = x$point,
         minimum_representative_proportion = x$minimum_representative_proportion,
         confidence_interval = confidence_interval,
         minimum_cell_count= minimum_cell_count,

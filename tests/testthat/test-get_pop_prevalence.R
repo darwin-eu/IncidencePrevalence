@@ -8,26 +8,29 @@ test_that("mock db: check output format", {
   dpop<-dpop$denominator_populations
 
   prev <- get_pop_prevalence(db,
-                     results_schema_outcome = NULL,
-                     table_name_outcome = "outcome",
-                     study_denominator_pop = dpop,
-                     period = "point"
+                             results_schema_outcome = NULL,
+                             table_name_outcome = "outcome",
+                             study_denominator_pop = dpop
   )
 
   # prevalence results
   expect_true(all(c(
+    "time",
     "numerator",
     "denominator",
     "prev",
-    "calendar_month",
-    "calendar_year"
+    "start_time",
+    "end_time"
   ) %in%
     names(prev[["pr"]])))
 
   # analysis settings
   expect_true(all(c(
-    "period",
-    "time_interval"
+    "type",
+    "point",
+    "time_interval",
+    "minimum_representative_proportion",
+    "full_period_required"
   ) %in%
     names(prev[["analysis_settings"]])))
 
@@ -71,14 +74,14 @@ test_that("mock db: working examples", {
   )
   dpop<-dpop$denominator_populations
   prev<- get_pop_prevalence(db,
-    results_schema_outcome = NULL,
-    table_name_outcome = "outcome",
-    cohort_id_outcome = "1",
-    study_denominator_pop = dpop,
-    cohort_id_denominator_pop = "1",
-    period = "point",
-    time_interval = c("months"),
-    minimum_representative_proportion = 0.5
+                            results_schema_outcome = NULL,
+                            table_name_outcome = "outcome",
+                            cohort_id_outcome = "1",
+                            study_denominator_pop = dpop,
+                            cohort_id_denominator_pop = "1",
+                            type = "point",
+                            time_interval = "months",
+                            minimum_representative_proportion = 0.5
   )
   expect_true(nrow(prev[["pr"]])>=1)
 
@@ -88,12 +91,11 @@ test_that("mock db: working examples", {
                             cohort_id_outcome = "1",
                             study_denominator_pop = dpop,
                             cohort_id_denominator_pop = "1",
-                            period = "point",
-                            time_interval = c("years"),
+                            type = "point",
+                            time_interval = "years",
                             minimum_representative_proportion = 0.5
   )
   expect_true(nrow(prev[["pr"]])>=1)
-
 
   dpop <- collect_denominator_pops(
     db = db,
@@ -103,14 +105,14 @@ test_that("mock db: working examples", {
   dpop<-dpop$denominator_populations
 
   prev<- get_pop_prevalence(db,
-    results_schema_outcome = NULL,
-    table_name_outcome = "outcome",
-    cohort_id_outcome = "1",
-    study_denominator_pop = dpop,
-    cohort_id_denominator_pop = "1",
-    period = "month",
-    time_interval = c("months"),
-    minimum_representative_proportion = 0.5
+                            results_schema_outcome = NULL,
+                            table_name_outcome = "outcome",
+                            cohort_id_outcome = "1",
+                            study_denominator_pop = dpop,
+                            cohort_id_denominator_pop = "1",
+                            type = "period",
+                            time_interval = "months",
+                            minimum_representative_proportion = 0.5
   )
   expect_true(nrow(prev[["pr"]])>=1)
 
@@ -151,33 +153,32 @@ test_that("mock db: check study time periods", {
                                               observation_period=observation_period,
                                               outcome=outcome)
 
-    dpop <- collect_denominator_pops(
+  dpop <- collect_denominator_pops(
     db = db,
     cdm_database_schema = NULL
   )
-    dpop<-dpop$denominator_populations
+  dpop<-dpop$denominator_populations
 
- prev<- get_pop_prevalence(db,
-    results_schema_outcome = NULL,
-    table_name_outcome = "outcome",
-    cohort_id_outcome = "1",
-    study_denominator_pop = dpop,
-    cohort_id_denominator_pop = "1",
-    period = "point",
-    time_interval = c("months"),
-    minimum_representative_proportion = 0.5,
-    verbose = FALSE
+  prev<- get_pop_prevalence(db,
+                            results_schema_outcome = NULL,
+                            table_name_outcome = "outcome",
+                            cohort_id_outcome = "1",
+                            study_denominator_pop = dpop,
+                            cohort_id_denominator_pop = "1",
+                            type = "point",
+                            time_interval = "months",
+                            minimum_representative_proportion = 0.5,
+                            verbose = FALSE
   )
 
-   # we expect 12 months of which the last in December
-   # the last month should also be included
-   # as the person goes up to the last day of the month
-   expect_true(length(prev[["pr"]]$calendar_year)==12)
-   expect_true(any(prev[["pr"]]$calendar_month %in% 12))
+  # we expect 12 months of which the last in December
+  # the last month should also be included
+  # as the person goes up to the last day of the month
+  expect_true(nrow(prev[["pr"]])==12)
 
-   DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(db, shutdown=TRUE)
 
- })
+})
 
 test_that("mock db: check periods follow calendar dates", {
 
@@ -230,8 +231,8 @@ test_that("mock db: check periods follow calendar dates", {
                             cohort_id_outcome = "1",
                             study_denominator_pop = dpop,
                             cohort_id_denominator_pop = "1",
-                            period = "point",
-                            time_interval = c("months"),
+                            type = "point",
+                            time_interval = "months",
                             minimum_representative_proportion = 0.5
   )
   # expect_true(prev[["pr"]]$prev[2]==1)
@@ -263,7 +264,7 @@ test_that("mock db: check messages when vebose is true", {
                                     results_schema_outcome = NULL,
                                     table_name_outcome = "outcome",
                                     study_denominator_pop = dpop,
-                                    period = "point",
+                                    type = "point",
                                     verbose = TRUE
   ))
 
@@ -271,7 +272,8 @@ test_that("mock db: check messages when vebose is true", {
                                     results_schema_outcome = NULL,
                                     table_name_outcome = "outcome",
                                     study_denominator_pop = dpop,
-                                    period = "month",
+                                    type = "period",
+                                    time_interval = "months",
                                     verbose = TRUE
   ))
 
@@ -279,7 +281,9 @@ test_that("mock db: check messages when vebose is true", {
                                     results_schema_outcome = NULL,
                                     table_name_outcome = "outcome",
                                     study_denominator_pop = dpop,
-                                    period =  "year",
+                                    type = "period",
+                                    time_interval = "years",
+                                    full_period_required = FALSE,
                                     verbose = TRUE
   ))
 
@@ -304,7 +308,7 @@ test_that("mock db: check conversion of user inputs", {
                              study_denominator_pop = dpop,
                              # converted to character
                              cohort_id_denominator_pop = 1,
-                             period = "point"
+                             type = "point"
   )
   expect_true(nrow(prev[["pr"]])>=0)
 
@@ -326,7 +330,7 @@ test_that("mock db: check expected errors", {
                                   results_schema_outcome = NULL,
                                   table_name_outcome = "outcome",
                                   study_denominator_pop = dpop,
-                                  period = "point"
+                                  type = "point"
   ))
 
   # no study pop
@@ -335,7 +339,7 @@ test_that("mock db: check expected errors", {
                                   table_name_outcome = "outcome",
                                   study_denominator_pop = dpop,
                                   cohort_id_denominator_pop="999",
-                                  period = "point"
+                                  type = "point"
   ))
 
   # no outcomes
@@ -344,7 +348,7 @@ test_that("mock db: check expected errors", {
                                   table_name_outcome = "outcome",
                                   cohort_id_outcome="999",
                                   study_denominator_pop = dpop,
-                                  period = "point"
+                                  type = "point"
   ))
 
 
@@ -385,14 +389,14 @@ test_that("mock db: check expected errors", {
                                   results_schema_outcome = NULL,
                                   table_name_outcome = "outcome",
                                   study_denominator_pop = dpop,
-                                  period = "point"
+                                  type = "period"
   ))
   expect_error(get_pop_prevalence(db,
                                   results_schema_outcome = NULL,
                                   table_name_outcome = "outcome",
                                   study_denominator_pop = dpop,
                                   time_interval = c("years"),
-                                  period = "point"
+                                  type = "period"
   ))
 
   DBI::dbDisconnect(db)
