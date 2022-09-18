@@ -124,8 +124,8 @@ compute_study_days <- function(start_date,
       dplyr::ungroup()
     if (full_period_required){
       study_days <- study_days %>%
-        dplyr::filter(start_time == lubridate::floor_date(.data$start_time, unit = time_interval) + week_correction) %>%
-        dplyr::filter(end_time == lubridate::floor_date(
+        dplyr::filter(.data$start_time == lubridate::floor_date(.data$start_time, unit = time_interval) + week_correction) %>%
+        dplyr::filter(.data$end_time == lubridate::floor_date(
           .data$end_time,
           unit = time_interval
         ) + week_correction + switch(time_interval,
