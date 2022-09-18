@@ -104,7 +104,7 @@ inc$incidence_estimates %>%
   glimpse()
 
 inc$incidence_estimates %>% 
-  ggplot(aes(calendar_year, ir_100000_pys))+
+  ggplot(aes(start_time, ir_100000_pys))+
   geom_point()+
   scale_y_continuous(limits = c(0,NA))+
   theme_minimal()
