@@ -52,7 +52,7 @@ test_that("mock db: check output format", {
     "ir_100000_pys",
     "ir_100000_pys_low",
     "ir_100000_pys_high",
-    "calendar_month", "calendar_year",
+    "time", "start_time","end_time",
     "cohort_obscured",
     "result_obscured"
   ) %in%
