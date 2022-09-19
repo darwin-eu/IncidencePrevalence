@@ -27,12 +27,14 @@ test_that("mock db: check output format", {
   # check analysis settings tibble::tibble
   expect_true(all(c(
     "prevalence_analysis_id",
-    "period",
+    "type",
+    "point",
     "time_interval",
-    "confidence_interval",
+    "minimum_representative_proportion",
+    "full_period_required",
     "cohort_id_outcome",
     "cohort_id_denominator_pop",
-    "minimum_representative_proportion",
+    "confidence_interval",
     "minimum_cell_count"
   ) %in%
     names(prev[["analysis_settings"]])))
@@ -40,11 +42,12 @@ test_that("mock db: check output format", {
   # check estimates tibble
   expect_true(all(c(
     "prevalence_analysis_id",
+    "time",
     "numerator", "denominator",
     "prev",
     "prev_low",
     "prev_high",
-    "calendar_month", "calendar_year",
+    "start_time", "end_time",
     "cohort_obscured",
     "result_obscured"
   ) %in%
@@ -168,7 +171,8 @@ test_that("mock db: check minimum counts", {
     cohort_ids_denominator_pops = "1",
     study_denominator_pop = dpop,
     minimum_cell_count = NULL,
-    periods="month",
+    type = "period",
+    time_intervals = "months",
     confidence_interval = "poisson"
   )
   expect_true(prev[["prevalence_estimates"]]$numerator[1] == 17)
@@ -195,7 +199,8 @@ test_that("mock db: check minimum counts", {
     cohort_ids_denominator_pops = "1",
     study_denominator_pop = dpop,
     minimum_cell_count = 5,
-    periods="month",
+    type = "period",
+    time_intervals = "months",
     confidence_interval = "poisson"
   )
   expect_true(prev[["prevalence_estimates"]]$numerator[1] == 17)
