@@ -11,8 +11,10 @@ collect_pop_prevalence(
   cohort_ids_outcomes,
   study_denominator_pop,
   cohort_ids_denominator_pops,
-  periods = "point",
+  type = "point",
   time_intervals = "months",
+  full_period_requireds = TRUE,
+  points = "start",
   minimum_representative_proportions = 0.5,
   confidence_interval = "none",
   minimum_cell_count = 5,
@@ -33,9 +35,13 @@ the outcome table}
 
 \item{cohort_ids_denominator_pops}{Cohort ids of denominator populations}
 
-\item{periods}{Periods to compute the prevalence}
+\item{type}{type of prevalence, point or period}
 
 \item{time_intervals}{Time intervals for prevalence estimates}
+
+\item{full_period_requireds}{If full period is required}
+
+\item{points}{where to compute the point prevalence}
 
 \item{minimum_representative_proportions}{Minimum proportions that
 individuals must have to contribute}

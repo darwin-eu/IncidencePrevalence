@@ -1,9 +1,5 @@
 
 test_that("mock db: check output format", {
-  library(DBI)
-  library(dplyr)
-  library(tibble)
-
   db <- generate_mock_incidence_prevalence_db()
 
   dpop <- collect_denominator_pops(
@@ -29,7 +25,9 @@ test_that("mock db: check output format", {
   expect_true(class(inc) == "list")
   expect_true(all(names(inc) %in%
                     c("incidence_estimates",
-                    "analysis_settings",  "attrition" )))
+                    "analysis_settings",
+                    "person_table",
+                    "attrition" )))
 
   # check analysis settings tibble
   expect_true(all(c(
@@ -54,7 +52,7 @@ test_that("mock db: check output format", {
     "ir_100000_pys",
     "ir_100000_pys_low",
     "ir_100000_pys_high",
-    "calendar_month", "calendar_year",
+    "time", "start_time","end_time",
     "cohort_obscured",
     "result_obscured"
   ) %in%
@@ -65,24 +63,20 @@ test_that("mock db: check output format", {
 })
 
 test_that("mock db: checks on working example", {
-  library(DBI)
-  library(dplyr)
-  library(tibble)
-
-  person <- tibble(
+  person <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observation_period <- tibble(
+  observation_period <- tibble::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2000-01-01"),
     observation_period_end_date = as.Date("2012-06-01")
   )
-  outcome <- tibble(
+  outcome <- tibble::tibble(
     cohort_definition_id = "1",
     subject_id = "1",
     cohort_start_date = c(
@@ -126,28 +120,24 @@ test_that("mock db: checks on working example", {
 })
 
 test_that("mock db: check minimum counts", {
-  library(DBI)
-  library(dplyr)
-  library(tibble)
-
   #20 people
-  person <- tibble(
+  person <- tibble::tibble(
     person_id = as.character(c(1:20)),
     gender_concept_id = rep("8507",20),
     year_of_birth =  rep(2000,20),
     month_of_birth =  rep(01,20),
     day_of_birth =  rep(01,20)
   )
-  observation_period <- tibble(
+  observation_period <- tibble::tibble(
     observation_period_id = as.character(c(1:20)),
     person_id = as.character(c(1:20)),
     observation_period_start_date = rep(as.Date("2000-01-01"),20),
     observation_period_end_date = rep(as.Date("2012-06-01"),20)
   )
   outcome <-
-    bind_rows(
+    dplyr::bind_rows(
       # 17 in first period
-    tibble(
+    tibble::tibble(
     cohort_definition_id = rep("1",17),
     subject_id = as.character(c(1:17)),
     cohort_start_date = rep(
@@ -156,7 +146,7 @@ test_that("mock db: check minimum counts", {
       as.Date("2000-01-03"),17)
   ),
   # three in second
-  tibble(
+  tibble::tibble(
     cohort_definition_id = rep("1",3),
     subject_id = as.character(c(18:20)),
     cohort_start_date = rep(
@@ -237,10 +227,6 @@ test_that("mock db: check minimum counts", {
 })
 
 test_that("mock db: check conversion of user inputs", {
-  library(DBI)
-  library(dplyr)
-  library(tibble)
-
   db <- generate_mock_incidence_prevalence_db()
 
   dpop <- collect_denominator_pops(
@@ -265,24 +251,20 @@ test_that("mock db: check conversion of user inputs", {
 })
 
 test_that("expected errors with mock", {
-  library(DBI)
-  library(dplyr)
-  library(tibble)
-
-  person <- tibble(
+  person <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observation_period <- tibble(
+  observation_period <- tibble::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-01"),
     observation_period_end_date = as.Date("2012-06-01")
   )
-  outcome <- tibble(
+  outcome <- tibble::tibble(
     cohort_definition_id = "1",
     subject_id = "1",
     cohort_start_date = c(
@@ -313,9 +295,6 @@ test_that("expected errors with mock", {
     cohort_ids_denominator_pops = "1",
     study_denominator_pop = dpop
   ))
-
-
-
 
   DBI::dbDisconnect(db, shutdown=TRUE)
 })

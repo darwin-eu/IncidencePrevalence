@@ -15,17 +15,15 @@
 # limitations under the License.
 
 
-#' Collect population prevalence estimates
+#' Collect population period prevalence estimates
 #'
-#' @param db CDMConnector CDM reference object
+#' @param db Database connection via DBI::dbConnect()
 #' @param results_schema_outcomes Name of the schema which contains
 #' the outcome table
 #' @param table_name_outcomes Name of the table with the outcome cohorts
 #' @param cohort_ids_outcomes Outcome cohort ids
 #' @param study_denominator_pop Tibble with denominator populations
 #' @param cohort_ids_denominator_pops Cohort ids of denominator populations
-#' @param type type of prevalence, point or period
-#' @param points where to compute the point prevalence
 #' @param time_intervals Time intervals for prevalence estimates
 #' @param full_period_requireds If full period is required
 #' @param minimum_representative_proportions Minimum proportions that
@@ -39,20 +37,18 @@
 #' @export
 #'
 #' @examples
-collect_pop_prevalence <- function(db,
-                                  results_schema_outcomes,
-                                  table_name_outcomes,
-                                  cohort_ids_outcomes,
-                                  study_denominator_pop,
-                                  cohort_ids_denominator_pops,
-                                  type = "point",
-                                  time_intervals = "months",
-                                  full_period_requireds = TRUE,
-                                  points = "start",
-                                  minimum_representative_proportions = 0.5,
-                                  confidence_interval = "none",
-                                  minimum_cell_count = 5,
-                                  verbose = FALSE) {
+collect_pop_period_prevalence <- function(db,
+                                          results_schema_outcomes,
+                                          table_name_outcomes,
+                                          cohort_ids_outcomes,
+                                          study_denominator_pop,
+                                          cohort_ids_denominator_pops,
+                                          time_intervals = "months",
+                                          full_period_requireds = TRUE,
+                                          minimum_representative_proportions = 0.5,
+                                          confidence_interval = "none",
+                                          minimum_cell_count = 5,
+                                          verbose = FALSE) {
 
 
   # help to avoid formatting errors
@@ -62,28 +58,22 @@ collect_pop_prevalence <- function(db,
   if (is.numeric(cohort_ids_denominator_pops)) {
     cohort_ids_denominator_pops <- as.character(cohort_ids_denominator_pops)
   }
-  if (is.character(type)) {
-    type <- tolower(type)
-  }
   if (is.character(time_intervals)) {
     time_intervals <- tolower(time_intervals)
   }
   if (is.character(confidence_interval)) {
     confidence_interval <- tolower(confidence_interval)
   }
-  if (is.character(points)) {
-    points <- tolower(points)
-  }
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
-  db_inherits_check <- inherits(db, "cdm_reference")
+  db_inherits_check <- inherits(db, "DBIConnection")
   checkmate::assertTRUE(db_inherits_check,
     add = error_message
   )
   if (!isTRUE(db_inherits_check)) {
     error_message$push(
-      "- db must be a CDMConnector CDM reference object"
+      "- db must be a database connection via DBI::dbConnect()"
     )
   }
   checkmate::assert_character(results_schema_outcomes,
@@ -123,14 +113,7 @@ collect_pop_prevalence <- function(db,
     add = error_message,
     null.ok = TRUE
   )
-  checkmate::assert_choice(type,
-    choices = c("point","period"),
-    add = error_message
-  )
-  checkmate::assertTRUE(all(time_intervals %in% c("days","weeks","months","quarters","years")),
-    add = error_message
-  )
-  checkmate::assertTRUE(all(points %in% c("start","middle","end")),
+  checkmate::assertTRUE(all(time_intervals %in% c("days", "weeks", "months", "quarters", "years")),
     add = error_message
   )
   checkmate::assert_numeric(minimum_representative_proportions,
@@ -158,7 +141,6 @@ collect_pop_prevalence <- function(db,
     cohort_id_denominator_pop = cohort_ids_denominator_pops,
     time_interval = time_intervals,
     full_period_required = full_period_requireds,
-    point = points,
     minimum_representative_proportion = minimum_representative_proportions,
     verbose = verbose
   )
@@ -173,7 +155,6 @@ collect_pop_prevalence <- function(db,
 
   # get prs
   prs_list <- lapply(study_specs, function(x) {
-
     working_prev <- get_pop_prevalence(
       db = db,
       results_schema_outcome = results_schema_outcomes,
@@ -181,110 +162,109 @@ collect_pop_prevalence <- function(db,
       cohort_id_outcome = x$cohort_id_outcome,
       study_denominator_pop = study_denominator_pop,
       cohort_id_denominator_pop = x$cohort_id_denominator_pop,
-      type = type,
+      type = "period",
       time_interval = x$time_interval,
       full_period_required = x$full_period_required,
-      point = x$point,
+      point = "start", # change to null in future
       minimum_representative_proportion = x$minimum_representative_proportion,
       verbose = x$verbose
     )
 
     working_prev_pr <- working_prev[["pr"]] %>%
-      dplyr::mutate(prevalence_analysis_id=x$prevalence_analysis_id)%>%
+      dplyr::mutate(prevalence_analysis_id = x$prevalence_analysis_id) %>%
       dplyr::relocate(.data$prevalence_analysis_id)
 
-    working_prev_analysis_settings <- working_prev[["analysis_settings"]]  %>%
+    working_prev_analysis_settings <- working_prev[["analysis_settings"]] %>%
       dplyr::mutate(
         cohort_id_outcome = x$cohort_id_outcome,
         cohort_id_denominator_pop = x$cohort_id_denominator_pop,
-        type = type,
+        type = "period",
         time_interval = x$time_interval,
         full_period_required = x$full_period_required,
-        point = x$point,
         minimum_representative_proportion = x$minimum_representative_proportion,
         confidence_interval = confidence_interval,
-        minimum_cell_count= minimum_cell_count,
-        prevalence_analysis_id=x$prevalence_analysis_id) %>%
+        minimum_cell_count = minimum_cell_count,
+        prevalence_analysis_id = x$prevalence_analysis_id
+      ) %>%
       dplyr::relocate(.data$prevalence_analysis_id)
 
     working_prev_attrition <- working_prev[["attrition"]] %>%
-      dplyr::mutate(prevalence_analysis_id=x$prevalence_analysis_id )%>%
+      dplyr::mutate(prevalence_analysis_id = x$prevalence_analysis_id) %>%
       dplyr::relocate(.data$prevalence_analysis_id)
 
     working_prev_person_table <- working_prev[["person_table"]] %>%
-      dplyr::mutate(prevalence_analysis_id=x$prevalence_analysis_id )%>%
+      dplyr::mutate(prevalence_analysis_id = x$prevalence_analysis_id) %>%
       dplyr::relocate(.data$prevalence_analysis_id)
 
-    result<-list()
+    result <- list()
     result[["pr"]] <- working_prev_pr
     result[["analysis_settings"]] <- working_prev_analysis_settings
     result[["person_table"]] <- working_prev_person_table
     result[["attrition"]] <- working_prev_attrition
 
     return(result)
-
   })
 
   prs_list <- purrr::flatten(prs_list)
 
   # analysis settings
-  analysis_settings<-prs_list[names(prs_list)=="analysis_settings"]
+  analysis_settings <- prs_list[names(prs_list) == "analysis_settings"]
   # to tibble
   analysis_settings <- dplyr::bind_rows(analysis_settings,
-                                        .id = NULL
+    .id = NULL
   )
 
   # analysis settings
-  person_table<-prs_list[names(prs_list)=="person_table"]
+  person_table <- prs_list[names(prs_list) == "person_table"]
   # to tibble
   person_table <- dplyr::bind_rows(person_table,
-                                   .id = NULL
+    .id = NULL
   )
 
   # prevalence estimates
-  prs<-prs_list[names(prs_list)=="pr"]
+  prs <- prs_list[names(prs_list) == "pr"]
   # to tibble
   prs <- dplyr::bind_rows(prs,
-                          .id = NULL
+    .id = NULL
   )
 
   # get confidence intervals
-  if(confidence_interval != "none"){
-    prs <-get_confidence_intervals(prs, confidence_interval)
+  if (confidence_interval != "none") {
+    prs <- get_confidence_intervals(prs, confidence_interval)
   } else {
     prs <- prs %>%
-      dplyr::mutate(prev_low=NA) %>%
-      dplyr::mutate(prev_high=NA)%>%
+      dplyr::mutate(prev_low = NA) %>%
+      dplyr::mutate(prev_high = NA) %>%
       dplyr::relocate(.data$prev_low, .after = .data$prev) %>%
       dplyr::relocate(.data$prev_high, .after = .data$prev_low)
   }
 
   # obscure counts
-  if(!is.null(minimum_cell_count)){
-  prs <- obscure_counts(prs,
-                        minimum_cell_count = minimum_cell_count,
-                        substitute = NA)
+  if (!is.null(minimum_cell_count)) {
+    prs <- obscure_counts(prs,
+      minimum_cell_count = minimum_cell_count,
+      substitute = NA
+    )
   } else {
     # no results obscured due to a low count
     prs <- prs %>%
-      dplyr::mutate(cohort_obscured="FALSE") %>%
-      dplyr::mutate(result_obscured="FALSE")
+      dplyr::mutate(cohort_obscured = "FALSE") %>%
+      dplyr::mutate(result_obscured = "FALSE")
   }
 
   # attrition summary
-  attrition<-prs_list[names(prs_list)=="attrition"]
+  attrition <- prs_list[names(prs_list) == "attrition"]
   # to tibble
   attrition <- dplyr::bind_rows(attrition,
-                                .id = NULL
+    .id = NULL
   )
 
   # results to return as a list
-  results<-list()
-  results[["prevalence_estimates"]]<-prs
-  results[["analysis_settings"]]<-analysis_settings
-  results[["person_table"]]<-person_table
-  results[["attrition"]]<-attrition
+  results <- list()
+  results[["prevalence_estimates"]] <- prs
+  results[["analysis_settings"]] <- analysis_settings
+  results[["person_table"]] <- person_table
+  results[["attrition"]] <- attrition
 
   return(results)
-
 }

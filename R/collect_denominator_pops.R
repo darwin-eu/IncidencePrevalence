@@ -139,6 +139,7 @@ collect_denominator_pops <- function(db,
     )
   )
 
+
   # get each population
   study_populations <- lapply(pop_specs, function(x) {
     if (verbose == TRUE) {
@@ -164,12 +165,12 @@ collect_denominator_pops <- function(db,
       strata_cohort_id=strata_cohort_id
     )
 
-if(!is.null(denominator_pop$denominator_population)){
-    denominator_pop$denominator_population <-
-      denominator_pop$denominator_population  %>%
-      dplyr::mutate(cohort_definition_id=x$cohort_definition_id) %>%
-      dplyr::relocate(.data$cohort_definition_id)
-}
+    if (!is.null(denominator_pop$denominator_population)){
+        denominator_pop$denominator_population <-
+          denominator_pop$denominator_population  %>%
+          dplyr::mutate(cohort_definition_id=x$cohort_definition_id) %>%
+          dplyr::relocate(.data$cohort_definition_id)
+    }
 
     denominator_pop$denominator_settings <-
       denominator_pop$denominator_settings  %>%
@@ -207,7 +208,6 @@ if(!is.null(denominator_pop$denominator_population)){
                                 .id = NULL
   )
 
-
   if (verbose == TRUE) {
     duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
     message(glue::glue(
@@ -226,6 +226,4 @@ if(!is.null(denominator_pop$denominator_population)){
   results[["attrition"]]<-attrition
 
   return(results)
-
-
 }

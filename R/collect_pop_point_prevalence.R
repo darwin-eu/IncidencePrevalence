@@ -15,21 +15,17 @@
 # limitations under the License.
 
 
-#' Collect population prevalence estimates
+#' Collect population point prevalence estimates
 #'
-#' @param db CDMConnector CDM reference object
+#' @param db Database connection via DBI::dbConnect()
 #' @param results_schema_outcomes Name of the schema which contains
 #' the outcome table
 #' @param table_name_outcomes Name of the table with the outcome cohorts
 #' @param cohort_ids_outcomes Outcome cohort ids
 #' @param study_denominator_pop Tibble with denominator populations
 #' @param cohort_ids_denominator_pops Cohort ids of denominator populations
-#' @param type type of prevalence, point or period
 #' @param points where to compute the point prevalence
 #' @param time_intervals Time intervals for prevalence estimates
-#' @param full_period_requireds If full period is required
-#' @param minimum_representative_proportions Minimum proportions that
-#' individuals must have to contribute
 #' @param confidence_interval Method for confidence intervals
 #' @param minimum_cell_count Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
@@ -39,20 +35,17 @@
 #' @export
 #'
 #' @examples
-collect_pop_prevalence <- function(db,
-                                  results_schema_outcomes,
-                                  table_name_outcomes,
-                                  cohort_ids_outcomes,
-                                  study_denominator_pop,
-                                  cohort_ids_denominator_pops,
-                                  type = "point",
-                                  time_intervals = "months",
-                                  full_period_requireds = TRUE,
-                                  points = "start",
-                                  minimum_representative_proportions = 0.5,
-                                  confidence_interval = "none",
-                                  minimum_cell_count = 5,
-                                  verbose = FALSE) {
+collect_pop_point_prevalence <- function(db,
+                                         results_schema_outcomes,
+                                         table_name_outcomes,
+                                         cohort_ids_outcomes,
+                                         study_denominator_pop,
+                                         cohort_ids_denominator_pops,
+                                         time_intervals = "months",
+                                         points = "start",
+                                         confidence_interval = "none",
+                                         minimum_cell_count = 5,
+                                         verbose = FALSE) {
 
 
   # help to avoid formatting errors
@@ -77,13 +70,13 @@ collect_pop_prevalence <- function(db,
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
-  db_inherits_check <- inherits(db, "cdm_reference")
+  db_inherits_check <- inherits(db, "DBIConnection")
   checkmate::assertTRUE(db_inherits_check,
     add = error_message
   )
   if (!isTRUE(db_inherits_check)) {
     error_message$push(
-      "- db must be a CDMConnector CDM reference object"
+      "- db must be a database connection via DBI::dbConnect()"
     )
   }
   checkmate::assert_character(results_schema_outcomes,
@@ -133,15 +126,7 @@ collect_pop_prevalence <- function(db,
   checkmate::assertTRUE(all(points %in% c("start","middle","end")),
     add = error_message
   )
-  checkmate::assert_numeric(minimum_representative_proportions,
-    add = error_message,
-    lower = 0,
-    upper = 1
-  )
   checkmate::assert_logical(verbose,
-    add = error_message
-  )
-  checkmate::assert_logical(full_period_requireds,
     add = error_message
   )
   checkmate::assert_choice(confidence_interval,
@@ -157,9 +142,7 @@ collect_pop_prevalence <- function(db,
     cohort_id_outcome = cohort_ids_outcomes,
     cohort_id_denominator_pop = cohort_ids_denominator_pops,
     time_interval = time_intervals,
-    full_period_required = full_period_requireds,
     point = points,
-    minimum_representative_proportion = minimum_representative_proportions,
     verbose = verbose
   )
 
@@ -183,9 +166,9 @@ collect_pop_prevalence <- function(db,
       cohort_id_denominator_pop = x$cohort_id_denominator_pop,
       type = type,
       time_interval = x$time_interval,
-      full_period_required = x$full_period_required,
+      full_period_required = TRUE, # change to null in next version
       point = x$point,
-      minimum_representative_proportion = x$minimum_representative_proportion,
+      minimum_representative_proportion = 0, # change to null in future
       verbose = x$verbose
     )
 
@@ -199,9 +182,7 @@ collect_pop_prevalence <- function(db,
         cohort_id_denominator_pop = x$cohort_id_denominator_pop,
         type = type,
         time_interval = x$time_interval,
-        full_period_required = x$full_period_required,
         point = x$point,
-        minimum_representative_proportion = x$minimum_representative_proportion,
         confidence_interval = confidence_interval,
         minimum_cell_count= minimum_cell_count,
         prevalence_analysis_id=x$prevalence_analysis_id) %>%

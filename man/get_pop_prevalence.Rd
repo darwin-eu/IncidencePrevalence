@@ -11,8 +11,10 @@ get_pop_prevalence(
   cohort_id_outcome = NULL,
   study_denominator_pop,
   cohort_id_denominator_pop = NULL,
-  period = "point",
-  time_interval = c("months"),
+  type = "point",
+  time_interval = "months",
+  full_period_required = TRUE,
+  point = "start",
   minimum_representative_proportion = 0.5,
   verbose = FALSE
 )
@@ -30,9 +32,13 @@ get_pop_prevalence(
 
 \item{cohort_id_denominator_pop}{cohort_id_denominator_pop}
 
-\item{period}{period}
+\item{type}{type}
 
 \item{time_interval}{time_interval}
+
+\item{full_period_required}{full period requirement}
+
+\item{point}{point where to compute prevalence inside interval}
 
 \item{minimum_representative_proportion}{minimum_representative_proportion}
 

@@ -69,7 +69,7 @@ prev <-collect_pop_prevalence(
   cohort_ids_denominator_pops = "1",
   study_denominator_pop = denominator,
   time_intervals="Years",
-  periods = "point",
+  type = "point",
   minimum_cell_count = 0
 )
 
@@ -77,7 +77,7 @@ prev$prevalence_estimates  %>%
   glimpse()
 
 prev$prevalence_estimates %>% 
-  ggplot(aes(calendar_year, prev))+
+  ggplot(aes(start_time, prev))+
   geom_point()+
   scale_y_continuous(labels = scales::percent,
                      limits = c(0,NA))+
@@ -104,7 +104,7 @@ inc$incidence_estimates %>%
   glimpse()
 
 inc$incidence_estimates %>% 
-  ggplot(aes(calendar_year, ir_100000_pys))+
+  ggplot(aes(start_time, ir_100000_pys))+
   geom_point()+
   scale_y_continuous(limits = c(0,NA))+
   theme_minimal()

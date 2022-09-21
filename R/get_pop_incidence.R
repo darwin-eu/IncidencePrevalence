@@ -14,6 +14,65 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#' Compute study dates for incidence
+#' @param start_date start date of the study
+#' @param end_date end date of the study
+#' @param time_interval interval to compute prevalence
+#' @noRd
+compute_study_days_inc <- function(start_date,
+                               end_date,
+                               time_interval) {
+  if (time_interval == "weeks"){
+    week_correction <- lubridate::days(1)
+  } else {
+    week_correction <- lubridate::days(0)
+  }
+  if (time_interval == "days"){
+    study_days<-dplyr::tibble(start_time=seq.Date(from=start_date,
+                                                  to=end_date,
+                                                  by="days")) %>%
+      dplyr::mutate(day=lubridate::day(.data$start_time)) %>%
+      dplyr::mutate(month=lubridate::month(.data$start_time)) %>%
+      dplyr::mutate(year=lubridate::year(.data$start_time)) %>%
+      dplyr::mutate(time=dplyr::if_else(.data$month < 10,
+                                        paste0(.data$year,"_0",.data$month),
+                                        paste0(.data$year,"_",.data$month))) %>%
+      dplyr::mutate(time=dplyr::if_else(.data$day < 10,
+                                        paste0(.data$time,"_0",.data$day),
+                                        paste0(.data$time,"_",.data$day))) %>%
+      dplyr::mutate(end_time = .data$start_time) %>%
+      dplyr::select("time","start_time","end_time")
+  } else {
+    study_days <- dplyr::tibble(dates=seq.Date(from=start_date,
+                                               to=end_date,
+                                               by="days")) %>%
+      dplyr::mutate(isoweek=lubridate::isoweek(.data$dates)) %>%
+      dplyr::mutate(month=lubridate::month(.data$dates)) %>%
+      dplyr::mutate(quarter=quarters(.data$dates)) %>%
+      dplyr::mutate(year=lubridate::year(.data$dates)) %>%
+      dplyr::mutate(years=glue::glue("{year}"))%>%
+      dplyr::mutate(months=dplyr::if_else(.data$month < 10,
+                                          paste0(.data$year,"_0",.data$month),
+                                          paste0(.data$year,"_",.data$month))) %>%
+      dplyr::mutate(quarters=glue::glue("{year}_{quarter}"))%>%
+      dplyr::mutate(year=dplyr::if_else(.data$month == 1 & .data$isoweek > 50,
+                                        .data$year - 1,
+                                        .data$year)) %>%
+      dplyr::mutate(weeks=dplyr::if_else(.data$isoweek < 10,
+                                         paste0(.data$year,"_0",.data$isoweek),
+                                         paste0(.data$year,"_",.data$isoweek)))%>%
+      dplyr::rename("time" = time_interval) %>%
+      dplyr::mutate(time = as.character(.data$time)) %>%
+      dplyr::group_by(.data$time) %>%
+      dplyr::summarise(
+        start_time = min(.data$dates, na.rm = TRUE),
+        end_time = max(.data$dates, na.rm = TRUE)
+      ) %>%
+      dplyr::ungroup()
+  }
+  return(study_days)
+}
+
 
 #' Get population incidence estimates
 #'
@@ -109,7 +168,7 @@ get_pop_incidence <- function(db,
     null.ok = TRUE
   )
   checkmate::assert_choice(time_interval,
-    choices = c("months", "years"),
+    choices = c("days","weeks","months","quarters","years"),
     add = error_message
   )
   checkmate::assert_numeric(outcome_washout_window,
@@ -198,104 +257,36 @@ get_pop_incidence <- function(db,
   # start date
   start_date <- min(study_pop$cohort_start_date)
   # end date to the last day of last available full period
-  if (time_interval == "years") {
-    end_date <- lubridate::floor_date(max(study_pop$cohort_end_date) +
-      lubridate::days(1),
-    unit = "years"
-    ) - lubridate::days(1)
-  }
-  if (time_interval == "months") {
-    end_date <- lubridate::floor_date(max(study_pop$cohort_end_date) +
-      lubridate::days(1),
-    unit = "months"
-    ) - lubridate::days(1)
-  }
-
-  # will give error if no full months/ years
-  error_message <- checkmate::makeAssertCollection()
-  if (time_interval == "years") {
-    n_time <- lubridate::interval(
-      lubridate::ymd(start_date),
-      lubridate::ymd(end_date) + lubridate::days(1)
-    ) %/%
-      lubridate::years(1)
-
-    checkmate::assertTRUE(n_time > 0,
-      add = error_message
-    )
-    if (!n_time > 0) {
-      error_message$push(
-        glue::glue("- Less than one full year between earliest study_start_date
-                   and last study_end_date in study_denominator_pop")
-      )
-    }
-  }
-  if (time_interval == "months") {
-    n_time <- lubridate::interval(
-      lubridate::ymd(start_date),
-      lubridate::ymd(end_date) + lubridate::days(1)
-    ) %/%
-      months(1)
-
-    checkmate::assertTRUE(n_time > 0,
-      add = error_message
-    )
-    if (!n_time > 0) {
-      error_message$push(
-        glue::glue("- Less than one full month between earliest study_start_date
-                   and last study_end_date in study_denominator_pop")
-      )
-    }
-  }
-  checkmate::reportAssertions(collection = error_message)
+  end_date <- max(study_pop$cohort_end_date)
 
   # study dates
-  study_days<-tibble::tibble(dates=seq.Date(from=.env$start_date,
-                                            to=.env$end_date,
-                                            by="days")) %>%
-    dplyr::mutate(isoweek=lubridate::isoweek(.data$dates)) %>%
-    dplyr::mutate(month=lubridate::month(.data$dates)) %>%
-    dplyr::mutate(year=lubridate::year(.data$dates)) %>%
-    dplyr::mutate(year_month=glue::glue("{year}_{month}"))%>%
-    dplyr::mutate(year_month_isoweek=glue::glue("{year}_{month}_{isoweek}"))
+  study_days <- compute_study_days_inc(
+    start_date = start_date,
+    end_date = end_date,
+    time_interval = time_interval
+    )
 
-  if (time_interval == "years") {
-  grouping<-"year"
+  if (nrow(study_days) == 0) {
+    stop("Not enough following to compute the desired incidence.")
   }
-  if (time_interval == "months") {
-  grouping<-"year_month"
-  }
-
-  study_days <- study_days %>%
-    dplyr::group_by(dplyr::across(dplyr::all_of(.env$grouping))) %>%
-    dplyr::summarise(start=min(.data$dates),
-                     end=max(.data$dates)) %>%
-    dplyr::arrange(.data$start) %>%
-    dplyr::ungroup() %>%
-    dplyr::select(c("start", "end")) %>%
-    dplyr::mutate(working_t_days=as.numeric(difftime(.data$end +
-                                                       lubridate::days(1),
-                                              .data$start,
-                                              units = "days"
-    )))
 
   # select only the interesting variables of study_pop
-study_pop <- study_pop %>%
-  dplyr::select("person_id", "cohort_start_date", "cohort_end_date")
-# get only the outcomes of the study population
-outcome <- outcome %>%
-  dplyr::inner_join(study_pop %>%
-    dplyr::select("person_id") %>%
-    dplyr::distinct(),
-  by = "person_id"
-  )
-# get study dates of the individuals that present an outcome
-study_pop_outcome <- study_pop %>%
-  dplyr::inner_join(outcome %>%
-    dplyr::select("person_id") %>%
-    dplyr::distinct(),
-  by = "person_id"
-  )
+  study_pop <- study_pop %>%
+    dplyr::select("person_id", "cohort_start_date", "cohort_end_date")
+  # get only the outcomes of the study population
+  outcome <- outcome %>%
+    dplyr::inner_join(study_pop %>%
+      dplyr::select("person_id") %>%
+      dplyr::distinct(),
+    by = "person_id"
+    )
+  # get study dates of the individuals that present an outcome
+  study_pop_outcome <- study_pop %>%
+    dplyr::inner_join(outcome %>%
+      dplyr::select("person_id") %>%
+      dplyr::distinct(),
+    by = "person_id"
+    )
 
   if (nrow(outcome) > 0) {
     if (is.null(outcome_washout_window)) {
@@ -467,9 +458,10 @@ study_pop_outcome <- study_pop %>%
   ir <- list()
   for (i in seq_along(1:nrow(study_days))) {
 
-    working_t_start <- study_days$start[i]
-    working_t_end <- study_days$end[i]
-    working_t_days <- study_days$working_t_days[i]
+    working_t_name <- study_days$time[i]
+    working_t_start <- study_days$start_time[i]
+    working_t_end <- study_days$end_time[i]
+    working_t_days <- as.numeric(working_t_end - working_t_start) + 1
 
     # drop people with end_date prior to working_t_start
     # drop people with start_date after working_t_end
@@ -526,11 +518,9 @@ study_pop_outcome <- study_pop %>%
         n_events = sum(!is.na(.data$outcome_start_date))
       ) %>%
       dplyr::mutate(ir_100000_pys = (.data$n_events / .data$person_years) * 100000) %>%
-      dplyr::mutate(calendar_month = ifelse(time_interval == "months",
-        lubridate::month(.env$working_t_start),
-        NA
-      )) %>%
-      dplyr::mutate(calendar_year = lubridate::year(.env$working_t_start))
+      dplyr::mutate(time = .env$working_t_name) %>%
+      dplyr::mutate(start_time = .env$working_t_start) %>%
+      dplyr::mutate(end_time = .env$working_t_end)
   }
 
   ir <- dplyr::bind_rows(ir)
@@ -541,10 +531,14 @@ study_pop_outcome <- study_pop %>%
       repetitive_events = .env$repetitive_events,
       time_interval = .env$time_interval)
 
+  study_pop <- study_pop %>%
+    dplyr::select("person_id","cohort_start_date","cohort_end_date")
+
   # return list
   results<-list()
   results[["ir"]]<-ir
   results[["analysis_settings"]]<-analysis_settings
+  results[["person_table"]]<-study_pop
   results[["attrition"]]<-tibble::tibble(attrition="attrition") # placeholder
 
   return(results)
