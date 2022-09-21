@@ -25,7 +25,7 @@ test_that("mock db: check output format", {
     ) %in%
       names(dpop$denominator_settings)))
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 
 })
 
@@ -76,8 +76,8 @@ test_that("mock db: checks on working example", {
     cohort_start_date=as.Date("2010-03-15"),
     cohort_end_date=as.Date("2012-03-15")
   )
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "strata_cohort",
+  DBI::dbWithTransaction(attr(db, "dbcon"), {
+    DBI::dbWriteTable(attr(db, "dbcon"), "strata_cohort",
                       strata_cohort,
                       overwrite = TRUE
     )})
@@ -95,7 +95,7 @@ test_that("mock db: checks on working example", {
   expect_true(dpop$denominator_population$cohort_end_date ==
                 "2012-03-15")
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db check age strata entry and exit", {
@@ -142,7 +142,7 @@ expect_true(dpops$denominator_populations %>%
   dplyr::select(cohort_end_date) %>%
   dplyr::pull() == as.Date("2014-12-31"))
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check expected errors", {
@@ -169,7 +169,7 @@ expect_error(collect_denominator_pops(db,
 
 
 
-DBI::dbDisconnect(db, shutdown=TRUE)
+DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 
 })
 

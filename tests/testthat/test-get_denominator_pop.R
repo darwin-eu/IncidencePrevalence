@@ -34,7 +34,7 @@ test_that("mock db: check output format", {
        verbose = TRUE
      ))
 
-     DBI::dbDisconnect(db, shutdown=TRUE)
+     DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 
   })
 
@@ -76,7 +76,7 @@ test_that("mock db: check example we expect to work", {
   expect_true(dpop$denominator_population$cohort_start_date == as.Date("2010-02-15"))
   expect_true(dpop$denominator_population$cohort_end_date == as.Date("2010-05-15"))
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check example with multiple observation periods", {
@@ -127,7 +127,7 @@ test_that("mock db: check example with multiple observation periods", {
   expect_true(dpop$denominator_population$cohort_start_date == as.Date("2010-01-01"))
   expect_true(dpop$denominator_population$cohort_end_date == as.Date("2010-06-01"))
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 
 })
 
@@ -207,7 +207,7 @@ expect_true(nrow(dpop1$denominator_population) == 1)
 expect_true(nrow(dpop2$denominator_population) == 1)
 expect_true(is.null(dpop3$denominator_population))
 
-DBI::dbDisconnect(db, shutdown=TRUE)
+DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 
 })
 
@@ -294,7 +294,7 @@ dpop <- get_denominator_pop(
 # end date is the day before their 11th birthday
 expect_true(dpop$denominator_population$cohort_end_date==as.Date("2011-05-31"))
 
-DBI::dbDisconnect(db, shutdown=TRUE)
+DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 
 })
 
@@ -340,7 +340,7 @@ expect_true(dpop$denominator_population %>%
               dplyr::summarise(check=cohort_start_date==as.Date("2010-01-01")) %>%
               dplyr::pull())
 
-DBI::dbDisconnect(db, shutdown=TRUE)
+DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 
 })
 
@@ -402,7 +402,7 @@ dpop<-get_denominator_pop(
 )
 expect_true(is.null(dpop$denominator_population))
 
-DBI::dbDisconnect(db, shutdown=TRUE)
+DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 
 })
 
@@ -466,7 +466,7 @@ test_that("mock db: expected errors", {
     min_age = -5,
     verbose = FALSE))
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 
 })
 
@@ -552,7 +552,7 @@ test_that("mock db: check example #2 we expect to work", {
   expect_true(all(dpop$denominator_population$cohort_start_date == as.Date("2010-02-15")))
   expect_true(all(dpop$denominator_population$cohort_end_date == as.Date("2010-05-15")))
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check attrition table", {
@@ -665,7 +665,7 @@ test_that("mock db: check attrition table", {
     cdm_database_schema = NULL)
  expect_true(all(dpop$attrition$current_n == 1))
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 
 })
 
@@ -695,8 +695,8 @@ test_that("mock db: subset denominator by cohort", {
     cohort_start_date=as.Date("2012-06-06"),
     cohort_end_date=as.Date("2013-06-06")
   )
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "strata_cohort",
+  DBI::dbWithTransaction(attr(db, "dbcon"), {
+    DBI::dbWriteTable(attr(db, "dbcon"), "strata_cohort",
                       strata_cohort,
                       overwrite = TRUE
     )})
@@ -742,8 +742,8 @@ test_that("mock db: subset denominator by cohort", {
                       as.Date("2013-06-06"),
                       as.Date("2014-02-01"))
   )
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "strata_cohort",
+  DBI::dbWithTransaction(attr(db, "dbcon"), {
+    DBI::dbWriteTable(attr(db, "dbcon"), "strata_cohort",
                       strata_cohort,
                       overwrite = TRUE
     )})
@@ -801,8 +801,8 @@ test_that("mock db: subset denominator by cohort", {
                       as.Date("2009-04-01"),
                       as.Date("2010-04-01"))
   )
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "strata_cohort",
+  DBI::dbWithTransaction(attr(db, "dbcon"), {
+    DBI::dbWriteTable(attr(db, "dbcon"), "strata_cohort",
                       strata_cohort,
                       overwrite = TRUE
     )})
@@ -823,7 +823,7 @@ test_that("mock db: subset denominator by cohort", {
   expect_true(dpop$denominator_population$cohort_end_date[3]=="2010-04-01")
 
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 
 })
 

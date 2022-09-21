@@ -34,8 +34,7 @@ test_that("mock db: check output format", {
   ) %in%
     names(inc[["analysis_settings"]])))
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
-
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check working example", {
@@ -122,7 +121,7 @@ test_that("mock db: check working example", {
   expect_true(sum(inc[["ir"]]$n_events) == 1)
 
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check study periods ", {
@@ -177,86 +176,85 @@ test_that("mock db: check study periods ", {
    # as the person goes up to the last day of the month
    expect_true(length(inc[["ir"]]$time)==12)
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+   DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check person days", {
-person <- tibble::tibble(
-  person_id = c("1","2"),
-  gender_concept_id = c("8507","8532"),
-  year_of_birth = c(2000,1999),
-  month_of_birth = c(07,07),
-  day_of_birth = c(01,01)
-)
-observation_period <- tibble::tibble(
-  observation_period_id = c("1","2"),
-  person_id = c("1","2"),
-  observation_period_start_date = c(as.Date("2007-01-01"),as.Date("2007-01-01")),
-  observation_period_end_date = c(as.Date("2022-12-31"),as.Date("2022-10-05"))
-)
-outcome <- tibble::tibble(
-  cohort_definition_id = "1",
-  subject_id = "1",
-  cohort_start_date = c(as.Date("2021-06-27")),
-  cohort_end_date = c(as.Date("2021-06-27"))
-)
+  person <- tibble::tibble(
+    person_id = c("1","2"),
+    gender_concept_id = c("8507","8532"),
+    year_of_birth = c(2000,1999),
+    month_of_birth = c(07,07),
+    day_of_birth = c(01,01)
+  )
+  observation_period <- tibble::tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2007-01-01"),as.Date("2007-01-01")),
+    observation_period_end_date = c(as.Date("2022-12-31"),as.Date("2022-10-05"))
+  )
+  outcome <- tibble::tibble(
+    cohort_definition_id = "1",
+    subject_id = "1",
+    cohort_start_date = c(as.Date("2021-06-27")),
+    cohort_end_date = c(as.Date("2021-06-27"))
+  )
 
 
-db <- generate_mock_incidence_prevalence_db(person=person,
-                                            observation_period=observation_period,
-                                            outcome=outcome)
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
 
-dpop <- collect_denominator_pops(
-  db = db,
-  cdm_database_schema = NULL,
-  study_age_stratas = list(c(20,30))
-)
-dpop<-dpop$denominator_populations
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL,
+    study_age_stratas = list(c(20,30))
+  )
+  dpop<-dpop$denominator_populations
 
-inc <- get_pop_incidence(
-  db = db,
-  results_schema_outcome = NULL,
-  table_name_outcome = "outcome",
-  cohort_id_outcome = "1",
-  cohort_id_denominator_pop = "1",
-  repetitive_event = FALSE,
-  study_denominator_pop = dpop,
-  time_interval = c("Years"),
-  verbose = TRUE
-)
+  inc <- get_pop_incidence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    cohort_id_denominator_pop = "1",
+    repetitive_event = FALSE,
+    study_denominator_pop = dpop,
+    time_interval = c("Years"),
+    verbose = TRUE
+  )
 
-# in 2019 we expect person 2 to contribute from 1st july to end of december
-expect_true(inc$ir$person_days[1]==
-              as.numeric(difftime(as.Date("2019-12-31"),
-                                  as.Date("2019-07-01")))+1)
+  # in 2019 we expect person 2 to contribute from 1st july to end of december
+  expect_true(inc$ir$person_days[1]==
+                as.numeric(difftime(as.Date("2019-12-31"),
+                                    as.Date("2019-07-01")))+1)
 
-# in 2020 we expect person 2 to contribute all year
-# and person 1 from 1st january to end of december
-expect_true(inc$ir$person_days[2]==
-              (as.numeric(difftime(as.Date("2020-12-31"),
-                                  as.Date("2020-07-01")))+1)+
-              (as.numeric(difftime(as.Date("2020-12-31"),
-                                     as.Date("2020-01-01"))+1))
-            )
+  # in 2020 we expect person 2 to contribute all year
+  # and person 1 from 1st january to end of december
+  expect_true(inc$ir$person_days[2]==
+                (as.numeric(difftime(as.Date("2020-12-31"),
+                                    as.Date("2020-07-01")))+1)+
+                (as.numeric(difftime(as.Date("2020-12-31"),
+                                       as.Date("2020-01-01"))+1))
+              )
 
-# in 2021 we expect person 2 to contribute all year
-# and person 1 from 1st january up to 27th june (date of their outcome)
-expect_true(inc$ir$person_days[3]==
-              (as.numeric(difftime(as.Date("2021-12-31"),
-                                   as.Date("2021-01-01")))+1)+
-              (as.numeric(difftime(as.Date("2021-06-27"),
-                                   as.Date("2021-01-01"))+1))
-)
+  # in 2021 we expect person 2 to contribute all year
+  # and person 1 from 1st january up to 27th june (date of their outcome)
+  expect_true(inc$ir$person_days[3]==
+                (as.numeric(difftime(as.Date("2021-12-31"),
+                                     as.Date("2021-01-01")))+1)+
+                (as.numeric(difftime(as.Date("2021-06-27"),
+                                     as.Date("2021-01-01"))+1))
+  )
 
-# in 2022 we expect person 2 to contribute all year
-# (person 1 is out- they have had an event)
-expect_true(inc$ir$person_days[4]==
-              (as.numeric(difftime(as.Date("2021-10-05"),
-                                   as.Date("2021-01-01")))+1)
-            )
+  # in 2022 we expect person 2 to contribute all year
+  # (person 1 is out- they have had an event)
+  expect_true(inc$ir$person_days[4]==
+                (as.numeric(difftime(as.Date("2021-10-05"),
+                                     as.Date("2021-01-01")))+1)
+              )
 
-DBI::dbDisconnect(db)
-
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check periods follow calendar dates", {
@@ -339,8 +337,7 @@ test_that("mock db: check periods follow calendar dates", {
   expect_true(inc[["ir"]]$n_events[2]==1)
   expect_true(inc[["ir"]]$n_events[3]==1)
 
-  DBI::dbDisconnect(db)
-
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check washout windows", {
@@ -447,108 +444,105 @@ test_that("mock db: check washout windows", {
   # as the person came back to contribute more time at risk
   expect_true(sum(inc_null[["ir"]]$person_days)<sum(inc_w365[["ir"]]$person_days))
 
-  DBI::dbDisconnect(db)
-
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check events overlapping with start of a period", {
-person <- tibble::tibble(
-  person_id = c("1","2"),
-  gender_concept_id = c("8507","8532"),
-  year_of_birth = c(2000,1999),
-  month_of_birth = c(07,07),
-  day_of_birth = c(01,01)
-)
-observation_period <- tibble::tibble(
-  observation_period_id = c("1","2"),
-  person_id = c("1","2"),
-  observation_period_start_date = c(as.Date("2000-01-21"),as.Date("2007-01-01")),
-  observation_period_end_date = c(as.Date("2022-12-31"),as.Date("2022-12-31"))
-)
-outcome <- tibble::tibble(
-  cohort_definition_id = "1",
-  subject_id = "1",
-  cohort_start_date = c(as.Date("2020-06-27")),
-  cohort_end_date = c(as.Date("2020-07-19"))
-)
+  person <- tibble::tibble(
+    person_id = c("1","2"),
+    gender_concept_id = c("8507","8532"),
+    year_of_birth = c(2000,1999),
+    month_of_birth = c(07,07),
+    day_of_birth = c(01,01)
+  )
+  observation_period <- tibble::tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2000-01-21"),as.Date("2007-01-01")),
+    observation_period_end_date = c(as.Date("2022-12-31"),as.Date("2022-12-31"))
+  )
+  outcome <- tibble::tibble(
+    cohort_definition_id = "1",
+    subject_id = "1",
+    cohort_start_date = c(as.Date("2020-06-27")),
+    cohort_end_date = c(as.Date("2020-07-19"))
+  )
 
 
-db <- generate_mock_incidence_prevalence_db(person=person,
-                                            observation_period=observation_period,
-                                            outcome=outcome)
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
 
-dpop <- collect_denominator_pops(
-  db = db,
-  cdm_database_schema = NULL,
-  study_age_stratas = list(c(20,30))
-)
-dpop<-dpop$denominator_populations
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL,
+    study_age_stratas = list(c(20,30))
+  )
+  dpop<-dpop$denominator_populations
 
-inc <- get_pop_incidence(
-  db = db,
-  results_schema_outcome = NULL,
-  table_name_outcome = "outcome",
-  cohort_id_outcome = "1",
-  cohort_id_denominator_pop = "1",
-  outcome_washout_window = NULL,
-  repetitive_events = TRUE,
-  study_denominator_pop = dpop,
-  time_interval = c("Years"),
-  verbose = TRUE
-)
+  inc <- get_pop_incidence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    cohort_id_denominator_pop = "1",
+    outcome_washout_window = NULL,
+    repetitive_events = TRUE,
+    study_denominator_pop = dpop,
+    time_interval = c("Years"),
+    verbose = TRUE
+  )
 
-expect_true(all(inc$ir$n_persons==1))
+  expect_true(all(inc$ir$n_persons==1))
 
-# another example
-person <- tibble::tibble(
-  person_id = c("1","2"),
-  gender_concept_id = c("8507","8532"),
-  year_of_birth = c(2000,1999),
-  month_of_birth = c(07,07),
-  day_of_birth = c(01,01)
-)
-observation_period <- tibble::tibble(
-  observation_period_id = c("1","2"),
-  person_id = c("1","2"),
-  observation_period_start_date = c(as.Date("2000-01-21"),as.Date("2007-01-01")),
-  observation_period_end_date = c(as.Date("2022-12-31"),as.Date("2022-12-31"))
-)
-outcome <- tibble::tibble(
-  cohort_definition_id = c("1","1"),
-  subject_id = c("1","1"),
-  cohort_start_date = c(as.Date("2020-06-27"), as.Date("2020-07-30")),
-  cohort_end_date = c(as.Date("2020-07-19"), as.Date("2020-08-20"))
-)
+  # another example
+  person <- tibble::tibble(
+    person_id = c("1","2"),
+    gender_concept_id = c("8507","8532"),
+    year_of_birth = c(2000,1999),
+    month_of_birth = c(07,07),
+    day_of_birth = c(01,01)
+  )
+  observation_period <- tibble::tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2000-01-21"),as.Date("2007-01-01")),
+    observation_period_end_date = c(as.Date("2022-12-31"),as.Date("2022-12-31"))
+  )
+  outcome <- tibble::tibble(
+    cohort_definition_id = c("1","1"),
+    subject_id = c("1","1"),
+    cohort_start_date = c(as.Date("2020-06-27"), as.Date("2020-07-30")),
+    cohort_end_date = c(as.Date("2020-07-19"), as.Date("2020-08-20"))
+  )
 
-db <- generate_mock_incidence_prevalence_db(person=person,
-                                            observation_period=observation_period,
-                                            outcome=outcome)
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
 
-dpop <- collect_denominator_pops(
-  db = db,
-  cdm_database_schema = NULL,
-  study_age_stratas = list(c(20,30))
-)
-dpop<-dpop$denominator_populations
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL,
+    study_age_stratas = list(c(20,30))
+  )
+  dpop<-dpop$denominator_populations
 
-inc2 <- get_pop_incidence(
-  db = db,
-  results_schema_outcome = NULL,
-  table_name_outcome = "outcome",
-  cohort_id_outcome = "1",
-  cohort_id_denominator_pop = "1",
-  outcome_washout_window = NULL,
-  repetitive_events = TRUE,
-  study_denominator_pop = dpop,
-  time_interval = c("Years"),
-  verbose = TRUE
-)
-expect_true(all(inc2$ir$n_persons==1))
-
-
-DBI::dbDisconnect(db)
+  inc2 <- get_pop_incidence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    cohort_id_denominator_pop = "1",
+    outcome_washout_window = NULL,
+    repetitive_events = TRUE,
+    study_denominator_pop = dpop,
+    time_interval = c("Years"),
+    verbose = TRUE
+  )
+  expect_true(all(inc2$ir$n_persons==1))
 
 
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: compare results from months and years", {
@@ -612,66 +606,66 @@ test_that("mock db: compare results from months and years", {
 #              sum(inc_years$person_years),
 #              tolerance=1e-10)
 
-DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check entry and event on same day", {
-person <- tibble::tibble(
-person_id = "1",
-gender_concept_id = "8507",
-year_of_birth = 2000,
-month_of_birth = 01,
-day_of_birth = 01
-)
-observation_period <- tibble::tibble(
-observation_period_id = "1",
-person_id = "1",
-observation_period_start_date = as.Date("2010-01-28"),
-observation_period_end_date = as.Date("2012-12-31")
-)
-outcome <- tibble::tibble(
-cohort_definition_id = "1",
-subject_id = "1",
-cohort_start_date = c(
-as.Date("2010-01-28")
-),
-cohort_end_date = c(
-as.Date("2010-01-28")
-)
-)
+  person <- tibble::tibble(
+  person_id = "1",
+  gender_concept_id = "8507",
+  year_of_birth = 2000,
+  month_of_birth = 01,
+  day_of_birth = 01
+  )
+  observation_period <- tibble::tibble(
+  observation_period_id = "1",
+  person_id = "1",
+  observation_period_start_date = as.Date("2010-01-28"),
+  observation_period_end_date = as.Date("2012-12-31")
+  )
+  outcome <- tibble::tibble(
+  cohort_definition_id = "1",
+  subject_id = "1",
+  cohort_start_date = c(
+  as.Date("2010-01-28")
+  ),
+  cohort_end_date = c(
+  as.Date("2010-01-28")
+  )
+  )
 
-db <- generate_mock_incidence_prevalence_db(person=person,
-                                            observation_period=observation_period,
-                                            outcome=outcome)
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
 
-dpop <- collect_denominator_pops(
-db = db,
-cdm_database_schema = NULL
-)
-dpop<-dpop$denominator_populations
+  dpop <- collect_denominator_pops(
+  db = db,
+  cdm_database_schema = NULL
+  )
+  dpop<-dpop$denominator_populations
 
 
-inc_without_rep <- get_pop_incidence(db,
-results_schema_outcome = NULL,
-table_name_outcome = "outcome",
-cohort_id_outcome = "1",
-study_denominator_pop = dpop,
-repetitive_events = TRUE,
-outcome_washout_window = NULL,
-time_interval = "years"
-)
-expect_true(sum(inc_without_rep[["ir"]]$n_events)==1)
+  inc_without_rep <- get_pop_incidence(db,
+  results_schema_outcome = NULL,
+  table_name_outcome = "outcome",
+  cohort_id_outcome = "1",
+  study_denominator_pop = dpop,
+  repetitive_events = TRUE,
+  outcome_washout_window = NULL,
+  time_interval = "years"
+  )
+  expect_true(sum(inc_without_rep[["ir"]]$n_events)==1)
 
-inc_with_rep <- get_pop_incidence(db,
-results_schema_outcome = NULL,
-table_name_outcome = "outcome",
-cohort_id_outcome = "1",
-study_denominator_pop = dpop,
-repetitive_events = TRUE,
-outcome_washout_window = NULL,
-time_interval = "years"
-)
-expect_true(sum(inc_with_rep[["ir"]]$n_events)==1)
+  inc_with_rep <- get_pop_incidence(db,
+  results_schema_outcome = NULL,
+  table_name_outcome = "outcome",
+  cohort_id_outcome = "1",
+  study_denominator_pop = dpop,
+  repetitive_events = TRUE,
+  outcome_washout_window = NULL,
+  time_interval = "years"
+  )
+  expect_true(sum(inc_with_rep[["ir"]]$n_events)==1)
 
 })
 
@@ -722,106 +716,104 @@ test_that("mock db: cohort start overlaps with the outcome", {
   )
 
   expect_true(all(inc$incidence_estimates$n_persons == c(1,2)))
-
 })
 
 test_that("mock db: multiple overlapping outcomes", {
-# two
-person <- tibble::tibble(
-  person_id = c("1","2"),
-  gender_concept_id = c("8507","8532"),
-  year_of_birth = c(1995,1995),
-  month_of_birth = c(07,07),
-  day_of_birth = c(01,01)
-)
-observation_period <- tibble::tibble(
-  observation_period_id = c("1","2"),
-  person_id = c("1","2"),
-  observation_period_start_date = c(as.Date("2020-04-29"),as.Date("2019-01-01")),
-  observation_period_end_date = c(as.Date("2020-12-31"),as.Date("2021-12-31"))
-)
-outcome <- tibble::tibble(
-  cohort_definition_id = c("1","1"),
-  subject_id = c("1","1"),
-  cohort_start_date = c(as.Date("2020-04-26"),as.Date("2020-11-10")),
-  cohort_end_date = c(as.Date("2020-05-17"),as.Date("2020-12-17"))
-)
+  # two
+  person <- tibble::tibble(
+    person_id = c("1","2"),
+    gender_concept_id = c("8507","8532"),
+    year_of_birth = c(1995,1995),
+    month_of_birth = c(07,07),
+    day_of_birth = c(01,01)
+  )
+  observation_period <- tibble::tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2020-04-29"),as.Date("2019-01-01")),
+    observation_period_end_date = c(as.Date("2020-12-31"),as.Date("2021-12-31"))
+  )
+  outcome <- tibble::tibble(
+    cohort_definition_id = c("1","1"),
+    subject_id = c("1","1"),
+    cohort_start_date = c(as.Date("2020-04-26"),as.Date("2020-11-10")),
+    cohort_end_date = c(as.Date("2020-05-17"),as.Date("2020-12-17"))
+  )
 
-db <- generate_mock_incidence_prevalence_db(person=person,
-                                            observation_period=observation_period,
-                                            outcome=outcome)
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
 
-dpop <- collect_denominator_pops(
-  db = db,
-  cdm_database_schema = NULL
-)
-dpop<-dpop$denominator_populations
-inc <- get_pop_incidence(
-  db = db,
-  results_schema_outcome = NULL,
-  table_name_outcome = "outcome",
-  cohort_id_outcome = "1",
-  cohort_id_denominator_pop = "1",
-  outcome_washout_window = 180,
-  repetitive_events = TRUE,
-  study_denominator_pop = dpop,
-  time_interval = c("Years"),
-  verbose = TRUE
-)
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL
+  )
+  dpop<-dpop$denominator_populations
+  inc <- get_pop_incidence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    cohort_id_denominator_pop = "1",
+    outcome_washout_window = 180,
+    repetitive_events = TRUE,
+    study_denominator_pop = dpop,
+    time_interval = c("Years"),
+    verbose = TRUE
+  )
 
-expect_true(all(inc$ir$n_persons) == 1)
+  expect_true(all(inc$ir$n_persons) == 1)
 
-# three
-person <- tibble::tibble(
-  person_id = c("1","2"),
-  gender_concept_id = c("8507","8532"),
-  year_of_birth = c(1995,1995),
-  month_of_birth = c(07,07),
-  day_of_birth = c(01,01)
-)
-observation_period <- tibble::tibble(
-  observation_period_id = c("1","2"),
-  person_id = c("1","2"),
-  observation_period_start_date = c(as.Date("2020-04-29"),as.Date("2019-01-01")),
-  observation_period_end_date = c(as.Date("2020-12-31"),as.Date("2021-12-31"))
-)
-outcome <- tibble::tibble(
-  cohort_definition_id = c("1","1","1"),
-  subject_id = c("1","1","1"),
-  cohort_start_date = c(as.Date("2020-04-26"),
-                        as.Date("2020-11-08"),
-                        as.Date("2020-11-10")),
-  cohort_end_date = c(as.Date("2020-05-17"),
-                      as.Date("2020-11-09"),
-                      as.Date("2020-12-17"))
-)
+  # three
+  person <- tibble::tibble(
+    person_id = c("1","2"),
+    gender_concept_id = c("8507","8532"),
+    year_of_birth = c(1995,1995),
+    month_of_birth = c(07,07),
+    day_of_birth = c(01,01)
+  )
+  observation_period <- tibble::tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2020-04-29"),as.Date("2019-01-01")),
+    observation_period_end_date = c(as.Date("2020-12-31"),as.Date("2021-12-31"))
+  )
+  outcome <- tibble::tibble(
+    cohort_definition_id = c("1","1","1"),
+    subject_id = c("1","1","1"),
+    cohort_start_date = c(as.Date("2020-04-26"),
+                          as.Date("2020-11-08"),
+                          as.Date("2020-11-10")),
+    cohort_end_date = c(as.Date("2020-05-17"),
+                        as.Date("2020-11-09"),
+                        as.Date("2020-12-17"))
+  )
 
-db <- generate_mock_incidence_prevalence_db(person=person,
-                                            observation_period=observation_period,
-                                            outcome=outcome)
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
 
-dpop <- collect_denominator_pops(
-  db = db,
-  cdm_database_schema = NULL
-)
-dpop<-dpop$denominator_populations
-inc <- get_pop_incidence(
-  db = db,
-  results_schema_outcome = NULL,
-  table_name_outcome = "outcome",
-  cohort_id_outcome = "1",
-  cohort_id_denominator_pop = "1",
-  outcome_washout_window = 180,
-  repetitive_events = TRUE,
-  study_denominator_pop = dpop,
-  time_interval = c("Years"),
-  verbose = TRUE
-)
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL
+  )
+  dpop<-dpop$denominator_populations
+  inc <- get_pop_incidence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    cohort_id_denominator_pop = "1",
+    outcome_washout_window = 180,
+    repetitive_events = TRUE,
+    study_denominator_pop = dpop,
+    time_interval = c("Years"),
+    verbose = TRUE
+  )
 
-expect_true(all(inc$ir$n_persons) == 1)
+  expect_true(all(inc$ir$n_persons) == 1)
 
-DBI::dbDisconnect(db)
-
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: cohort before start of period and ending after end of period", {
@@ -942,103 +934,101 @@ test_that("mock db: check full period requirement - year", {
   expect_true(inc$ir$n_persons[1] == 1)
 
 
-# edge case first day to last of the year
-# still expect this to work
-person <- tibble::tibble(
-  person_id = c("1","2"),
-  gender_concept_id = c("8507","8532"),
-  year_of_birth = c(1995,1995),
-  month_of_birth = c(07,07),
-  day_of_birth = c(01,01)
-)
-observation_period <- tibble::tibble(
-  observation_period_id = c("1","2"),
-  person_id = c("1","2"),
-  observation_period_start_date = c(as.Date("2020-05-09"),as.Date("2020-01-01")),
-  observation_period_end_date = c(as.Date("2020-12-31"),as.Date("2020-12-31"))
-)
-outcome <- tibble::tibble(
-  cohort_definition_id = c("1"),
-  subject_id = c("1"),
-  cohort_start_date = c(as.Date("2020-04-28")),
-  cohort_end_date = c(as.Date("2020-05-19"))
-)
+  # edge case first day to last of the year
+  # still expect this to work
+  person <- tibble::tibble(
+    person_id = c("1","2"),
+    gender_concept_id = c("8507","8532"),
+    year_of_birth = c(1995,1995),
+    month_of_birth = c(07,07),
+    day_of_birth = c(01,01)
+  )
+  observation_period <- tibble::tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2020-05-09"),as.Date("2020-01-01")),
+    observation_period_end_date = c(as.Date("2020-12-31"),as.Date("2020-12-31"))
+  )
+  outcome <- tibble::tibble(
+    cohort_definition_id = c("1"),
+    subject_id = c("1"),
+    cohort_start_date = c(as.Date("2020-04-28")),
+    cohort_end_date = c(as.Date("2020-05-19"))
+  )
 
-db <- generate_mock_incidence_prevalence_db(person=person,
-                                            observation_period=observation_period,
-                                            outcome=outcome)
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
 
-dpop <- collect_denominator_pops(
-  db = db,
-  cdm_database_schema = NULL,
-  study_age_stratas = list(c(20,30))
-)
-dpop<-dpop$denominator_populations
-
-
-inc <- get_pop_incidence(
-  db = db,
-  results_schema_outcome = NULL,
-  table_name_outcome = "outcome",
-  cohort_id_outcome = "1",
-  cohort_id_denominator_pop = "1",
-  outcome_washout_window = NULL,
-  repetitive_events = TRUE,
-  study_denominator_pop = dpop,
-  time_interval = c("Years"),
-  verbose = TRUE
-)
-expect_true(inc$ir$n_persons == 1)
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL,
+    study_age_stratas = list(c(20,30))
+  )
+  dpop<-dpop$denominator_populations
 
 
-# expected error case first day to day before last of the year
-# now we expect an error
-person <- tibble::tibble(
-  person_id = c("1","2"),
-  gender_concept_id = c("8507","8532"),
-  year_of_birth = c(1995,1995),
-  month_of_birth = c(07,07),
-  day_of_birth = c(01,01)
-)
-observation_period <- tibble::tibble(
-  observation_period_id = c("1","2"),
-  person_id = c("1","2"),
-  observation_period_start_date = c(as.Date("2020-05-09"),as.Date("2020-01-01")),
-  observation_period_end_date = c(as.Date("2020-12-30"),as.Date("2020-12-30"))
-)
-outcome <- tibble::tibble(
-  cohort_definition_id = c("1"),
-  subject_id = c("1"),
-  cohort_start_date = c(as.Date("2020-04-28")),
-  cohort_end_date = c(as.Date("2020-05-19"))
-)
-
-db <- generate_mock_incidence_prevalence_db(person=person,
-                                            observation_period=observation_period,
-                                            outcome=outcome)
-
-dpop <- collect_denominator_pops(
-  db = db,
-  cdm_database_schema = NULL,
-  study_age_stratas = list(c(20,30))
-)
-dpop<-dpop$denominator_populations
+  inc <- get_pop_incidence(
+    db = db,
+    results_schema_outcome = NULL,
+    table_name_outcome = "outcome",
+    cohort_id_outcome = "1",
+    cohort_id_denominator_pop = "1",
+    outcome_washout_window = NULL,
+    repetitive_events = TRUE,
+    study_denominator_pop = dpop,
+    time_interval = c("Years"),
+    verbose = TRUE
+  )
+  expect_true(inc$ir$n_persons == 1)
 
 
-# expect_error(get_pop_incidence(
-#   db = db,
-#   results_schema_outcome = NULL,
-#   table_name_outcome = "outcome",
-#   cohort_id_outcome = "1",
-#   cohort_id_denominator_pop = "1",
-#   outcome_washout_window = NULL,
-#   repetitive_events = TRUE,
-#   study_denominator_pop = dpop,
-#   time_interval = c("Years"),
-#   verbose = TRUE
-# ))
+  # expected error case first day to day before last of the year
+  # now we expect an error
+  person <- tibble::tibble(
+    person_id = c("1","2"),
+    gender_concept_id = c("8507","8532"),
+    year_of_birth = c(1995,1995),
+    month_of_birth = c(07,07),
+    day_of_birth = c(01,01)
+  )
+  observation_period <- tibble::tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2020-05-09"),as.Date("2020-01-01")),
+    observation_period_end_date = c(as.Date("2020-12-30"),as.Date("2020-12-30"))
+  )
+  outcome <- tibble::tibble(
+    cohort_definition_id = c("1"),
+    subject_id = c("1"),
+    cohort_start_date = c(as.Date("2020-04-28")),
+    cohort_end_date = c(as.Date("2020-05-19"))
+  )
+
+  db <- generate_mock_incidence_prevalence_db(person=person,
+                                              observation_period=observation_period,
+                                              outcome=outcome)
+
+  dpop <- collect_denominator_pops(
+    db = db,
+    cdm_database_schema = NULL,
+    study_age_stratas = list(c(20,30))
+  )
+  dpop<-dpop$denominator_populations
 
 
+  # expect_error(get_pop_incidence(
+  #   db = db,
+  #   results_schema_outcome = NULL,
+  #   table_name_outcome = "outcome",
+  #   cohort_id_outcome = "1",
+  #   cohort_id_denominator_pop = "1",
+  #   outcome_washout_window = NULL,
+  #   repetitive_events = TRUE,
+  #   study_denominator_pop = dpop,
+  #   time_interval = c("Years"),
+  #   verbose = TRUE
+  # ))
 })
 
 test_that("mock db: check full period requirement - month", {
@@ -1123,7 +1113,6 @@ test_that("mock db: check full period requirement - month", {
   )
   dpop<-dpop$denominator_populations
 
-
   inc <- get_pop_incidence(
     db = db,
     results_schema_outcome = NULL,
@@ -1138,7 +1127,6 @@ test_that("mock db: check full period requirement - month", {
   )
   expect_true(inc$ir$n_persons == 1)
   expect_true(nrow(inc$ir)>= 1)
-
 
   # expected error case first day to day before last of the year
   # now we expect an error
@@ -1263,8 +1251,7 @@ test_that("mock db: check conversion of user inputs", {
   )
   expect_true(nrow(inc[["ir"]])>=0)
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
-
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check messages when vebose is true", {
@@ -1308,8 +1295,7 @@ test_that("mock db: check messages when vebose is true", {
                          table_name_outcome = "outcome",
                          cohort_id_outcome = "1",
                          study_denominator_pop = dpop,
-                         verbose = TRUE
-))
+                         verbose = TRUE))
 
   expect_message(get_pop_incidence(db,
                          results_schema_outcome = NULL,
@@ -1317,19 +1303,16 @@ test_that("mock db: check messages when vebose is true", {
                          cohort_id_outcome = "1",
                          time_interval = "years",
                          study_denominator_pop = dpop,
-                         verbose = TRUE
-))
+                         verbose = TRUE))
 
-expect_message(get_pop_incidence(db,
-                         results_schema_outcome = NULL,
-                         table_name_outcome = "outcome",
-                         cohort_id_outcome = "1",
-                         study_denominator_pop = dpop,
-                         verbose = TRUE
-))
+  expect_message(get_pop_incidence(db,
+                           results_schema_outcome = NULL,
+                           table_name_outcome = "outcome",
+                           cohort_id_outcome = "1",
+                           study_denominator_pop = dpop,
+                           verbose = TRUE))
 
-DBI::dbDisconnect(db, shutdown=TRUE)
-
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check expected errors", {
@@ -1392,7 +1375,6 @@ test_that("mock db: check expected errors", {
   )
   dpop<-dpop$denominator_populations
 
-
   # expect error because less than one month between
   # cohort_start_date and cohort_end_date among dpop
   # expect_error(get_pop_incidence(db,
@@ -1409,7 +1391,7 @@ test_that("mock db: check expected errors", {
   #                                study_denominator_pop = dpop
   # ))
 
-  DBI::dbDisconnect(db)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 # test_that("checks on working example", {

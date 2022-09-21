@@ -58,7 +58,7 @@ test_that("mock db: check output format", {
   ) %in%
     names(inc[["incidence_estimates"]])))
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 
 })
 
@@ -116,7 +116,7 @@ test_that("mock db: checks on working example", {
   expect_true(nrow(inc[["incidence_estimates"]])>=1)
 
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check minimum counts", {
@@ -222,7 +222,7 @@ test_that("mock db: check minimum counts", {
   expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys_high[1]))
   expect_true(is.na(inc[["incidence_estimates"]]$ir_100000_pys_high[2]))
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 
 })
 
@@ -247,7 +247,7 @@ test_that("mock db: check conversion of user inputs", {
   expect_true(nrow(inc[["incidence_estimates"]])>=1)
 
 
- DBI::dbDisconnect(db, shutdown=TRUE)
+ DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("expected errors with mock", {
@@ -296,5 +296,5 @@ test_that("expected errors with mock", {
     study_denominator_pop = dpop
   ))
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })

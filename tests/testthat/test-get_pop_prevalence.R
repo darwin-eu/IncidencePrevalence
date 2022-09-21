@@ -34,7 +34,7 @@ test_that("mock db: check output format", {
   ) %in%
     names(prev[["analysis_settings"]])))
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: working examples", {
@@ -116,8 +116,7 @@ test_that("mock db: working examples", {
   )
   expect_true(nrow(prev[["pr"]])>=1)
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
-
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check study time periods", {
@@ -176,8 +175,7 @@ test_that("mock db: check study time periods", {
   # as the person goes up to the last day of the month
   expect_true(nrow(prev[["pr"]])==12)
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
-
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check periods follow calendar dates", {
@@ -287,8 +285,7 @@ test_that("mock db: check messages when vebose is true", {
                                     verbose = TRUE
   ))
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
-
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check conversion of user inputs", {
@@ -312,8 +309,7 @@ test_that("mock db: check conversion of user inputs", {
   )
   expect_true(nrow(prev[["pr"]])>=0)
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
-
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check expected errors", {
@@ -399,5 +395,5 @@ test_that("mock db: check expected errors", {
                                   type = "period"
   ))
 
-  DBI::dbDisconnect(db)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })

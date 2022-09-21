@@ -53,7 +53,7 @@ test_that("mock db: check output format", {
   ) %in%
     names(prev[["prevalence_estimates"]])))
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 
 })
 
@@ -105,7 +105,7 @@ test_that("mock db: checks on working example", {
   )
   expect_true(nrow(prev[["prevalence_estimates"]])>=1)
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check minimum counts", {
@@ -219,7 +219,7 @@ test_that("mock db: check minimum counts", {
   expect_true(is.na(prev[["prevalence_estimates"]]$prev_high[2]))
   expect_true(is.na(prev[["prevalence_estimates"]]$prev_high[3]))
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 
 })
 
@@ -243,7 +243,7 @@ test_that("mock db: check conversion of user inputs", {
   expect_true(nrow(prev[["prevalence_estimates"]])>=1)
 
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("mock db: check expected errors", {
@@ -293,6 +293,6 @@ test_that("mock db: check expected errors", {
     study_denominator_pop = dpop
   ))
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
