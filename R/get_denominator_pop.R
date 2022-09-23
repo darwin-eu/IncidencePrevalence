@@ -17,9 +17,7 @@
 
 #' Identify a single denominator population
 #'
-#' @param db CDMConnector CDM reference object
-#' @param cdm_database_schema Name of the schema which contains the
-#' omop cdm person and observation_period tables
+#' @param cdm_ref CDMConnector CDM reference object
 #' @param start_date Date indicating the start of the study period. If NULL,
 #'  the earliest observation_start_date in the observation_period table
 #'  will be used.
@@ -42,8 +40,7 @@
 #' @export
 #'
 #' @examples
-get_denominator_pop <- function(db,
-                                cdm_database_schema,
+get_denominator_pop <- function(cdm_ref,
                                 start_date = NULL,
                                 end_date = NULL,
                                 min_age = NULL,
@@ -72,18 +69,15 @@ get_denominator_pop <- function(db,
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
-  db_inherits_check <- inherits(db, "cdm_reference")
-  checkmate::assertTRUE(db_inherits_check,
+  cdm_inherits_check <- inherits(cdm_ref, "cdm_reference")
+  checkmate::assertTRUE(cdm_inherits_check,
     add = error_message
   )
-  if (!isTRUE(db_inherits_check)) {
+  if (!isTRUE(cdm_inherits_check)) {
     error_message$push(
-      "- db must be a CDMConnector CDM reference object"
+      "- cdm_ref must be a CDMConnector CDM reference object"
     )
   }
-  checkmate::assert_character(cdm_database_schema,
-    add = error_message, null.ok = TRUE
-  )
   checkmate::assert_date(start_date,
     add = error_message,
     null.ok = TRUE
@@ -140,37 +134,34 @@ get_denominator_pop <- function(db,
       "- days_prior_history cannot be negative"
     )
   }
+
+  cdm_person_exists <- inherits(cdm_ref$person, 'tbl_dbi')
+  checkmate::assertTRUE(cdm_person_exists, add = error_message)
+  if (!isTRUE(cdm_person_exists)) {
+    error_message$push(
+      "- table `person` is not found"
+    )
+  }
+
+  cdm_observation_period_exists <- inherits(cdm_ref$observation_period, 'tbl_dbi')
+  checkmate::assertTRUE(cdm_observation_period_exists, add = error_message)
+  if (!isTRUE(cdm_observation_period_exists)) {
+    error_message$push(
+      "- table `observation_period` is not found"
+    )
+  }
+
   checkmate::assert_logical(verbose,
     add = error_message
   )
   # report initial assertions
   checkmate::reportAssertions(collection = error_message)
 
-  ## check person and observation_period tables exist
-  # connect to relevant tables
-  # note, will return informative error if they are not found
-  # if (!is.null(cdm_database_schema)) {
-  #   person_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
-  #     "SELECT * FROM {cdm_database_schema}.person"
-  #   )))
-  # } else {
-  #   person_db <- dplyr::tbl(db, "person")
-  # }
-
-  # if (!is.null(cdm_database_schema)) {
-  #   observation_period_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
-  #     "SELECT * FROM {cdm_database_schema}.observation_period"
-  #   )))
-  # } else {
-  #   observation_period_db <- dplyr::tbl(db, "observation_period")
-  # }
-
-
   # make sure names are lowercase
-  person_db <- dplyr::rename_with(db$person, tolower) %>%
+  person_db <- dplyr::rename_with(cdm_ref$person, tolower) %>%
     dplyr::compute()
   observation_period_db <- dplyr::rename_with(
-    db$observation_period, tolower
+    cdm_ref$observation_period, tolower
   ) %>%
     dplyr::compute()
 
@@ -202,7 +193,7 @@ get_denominator_pop <- function(db,
   checkmate::reportAssertions(collection = error_message)
 
   # stratify population on cohort
-  if(!is.null(table_name_strata)){
+  if (!is.null(table_name_strata)) {
 
     error_message <- checkmate::makeAssertCollection()
     checkmate::assert_character(strata_cohort_id,
@@ -211,11 +202,11 @@ get_denominator_pop <- function(db,
     checkmate::reportAssertions(collection = error_message)
 
     if (!is.null(strata_schema)) {
-      strata_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
+      strata_db <- dplyr::tbl(cdm_ref, dplyr::sql(glue::glue(
         "SELECT * FROM {strata_schema}.{table_name_strata}"
       )))
     } else {
-      strata_db <- dplyr::tbl(db, table_name_strata)
+      strata_db <- dplyr::tbl(attr(cdm_ref, 'dbcon'), table_name_strata)
     }
 
     strata_db <- strata_db %>%
@@ -224,17 +215,17 @@ get_denominator_pop <- function(db,
     # drop anyone not in the strata cohort
     person_db <- person_db %>%
       dplyr::inner_join(strata_db %>%
-                          dplyr::rename("person_id"="subject_id") %>%
+                          dplyr::rename("person_id" = "subject_id") %>%
                           dplyr::select("person_id") %>%
                           dplyr::distinct(),
-                by="person_id") %>%
+                by = "person_id") %>%
       dplyr::compute()
     observation_period_db <- observation_period_db %>%
       dplyr::inner_join(strata_db %>%
-                          dplyr::rename("person_id"="subject_id") %>%
+                          dplyr::rename("person_id" = "subject_id") %>%
                           dplyr::select("person_id") %>%
                           dplyr::distinct(),
-                        by="person_id") %>%
+                        by = "person_id") %>%
       dplyr::compute()
 
   # update observation start date to cohort start date
@@ -243,27 +234,27 @@ get_denominator_pop <- function(db,
   # if cohort end date is before observation start date
    observation_period_db <- observation_period_db %>%
       dplyr::inner_join(strata_db %>%
-                          dplyr::rename("person_id"="subject_id") %>%
+                          dplyr::rename("person_id" = "subject_id") %>%
                           dplyr::select("person_id",
                                         "cohort_start_date",
                                         "cohort_end_date"),
-                        by="person_id")
+                        by = "person_id")
 
    # to deal with potential multiple observation periods
    # make sure outcome started during joined observation period
    # if not, drop
    observation_period_db <- observation_period_db %>%
-     dplyr::filter(.data$observation_period_start_date<= .data$cohort_start_date &
-                     .data$observation_period_end_date>= .data$cohort_start_date)
+     dplyr::filter(.data$observation_period_start_date <= .data$cohort_start_date &
+                     .data$observation_period_end_date >= .data$cohort_start_date)
 
    observation_period_db <- observation_period_db %>%
-      dplyr::mutate(observation_period_start_date=
-                      dplyr::if_else(.data$observation_period_start_date<=
+      dplyr::mutate(observation_period_start_date =
+                      dplyr::if_else(.data$observation_period_start_date <=
                               .data$cohort_start_date,
                               .data$cohort_start_date,
                               .data$observation_period_start_date)) %>%
-      dplyr::mutate(observation_period_end_date=
-                      dplyr::if_else(.data$observation_period_end_date>=
+      dplyr::mutate(observation_period_end_date =
+                      dplyr::if_else(.data$observation_period_end_date >=
                               .data$cohort_end_date,
                               .data$cohort_end_date,
                               .data$observation_period_end_date)) %>%
@@ -355,7 +346,7 @@ get_denominator_pop <- function(db,
     create_attrition_tibble(study_pop_db, "Doesn't satisfy age criteria during the study period")
   )
 
-  study_pop_db <- study_pop_db%>%
+  study_pop_db <- study_pop_db %>%
     # drop people with observation_period_star_date after study end
     dplyr::filter(.data$observation_period_start_date <= .env$end_date) %>%
     # drop people with observation_period_end_date before study start
@@ -510,26 +501,26 @@ get_denominator_pop <- function(db,
 
   # attrition
   attrition <- attrition %>%
-    dplyr::mutate(excluded=dplyr::lag(.data$current_n)-.data$current_n)
+    dplyr::mutate(excluded = dplyr::lag(.data$current_n) - .data$current_n)
 
   # combine the two age exclusions
   attrition <- attrition %>%
     dplyr::select(!"excluded") %>%
     dplyr::left_join(attrition %>%
                        dplyr::group_by(.data$reason) %>%
-                       dplyr::summarise(excluded=sum(.data$excluded)),
+                       dplyr::summarise(excluded = sum(.data$excluded)),
                      by = "reason") %>%
-    dplyr::mutate(seq=1:length(.data$reason)) %>%
+    dplyr::mutate(seq = 1:length(.data$reason)) %>%
     dplyr::group_by(.data$reason) %>%
     dplyr::slice_tail() %>%
     dplyr::arrange(.data$seq) %>%
     dplyr::select(!"seq")
 
     # return list
-    dpop<-list()
-    dpop[["denominator_population"]]<-study_pop
-    dpop[["denominator_settings"]]<- study_pop_settings
-    dpop[["attrition"]]<-attrition
+    dpop <-list()
+    dpop[["denominator_population"]] <- study_pop
+    dpop[["denominator_settings"]] <- study_pop_settings
+    dpop[["attrition"]] <- attrition
 
     return(dpop)
 }

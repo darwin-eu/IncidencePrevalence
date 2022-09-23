@@ -17,7 +17,7 @@
 
 #' Collect population period prevalence estimates
 #'
-#' @param db Database connection via DBI::dbConnect()
+#' @param cdm_ref CDMConnector CDM reference object
 #' @param results_schema_outcomes Name of the schema which contains
 #' the outcome table
 #' @param table_name_outcomes Name of the table with the outcome cohorts
@@ -37,7 +37,7 @@
 #' @export
 #'
 #' @examples
-collect_pop_period_prevalence <- function(db,
+collect_pop_period_prevalence <- function(cdm_ref,
                                           results_schema_outcomes,
                                           table_name_outcomes,
                                           cohort_ids_outcomes,
@@ -67,13 +67,13 @@ collect_pop_period_prevalence <- function(db,
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
-  db_inherits_check <- inherits(db, "DBIConnection")
+  db_inherits_check <- inherits(cdm_ref, "cdm_reference")
   checkmate::assertTRUE(db_inherits_check,
     add = error_message
   )
   if (!isTRUE(db_inherits_check)) {
     error_message$push(
-      "- db must be a database connection via DBI::dbConnect()"
+      "- cdm_ref must be a CDMConnector CDM reference object"
     )
   }
   checkmate::assert_character(results_schema_outcomes,
@@ -156,7 +156,7 @@ collect_pop_period_prevalence <- function(db,
   # get prs
   prs_list <- lapply(study_specs, function(x) {
     working_prev <- get_pop_prevalence(
-      db = db,
+      cdm_ref = cdm_ref,
       results_schema_outcome = results_schema_outcomes,
       table_name_outcome = table_name_outcomes,
       cohort_id_outcome = x$cohort_id_outcome,

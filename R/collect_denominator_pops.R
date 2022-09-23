@@ -17,9 +17,7 @@
 
 #' Identify a set of denominator populations
 #'
-#' @param db CDMConnector CDM reference object
-#' @param cdm_database_schema Name of the schema which contains the
-#' omop cdm person and observation_period tables
+#' @param cdm_ref CDMConnector CDM reference object
 #' @param study_start_date Date indicating the start of the study
 #' period. If NULL,
 #'  the earliest observation_start_date in the observation_period table
@@ -43,8 +41,7 @@
 #' @export
 #'
 #' @examples
-collect_denominator_pops <- function(db,
-                                     cdm_database_schema,
+collect_denominator_pops <- function(cdm_ref,
                                      study_start_date = NULL,
                                      study_end_date = NULL,
                                      study_age_stratas = NULL,
@@ -64,13 +61,13 @@ collect_denominator_pops <- function(db,
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
-  db_inherits_check <- inherits(db, "cdm_reference")
-  checkmate::assertTRUE(db_inherits_check,
+  cdm_inherits_check <- inherits(cdm_ref, "cdm_reference")
+  checkmate::assertTRUE(cdm_inherits_check,
     add = error_message
   )
-  if (!isTRUE(db_inherits_check)) {
+  if (!isTRUE(cdm_inherits_check)) {
     error_message$push(
-      "- db must be a CDMConnector CDM reference object"
+      "- cdm_ref must be a CDMConnector CDM reference object"
     )
   }
   checkmate::assert_date(study_start_date,
@@ -152,34 +149,33 @@ collect_denominator_pops <- function(db,
     }
 
     denominator_pop <- get_denominator_pop(
-      db = db,
-      cdm_database_schema = cdm_database_schema,
+      cdm_ref = cdm_ref,
       start_date = x$study_start_date,
       end_date = x$study_end_date,
       min_age = x$min_age,
       max_age = x$max_age,
       sex = x$sex,
       days_prior_history = x$study_days_prior_history,
-      strata_schema=strata_schema,
-      table_name_strata=table_name_strata,
-      strata_cohort_id=strata_cohort_id
+      strata_schema = strata_schema,
+      table_name_strata = table_name_strata,
+      strata_cohort_id = strata_cohort_id
     )
 
-    if (!is.null(denominator_pop$denominator_population)){
+    if (!is.null(denominator_pop$denominator_population)) {
         denominator_pop$denominator_population <-
           denominator_pop$denominator_population  %>%
-          dplyr::mutate(cohort_definition_id=x$cohort_definition_id) %>%
+          dplyr::mutate(cohort_definition_id = x$cohort_definition_id) %>%
           dplyr::relocate(.data$cohort_definition_id)
     }
 
     denominator_pop$denominator_settings <-
       denominator_pop$denominator_settings  %>%
-      dplyr::mutate(cohort_definition_id=x$cohort_definition_id) %>%
+      dplyr::mutate(cohort_definition_id = x$cohort_definition_id) %>%
       dplyr::relocate(.data$cohort_definition_id)
 
     denominator_pop$attrition <-
       denominator_pop$attrition  %>%
-      dplyr::mutate(cohort_definition_id=x$cohort_definition_id) %>%
+      dplyr::mutate(cohort_definition_id = x$cohort_definition_id) %>%
       dplyr::relocate(.data$cohort_definition_id)
 
     return(denominator_pop)
@@ -188,21 +184,21 @@ collect_denominator_pops <- function(db,
   study_populations <- purrr::flatten(study_populations)
 
   # denominator settings
-  denominator_settings<-study_populations[names(study_populations)=="denominator_settings"]
+  denominator_settings <- study_populations[names(study_populations) == "denominator_settings"]
   # to tibble
   denominator_settings <- dplyr::bind_rows(denominator_settings,
                                         .id = NULL
   )
 
   # denominator population
-  dpop<-study_populations[names(study_populations)=="denominator_population"]
+  dpop <- study_populations[names(study_populations) == "denominator_population"]
   # to tibble
   dpop <- dplyr::bind_rows(dpop,
                           .id = NULL
   )
 
   # attrition summary
-  attrition<-study_populations[names(study_populations)=="attrition"]
+  attrition <- study_populations[names(study_populations) == "attrition"]
   # to tibble
   attrition <- dplyr::bind_rows(attrition,
                                 .id = NULL
@@ -220,10 +216,10 @@ collect_denominator_pops <- function(db,
   }
 
   # results to return as a list
-  results<-list()
-  results[["denominator_populations"]]<-dpop
-  results[["denominator_settings"]]<-denominator_settings
-  results[["attrition"]]<-attrition
+  results <- list()
+  results[["denominator_populations"]] <- dpop
+  results[["denominator_settings"]] <- denominator_settings
+  results[["attrition"]] <- attrition
 
   return(results)
 }

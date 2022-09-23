@@ -142,7 +142,7 @@ compute_study_days <- function(start_date,
 
 #' Get population prevalence estimates
 #'
-#' @param db CDMConnector CDM reference object
+#' @param cdm_ref CDMConnector CDM reference object
 #' @param results_schema_outcome results_schema_outcome
 #' @param table_name_outcome table_name_outcome
 #' @param cohort_id_outcome cohort_id_outcome
@@ -159,7 +159,7 @@ compute_study_days <- function(start_date,
 #' @export
 #'
 #' @examples
-get_pop_prevalence <- function(db,
+get_pop_prevalence <- function(cdm_ref,
                                results_schema_outcome,
                                table_name_outcome,
                                cohort_id_outcome = NULL,
@@ -191,13 +191,13 @@ get_pop_prevalence <- function(db,
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
-  db_inherits_check <- inherits(db, "cdm_reference")
+  db_inherits_check <- inherits(cdm_ref, "cdm_reference")
   checkmate::assertTRUE(db_inherits_check,
                         add = error_message
   )
   if (!isTRUE(db_inherits_check)) {
     error_message$push(
-      "- db must be a CDMConnector CDM reference object"
+      "- cdm_ref must be a CDMConnector CDM reference object"
     )
   }
   checkmate::assert_character(results_schema_outcome,
@@ -306,7 +306,7 @@ get_pop_prevalence <- function(db,
     message("Check passed: one or more people in denominator")
   }
 
-  outcome_db <- db$outcome
+  outcome_db <- cdm_ref$outcome
   error_message <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0,
                         add = error_message

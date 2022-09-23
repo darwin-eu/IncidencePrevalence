@@ -364,11 +364,11 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
     )
   })
 
-  db <- CDMConnector::cdm_from_con(
+  cdm_ref <- CDMConnector::cdm_from_con(
     db,
     cdm_tables = c("person", "observation_period"),
     cohort_tables = "outcome")
 
 
-  return(db)
+  return(cdm_ref)
 }
