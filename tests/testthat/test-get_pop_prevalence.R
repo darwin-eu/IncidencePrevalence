@@ -5,7 +5,6 @@ test_that("mock db: check output format", {
   dpop <- dpop$denominator_populations
 
   prev <- get_pop_prevalence(cdm_ref,
-                             results_schema_outcome = NULL,
                              table_name_outcome = "outcome",
                              study_denominator_pop = dpop
   )
@@ -68,7 +67,6 @@ test_that("mock db: working examples", {
   dpop <- collect_denominator_pops(cdm_ref = cdm_ref)
   dpop <- dpop$denominator_populations
   prev <- get_pop_prevalence(cdm_ref,
-                            results_schema_outcome = NULL,
                             table_name_outcome = "outcome",
                             cohort_id_outcome = "1",
                             study_denominator_pop = dpop,
@@ -80,7 +78,6 @@ test_that("mock db: working examples", {
   expect_true(nrow(prev[["pr"]]) >= 1)
 
   prev <- get_pop_prevalence(cdm_ref,
-                            results_schema_outcome = NULL,
                             table_name_outcome = "outcome",
                             cohort_id_outcome = "1",
                             study_denominator_pop = dpop,
@@ -98,7 +95,6 @@ test_that("mock db: working examples", {
   dpop <- dpop$denominator_populations
 
   prev <- get_pop_prevalence(cdm_ref,
-                            results_schema_outcome = NULL,
                             table_name_outcome = "outcome",
                             cohort_id_outcome = "1",
                             study_denominator_pop = dpop,
@@ -149,7 +145,6 @@ test_that("mock db: check study time periods", {
   dpop <- dpop$denominator_populations
 
   prev <- get_pop_prevalence(cdm_ref,
-                            results_schema_outcome = NULL,
                             table_name_outcome = "outcome",
                             cohort_id_outcome = "1",
                             study_denominator_pop = dpop,
@@ -213,7 +208,6 @@ test_that("mock db: check periods follow calendar dates", {
   )
   dpop <- dpop$denominator_populations
   prev <- get_pop_prevalence(cdm_ref,
-                            results_schema_outcome = NULL,
                             table_name_outcome = "outcome",
                             cohort_id_outcome = "1",
                             study_denominator_pop = dpop,
@@ -245,7 +239,6 @@ test_that("mock db: check messages when vebose is true", {
   dpop <- dpop$denominator_populations
 
   expect_message(get_pop_prevalence(cdm_ref,
-                                    results_schema_outcome = NULL,
                                     table_name_outcome = "outcome",
                                     study_denominator_pop = dpop,
                                     type = "point",
@@ -253,7 +246,6 @@ test_that("mock db: check messages when vebose is true", {
   ))
 
   expect_message(get_pop_prevalence(cdm_ref,
-                                    results_schema_outcome = NULL,
                                     table_name_outcome = "outcome",
                                     study_denominator_pop = dpop,
                                     type = "period",
@@ -262,7 +254,6 @@ test_that("mock db: check messages when vebose is true", {
   ))
 
   expect_message(get_pop_prevalence(cdm_ref,
-                                    results_schema_outcome = NULL,
                                     table_name_outcome = "outcome",
                                     study_denominator_pop = dpop,
                                     type = "period",
@@ -281,7 +272,6 @@ test_that("mock db: check conversion of user inputs", {
   dpop <- dpop$denominator_populations
 
   prev <- get_pop_prevalence(cdm_ref,
-                             results_schema_outcome = NULL,
                              table_name_outcome = "outcome",
                              # converted to character
                              cohort_id_outcome = 1,
@@ -303,7 +293,6 @@ test_that("mock db: check expected errors", {
 
   # not a cdm_reference
   expect_error(get_pop_prevalence("a",
-                                  results_schema_outcome = NULL,
                                   table_name_outcome = "outcome",
                                   study_denominator_pop = dpop,
                                   type = "point"
@@ -311,7 +300,6 @@ test_that("mock db: check expected errors", {
 
   # no study pop
   expect_error(get_pop_prevalence(cdm_ref,
-                                  results_schema_outcome = NULL,
                                   table_name_outcome = "outcome",
                                   study_denominator_pop = dpop,
                                   cohort_id_denominator_pop = "999",
@@ -320,7 +308,6 @@ test_that("mock db: check expected errors", {
 
   # no outcomes
   expect_error(get_pop_prevalence(cdm_ref,
-                                  results_schema_outcome = NULL,
                                   table_name_outcome = "outcome",
                                   cohort_id_outcome = "999",
                                   study_denominator_pop = dpop,
@@ -359,13 +346,11 @@ test_that("mock db: check expected errors", {
   # expect error because less than one month between
   # cohort_start_date and cohort_end_date among dpop
   expect_error(get_pop_prevalence(cdm_ref,
-                                  results_schema_outcome = NULL,
                                   table_name_outcome = "outcome",
                                   study_denominator_pop = dpop,
                                   type = "period"
   ))
   expect_error(get_pop_prevalence(cdm_ref,
-                                  results_schema_outcome = NULL,
                                   table_name_outcome = "outcome",
                                   study_denominator_pop = dpop,
                                   time_interval = c("years"),

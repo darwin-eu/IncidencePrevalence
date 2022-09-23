@@ -60,9 +60,6 @@ person <- tibble(
                         as.Date("2015-06-01"))
   )
   
-   # mock database
-  cdm_ref <- generate_mock_incidence_prevalence_db(person = person,
-                            observation_period = observation_period)
 ```
 
 Here we generate a simulated strata table with 5 individuals and 3 different cohort stratas to illustrate the following examples.
@@ -94,24 +91,25 @@ Here we generate a simulated strata table with 5 individuals and 3 different coh
                         as.Date("2010-06-01"),
                         as.Date("2005-08-20"))
   )
-  DBI::dbWithTransaction(attr(cdm_ref, "dbcon"), {
-    DBI::dbWriteTable(attr(cdm_ref, "dbcon"), "strata_cohort",
-                      strata_cohort,
-                      overwrite = TRUE
-    )})
+
+# mock database
+cdm_ref <- generate_mock_incidence_prevalence_db(person = person,
+                            observation_period = observation_period,
+                            strata=strata_cohort)
+
+  
 ```
 ### Not applying any subset
 We can get a denominator population without including any particular subset like so
 ```{r, message=FALSE, warning=FALSE}
 dpop <- collect_denominator_pops(
-    cdm_ref = cdm_ref,
-    strata_schema = NULL
+    cdm_ref = cdm_ref
   )
   
 dpop <- dpop$denominator_pop 
 dpop
 ```
-W As we did not specify any study start and end date, the cohort start and end date of our 5 patients correspond to the same registered as observation period. 
+As we did not specify any study start and end date, the cohort start and end date of our 5 patients correspond to the same registered as observation period. 
 
 ```{r, message=FALSE, warning=FALSE}
 observation_period
@@ -123,8 +121,7 @@ Let's suppose we want to subset our population based on a non-time varying chara
 ```{r, message=FALSE, warning=FALSE}
 dpop <- collect_denominator_pops(
     cdm_ref = cdm_ref,
-    strata_schema = NULL,
-    table_name_strata = "strata_cohort",
+    table_name_strata = "strata",
     strata_cohort_id = "1",
   )
   
@@ -146,8 +143,7 @@ Now we want to subset our population based on a time varying characteristic such
 ```{r, message=FALSE, warning=FALSE}
 dpop <- collect_denominator_pops(
     cdm_ref = cdm_ref,
-    strata_schema = NULL,
-    table_name_strata = "strata_cohort",
+    table_name_strata = "strata",
     strata_cohort_id = "2",
   )
   
@@ -168,8 +164,7 @@ Depending in which condition we're interested in, people might experience the sa
 ```{r, message=FALSE, warning=FALSE}
 dpop <- collect_denominator_pops(
     cdm_ref = cdm_ref,
-    strata_schema = NULL,
-    table_name_strata = "strata_cohort",
+    table_name_strata = "strata",
     strata_cohort_id = "3",
   )
   
@@ -191,8 +186,7 @@ In both examples, the study period can be restricted to a particular period of i
 ```{r, message=FALSE, warning=FALSE}
 dpop <- collect_denominator_pops(
     cdm_ref = cdm_ref,
-    strata_schema = NULL,
-    table_name_strata = "strata_cohort",
+    table_name_strata = "strata",
     strata_cohort_id = "3",
     study_start_date = as.Date("2014-01-01"),
     study_end_date = as.Date("2016-01-01"),

@@ -628,22 +628,17 @@ test_that("mock db: subset denominator by cohort", {
     observation_period_start_date = as.Date("2010-01-01"),
     observation_period_end_date = as.Date("2015-06-01")
   )
-  # mock database
-  cdm_ref <- generate_mock_incidence_prevalence_db(person = person,
-                                              observation_period = observation_period)
-
-  # add stratifying cohort
-  strata_cohort <-  tibble::tibble(
+  strata <-  tibble::tibble(
     cohort_definition_id = "1",
-      subject_id = c("1","2"),
+    subject_id = c("1","2"),
     cohort_start_date = as.Date("2012-06-06"),
     cohort_end_date = as.Date("2013-06-06")
   )
-  DBI::dbWithTransaction(attr(cdm_ref, "dbcon"), {
-    DBI::dbWriteTable(attr(cdm_ref, "dbcon"), "strata_cohort",
-                      strata_cohort,
-                      overwrite = TRUE
-    )})
+
+  # mock database
+  cdm_ref <- generate_mock_incidence_prevalence_db(person = person,
+                                              observation_period = observation_period,
+                                              strata=strata)
 
   # without using strata cohort
   dpop <- get_denominator_pop(cdm_ref = cdm_ref)
@@ -657,8 +652,7 @@ test_that("mock db: subset denominator by cohort", {
   # using strata cohort
   dpop <- get_denominator_pop(
     cdm_ref = cdm_ref,
-    strata_schema = NULL,
-    table_name_strata = "strata_cohort",
+    table_name_strata = "strata",
     strata_cohort_id = "1",
   )
   expect_true(all(dpop$denominator_population$person_id %in%
@@ -672,25 +666,26 @@ test_that("mock db: subset denominator by cohort", {
 
 
   # stratifying cohort multiple events per person
-  strata_cohort <-  tibble::tibble(
+  strata <-  tibble::tibble(
     cohort_definition_id = "1",
     subject_id = c("1","2","2"),
     cohort_start_date = c(as.Date("2012-06-06"),
-                        as.Date("2012-06-06"),
-                        as.Date("2013-11-01")),
+                          as.Date("2012-06-06"),
+                          as.Date("2013-11-01")),
     cohort_end_date = c(as.Date("2013-06-06"),
-                      as.Date("2013-06-06"),
-                      as.Date("2014-02-01"))
+                        as.Date("2013-06-06"),
+                        as.Date("2014-02-01"))
   )
-  DBI::dbWithTransaction(attr(cdm_ref, "dbcon"), {
-    DBI::dbWriteTable(attr(cdm_ref, "dbcon"), "strata_cohort",
-                      strata_cohort,
-                      overwrite = TRUE
-    )})
+
+  # mock database
+  cdm_ref <- generate_mock_incidence_prevalence_db(person = person,
+                                                   observation_period = observation_period,
+                                                   strata=strata)
+
+
   dpop <- get_denominator_pop(
     cdm_ref = cdm_ref,
-    strata_schema = NULL,
-    table_name_strata = "strata_cohort",
+    table_name_strata = "strata",
     strata_cohort_id = "1",
   )
   expect_true(all(dpop$denominator_population$person_id %in%
@@ -725,30 +720,25 @@ test_that("mock db: subset denominator by cohort", {
                                     as.Date("2009-06-01"),
                                     as.Date("2010-06-01"))
   )
-  # mock database
-  cdm_ref <- generate_mock_incidence_prevalence_db(person = person,
-                                              observation_period = observation_period)
-
   # add stratifying cohort
-  strata_cohort <- tibble::tibble(
+  strata <- tibble::tibble(
     cohort_definition_id = "1",
     subject_id = c("1","1","1"),
     cohort_start_date = c(as.Date("2008-02-01"),
-                        as.Date("2009-02-01"),
-                        as.Date("2010-02-01")),
+                          as.Date("2009-02-01"),
+                          as.Date("2010-02-01")),
     cohort_end_date = c(as.Date("2008-04-01"),
-                      as.Date("2009-04-01"),
-                      as.Date("2010-04-01"))
+                        as.Date("2009-04-01"),
+                        as.Date("2010-04-01"))
   )
-  DBI::dbWithTransaction(attr(cdm_ref, "dbcon"), {
-    DBI::dbWriteTable(attr(cdm_ref, "dbcon"), "strata_cohort",
-                      strata_cohort,
-                      overwrite = TRUE
-    )})
+  # mock database
+  cdm_ref <- generate_mock_incidence_prevalence_db(person = person,
+                                              observation_period = observation_period,
+                                              strata=strata)
+
   dpop <- get_denominator_pop(
     cdm_ref = cdm_ref,
-    strata_schema = NULL,
-    table_name_strata = "strata_cohort",
+    table_name_strata = "strata",
     strata_cohort_id = "1",
   )
   expect_true(sum(dpop$denominator_population$person_id == "1") == 3)

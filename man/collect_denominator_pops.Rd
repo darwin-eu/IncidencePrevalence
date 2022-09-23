@@ -5,24 +5,19 @@
 \title{Identify a set of denominator populations}
 \usage{
 collect_denominator_pops(
-  db,
-  cdm_database_schema,
+  cdm_ref,
   study_start_date = NULL,
   study_end_date = NULL,
   study_age_stratas = NULL,
   study_sex_stratas = "Both",
   study_days_prior_history = 0,
-  strata_schema = NULL,
   table_name_strata = NULL,
   strata_cohort_id = NULL,
   verbose = FALSE
 )
 }
 \arguments{
-\item{db}{Database connection via DBI::dbConnect()}
-
-\item{cdm_database_schema}{Name of the schema which contains the
-omop cdm person and observation_period tables}
+\item{cdm_ref}{CDMConnector CDM reference object}
 
 \item{study_start_date}{Date indicating the start of the study
 period. If NULL,
@@ -41,14 +36,15 @@ will be used.}
 \item{study_days_prior_history}{Days of prior history required to enter
 the study cohort.}
 
-\item{strata_schema}{strata_schema}
-
 \item{table_name_strata}{table_name_strata}
 
 \item{strata_cohort_id}{strata_cohort_id}
 
 \item{verbose}{Either TRUE or FALSE.
 If TRUE, progress will be reported.}
+}
+\value{
+
 }
 \description{
 Identify a set of denominator populations

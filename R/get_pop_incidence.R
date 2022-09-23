@@ -77,7 +77,6 @@ compute_study_days_inc <- function(start_date,
 #' Get population incidence estimates
 #'
 #' @param cdm_ref CDMConnector CDM reference object
-#' @param results_schema_outcome results_schema_outcome
 #' @param table_name_outcome table_name_outcome
 #' @param cohort_id_outcome cohort_id_outcome
 #' @param study_denominator_pop study_denominator_pop
@@ -93,7 +92,6 @@ compute_study_days_inc <- function(start_date,
 #'
 #' @examples
 get_pop_incidence <- function(cdm_ref,
-                              results_schema_outcome,
                               table_name_outcome,
                               cohort_id_outcome = NULL,
                               study_denominator_pop,
@@ -131,10 +129,6 @@ get_pop_incidence <- function(cdm_ref,
       "- cdm_ref must be a CDMConnector CDM reference object"
     )
   }
-  checkmate::assert_character(results_schema_outcome,
-    add = error_message,
-    null.ok = TRUE
-  )
   checkmate::assert_character(cohort_id_outcome,
     add = error_message,
     null.ok = TRUE
@@ -216,16 +210,8 @@ get_pop_incidence <- function(cdm_ref,
   }
 
 
-  # # link to outcome cohort
-  # if (!is.null(results_schema_outcome)) {
-  #   outcome_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
-  #     "SELECT * FROM {results_schema_outcome}.{table_name_outcome}"
-  #   )))
-  # } else {
-  #   outcome_db <- dplyr::tbl(db, "outcome")
-  # }
-  outcome_db <- cdm_ref$outcome
-  error_message <- checkmate::makeAssertCollection()
+  #  link to outcome cohort
+  outcome_db <- cdm_ref[[table_name_outcome]]
   if (!is.null(cohort_id_outcome)) {
     outcome_db <- outcome_db %>%
       dplyr::filter(.data$cohort_definition_id == .env$cohort_id_outcome) %>%
@@ -235,10 +221,9 @@ get_pop_incidence <- function(cdm_ref,
   checkmate::assertTRUE(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0,
     add = error_message
   )
-  if (!(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 1)) {
+  if (!(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0)) {
     error_message$push(
-      glue::glue("- Zero rows in {results_schema_outcome}.{table_name_outcome}
-                 for cohort_id_outcome={cohort_id_outcome}")
+      glue::glue("- Zero rows for cohort_id_outcome={cohort_id_outcome}")
     )
   }
   checkmate::reportAssertions(collection = error_message)

@@ -6,7 +6,6 @@ test_that("mock db: check output format", {
   dpop <- dpop$denominator_populations
 
   inc <- get_pop_incidence(cdm_ref,
-                           results_schema_outcome = NULL,
                            table_name_outcome = "outcome",
                            study_denominator_pop = dpop
   )
@@ -72,7 +71,6 @@ test_that("mock db: check working example", {
 
 
   inc <- get_pop_incidence(cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     study_denominator_pop = dpop,
@@ -82,7 +80,6 @@ test_that("mock db: check working example", {
   expect_true(sum(inc[["ir"]]$n_events) == 1)
 
   inc <- get_pop_incidence(cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     study_denominator_pop = dpop,
@@ -92,7 +89,6 @@ test_that("mock db: check working example", {
   expect_true(sum(inc[["ir"]]$n_events) == 3)
 
   inc <- get_pop_incidence(cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     study_denominator_pop = dpop,
@@ -105,7 +101,6 @@ test_that("mock db: check working example", {
   # if outcome_washout_window=NULL (all of history)
   # then it won´t be possible to have any recurrent events
   inc <- get_pop_incidence(cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     study_denominator_pop = dpop,
@@ -156,7 +151,6 @@ test_that("mock db: check study periods ", {
 
 
  inc <- get_pop_incidence(cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     study_denominator_pop = dpop
@@ -204,7 +198,6 @@ test_that("mock db: check person days", {
 
   inc <- get_pop_incidence(
     cdm_ref = cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     cohort_id_denominator_pop = "1",
@@ -293,7 +286,6 @@ test_that("mock db: check periods follow calendar dates", {
   dpop <- dpop$denominator_populations
 
   inc <- get_pop_incidence(cdm_ref,
-                          results_schema_outcome = NULL,
                           table_name_outcome = "outcome",
                           cohort_id_outcome = "1",
                           study_denominator_pop = dpop,
@@ -313,7 +305,6 @@ test_that("mock db: check periods follow calendar dates", {
   dpop <- dpop$denominator_populations
 
   inc <- get_pop_incidence(cdm_ref,
-                          results_schema_outcome = NULL,
                           table_name_outcome = "outcome",
                           cohort_id_outcome = "1",
                           study_denominator_pop = dpop,
@@ -371,7 +362,6 @@ test_that("mock db: check washout windows", {
 
 
   inc_w0 <- get_pop_incidence(cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     study_denominator_pop = dpop,
@@ -382,7 +372,6 @@ test_that("mock db: check washout windows", {
   expect_true(sum(inc_w0[["ir"]]$n_events) == 4)
 
   inc_w1 <- get_pop_incidence(cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     study_denominator_pop = dpop,
@@ -393,7 +382,6 @@ test_that("mock db: check washout windows", {
     expect_true(sum(inc_w1[["ir"]]$n_events) == 3)
 
   inc_w2 <- get_pop_incidence(cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     study_denominator_pop = dpop,
@@ -404,7 +392,6 @@ test_that("mock db: check washout windows", {
   expect_true(sum(inc_w2[["ir"]]$n_events) == 2)
 
   inc_w365 <- get_pop_incidence(cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     study_denominator_pop = dpop,
@@ -415,7 +402,6 @@ test_that("mock db: check washout windows", {
   expect_true(sum(inc_w365[["ir"]]$n_events) == 1)
 
   inc_null <- get_pop_incidence(cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     study_denominator_pop = dpop,
@@ -466,7 +452,6 @@ test_that("mock db: check events overlapping with start of a period", {
 
   inc <- get_pop_incidence(
     cdm_ref = cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     cohort_id_denominator_pop = "1",
@@ -512,7 +497,6 @@ test_that("mock db: check events overlapping with start of a period", {
 
   inc2 <- get_pop_incidence(
     cdm_ref = cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     cohort_id_denominator_pop = "1",
@@ -566,14 +550,12 @@ test_that("mock db: compare results from months and years", {
 
   inc_months <- get_pop_incidence(
     cdm_ref = cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     study_denominator_pop = dpop,
     time_interval = c("months"),
   )
   inc_years <- get_pop_incidence(
     cdm_ref = cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     study_denominator_pop = dpop,
     time_interval = c("years"),
@@ -625,7 +607,6 @@ test_that("mock db: check entry and event on same day", {
 
 
   inc_without_rep <- get_pop_incidence(cdm_ref,
-  results_schema_outcome = NULL,
   table_name_outcome = "outcome",
   cohort_id_outcome = "1",
   study_denominator_pop = dpop,
@@ -636,7 +617,6 @@ test_that("mock db: check entry and event on same day", {
   expect_true(sum(inc_without_rep[["ir"]]$n_events) == 1)
 
   inc_with_rep <- get_pop_incidence(cdm_ref,
-  results_schema_outcome = NULL,
   table_name_outcome = "outcome",
   cohort_id_outcome = "1",
   study_denominator_pop = dpop,
@@ -682,7 +662,6 @@ test_that("mock db: cohort start overlaps with the outcome", {
 
   inc <- get_pop_incidence(
     cdm_ref = cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     cohort_id_denominator_pop = "1",
@@ -726,7 +705,6 @@ test_that("mock db: multiple overlapping outcomes", {
   dpop <- dpop$denominator_populations
   inc <- get_pop_incidence(
     cdm_ref = cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     cohort_id_denominator_pop = "1",
@@ -772,7 +750,6 @@ test_that("mock db: multiple overlapping outcomes", {
   dpop <- dpop$denominator_populations
   inc <- get_pop_incidence(
     cdm_ref = cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     cohort_id_denominator_pop = "1",
@@ -827,7 +804,6 @@ test_that("mock db: cohort before start of period and ending after end of period
  # no wahsout
   inc <- get_pop_incidence(
     cdm_ref = cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     cohort_id_denominator_pop = "1",
@@ -842,7 +818,6 @@ test_that("mock db: cohort before start of period and ending after end of period
   # washout
   inc <- get_pop_incidence(
     cdm_ref = cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     cohort_id_denominator_pop = "1",
@@ -891,7 +866,6 @@ test_that("mock db: check full period requirement - year", {
 
   inc <- get_pop_incidence(
     cdm_ref = cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     cohort_id_denominator_pop = "1",
@@ -939,7 +913,6 @@ test_that("mock db: check full period requirement - year", {
 
   inc <- get_pop_incidence(
     cdm_ref = cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     cohort_id_denominator_pop = "1",
@@ -987,7 +960,6 @@ test_that("mock db: check full period requirement - year", {
 
   # expect_error(get_pop_incidence(
   #   db = db,
-  #   results_schema_outcome = NULL,
   #   table_name_outcome = "outcome",
   #   cohort_id_outcome = "1",
   #   cohort_id_denominator_pop = "1",
@@ -1034,7 +1006,6 @@ test_that("mock db: check full period requirement - month", {
 
   inc <- get_pop_incidence(
     cdm_ref = cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     cohort_id_denominator_pop = "1",
@@ -1081,7 +1052,6 @@ test_that("mock db: check full period requirement - month", {
 
   inc <- get_pop_incidence(
     cdm_ref = cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcome = "outcome",
     cohort_id_outcome = "1",
     cohort_id_denominator_pop = "1",
@@ -1129,7 +1099,6 @@ test_that("mock db: check full period requirement - month", {
 
   # expect_error(get_pop_incidence(
   #   db = db,
-  #   results_schema_outcome = NULL,
   #   table_name_outcome = "outcome",
   #   cohort_id_outcome = "1",
   #   cohort_id_denominator_pop = "1",
@@ -1178,7 +1147,6 @@ test_that("mock db: check conversion of user inputs", {
 
 
   inc <- get_pop_incidence(cdm_ref,
-                           results_schema_outcome = NULL,
                            table_name_outcome = "outcome",
                            cohort_id_outcome = 1, # to character in function
                            study_denominator_pop = dpop
@@ -1186,7 +1154,6 @@ test_that("mock db: check conversion of user inputs", {
   expect_true(nrow(inc[["ir"]]) >= 0)
 
   inc <- get_pop_incidence(cdm_ref,
-                           results_schema_outcome = NULL,
                            table_name_outcome = "outcome",
                            cohort_id_denominator_pop = 1, # to character in function
                            study_denominator_pop = dpop
@@ -1194,7 +1161,6 @@ test_that("mock db: check conversion of user inputs", {
   expect_true(nrow(inc[["ir"]]) >= 0)
 
   inc <- get_pop_incidence(cdm_ref,
-                           results_schema_outcome = NULL,
                            # gets changed to NULL (to help collect)
                            outcome_washout_window = NA,
                            table_name_outcome = "outcome",
@@ -1205,7 +1171,6 @@ test_that("mock db: check conversion of user inputs", {
 
 
   inc <- get_pop_incidence(cdm_ref,
-                           results_schema_outcome = NULL,
                            table_name_outcome = "outcome",
                            # numeric id gets converted to character
                            cohort_id_outcome = 1,
@@ -1250,14 +1215,12 @@ test_that("mock db: check messages when vebose is true", {
 
 
   expect_message(get_pop_incidence(cdm_ref,
-                         results_schema_outcome = NULL,
                          table_name_outcome = "outcome",
                          cohort_id_outcome = "1",
                          study_denominator_pop = dpop,
                          verbose = TRUE))
 
   expect_message(get_pop_incidence(cdm_ref,
-                         results_schema_outcome = NULL,
                          table_name_outcome = "outcome",
                          cohort_id_outcome = "1",
                          time_interval = "years",
@@ -1265,7 +1228,6 @@ test_that("mock db: check messages when vebose is true", {
                          verbose = TRUE))
 
   expect_message(get_pop_incidence(cdm_ref,
-                           results_schema_outcome = NULL,
                            table_name_outcome = "outcome",
                            cohort_id_outcome = "1",
                            study_denominator_pop = dpop,
@@ -1279,7 +1241,6 @@ test_that("mock db: check expected errors", {
 
   # not a cdm reference
   expect_error(get_pop_incidence(cdm_ref = "a",
-                                 results_schema_outcome = NULL,
                                  table_name_outcome = "outcome",
                                  time_interval = c("months"),
                                  study_denominator_pop = dpop
@@ -1287,7 +1248,6 @@ test_that("mock db: check expected errors", {
 
   # no study pop
   expect_error(get_pop_incidence(cdm_ref,
-                    results_schema_outcome = NULL,
                     table_name_outcome = "outcome",
                     time_interval = c("months"),
                     study_denominator_pop = dpop,
@@ -1296,7 +1256,6 @@ test_that("mock db: check expected errors", {
 
   # no outcomes
   expect_error(get_pop_incidence(cdm_ref,
-                    results_schema_outcome = NULL,
                     table_name_outcome = "outcome",
                     time_interval = c("months"),
                     cohort_id_outcome = "999",
@@ -1334,13 +1293,11 @@ test_that("mock db: check expected errors", {
   # expect error because less than one month between
   # cohort_start_date and cohort_end_date among dpop
   # expect_error(get_pop_incidence(db,
-  #                                results_schema_outcome = NULL,
   #                                table_name_outcome = "outcome",
   #                                time_interval = c("months"),
   #                                study_denominator_pop = dpop
   # ))
   # expect_error(get_pop_incidence(db,
-  #                                results_schema_outcome = NULL,
   #                                table_name_outcome = "outcome",
   #                                time_interval = c("years"),
   #                                cohort_id_outcome = "1",
@@ -1376,7 +1333,6 @@ test_that("mock db: check expected errors", {
 #                          verbose = TRUE)
 #
 # result <- get_pop_incidence(db=db,
-#                         results_schema_outcome="results21t2_test",
 #                         table_name_outcome="cohorts",
 #                                     cohort_id_outcome=1,
 #                                     study_denominator_pop=study_pops,
@@ -1452,32 +1408,27 @@ test_that("mock db: check expected errors", {
 #                          study_start_date=as.Date("2017-01-01"),
 #                          study_end_date=as.Date("2018-12-31"))
 # expect_error(get_pop_incidence(db="a",
-#                         results_schema_outcome="results21t2_test",
 #                         table_name_outcome="cohorts",
 #                         cohort_id_outcome=1,
 #                         study_denominator_pop=study_pops,
 #                         verbose=TRUE))
 # expect_error(get_pop_incidence(db=db,
-#                         results_schema_outcome="results21t2_test",
 #                         table_name_outcome="cohorts",
 #                         cohort_id_outcome=1,
 #                         study_denominator_pop=study_pops %>% filter(person_id==0),
 #                         verbose=TRUE))
 # expect_error(get_pop_incidence(db=db,
-#                         results_schema_outcome="results21t2_test",
 #                         table_name_outcome="cohorts",
 #                         cohort_id_outcome=3,
 #                         study_denominator_pop=study_pops %>% filter(person_id==0),
 #                         verbose=TRUE))
 #
 # expect_error(get_pop_incidence(db=db,
-#                         results_schema_outcome="results21t2_test",
 #                         table_name_outcome="cohorts",
 #                         cohort_id_denominator_pop=3,
 #                         study_denominator_pop=study_pops,
 #                         verbose=TRUE))
 # expect_error(get_pop_incidence(db=db,
-#                         results_schema_outcome="results21t2_test",
 #                         table_name_outcome="cohorts",
 #                         cohort_id_outcome=10,
 #                         study_denominator_pop=study_pops))

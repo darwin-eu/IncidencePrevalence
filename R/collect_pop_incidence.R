@@ -18,7 +18,6 @@
 #' Collect population incidence estimates
 #'
 #' @param cdm_ref CDMConnector CDM reference object
-#' @param results_schema_outcomes Name of the schema which contains the outcome table
 #' @param table_name_outcomes Name of the table with the outcome cohorts
 #' @param cohort_ids_outcomes Outcome cohort ids
 #' @param study_denominator_pop Tibble with denominator populations
@@ -36,7 +35,6 @@
 #'
 #' @examples
 collect_pop_incidence <- function(cdm_ref,
-                                  results_schema_outcomes,
                                   table_name_outcomes,
                                   cohort_ids_outcomes,
                                   study_denominator_pop,
@@ -75,10 +73,6 @@ collect_pop_incidence <- function(cdm_ref,
   if (!isTRUE(db_inherits_check)) {
     "- cdm_ref must be a CDMConnector CDM reference object"
   }
-  checkmate::assert_character(results_schema_outcomes,
-    add = error_message,
-    null.ok = TRUE
-  )
   checkmate::assert_character(cohort_ids_outcomes,
     add = error_message,
     null.ok = TRUE
@@ -159,7 +153,6 @@ collect_pop_incidence <- function(cdm_ref,
   irs_list <- lapply(study_specs, function(x) {
     working_inc <- get_pop_incidence(
       cdm_ref = cdm_ref,
-      results_schema_outcome = results_schema_outcomes,
       table_name_outcome = table_name_outcomes,
       cohort_id_outcome = x$cohort_id_outcome,
       study_denominator_pop = study_denominator_pop,

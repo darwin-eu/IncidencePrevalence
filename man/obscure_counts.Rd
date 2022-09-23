@@ -13,6 +13,9 @@ obscure_counts(x, minimum_cell_count = 5, substitute = NA)
 
 \item{substitute}{substitute}
 }
+\value{
+
+}
 \description{
 Obscure the small number of counts
 }

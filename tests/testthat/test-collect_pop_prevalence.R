@@ -7,7 +7,6 @@ test_that("mock db: check output format", {
 
   prev <- collect_pop_prevalence(
     cdm_ref = cdm_ref,
-    results_schema_outcomes = NULL,
     table_name_outcomes = "outcome",
     cohort_ids_outcomes = "1",
     cohort_ids_denominator_pops = "1",
@@ -93,7 +92,6 @@ test_that("mock db: checks on working example", {
 
   prev <- collect_pop_prevalence(
     cdm_ref = cdm_ref,
-    results_schema_outcomes = NULL,
     table_name_outcomes = "outcome",
     cohort_ids_outcomes = "1",
     cohort_ids_denominator_pops = "1",
@@ -158,7 +156,6 @@ test_that("mock db: check minimum counts", {
 
   prev <- collect_pop_prevalence(
     cdm_ref = cdm_ref,
-    results_schema_outcomes = NULL,
     table_name_outcomes = "outcome",
     cohort_ids_outcomes = "1",
     cohort_ids_denominator_pops = "1",
@@ -186,7 +183,6 @@ test_that("mock db: check minimum counts", {
 
   prev <- collect_pop_prevalence(
     cdm_ref = cdm_ref,
-    results_schema_outcomes = NULL,
     table_name_outcomes = "outcome",
     cohort_ids_outcomes = "1",
     cohort_ids_denominator_pops = "1",
@@ -224,7 +220,6 @@ test_that("mock db: check conversion of user inputs", {
 
   prev <- collect_pop_prevalence(
     cdm_ref = cdm_ref,
-    results_schema_outcome = NULL,
     table_name_outcomes = "outcome",
     cohort_ids_outcomes = 1,
     cohort_ids_denominator_pops = 1,
@@ -273,7 +268,6 @@ test_that("mock db: check expected errors", {
 
   expect_error(collect_pop_prevalence(
     cdm_ref = "a",
-    results_schema_outcomes = NULL,
     table_name_outcomes = "outcome",
     cohort_ids_outcomes = 1,
     cohort_ids_denominator_pops = 1,

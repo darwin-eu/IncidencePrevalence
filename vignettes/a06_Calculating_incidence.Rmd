@@ -95,7 +95,6 @@ Let´s first calculate incidence rates on a yearly basis, without allowing repet
 ```{r, message= FALSE, warning=FALSE}
 inc <- collect_pop_incidence(
   cdm_ref = cdm_ref,
-  results_schema_outcomes = NULL,
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = "1",
@@ -119,7 +118,6 @@ Now with a washout of all prior history while still not allowing repetitive even
 ```{r, message= FALSE, warning=FALSE}
 inc <- collect_pop_incidence(
   cdm_ref = cdm_ref,
-  results_schema_outcomes = NULL,
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = "1",
@@ -143,7 +141,6 @@ Now we´ll set the washout to 180 days while still not allowing repetitive event
 ```{r, message= FALSE, warning=FALSE}
 inc <- collect_pop_incidence(
   cdm_ref = cdm_ref,
-  results_schema_outcomes = NULL,
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = "1",
@@ -167,7 +164,6 @@ And finally we´ll set the washout to 180 days and allow repetitve events
 ```{r, message= FALSE, warning=FALSE}
 inc <- collect_pop_incidence(
   cdm_ref = cdm_ref,
-  results_schema_outcomes = NULL,
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = "1",

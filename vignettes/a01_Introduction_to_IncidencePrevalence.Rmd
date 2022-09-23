@@ -62,7 +62,6 @@ Now that we have our denominator population and using the outcome cohort that wa
 ```{r, message= FALSE, warning=FALSE}
 prev <- collect_pop_prevalence(
   cdm_ref = cdm_ref,
-  results_schema_outcomes = NULL,
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = "1",
@@ -90,7 +89,6 @@ Similarly we can use the `collect_pop_incidence()` function to estimate incidenc
 ```{r, message= FALSE, warning=FALSE}
 inc <- collect_pop_incidence(
   cdm_ref = cdm_ref,
-  results_schema_outcomes = NULL,
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = "1",

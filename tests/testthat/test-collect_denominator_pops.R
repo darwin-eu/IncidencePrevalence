@@ -65,23 +65,20 @@ test_that("mock db: checks on working example", {
 
   # using cohort strata
   # add stratifying cohort
-  strata_cohort <- tibble::tibble(
+  strata <- tibble::tibble(
     cohort_definition_id = "1",
     subject_id = c("1","2"),
     cohort_start_date = as.Date("2010-03-15"),
     cohort_end_date = as.Date("2012-03-15")
   )
-  DBI::dbWithTransaction(attr(cdm_ref, "dbcon"), {
-    DBI::dbWriteTable(attr(cdm_ref, "dbcon"), "strata_cohort",
-                      strata_cohort,
-                      overwrite = TRUE
-    )})
+  cdm_ref <- generate_mock_incidence_prevalence_db(person = person,
+                                                   observation_period = observation_period,
+                                                   strata = strata)
 
   # using strata cohort
   dpop <- get_denominator_pop(
     cdm_ref = cdm_ref,
-    strata_schema =  NULL,
-    table_name_strata = "strata_cohort",
+    table_name_strata = "strata",
     strata_cohort_id = "1"
   )
   expect_true(dpop$denominator_population$cohort_start_date ==

@@ -30,7 +30,6 @@
 #' @param study_sex_stratas Sex of the cohorts
 #' @param study_days_prior_history Days of prior history required to enter
 #' the study cohort.
-#' @param strata_schema strata_schema
 #' @param table_name_strata table_name_strata
 #' @param strata_cohort_id strata_cohort_id
 #' @param verbose Either TRUE or FALSE.
@@ -47,7 +46,6 @@ collect_denominator_pops <- function(cdm_ref,
                                      study_age_stratas = NULL,
                                      study_sex_stratas = "Both",
                                      study_days_prior_history = 0,
-                                     strata_schema = NULL,
                                      table_name_strata = NULL,
                                      strata_cohort_id = NULL,
                                      verbose = FALSE) {
@@ -156,7 +154,6 @@ collect_denominator_pops <- function(cdm_ref,
       max_age = x$max_age,
       sex = x$sex,
       days_prior_history = x$study_days_prior_history,
-      strata_schema = strata_schema,
       table_name_strata = table_name_strata,
       strata_cohort_id = strata_cohort_id
     )

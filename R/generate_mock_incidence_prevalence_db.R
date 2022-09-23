@@ -19,6 +19,7 @@
 #'
 #' @param person Person table.
 #' @param observation_period observation_period table.
+#' @param strata strata table.
 #' @param outcome outcome table.
 #' @param sample_size number of unique patient
 #' @param out_pre fraction of patient with an event
@@ -66,6 +67,7 @@
 #'
 generate_mock_incidence_prevalence_db <- function(person = NULL,
                                                   observation_period = NULL,
+                                                  strata = NULL,
                                                   outcome = NULL,
                                                   sample_size = 1,
                                                   out_pre = 1,
@@ -306,7 +308,7 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
       seed_outcome <- sample(1:99999, 1000)
       #work out minimum outcome start date for each subject in outcome table
       min_out_start_date <-
-        aggregate(cohort_end_date ~ subject_id, data = outcome, max)
+        stats::aggregate(cohort_end_date ~ subject_id, data = outcome, max)
 
       for (i in 1:(max_outcomes_per_person - 1)) {
         set.seed(seed_outcome[i])
@@ -330,7 +332,7 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
         outcome1 <- rbind(outcome1, extra_outcome)
         #work out minimum outcome start date for each subject in new outcome table
         min_out_start_date <-
-          aggregate(cohort_end_date ~ subject_id, data = rbind(outcome,outcome1), max)
+          stats::aggregate(cohort_end_date ~ subject_id, data = rbind(outcome,outcome1), max)
       }
 
       outcome <- rbind(outcome,outcome1)
@@ -338,7 +340,18 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
     }
   }
 
-
+  if (is.null(strata)) {
+  # add strata population
+  # as a random sample, keep the same start and end dates
+  strata <- dplyr::sample_frac(person, 0.8) %>%
+    dplyr::left_join(observation_period, by="person_id") %>%
+    dplyr::rename("subject_id"="person_id") %>%
+    dplyr::mutate(cohort_definition_id="1") %>%
+    dplyr::rename("cohort_start_date"="observation_period_start_date") %>%
+    dplyr::rename("cohort_end_date"="observation_period_end_date") %>%
+    dplyr::select("subject_id", "cohort_definition_id",
+                  "cohort_start_date", "cohort_end_date")
+  }
 
   # into in-memory database
   db <- DBI::dbConnect(duckdb::duckdb(), ":memory:")
@@ -358,6 +371,13 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
   })
 
   DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "strata",
+                      strata,
+                      overwrite = TRUE
+    )
+  })
+
+  DBI::dbWithTransaction(db, {
     DBI::dbWriteTable(db, "outcome",
       outcome,
       overwrite = TRUE
@@ -367,7 +387,7 @@ generate_mock_incidence_prevalence_db <- function(person = NULL,
   cdm_ref <- CDMConnector::cdm_from_con(
     db,
     cdm_tables = c("person", "observation_period"),
-    cohort_tables = "outcome")
+    cohort_tables = c("strata","outcome"))
 
 
   return(cdm_ref)

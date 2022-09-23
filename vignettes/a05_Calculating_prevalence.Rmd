@@ -69,7 +69,6 @@ Let´s first calculate point prevalence on a yearly basis.
 ```{r, message= FALSE, warning=FALSE}
 prev <- collect_pop_prevalence(
   cdm_ref = cdm_ref,
-  results_schema_outcomes = NULL,
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = "1",
@@ -95,7 +94,6 @@ We can also calculate point prevalence by calendar month
 ```{r, message= FALSE, warning=FALSE}
 prev <- collect_pop_prevalence(
   cdm_ref = cdm_ref,
-  results_schema_outcomes = NULL,
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = "1",
@@ -121,7 +119,6 @@ To calculate period prevalence by year (i.e. each period is a calendar year)
 ```{r, message= FALSE, warning=FALSE}
 prev <- collect_pop_prevalence(
   cdm_ref = cdm_ref,
-  results_schema_outcomes = NULL,
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = "1",
@@ -148,7 +145,6 @@ To calculate period prevalence by month (i.e. each period is a calendar month)
 ```{r, message= FALSE, warning=FALSE}
 prev <- collect_pop_prevalence(
   cdm_ref = cdm_ref,
-  results_schema_outcomes = NULL,
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = "1",
@@ -206,7 +202,6 @@ dpop2 <- collect_denominator_pops(cdm_ref = cdm_ref2,
 
 prev2 <- collect_pop_prevalence(
   cdm_ref = cdm_ref2,
-  results_schema_outcomes = NULL,
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = unique(

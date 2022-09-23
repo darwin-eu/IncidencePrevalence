@@ -3,6 +3,8 @@
 export("%>%")
 export(collect_denominator_pops)
 export(collect_pop_incidence)
+export(collect_pop_period_prevalence)
+export(collect_pop_point_prevalence)
 export(collect_pop_prevalence)
 export(generate_mock_incidence_prevalence_db)
 export(get_confidence_intervals)

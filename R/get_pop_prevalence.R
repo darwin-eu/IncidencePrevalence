@@ -143,7 +143,6 @@ compute_study_days <- function(start_date,
 #' Get population prevalence estimates
 #'
 #' @param cdm_ref CDMConnector CDM reference object
-#' @param results_schema_outcome results_schema_outcome
 #' @param table_name_outcome table_name_outcome
 #' @param cohort_id_outcome cohort_id_outcome
 #' @param study_denominator_pop study_denominator_pop
@@ -160,7 +159,6 @@ compute_study_days <- function(start_date,
 #'
 #' @examples
 get_pop_prevalence <- function(cdm_ref,
-                               results_schema_outcome,
                                table_name_outcome,
                                cohort_id_outcome = NULL,
                                study_denominator_pop,
@@ -200,10 +198,6 @@ get_pop_prevalence <- function(cdm_ref,
       "- cdm_ref must be a CDMConnector CDM reference object"
     )
   }
-  checkmate::assert_character(results_schema_outcome,
-                              add = error_message,
-                              null.ok = TRUE
-  )
   checkmate::assert_character(cohort_id_outcome,
                               add = error_message,
                               null.ok = TRUE
@@ -313,7 +307,7 @@ get_pop_prevalence <- function(cdm_ref,
   )
   if (!outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0) {
     error_message$push(
-      glue::glue("- Zero rows in {results_schema_outcome}.{table_name_outcome}")
+      glue::glue("- Zero rows in {table_name_outcome}")
     )
   }
   checkmate::reportAssertions(collection = error_message)
@@ -329,7 +323,7 @@ get_pop_prevalence <- function(cdm_ref,
   )
   if (!outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0) {
     error_message$push(
-      glue::glue("- Zero rows in {results_schema_outcome}.{table_name_outcome}
+      glue::glue("- Zero rows in {table_name_outcome}
                  for cohort_id_outcome={cohort_id_outcome}")
     )
   }

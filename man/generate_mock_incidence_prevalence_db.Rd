@@ -7,6 +7,7 @@
 generate_mock_incidence_prevalence_db(
   person = NULL,
   observation_period = NULL,
+  strata = NULL,
   outcome = NULL,
   sample_size = 1,
   out_pre = 1,
@@ -29,6 +30,8 @@ generate_mock_incidence_prevalence_db(
 \item{person}{Person table.}
 
 \item{observation_period}{observation_period table.}
+
+\item{strata}{strata table.}
 
 \item{outcome}{outcome table.}
 
@@ -63,7 +66,7 @@ generate_mock_incidence_prevalence_db(
 \item{max_outcomes_per_person}{the maximum possible number of outcomes per person can have default set to 1}
 }
 \value{
-DBIConnection to duckdb database with mock data
+CDMConnector CDM reference object to duckdb database with mock data
 }
 \description{
 Generate example database for IncidencePrevalence package

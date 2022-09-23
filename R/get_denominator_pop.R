@@ -29,7 +29,6 @@
 #' @param sex Sex of the cohort
 #' @param days_prior_history Days of prior history required to enter
 #' the study cohort.
-#' @param strata_schema strata_schema
 #' @param table_name_strata table_name_strata
 #' @param strata_cohort_id strata_cohort_id
 #' @param verbose Either TRUE or FALSE.
@@ -47,7 +46,6 @@ get_denominator_pop <- function(cdm_ref,
                                 max_age = NULL,
                                 sex = "Both",
                                 days_prior_history = 0,
-                                strata_schema = NULL,
                                 table_name_strata = NULL,
                                 strata_cohort_id = NULL,
                                 verbose = FALSE) {
@@ -196,21 +194,17 @@ get_denominator_pop <- function(cdm_ref,
   if (!is.null(table_name_strata)) {
 
     error_message <- checkmate::makeAssertCollection()
-    checkmate::assert_character(strata_cohort_id,
-                                add = error_message
-    )
+    strata_table_exists <- inherits(cdm_ref[[table_name_strata]], 'tbl_dbi')
+    checkmate::assertTRUE(strata_table_exists, add = error_message)
+    if (!isTRUE(strata_table_exists)) {
+      error_message$push(
+        "- table `strata` is not found"
+      )
+    }
     checkmate::reportAssertions(collection = error_message)
 
-    if (!is.null(strata_schema)) {
-      strata_db <- dplyr::tbl(cdm_ref, dplyr::sql(glue::glue(
-        "SELECT * FROM {strata_schema}.{table_name_strata}"
-      )))
-    } else {
-      strata_db <- dplyr::tbl(attr(cdm_ref, 'dbcon'), table_name_strata)
-    }
-
-    strata_db <- strata_db %>%
-      dplyr::filter(.data$cohort_definition_id == .env$strata_cohort_id)
+    strata_db <- cdm_ref[[table_name_strata]] %>%
+        dplyr::filter(.data$cohort_definition_id == .env$strata_cohort_id)
 
     # drop anyone not in the strata cohort
     person_db <- person_db %>%
