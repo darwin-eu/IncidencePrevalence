@@ -109,6 +109,25 @@ test_that("mock db: check working example", {
   )
   expect_true(sum(inc[["ir"]]$n_events) == 1)
 
+  inc <- get_pop_incidence(cdm_ref,
+                           table_name_outcome = "outcome",
+                           cohort_id_outcome = "1",
+                           time_interval ="weeks",
+                           study_denominator_pop = dpop,
+                           repetitive_events = TRUE,
+                           outcome_washout_window = NULL
+  )
+  expect_true(sum(inc[["ir"]]$n_events) == 1)
+
+  inc <- get_pop_incidence(cdm_ref,
+                           table_name_outcome = "outcome",
+                           cohort_id_outcome = "1",
+                           time_interval ="days",
+                           study_denominator_pop = dpop,
+                           repetitive_events = TRUE,
+                           outcome_washout_window = NULL
+  )
+  expect_true(sum(inc[["ir"]]$n_events) == 1)
 
   DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
 })
@@ -1238,6 +1257,49 @@ test_that("mock db: check messages when vebose is true", {
 
 test_that("mock db: check expected errors", {
   cdm_ref <- generate_mock_incidence_prevalence_db()
+
+  # insufficient follow up time
+  # person <- tibble::tibble(
+  #   person_id = "1",
+  #   gender_concept_id = "8507",
+  #   year_of_birth = 2000,
+  #   month_of_birth = 01,
+  #   day_of_birth = 01
+  # )
+  # observation_period <- tibble::tibble(
+  #   observation_period_id = "1",
+  #   person_id = "1",
+  #   observation_period_start_date = as.Date("2010-01-01"),
+  #   observation_period_end_date = as.Date("2010-06-01")
+  # )
+  # outcome <- tibble::tibble(
+  #   cohort_definition_id = "1",
+  #   subject_id = "1",
+  #   cohort_start_date = c(
+  #     as.Date("2010-02-05"),
+  #     as.Date("2010-02-08"),
+  #     as.Date("2010-02-20")
+  #   ),
+  #   cohort_end_date = c(
+  #     as.Date("2010-02-05"),
+  #     as.Date("2010-02-08"),
+  #     as.Date("2010-02-20")
+  #   )
+  # )
+  #
+  # cdm_ref <- generate_mock_incidence_prevalence_db(person = person,
+  #                                                  observation_period = observation_period,
+  #                                                  outcome = outcome)
+  #
+  # dpop <- collect_denominator_pops(cdm_ref = cdm_ref)
+  # dpop <- dpop$denominator_populations
+  # expect_error(get_pop_incidence(cdm_ref = cdm_ref,
+  #                                table_name_outcome = "outcome",
+  #                                time_interval = c("Years"),
+  #                                study_denominator_pop = dpop,
+  #                                cohort_id_outcome = "1"
+  #
+  # ))
 
   # not a cdm reference
   expect_error(get_pop_incidence(cdm_ref = "a",

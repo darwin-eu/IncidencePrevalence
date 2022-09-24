@@ -428,6 +428,27 @@ test_that("mock db: expected errors", {
     min_age = -5,
     verbose = FALSE))
 
+  # no person table
+  cdm_ref1<-cdm_ref
+  cdm_ref1$person<-NULL
+  testthat::expect_error(get_denominator_pop(
+    cdm_ref = cdm_ref1))
+
+  # no observation_period table
+  cdm_ref1<-cdm_ref
+  cdm_ref1$observation_period<-NULL
+  testthat::expect_error(get_denominator_pop(
+    cdm_ref = cdm_ref1))
+
+  # no strata table
+  cdm_ref1<-cdm_ref
+  cdm_ref1$strata<-NULL
+  testthat::expect_error(get_denominator_pop(
+    cdm_ref = cdm_ref1,
+    table_name_strata="strata"
+      ))
+
+
   DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
 
 })

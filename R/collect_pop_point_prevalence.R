@@ -52,9 +52,6 @@ collect_pop_point_prevalence <- function(cdm_ref,
   if (is.numeric(cohort_ids_denominator_pops)) {
     cohort_ids_denominator_pops <- as.character(cohort_ids_denominator_pops)
   }
-  if (is.character(type)) {
-    type <- tolower(type)
-  }
   if (is.character(time_intervals)) {
     time_intervals <- tolower(time_intervals)
   }
@@ -109,10 +106,6 @@ collect_pop_point_prevalence <- function(cdm_ref,
     add = error_message,
     null.ok = TRUE
   )
-  checkmate::assert_choice(type,
-    choices = c("point","period"),
-    add = error_message
-  )
   checkmate::assertTRUE(all(time_intervals %in% c("days","weeks","months","quarters","years")),
     add = error_message
   )
@@ -156,7 +149,7 @@ collect_pop_point_prevalence <- function(cdm_ref,
       cohort_id_outcome = x$cohort_id_outcome,
       study_denominator_pop = study_denominator_pop,
       cohort_id_denominator_pop = x$cohort_id_denominator_pop,
-      type = type,
+      type = "point",
       time_interval = x$time_interval,
       full_period_required = TRUE, # change to null in next version
       point = x$point,
@@ -172,7 +165,7 @@ collect_pop_point_prevalence <- function(cdm_ref,
       dplyr::mutate(
         cohort_id_outcome = x$cohort_id_outcome,
         cohort_id_denominator_pop = x$cohort_id_denominator_pop,
-        type = type,
+        type = "point",
         time_interval = x$time_interval,
         point = x$point,
         confidence_interval = confidence_interval,

@@ -88,6 +88,28 @@ test_that("mock db: working examples", {
   )
   expect_true(nrow(prev[["pr"]]) >= 1)
 
+  prev <- get_pop_prevalence(cdm_ref,
+                             table_name_outcome = "outcome",
+                             cohort_id_outcome = "1",
+                             study_denominator_pop = dpop,
+                             cohort_id_denominator_pop = "1",
+                             type = "point",
+                             time_interval = "weeks",
+                             minimum_representative_proportion = 0.5
+  )
+  expect_true(nrow(prev[["pr"]]) >= 1)
+
+  prev <- get_pop_prevalence(cdm_ref,
+                             table_name_outcome = "outcome",
+                             cohort_id_outcome = "1",
+                             study_denominator_pop = dpop,
+                             cohort_id_denominator_pop = "1",
+                             type = "point",
+                             time_interval = "days",
+                             minimum_representative_proportion = 0.5
+  )
+  expect_true(nrow(prev[["pr"]]) >= 1)
+
   dpop <- collect_denominator_pops(
     cdm_ref = cdm_ref,
     study_age_stratas = list(c(0, 100), c(0, 100))
