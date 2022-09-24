@@ -11,8 +11,8 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.width=7, 
-  fig.height=5
+  fig.width = 7, 
+  fig.height = 5
 )
 ```
 
@@ -51,17 +51,16 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 
-db<-generate_mock_incidence_prevalence_db(sample_size=50000,
-                                          out_pre=0.5)
+cdm_ref <- generate_mock_incidence_prevalence_db(sample_size = 50000,
+                                                 out_pre = 0.5)
 
-dpop <- collect_denominator_pops(db = db,
-                                 cdm_database_schema = NULL,
-                                 study_start_date= as.Date("2008-01-01"),
-                                 study_end_date= as.Date("2012-01-01"),
+dpop <- collect_denominator_pops(cdm_ref = cdm_ref,
+                                 study_start_date = as.Date("2008-01-01"),
+                                 study_end_date = as.Date("2012-01-01"),
                                  study_age_stratas = NULL,
                                  study_sex_stratas = "Both",
                                  study_days_prior_history = 0)
-dpop<-dpop$denominator_population 
+dpop <- dpop$denominator_population 
 dpop %>%  
   glimpse()
 ```
@@ -69,13 +68,12 @@ dpop %>%
 Let´s first calculate point prevalence on a yearly basis.
 ```{r, message= FALSE, warning=FALSE}
 prev <- collect_pop_prevalence(
-  db = db,
-  results_schema_outcome = NULL,
+  cdm_ref = cdm_ref,
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = "1",
   study_denominator_pop = dpop,
-  time_intervals="Years",
+  time_intervals = "Years",
   type = "point",
   minimum_cell_count = 0
 )
@@ -95,8 +93,7 @@ prev$prevalence_estimates %>%
 We can also calculate point prevalence by calendar month
 ```{r, message= FALSE, warning=FALSE}
 prev <- collect_pop_prevalence(
-  db = db,
-  results_schema_outcome = NULL,
+  cdm_ref = cdm_ref,
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = "1",
@@ -106,14 +103,14 @@ prev <- collect_pop_prevalence(
   minimum_cell_count = 0
 )
 
-prev$prevalence_estimates  %>%  
+prev$prevalence_estimates %>%  
   glimpse()
 
 prev$prevalence_estimates %>% 
-  ggplot(aes(start_time, prev))+
-  geom_point()+
+  ggplot(aes(start_time, prev)) +
+  geom_point() +
   scale_y_continuous(labels = scales::percent,
-                     limits = c(0,NA))+
+                     limits = c(0,NA)) +
   theme_minimal()
 
 ```
@@ -121,13 +118,12 @@ prev$prevalence_estimates %>%
 To calculate period prevalence by year (i.e. each period is a calendar year)
 ```{r, message= FALSE, warning=FALSE}
 prev <- collect_pop_prevalence(
-  db = db,
-  results_schema_outcome = NULL,
+  cdm_ref = cdm_ref,
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = "1",
   study_denominator_pop = dpop,
-  time_intervals="Years",
+  time_intervals = "Years",
   type = "period",
   minimum_cell_count = 0
 )
@@ -136,10 +132,10 @@ prev$prevalence_estimates  %>%
   glimpse()
 
 prev$prevalence_estimates %>% 
-  ggplot(aes(start_time, prev))+
-  geom_point()+
+  ggplot(aes(start_time, prev)) +
+  geom_point() +
   scale_y_continuous(labels = scales::percent,
-                     limits = c(0,NA))+
+                     limits = c(0,NA)) +
   theme_minimal()
 
 ```
@@ -148,13 +144,12 @@ prev$prevalence_estimates %>%
 To calculate period prevalence by month (i.e. each period is a calendar month)
 ```{r, message= FALSE, warning=FALSE}
 prev <- collect_pop_prevalence(
-  db = db,
-  results_schema_outcome = NULL,
+  cdm_ref = cdm_ref,
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = "1",
   study_denominator_pop = dpop,
-  time_intervals="Months",
+  time_intervals = "Months",
   type = "period",
   minimum_cell_count = 0
 )
@@ -166,7 +161,7 @@ prev$prevalence_estimates %>%
   ggplot(aes(start_time, prev))+
   geom_point()+
   scale_y_continuous(labels = scales::percent,
-                     limits = c(0,NA))+
+                     limits = c(0,NA)) +
   theme_minimal()
 
 ```
@@ -182,7 +177,7 @@ where age is the scaled age with mean 0 and male_flag is the binary value for ge
 Let's plot the period prevalence by month again and notice between the difference between the previous plot.
 
 ```{r, message= FALSE, warning=FALSE}
-db2<-generate_mock_incidence_prevalence_db(sample_size=500000,
+cdm_ref2 <- generate_mock_incidence_prevalence_db(sample_size=500000,
                                            out_pre=0.5,
                                            age_beta = 5,
                                            gender_beta = 2,
@@ -193,13 +188,12 @@ db2<-generate_mock_incidence_prevalence_db(sample_size=500000,
                                              as.Date("2016-01-01")
                                            )
 
-print(nrow(dplyr::tbl(db2, "person") %>% collect()))
-print(nrow(dplyr::tbl(db2, "outcome") %>% collect()))
+print(nrow(dplyr::tbl(attr(cdm_ref2, 'dbcon'), "person") %>% collect()))
+print(nrow(dplyr::tbl(attr(cdm_ref2, 'dbcon'), "outcome") %>% collect()))
 
-dpop2 <- collect_denominator_pops(db = db2,
-                                  cdm_database_schema = NULL,
-                                  study_start_date= as.Date("2008-01-01"),
-                                  study_end_date= as.Date("2016-01-01"),
+dpop2 <- collect_denominator_pops(cdm_ref = cdm_ref2,
+                                  study_start_date = as.Date("2008-01-01"),
+                                  study_end_date = as.Date("2016-01-01"),
                                   study_age_stratas = list(c(0,39),
                                                            c(40,59),
                                                            c(60,150)),
@@ -207,8 +201,7 @@ dpop2 <- collect_denominator_pops(db = db2,
                                   study_days_prior_history = 0)
 
 prev2 <- collect_pop_prevalence(
-  db = db2,
-  results_schema_outcome = NULL,
+  cdm_ref = cdm_ref2,
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = unique(

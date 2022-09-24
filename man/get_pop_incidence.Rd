@@ -5,8 +5,7 @@
 \title{Get population incidence estimates}
 \usage{
 get_pop_incidence(
-  db,
-  results_schema_outcome,
+  cdm_ref,
   table_name_outcome,
   cohort_id_outcome = NULL,
   study_denominator_pop,
@@ -18,9 +17,7 @@ get_pop_incidence(
 )
 }
 \arguments{
-\item{db}{db}
-
-\item{results_schema_outcome}{results_schema_outcome}
+\item{cdm_ref}{CDMConnector CDM reference object}
 
 \item{table_name_outcome}{table_name_outcome}
 
@@ -37,6 +34,9 @@ get_pop_incidence(
 \item{repetitive_events}{repetitive_events}
 
 \item{verbose}{verbose}
+}
+\value{
+
 }
 \description{
 Get population incidence estimates

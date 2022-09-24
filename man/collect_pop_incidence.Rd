@@ -5,8 +5,7 @@
 \title{Collect population incidence estimates}
 \usage{
 collect_pop_incidence(
-  db,
-  results_schema_outcomes,
+  cdm_ref,
   table_name_outcomes,
   cohort_ids_outcomes,
   study_denominator_pop,
@@ -20,9 +19,7 @@ collect_pop_incidence(
 )
 }
 \arguments{
-\item{db}{Database connection via DBI::dbConnect()}
-
-\item{results_schema_outcomes}{Name of the schema which contains the outcome table}
+\item{cdm_ref}{CDMConnector CDM reference object}
 
 \item{table_name_outcomes}{Name of the table with the outcome cohorts}
 
@@ -44,6 +41,9 @@ collect_pop_incidence(
 lower than this will be obscured. If NULL all results will be reported.}
 
 \item{verbose}{Whether to report progress}
+}
+\value{
+
 }
 \description{
 Collect population incidence estimates

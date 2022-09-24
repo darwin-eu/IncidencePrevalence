@@ -24,11 +24,23 @@ install.packages("remotes")
 remotes::install_github("darwin-eu/IncidencePrevalence")
 ```
 
-## Example
+When working with IncidencePrevalence, you will use CDMConnector to
+manage your connection to the database. If you don´t already have this
+installed then you can install it in the same way:
 
 ``` r
-library(DBI)
-library(RPostgres)
+remotes::install_github("darwin-eu/CDMConnector")
+```
+
+## Example
+
+First, we need to create a cdm_reference for the data we´ll be using.
+Here we´ll use generate an example one, but to see how you would set
+this up for your database please consult the CDMConnector documentation
+at <https://odyosg.github.io/CDMConnector/>
+
+``` r
+library(CDMConnector)
 library(IncidencePrevalence)
 #> Loading required package: lubridate
 #> 
@@ -37,92 +49,159 @@ library(IncidencePrevalence)
 #> 
 #>     date, intersect, setdiff, union
 
-db<-generate_mock_incidence_prevalence_db(sample_size=5000)
+# We first need to create a cdm_reference 
+cdm<-generate_mock_incidence_prevalence_db(sample_size=5000)
+# and this is what this example data looks like
+head(cdm$person)
+#> # Source:   SQL [6 x 5]
+#> # Database: DuckDB 0.5.0 [unknown@Linux 5.4.0-125-generic:R 4.1.2/:memory:]
+#>   person_id gender_concept_id year_of_birth month_of_birth day_of_birth
+#>   <chr>     <chr>                     <dbl>          <dbl>        <dbl>
+#> 1 1         8532                       1926              8            2
+#> 2 2         8507                       1961              5           16
+#> 3 3         8507                       1922             10           18
+#> 4 4         8507                       1985              2            2
+#> 5 5         8507                       1932              9           23
+#> 6 6         8532                       1960              9           25
+head(cdm$observation_period)
+#> # Source:   SQL [6 x 4]
+#> # Database: DuckDB 0.5.0 [unknown@Linux 5.4.0-125-generic:R 4.1.2/:memory:]
+#>   observation_period_id person_id observation_period_start_date observation_pe…¹
+#>   <chr>                 <chr>     <date>                        <date>          
+#> 1 1                     1         2013-12-18                    2014-12-30      
+#> 2 2                     2         2018-05-09                    2019-05-16      
+#> 3 3                     3         2006-05-07                    2007-02-02      
+#> 4 4                     4         2010-08-25                    2011-02-12      
+#> 5 5                     5         2006-09-08                    2007-02-11      
+#> 6 6                     6         2017-10-21                    2020-05-16      
+#> # … with abbreviated variable name ¹​observation_period_end_date
+head(cdm$outcome)
+#> # Source:   SQL [6 x 4]
+#> # Database: DuckDB 0.5.0 [unknown@Linux 5.4.0-125-generic:R 4.1.2/:memory:]
+#>   cohort_definition_id subject_id cohort_start_date cohort_end_date
+#>   <chr>                <chr>      <date>            <date>         
+#> 1 1                    1          2014-07-01        2014-07-09     
+#> 2 1                    2          2018-06-25        2018-07-03     
+#> 3 1                    3          2006-09-10        2006-09-18     
+#> 4 1                    4          2010-10-06        2010-10-14     
+#> 5 1                    5          2006-09-16        2006-09-24     
+#> 6 1                    6          2019-06-08        2019-06-16
+```
 
-# where the tables with patient data
-# in the format of the OMOP common data model 
-# are in a schema called ´cdm´ 
+To identify our denominator population we can use the
+`collect_denominator_pops` function. Here for example, we want to
+identify a denominator population for a study period between 2008 and
+2018. To note, other options ave available when defining this population
+which are summarised in the package vignettes.
+
+``` r
 dpop <- collect_denominator_pops(
-  db = db,
-  cdm_database_schema = NULL
+  cdm_ref = cdm,
+  study_start_date = as.Date("2008-01-01"),
+  study_end_date = as.Date("2018-01-01")
 )
+# this is what the data looks like
+head(dpop$denominator_population)
+#> # A tibble: 6 × 4
+#>   cohort_definition_id person_id cohort_start_date cohort_end_date
+#>   <chr>                <chr>     <date>            <date>         
+#> 1 1                    1         2013-12-18        2014-12-30     
+#> 2 1                    100       2016-07-23        2018-01-01     
+#> 3 1                    1000      2008-08-26        2010-11-03     
+#> 4 1                    1001      2013-06-23        2014-06-08     
+#> 5 1                    1002      2008-01-01        2010-03-18     
+#> 6 1                    1003      2012-01-16        2012-01-28
+head(dpop$attrition)
+#> # A tibble: 6 × 4
+#> # Groups:   reason [6]
+#>   cohort_definition_id current_n reason                                  exclu…¹
+#>   <chr>                    <dbl> <chr>                                     <dbl>
+#> 1 1                         5000 <NA>                                         NA
+#> 2 1                         5000 Missing year of birth                         0
+#> 3 1                         5000 Missing gender                                0
+#> 4 1                         5000 Doesn't satisfy the sex criteria              0
+#> 5 1                         3811 No observation time available during s…    1189
+#> 6 1                         3811 Doesn't satisfy age criteria during th…       0
+#> # … with abbreviated variable name ¹​excluded
+```
 
-denominator<-dpop$denominator_population
+Now we have identified our denominator population, we can calculate
+incidence, point prevalence, and period prevalence as below (given that
+our mock cdm_reference also has an outcome cohort defined). Again
+further details for each of these functions are provided in the
+vignettes.
 
+``` r
 # where the table with the outcome cohort is 
 # in a table called ´outcome´
 # schema called ´results´
-inc <- collect_pop_incidence(db,
-  results_schema_outcome = NULL,
+inc <- collect_pop_incidence(
+  cdm_ref = cdm,
   table_name_outcomes = "outcome",
-  study_denominator_pop = denominator,
+  study_denominator_pop = dpop$denominator_population,
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops="1"
 )
-
-prev <- collect_pop_prevalence(
-  db = db,
-  results_schema_outcome = NULL,
-  table_name_outcomes = "outcome",
-  study_denominator_pop = denominator,
-  cohort_ids_outcomes = "1",
-  cohort_ids_denominator_pops="1"
-)
+head(inc$incidence_estimates)
+#> # A tibble: 6 × 13
+#>   incidence_anal…¹ n_per…² perso…³ perso…⁴ n_eve…⁵ ir_10…⁶ ir_10…⁷ ir_10…⁸ time 
+#>   <chr>              <int>   <dbl>   <dbl>   <int>   <dbl>   <dbl>   <dbl> <chr>
+#> 1 1                    513   14427    39.5      33  83546.   0.554   1.14  2008…
+#> 2 1                    480   12892    35.3      30  84995.   0.550   1.18  2008…
+#> 3 1                    465   13012    35.6      22  61755.   0.365   0.901 2008…
+#> 4 1                    441   12352    33.8      28  82796.   0.526   1.16  2008…
+#> 5 1                    423   11782    32.3      34 105402.   0.704   1.44  2008…
+#> 6 1                    395   10564    28.9      29 100267.   0.643   1.40  2008…
+#> # … with 4 more variables: start_time <date>, end_time <date>,
+#> #   cohort_obscured <chr>, result_obscured <chr>, and abbreviated variable
+#> #   names ¹​incidence_analysis_id, ²​n_persons, ³​person_days, ⁴​person_years,
+#> #   ⁵​n_events, ⁶​ir_100000_pys, ⁷​ir_100000_pys_low, ⁸​ir_100000_pys_high
 ```
 
-## Results specification
+``` r
+prev_point <- collect_pop_point_prevalence(
+  cdm_ref = cdm,
+  table_name_outcomes = "outcome",
+  study_denominator_pop = dpop$denominator_population,
+  cohort_ids_outcomes = "1",
+  cohort_ids_denominator_pops="1",
+  time_intervals = "months"
+)
+head(prev_point$prevalence_estimates)
+#> # A tibble: 6 × 11
+#>   prevalen…¹ time  numer…² denom…³    prev prev_…⁴ prev_…⁵ start_time end_time
+#>   <chr>      <chr>   <int>   <int>   <dbl> <lgl>   <lgl>   <date>     <date>  
+#> 1 1          2008…       8     488  0.0164 NA      NA      2008-01-01 NA      
+#> 2 1          2008…       6     481  0.0125 NA      NA      2008-02-01 NA      
+#> 3 1          2008…      11     486  0.0226 NA      NA      2008-03-01 NA      
+#> 4 1          2008…      NA     492 NA      NA      NA      2008-04-01 NA      
+#> 5 1          2008…       7     488  0.0143 NA      NA      2008-05-01 NA      
+#> 6 1          2008…       7     475  0.0147 NA      NA      2008-06-01 NA      
+#> # … with 2 more variables: cohort_obscured <chr>, result_obscured <chr>, and
+#> #   abbreviated variable names ¹​prevalence_analysis_id, ²​numerator,
+#> #   ³​denominator, ⁴​prev_low, ⁵​prev_high
+```
 
-### From collect_pop_incidence
-
-Format: one row per time period per incidence analysis
-
-| Variable                    | Description                                                                                             |
-|-----------------------------|---------------------------------------------------------------------------------------------------------|
-| incidence_analysis_id       | ID identifying an incidence analysis                                                                    |
-| cohort_id_denominator_pop   | ID identifying the denominator population used in the incidence analysis                                |
-| cohort_id_outcome           | ID identifying the outcome population used in the incidence analysis                                    |
-| n_persons                   | Number of people contributing to the given time period                                                  |
-| person_days                 | Number of person days contributed in the given time period                                              |
-| person_years                | Number of person years contributed in the given time period                                             |
-| n_events                    | Number of events months occurring in the given time period                                              |
-| ir_100000_pys               | Incidence rate per 100,000 person-years                                                                 |
-| ir_100000_pys_low           | Lower bound of the 95% confidence interval for the incidence rate per 100,000 person-years              |
-| ir_100000_pys_high          | Upper bound of the 95% confidence interval for the incidence rate per 100,000 person-years              |
-| calendar_month              | The calendar month of the given time period (NA if period is in years)                                  |
-| calendar_year               | The calendar year of the given time period                                                              |
-| required_days_prior_history | The number of days that were required for the given analysis                                            |
-| age_strata                  | The age strata for the given analysis                                                                   |
-| sex_strata                  | The sex strata for the given analysis                                                                   |
-| outcome_washout_window      | The days required where an event was not seen prior to starting time at risk                            |
-| repetitive_events           | Whether follow up was censored at occurrence of first event (true) or not (false) in the given analysis |
-| time_interval               | The type of period being used in the given analysis (months or years)                                   |
-| confidence_interval         | The method for calculating the confidence interval in the given analysis                                |
-| minimum_cell_count          | Minimum number of people required for reporting                                                         |
-| cohort_obscured             | Indicates whether a cohort count has been obscured due to a count of less than minimum_cell_count       |
-| result_obscured             | Indicates whether result has been obscured due to a count of less than minimum_cell_count               |
-
-### From collect_pop_prevalence
-
-Format: one row per time period per prevalence analysis
-
-| Variable                          | Description                                                                                       |
-|-----------------------------------|---------------------------------------------------------------------------------------------------|
-| prevalence_analysis_id            | ID identifying an prevalence analysis                                                             |
-| cohort_id_denominator_pop         | ID identifying the denominator population used in the prevalence analysis                         |
-| cohort_id_outcome                 | ID identifying the outcome population used in the prevalence analysis                             |
-| numerator                         | Number of people in the numerator for calculating prevalence                                      |
-| denominator                       | Number of people in the denominator for calculating prevalence                                    |
-| prev                              | Estimate of prevalence                                                                            |
-| prev_low                          | Lower bound of the 95% confidence interval for the estimate of prevalence                         |
-| prev_high                         | Upper bound of the 95% confidence interval for the estimate of prevalence                         |
-| calendar_year                     | The calendar year of the given time period                                                        |
-| required_days_prior_history       | The number of days that were required for the given analysis                                      |
-| age_strata                        | The age strata for the given analysis                                                             |
-| sex_strata                        | The sex strata for the given analysis                                                             |
-| period                            | Type of period used for calculating prevalence (“point”, “month”, or “year”)                      |
-| time_interval                     | The type of period being used in the given analysis (months or years)                             |
-| confidence_interval               | The method for calculating the confidence interval in the given analysis                          |
-| minimum_representative_proportion | The proportion of time in the period required for an individual to contribute to the analysis     |
-| minimum_cell_count                | Minimum number of people required for reporting                                                   |
-| cohort_obscured                   | Indicates whether a cohort count has been obscured due to a count of less than minimum_cell_count |
-| result_obscured                   | Indicates whether result has been obscured due to a count of less than minimum_cell_count         |
+``` r
+prev_period <- collect_pop_period_prevalence(
+  cdm_ref = cdm,
+  table_name_outcomes = "outcome",
+  study_denominator_pop = dpop$denominator_population,
+  cohort_ids_outcomes = "1",
+  cohort_ids_denominator_pops="1",
+  time_intervals = "months"
+)
+head(prev_period$prevalence_estimates)
+#> # A tibble: 6 × 11
+#>   prevalenc…¹ time  numer…² denom…³   prev prev_…⁴ prev_…⁵ start_time end_time  
+#>   <chr>       <chr>   <int>   <int>  <dbl> <lgl>   <lgl>   <date>     <date>    
+#> 1 1           2008…      35     479 0.0731 NA      NA      2008-01-01 2008-01-31
+#> 2 1           2008…      35     485 0.0722 NA      NA      2008-02-01 2008-02-29
+#> 3 1           2008…      30     482 0.0622 NA      NA      2008-03-01 2008-03-31
+#> 4 1           2008…      31     497 0.0624 NA      NA      2008-04-01 2008-04-30
+#> 5 1           2008…      39     483 0.0807 NA      NA      2008-05-01 2008-05-31
+#> 6 1           2008…      34     465 0.0731 NA      NA      2008-06-01 2008-06-30
+#> # … with 2 more variables: cohort_obscured <chr>, result_obscured <chr>, and
+#> #   abbreviated variable names ¹​prevalence_analysis_id, ²​numerator,
+#> #   ³​denominator, ⁴​prev_low, ⁵​prev_high
+```

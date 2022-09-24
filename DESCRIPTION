@@ -22,6 +22,7 @@ Suggests:
     RPostgres,
     tibble,
     ggplot2,
+    scales,
     duckdb,
     here,
     testthat (>= 3.0.0)
@@ -35,7 +36,9 @@ Imports:
     magrittr,
     rlang,
     purrr,
-    tidyr
+    tidyr,
+    CDMConnector
+Remotes:  OdyOSG/CDMConnector
 Depends:
     lubridate
 VignetteBuilder: knitr

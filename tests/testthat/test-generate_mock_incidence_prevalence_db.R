@@ -1,12 +1,12 @@
 test_that("check working example with defaults", {
   db<-generate_mock_incidence_prevalence_db()
 
-  db_inherits_check <- inherits(db, "DBIConnection")
+  db_inherits_check <- inherits(db, "cdm_reference")
   expect_true(db_inherits_check)
 
-  expect_true(nrow(dplyr::tbl(db, "person") %>%
+  expect_true(nrow(db$person %>%
                      dplyr::collect())>=1)
-  expect_true(nrow(dplyr::tbl(db, "observation_period") %>%
+  expect_true(nrow(db$observation_period %>%
                      dplyr::collect())>=1)
 
 
@@ -15,7 +15,7 @@ test_that("check working example with defaults", {
     "month_of_birth", "day_of_birth"
   )
   person_db_names_check <- all(person_db_names %in%
-                                 names(dplyr::tbl(db, "person") %>%
+                                 names(db$person %>%
                                          utils::head(1) %>%
                                          dplyr::collect() %>%
                                          dplyr::rename_with(tolower)))
@@ -26,13 +26,13 @@ test_that("check working example with defaults", {
     "observation_period_start_date", "observation_period_end_date"
   )
   obs_period_db_names_check <- all(obs_period_db_names %in%
-                                     names(dplyr::tbl(db, "observation_period") %>%
+                                     names(db$observation_period %>%
                                              utils::head(1) %>%
                                              dplyr::collect() %>%
                                              dplyr::rename_with(tolower)))
   expect_true(obs_period_db_names_check)
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("check working example with outcome table", {
@@ -49,7 +49,7 @@ test_that("check working example with outcome table", {
 
   db<-generate_mock_incidence_prevalence_db(outcome=outcome)
 
-  expect_true(nrow(dplyr::tbl(db, "outcome") %>%
+  expect_true(nrow(db$outcome %>%
                      dplyr::collect())==1)
 
   outcome_db_names <- c(
@@ -57,22 +57,22 @@ test_that("check working example with outcome table", {
     "cohort_start_date", "cohort_end_date"
   )
   outcome_db_names_check <- all(outcome_db_names %in%
-                                  names(dplyr::tbl(db, "outcome") %>%
+                                  names(db$outcome %>%
                                           utils::head(1) %>%
                                           dplyr::collect() %>%
                                           dplyr::rename_with(tolower)))
   expect_true(outcome_db_names_check)
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("check working example sample size and outcome prevalence option", {
   db<-generate_mock_incidence_prevalence_db(sample_size = 100, out_pre = 0.2)
 
-  expect_true(nrow(dplyr::tbl(db, "person") %>%
+  expect_true(nrow(db$person %>%
                      dplyr::collect())==100)
 
-  expect_true(nrow(dplyr::tbl(db, "outcome") %>%
+  expect_true(nrow(db$outcome %>%
                      dplyr::collect())==20)
 
   outcome_db_names <- c(
@@ -80,13 +80,13 @@ test_that("check working example sample size and outcome prevalence option", {
     "cohort_start_date", "cohort_end_date"
   )
   outcome_db_names_check <- all(outcome_db_names %in%
-                                  names(dplyr::tbl(db, "outcome") %>%
+                                  names(db$outcome %>%
                                           utils::head(1) %>%
                                           dplyr::collect() %>%
                                           dplyr::rename_with(tolower)))
   expect_true(outcome_db_names_check)
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("check working example sample size and outcome varies by gender and age option", {
@@ -94,16 +94,16 @@ test_that("check working example sample size and outcome varies by gender and ag
 
   db2<-generate_mock_incidence_prevalence_db(sample_size = 100, out_pre = 0.2, gender_beta = -1, age_beta = 1)
 
-  expect_true(nrow(dplyr::tbl(db, "person") %>%
+  expect_true(nrow(db$person %>%
                      dplyr::collect())==100)
 
-  expect_true(nrow(dplyr::tbl(db2, "person") %>%
+  expect_true(nrow(db2$person %>%
                      dplyr::collect())==100)
 
-  expect_true(nrow(dplyr::tbl(db, "outcome") %>%
+  expect_true(nrow(db$outcome %>%
                      dplyr::collect())!=20)
 
-  expect_true(nrow(dplyr::tbl(db2, "outcome") %>%
+  expect_true(nrow(db2$outcome %>%
                      dplyr::collect())==20)
 
 
@@ -112,14 +112,13 @@ test_that("check working example sample size and outcome varies by gender and ag
     "cohort_start_date", "cohort_end_date"
   )
   outcome_db_names_check <- all(outcome_db_names %in%
-                                  names(dplyr::tbl(db, "outcome") %>%
+                                  names(db$outcome %>%
                                           utils::head(1) %>%
                                           dplyr::collect() %>%
                                           dplyr::rename_with(tolower)))
   expect_true(outcome_db_names_check)
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
-
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("check working example for multiple outcome options", {
@@ -149,40 +148,40 @@ test_that("check working example for multiple outcome options", {
       max_outcomes_per_person = 10
     )
 
-  expect_true(nrow(dplyr::tbl(db, "outcome") %>%
+  expect_true(nrow(db$outcome %>%
                      dplyr::collect()) == 40)
 
-  expect_true(nrow(dplyr::tbl(db2, "outcome") %>%
-                     dplyr::collect()) > nrow(dplyr::tbl(db, "outcome") %>%
+  expect_true(nrow(db2$outcome %>%
+                     dplyr::collect()) > nrow(db$outcome %>%
                                                 dplyr::collect()))
 
-  expect_true(nrow(dplyr::tbl(db3, "outcome") %>%
-                     dplyr::collect()) > nrow(dplyr::tbl(db2, "outcome") %>%
+  expect_true(nrow(db3$outcome %>%
+                     dplyr::collect()) > nrow(db2$outcome %>%
                                                 dplyr::collect()))
 
   expect_true(
     nrow(
-      dplyr::tbl(db, "outcome") %>% dplyr::distinct(subject_id) %>% dplyr::collect()
+      db$outcome %>% dplyr::distinct(subject_id) %>% dplyr::collect()
     ) ==
       nrow(
-        dplyr::tbl(db2, "outcome") %>% dplyr::distinct(subject_id) %>% dplyr::collect()
+        db2$outcome %>% dplyr::distinct(subject_id) %>% dplyr::collect()
       )
   )
 
   expect_true(
     nrow(
-      dplyr::tbl(db2, "outcome") %>% dplyr::distinct(subject_id) %>% dplyr::collect()
+      db2$outcome %>% dplyr::distinct(subject_id) %>% dplyr::collect()
     ) ==
       nrow(
-        dplyr::tbl(db3, "outcome") %>% dplyr::distinct(subject_id) %>% dplyr::collect()
+        db3$outcome %>% dplyr::distinct(subject_id) %>% dplyr::collect()
       )
   )
 
 
   #checking cohort_start_date of 2nd outcome comes after 1st outcome end date
   expect_true(
-    dplyr::tbl(db4, "outcome") %>% dplyr::filter(row_number() == 1) %>% dplyr::select(cohort_end_date) %>% dplyr::collect() <
-      dplyr::tbl(db4, "outcome") %>% dplyr::filter(row_number() == 2) %>% dplyr::select(cohort_start_date) %>% dplyr::collect()
+    db4$outcome %>% dplyr::filter(row_number() == 1) %>% dplyr::select(cohort_end_date) %>% dplyr::collect() <
+      db4$outcome %>% dplyr::filter(row_number() == 2) %>% dplyr::select(cohort_start_date) %>% dplyr::collect()
   )
 
 
@@ -192,16 +191,13 @@ test_that("check working example for multiple outcome options", {
     "cohort_start_date", "cohort_end_date"
   )
   outcome_db_names_check <- all(outcome_db_names %in%
-                                  names(dplyr::tbl(db, "outcome") %>%
+                                  names(db$outcome %>%
                                           utils::head(1) %>%
                                           dplyr::collect() %>%
                                           dplyr::rename_with(tolower)))
   expect_true(outcome_db_names_check)
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
-
-
-
+  DBI::dbDisconnect(attr(db, "dbcon"), shutdown=TRUE)
 })
 
 test_that("check expected errors", {
@@ -231,6 +227,4 @@ test_that("check expected errors", {
       min_days_to_observation_end = 10,
       max_days_to_observation_end = 1
     ))
-
-
 })

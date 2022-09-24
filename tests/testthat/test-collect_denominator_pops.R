@@ -1,11 +1,8 @@
 
 test_that("mock db: check output format", {
-  db <- generate_mock_incidence_prevalence_db()
+  cdm_ref <- generate_mock_incidence_prevalence_db()
 
-  dpop <- collect_denominator_pops(
-    db = db,
-    cdm_database_schema = NULL
-  )
+  dpop <- collect_denominator_pops(cdm_ref = cdm_ref)
 
     expect_true(all(c(
       "cohort_definition_id",
@@ -25,7 +22,7 @@ test_that("mock db: check output format", {
     ) %in%
       names(dpop$denominator_settings)))
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
 
 })
 
@@ -44,50 +41,44 @@ test_that("mock db: checks on working example", {
     observation_period_end_date = as.Date("2012-06-01")
   )
 
-  db <- generate_mock_incidence_prevalence_db(person=person,
-                                              observation_period=observation_period)
+  cdm_ref <- generate_mock_incidence_prevalence_db(person = person,
+                                              observation_period = observation_period)
   # some pops with people, but some without
-  dpops <- collect_denominator_pops(db,
-    cdm_database_schema = NULL,
+  dpops <- collect_denominator_pops(cdm_ref,
     study_start_date = NULL,
     study_end_date = NULL,
     study_age_stratas = list(c(0, 59), c(60, 69)),
     study_sex_stratas = c("Female", "Male", "Both"),
     verbose = TRUE
   )
-  expect_true(nrow(dpops$denominator_populations)>=1)
+  expect_true(nrow(dpops$denominator_populations) >= 1)
 
   # all pops without anyone
-  expect_message(dpops <- collect_denominator_pops(db,
-    cdm_database_schema = NULL,
+  expect_message(dpops <- collect_denominator_pops(cdm_ref,
     study_start_date = NULL,
     study_end_date = NULL,
     study_age_stratas = list(c(50, 59), c(60, 69)),
     study_days_prior_history = c(0, 365)
   ))
-  expect_true(nrow(dpops$denominator_population)==0)
+  expect_true(nrow(dpops$denominator_population) == 0)
 
 
   # using cohort strata
   # add stratifying cohort
-  strata_cohort<-  tibble::tibble(
-    cohort_definition_id="1",
-    subject_id=c("1","2"),
-    cohort_start_date=as.Date("2010-03-15"),
-    cohort_end_date=as.Date("2012-03-15")
+  strata <- tibble::tibble(
+    cohort_definition_id = "1",
+    subject_id = c("1","2"),
+    cohort_start_date = as.Date("2010-03-15"),
+    cohort_end_date = as.Date("2012-03-15")
   )
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "strata_cohort",
-                      strata_cohort,
-                      overwrite = TRUE
-    )})
+  cdm_ref <- generate_mock_incidence_prevalence_db(person = person,
+                                                   observation_period = observation_period,
+                                                   strata = strata)
 
   # using strata cohort
   dpop <- get_denominator_pop(
-    db = db,
-    cdm_database_schema = NULL,
-    strata_schema =  NULL,
-    table_name_strata = "strata_cohort",
+    cdm_ref = cdm_ref,
+    table_name_strata = "strata",
     strata_cohort_id = "1"
   )
   expect_true(dpop$denominator_population$cohort_start_date ==
@@ -95,7 +86,7 @@ test_that("mock db: checks on working example", {
   expect_true(dpop$denominator_population$cohort_end_date ==
                 "2012-03-15")
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db check age strata entry and exit", {
@@ -112,47 +103,45 @@ test_that("mock db check age strata entry and exit", {
     observation_period_start_date = as.Date("2008-01-01"),
     observation_period_end_date = as.Date("2018-06-01")
   )
-  db <- generate_mock_incidence_prevalence_db(person=person,
-                                              observation_period=observation_period)
+  cdm_ref <- generate_mock_incidence_prevalence_db(person = person,
+                                              observation_period = observation_period)
 
   # if we have two age groups 1) 11 to 12, and 2) 13 to 14
   # we expect the person to be in the first cohort up
   # to the day before their 13th birthday
   # and in the second from their 13th birthday
   # up to the day before their 15th birthday
-dpops <- collect_denominator_pops(db = db,
-cdm_database_schema = NULL,
+dpops <- collect_denominator_pops(cdm_ref = cdm_ref,
 study_age_stratas = list(c(11, 12),
                          c(13,14))
 )
 expect_true(dpops$denominator_populations %>%
-  dplyr::filter(cohort_definition_id==1) %>%
+  dplyr::filter(cohort_definition_id == 1) %>%
   dplyr::select(cohort_start_date) %>%
   dplyr::pull() == as.Date("2011-01-01"))
 expect_true(dpops$denominator_populations %>%
-  dplyr::filter(cohort_definition_id==1) %>%
+  dplyr::filter(cohort_definition_id == 1) %>%
   dplyr::select(cohort_end_date) %>%
   dplyr::pull() == as.Date("2012-12-31"))
 expect_true(dpops$denominator_populations %>%
-  dplyr::filter(cohort_definition_id==2) %>%
+  dplyr::filter(cohort_definition_id == 2) %>%
   dplyr::select(cohort_start_date) %>%
   dplyr::pull() == as.Date("2013-01-01"))
 expect_true(dpops$denominator_populations %>%
-  dplyr::filter(cohort_definition_id==2) %>%
+  dplyr::filter(cohort_definition_id == 2) %>%
   dplyr::select(cohort_end_date) %>%
   dplyr::pull() == as.Date("2014-12-31"))
 
-  DBI::dbDisconnect(db, shutdown=TRUE)
+  DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: check expected errors", {
-  db <- generate_mock_incidence_prevalence_db()
+  cdm_ref <- generate_mock_incidence_prevalence_db()
 
 
 
-# not a dbi connection
-expect_error(collect_denominator_pops(db="a",
-                                      cdm_database_schema,
+# not a CDM reference
+expect_error(collect_denominator_pops(cdm_ref = "a",
                                       study_start_date = NULL,
                                       study_end_date = NULL,
                                       study_age_stratas = list(c(10, 15), c(16, 20)),
@@ -162,14 +151,13 @@ expect_error(collect_denominator_pops(db="a",
 
 
 # not an availabe study_sex_stratas
-expect_error(collect_denominator_pops(db,
-                                      cdm_database_schema = NULL,
+expect_error(collect_denominator_pops(cdm_ref,
                                       study_sex_stratas = "Men"
 ))
 
 
 
-DBI::dbDisconnect(db, shutdown=TRUE)
+DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
 
 })
 

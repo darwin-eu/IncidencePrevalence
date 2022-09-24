@@ -17,8 +17,7 @@
 
 #' Collect population incidence estimates
 #'
-#' @param db Database connection via DBI::dbConnect()
-#' @param results_schema_outcomes Name of the schema which contains the outcome table
+#' @param cdm_ref CDMConnector CDM reference object
 #' @param table_name_outcomes Name of the table with the outcome cohorts
 #' @param cohort_ids_outcomes Outcome cohort ids
 #' @param study_denominator_pop Tibble with denominator populations
@@ -35,8 +34,7 @@
 #' @export
 #'
 #' @examples
-collect_pop_incidence <- function(db,
-                                  results_schema_outcomes,
+collect_pop_incidence <- function(cdm_ref,
                                   table_name_outcomes,
                                   cohort_ids_outcomes,
                                   study_denominator_pop,
@@ -68,19 +66,13 @@ collect_pop_incidence <- function(db,
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
-  db_inherits_check <- inherits(db, "DBIConnection")
+  db_inherits_check <- inherits(cdm_ref, "cdm_reference")
   checkmate::assertTRUE(db_inherits_check,
     add = error_message
   )
   if (!isTRUE(db_inherits_check)) {
-    error_message$push(
-      "- db must be a database connection via DBI::dbConnect()"
-    )
+    "- cdm_ref must be a CDMConnector CDM reference object"
   }
-  checkmate::assert_character(results_schema_outcomes,
-    add = error_message,
-    null.ok = TRUE
-  )
   checkmate::assert_character(cohort_ids_outcomes,
     add = error_message,
     null.ok = TRUE
@@ -159,10 +151,8 @@ collect_pop_incidence <- function(db,
 
   # get irs
   irs_list <- lapply(study_specs, function(x) {
-
-    working_inc<- get_pop_incidence(
-      db = db,
-      results_schema_outcome = results_schema_outcomes,
+    working_inc <- get_pop_incidence(
+      cdm_ref = cdm_ref,
       table_name_outcome = table_name_outcomes,
       cohort_id_outcome = x$cohort_id_outcome,
       study_denominator_pop = study_denominator_pop,
@@ -174,11 +164,11 @@ collect_pop_incidence <- function(db,
     )
 
     working_inc_ir <- working_inc[["ir"]] %>%
-      dplyr::mutate(incidence_analysis_id=x$incidence_analysis_id)%>%
+      dplyr::mutate(incidence_analysis_id = x$incidence_analysis_id) %>%
       dplyr::relocate(.data$incidence_analysis_id)
 
     working_inc_person_table <- working_inc[["person_table"]] %>%
-      dplyr::mutate(incidence_analysis_id=x$incidence_analysis_id)%>%
+      dplyr::mutate(incidence_analysis_id = x$incidence_analysis_id) %>%
       dplyr::relocate(.data$incidence_analysis_id)
 
     working_inc_analysis_settings <- working_inc[["analysis_settings"]] %>%
@@ -189,17 +179,17 @@ collect_pop_incidence <- function(db,
       outcome_washout_window = x$outcome_washout_window,
       repetitive_events = x$repetitive_events,
       confidence_interval = .env$confidence_interval,
-      minimum_cell_count= .env$minimum_cell_count,
-      incidence_analysis_id=x$incidence_analysis_id
-    )%>%
+      minimum_cell_count = .env$minimum_cell_count,
+      incidence_analysis_id = x$incidence_analysis_id
+    ) %>%
       dplyr::relocate(.data$incidence_analysis_id)
 
 
     working_inc_attrition <- working_inc[["attrition"]] %>%
-      dplyr::mutate(incidence_analysis_id=x$incidence_analysis_id )%>%
+      dplyr::mutate(incidence_analysis_id = x$incidence_analysis_id ) %>%
       dplyr::relocate(.data$incidence_analysis_id)
 
-    result<-list()
+    result <- list()
     result[["ir"]] <- working_inc_ir
     result[["analysis_settings"]] <- working_inc_analysis_settings
     result[["person_table"]] <- working_inc_person_table
@@ -212,60 +202,60 @@ collect_pop_incidence <- function(db,
   irs_list <- purrr::flatten(irs_list)
 
   # analysis settings
-  analysis_settings<-irs_list[names(irs_list)=="analysis_settings"]
+  analysis_settings <- irs_list[names(irs_list) == "analysis_settings"]
   # to tibble
   analysis_settings <- dplyr::bind_rows(analysis_settings,
                           .id = NULL
   )
 
   # incidence estimates
-  irs<-irs_list[names(irs_list)=="ir"]
+  irs <- irs_list[names(irs_list) == "ir"]
   # to tibble
   irs <- dplyr::bind_rows(irs,
     .id = NULL
   )
 
   # get confidence intervals
-  if(confidence_interval != "none"){
-    irs <-get_confidence_intervals(irs, confidence_interval)
+  if (confidence_interval != "none") {
+    irs <- get_confidence_intervals(irs, confidence_interval)
   } else {
     irs <- irs %>%
-      dplyr::mutate(ir_100000_pys_low=NA) %>%
-      dplyr::mutate(ir_100000_pys_high=NA)%>%
+      dplyr::mutate(ir_100000_pys_low = NA) %>%
+      dplyr::mutate(ir_100000_pys_high = NA) %>%
       dplyr::relocate(.data$ir_100000_pys_low, .after = .data$ir_100000_pys) %>%
       dplyr::relocate(.data$ir_100000_pys_high, .after = .data$ir_100000_pys_low)
   }
 
   # obscure counts
-  if(!is.null(minimum_cell_count)){
+  if (!is.null(minimum_cell_count)) {
   irs <- obscure_counts(irs, minimum_cell_count = minimum_cell_count, substitute = NA)
   } else {
     # no results obscured due to a low count
     irs <- irs %>%
-      dplyr::mutate(cohort_obscured="FALSE") %>%
-      dplyr::mutate(result_obscured="FALSE")
+      dplyr::mutate(cohort_obscured = "FALSE") %>%
+      dplyr::mutate(result_obscured = "FALSE")
   }
 
   # person_table summary
-  person_table<-irs_list[names(irs_list)=="person_table"]
+  person_table <- irs_list[names(irs_list) == "person_table"]
   # to tibble
   person_table <- dplyr::bind_rows(person_table,
                                    .id = NULL
   )
 
   # attrition summary
-  attrition<-irs_list[names(irs_list)=="attrition"]
+  attrition <- irs_list[names(irs_list) == "attrition"]
   # to tibble
   attrition <- dplyr::bind_rows(attrition,
                           .id = NULL
   )
 
   # results to return as a list
-  results<-list()
-  results[["incidence_estimates"]]<-irs
-  results[["analysis_settings"]]<-analysis_settings
-  results[["person_table"]]<-person_table
-  results[["attrition"]]<-attrition
+  results <- list()
+  results[["incidence_estimates"]] <- irs
+  results[["analysis_settings"]] <- analysis_settings
+  results[["person_table"]] <- person_table
+  results[["attrition"]] <- attrition
 
   return(results)
 }

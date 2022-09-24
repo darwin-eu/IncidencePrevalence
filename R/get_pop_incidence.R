@@ -22,45 +22,45 @@
 compute_study_days_inc <- function(start_date,
                                end_date,
                                time_interval) {
-  if (time_interval == "weeks"){
+  if (time_interval == "weeks") {
     week_correction <- lubridate::days(1)
   } else {
     week_correction <- lubridate::days(0)
   }
-  if (time_interval == "days"){
-    study_days<-dplyr::tibble(start_time=seq.Date(from=start_date,
-                                                  to=end_date,
-                                                  by="days")) %>%
-      dplyr::mutate(day=lubridate::day(.data$start_time)) %>%
-      dplyr::mutate(month=lubridate::month(.data$start_time)) %>%
-      dplyr::mutate(year=lubridate::year(.data$start_time)) %>%
-      dplyr::mutate(time=dplyr::if_else(.data$month < 10,
+  if (time_interval == "days") {
+    study_days <- dplyr::tibble(start_time = seq.Date(from = start_date,
+                                                  to = end_date,
+                                                  by = "days")) %>%
+      dplyr::mutate(day = lubridate::day(.data$start_time)) %>%
+      dplyr::mutate(month = lubridate::month(.data$start_time)) %>%
+      dplyr::mutate(year = lubridate::year(.data$start_time)) %>%
+      dplyr::mutate(time = dplyr::if_else(.data$month < 10,
                                         paste0(.data$year,"_0",.data$month),
                                         paste0(.data$year,"_",.data$month))) %>%
-      dplyr::mutate(time=dplyr::if_else(.data$day < 10,
+      dplyr::mutate(time = dplyr::if_else(.data$day < 10,
                                         paste0(.data$time,"_0",.data$day),
                                         paste0(.data$time,"_",.data$day))) %>%
       dplyr::mutate(end_time = .data$start_time) %>%
       dplyr::select("time","start_time","end_time")
   } else {
-    study_days <- dplyr::tibble(dates=seq.Date(from=start_date,
-                                               to=end_date,
-                                               by="days")) %>%
-      dplyr::mutate(isoweek=lubridate::isoweek(.data$dates)) %>%
-      dplyr::mutate(month=lubridate::month(.data$dates)) %>%
-      dplyr::mutate(quarter=quarters(.data$dates)) %>%
-      dplyr::mutate(year=lubridate::year(.data$dates)) %>%
-      dplyr::mutate(years=glue::glue("{year}"))%>%
-      dplyr::mutate(months=dplyr::if_else(.data$month < 10,
+    study_days <- dplyr::tibble(dates = seq.Date(from = start_date,
+                                               to = end_date,
+                                               by = "days")) %>%
+      dplyr::mutate(isoweek = lubridate::isoweek(.data$dates)) %>%
+      dplyr::mutate(month = lubridate::month(.data$dates)) %>%
+      dplyr::mutate(quarter = quarters(.data$dates)) %>%
+      dplyr::mutate(year = lubridate::year(.data$dates)) %>%
+      dplyr::mutate(years = glue::glue("{year}")) %>%
+      dplyr::mutate(months = dplyr::if_else(.data$month < 10,
                                           paste0(.data$year,"_0",.data$month),
                                           paste0(.data$year,"_",.data$month))) %>%
-      dplyr::mutate(quarters=glue::glue("{year}_{quarter}"))%>%
-      dplyr::mutate(year=dplyr::if_else(.data$month == 1 & .data$isoweek > 50,
+      dplyr::mutate(quarters = glue::glue("{year}_{quarter}")) %>%
+      dplyr::mutate(year = dplyr::if_else(.data$month == 1 & .data$isoweek > 50,
                                         .data$year - 1,
                                         .data$year)) %>%
-      dplyr::mutate(weeks=dplyr::if_else(.data$isoweek < 10,
+      dplyr::mutate(weeks = dplyr::if_else(.data$isoweek < 10,
                                          paste0(.data$year,"_0",.data$isoweek),
-                                         paste0(.data$year,"_",.data$isoweek)))%>%
+                                         paste0(.data$year,"_",.data$isoweek))) %>%
       dplyr::rename("time" = time_interval) %>%
       dplyr::mutate(time = as.character(.data$time)) %>%
       dplyr::group_by(.data$time) %>%
@@ -76,8 +76,7 @@ compute_study_days_inc <- function(start_date,
 
 #' Get population incidence estimates
 #'
-#' @param db db
-#' @param results_schema_outcome results_schema_outcome
+#' @param cdm_ref CDMConnector CDM reference object
 #' @param table_name_outcome table_name_outcome
 #' @param cohort_id_outcome cohort_id_outcome
 #' @param study_denominator_pop study_denominator_pop
@@ -92,8 +91,7 @@ compute_study_days_inc <- function(start_date,
 #' @export
 #'
 #' @examples
-get_pop_incidence <- function(db,
-                              results_schema_outcome,
+get_pop_incidence <- function(cdm_ref,
                               table_name_outcome,
                               cohort_id_outcome = NULL,
                               study_denominator_pop,
@@ -122,19 +120,15 @@ get_pop_incidence <- function(db,
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
-  db_inherits_check <- inherits(db, "DBIConnection")
+  db_inherits_check <- inherits(cdm_ref, "cdm_reference")
   checkmate::assertTRUE(db_inherits_check,
     add = error_message
   )
   if (!isTRUE(db_inherits_check)) {
     error_message$push(
-      "- db must be a database connection via DBI::dbConnect()"
+      "- cdm_ref must be a CDMConnector CDM reference object"
     )
   }
-  checkmate::assert_character(results_schema_outcome,
-    add = error_message,
-    null.ok = TRUE
-  )
   checkmate::assert_character(cohort_id_outcome,
     add = error_message,
     null.ok = TRUE
@@ -188,7 +182,6 @@ get_pop_incidence <- function(db,
     message("Inputs checked and all initial assertions passed")
   }
 
-
   ## Analysis code
   # bring in study population
   study_pop <- study_denominator_pop
@@ -217,15 +210,8 @@ get_pop_incidence <- function(db,
   }
 
 
-  # link to outcome cohort
-  if (!is.null(results_schema_outcome)) {
-    outcome_db <- dplyr::tbl(db, dplyr::sql(glue::glue(
-      "SELECT * FROM {results_schema_outcome}.{table_name_outcome}"
-    )))
-  } else {
-    outcome_db <- dplyr::tbl(db, "outcome")
-  }
-  error_message <- checkmate::makeAssertCollection()
+  #  link to outcome cohort
+  outcome_db <- cdm_ref[[table_name_outcome]]
   if (!is.null(cohort_id_outcome)) {
     outcome_db <- outcome_db %>%
       dplyr::filter(.data$cohort_definition_id == .env$cohort_id_outcome) %>%
@@ -235,10 +221,9 @@ get_pop_incidence <- function(db,
   checkmate::assertTRUE(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0,
     add = error_message
   )
-  if (!(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 1)) {
+  if (!(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0)) {
     error_message$push(
-      glue::glue("- Zero rows in {results_schema_outcome}.{table_name_outcome}
-                 for cohort_id_outcome={cohort_id_outcome}")
+      glue::glue("- Zero rows for cohort_id_outcome={cohort_id_outcome}")
     )
   }
   checkmate::reportAssertions(collection = error_message)
@@ -535,11 +520,11 @@ get_pop_incidence <- function(db,
     dplyr::select("person_id","cohort_start_date","cohort_end_date")
 
   # return list
-  results<-list()
-  results[["ir"]]<-ir
-  results[["analysis_settings"]]<-analysis_settings
-  results[["person_table"]]<-study_pop
-  results[["attrition"]]<-tibble::tibble(attrition="attrition") # placeholder
+  results <- list()
+  results[["ir"]] <- ir
+  results[["analysis_settings"]] <- analysis_settings
+  results[["person_table"]] <- study_pop
+  results[["attrition"]] <- tibble::tibble(attrition = "attrition") # placeholder
 
   return(results)
 }

@@ -17,9 +17,7 @@
 
 #' Collect population point prevalence estimates
 #'
-#' @param db Database connection via DBI::dbConnect()
-#' @param results_schema_outcomes Name of the schema which contains
-#' the outcome table
+#' @param cdm_ref CDMConnector CDM reference object
 #' @param table_name_outcomes Name of the table with the outcome cohorts
 #' @param cohort_ids_outcomes Outcome cohort ids
 #' @param study_denominator_pop Tibble with denominator populations
@@ -35,8 +33,7 @@
 #' @export
 #'
 #' @examples
-collect_pop_point_prevalence <- function(db,
-                                         results_schema_outcomes,
+collect_pop_point_prevalence <- function(cdm_ref,
                                          table_name_outcomes,
                                          cohort_ids_outcomes,
                                          study_denominator_pop,
@@ -55,9 +52,6 @@ collect_pop_point_prevalence <- function(db,
   if (is.numeric(cohort_ids_denominator_pops)) {
     cohort_ids_denominator_pops <- as.character(cohort_ids_denominator_pops)
   }
-  if (is.character(type)) {
-    type <- tolower(type)
-  }
   if (is.character(time_intervals)) {
     time_intervals <- tolower(time_intervals)
   }
@@ -70,19 +64,15 @@ collect_pop_point_prevalence <- function(db,
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
-  db_inherits_check <- inherits(db, "DBIConnection")
+  db_inherits_check <- inherits(cdm_ref, "cdm_reference")
   checkmate::assertTRUE(db_inherits_check,
-    add = error_message
+                        add = error_message
   )
   if (!isTRUE(db_inherits_check)) {
     error_message$push(
-      "- db must be a database connection via DBI::dbConnect()"
+      "- cdm_ref must be a CDMConnector CDM reference object"
     )
   }
-  checkmate::assert_character(results_schema_outcomes,
-    add = error_message,
-    null.ok = TRUE
-  )
   checkmate::assert_character(cohort_ids_outcomes,
     add = error_message,
     null.ok = TRUE
@@ -115,10 +105,6 @@ collect_pop_point_prevalence <- function(db,
   checkmate::assert_character(cohort_ids_denominator_pops,
     add = error_message,
     null.ok = TRUE
-  )
-  checkmate::assert_choice(type,
-    choices = c("point","period"),
-    add = error_message
   )
   checkmate::assertTRUE(all(time_intervals %in% c("days","weeks","months","quarters","years")),
     add = error_message
@@ -158,13 +144,12 @@ collect_pop_point_prevalence <- function(db,
   prs_list <- lapply(study_specs, function(x) {
 
     working_prev <- get_pop_prevalence(
-      db = db,
-      results_schema_outcome = results_schema_outcomes,
+      cdm_ref = cdm_ref,
       table_name_outcome = table_name_outcomes,
       cohort_id_outcome = x$cohort_id_outcome,
       study_denominator_pop = study_denominator_pop,
       cohort_id_denominator_pop = x$cohort_id_denominator_pop,
-      type = type,
+      type = "point",
       time_interval = x$time_interval,
       full_period_required = TRUE, # change to null in next version
       point = x$point,
@@ -180,7 +165,7 @@ collect_pop_point_prevalence <- function(db,
       dplyr::mutate(
         cohort_id_outcome = x$cohort_id_outcome,
         cohort_id_denominator_pop = x$cohort_id_denominator_pop,
-        type = type,
+        type = "point",
         time_interval = x$time_interval,
         point = x$point,
         confidence_interval = confidence_interval,
