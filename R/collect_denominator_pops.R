@@ -41,6 +41,7 @@
 #'
 #' @examples
 collect_denominator_pops <- function(cdm_ref,
+                                     dialect="postgresql",
                                      study_start_date = NULL,
                                      study_end_date = NULL,
                                      study_age_stratas = NULL,
@@ -226,6 +227,7 @@ collect_denominator_pops <- function(cdm_ref,
   }
   dpop <- get_denominator_pop(
     cdm_ref = cdm_ref,
+    dialect=dialect,
     start_date = unique(pop_specs$study_start_date),
     end_date = unique(pop_specs$study_end_date),
     min_age = unique(pop_specs$min_age),

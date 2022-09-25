@@ -37,6 +37,7 @@
 #'
 #' @examples
 get_denominator_pop <- function(cdm_ref,
+                                dialect,
                                 start_date,
                                 end_date,
                                 min_age,
@@ -197,37 +198,47 @@ get_denominator_pop <- function(cdm_ref,
     # for each min age, add the date at which they reach it
     for(i in 1:length(min_age)){
       working_min <- min_age[[i]]
-      study_pop_db <- study_pop_db %>%
-        dplyr::mutate(
-          "date_min_age_{{working_min}}" :=
-              .data$dob +
-            lubridate::years(.env$working_min)
-        )
+      variable_name<-glue::glue("date_min_age_{working_min}")
+      sql_year_add<-sql_add_years(dialect=dialect,
+                                  years_to_add=working_min,
+                                  variable="dob")
+      study_pop_db<-study_pop_db %>%
+        dplyr::mutate("date_min_age_{{working_min}}" :=
+                        dplyr::sql(sql_year_add))
     }
     # for each max age, add the date at which they reach it
     # the day before their next birthday
     for(i in 1:length(max_age)){
       working_max <- max_age[[i]]
       working_max_plus_one <- max_age[[i]] + 1
-      study_pop_db <- study_pop_db %>%
-        dplyr::mutate(
-          "date_max_age_{{working_max}}" :=
-          (.data$dob +
-            lubridate::years((.env$working_max_plus_one))
-          ) - lubridate::days(1)
-        )
+      variable_name<-glue::glue("date_max_age_{working_max}")
+      sql_year_add<-sql_add_years(dialect=dialect,
+                   years_to_add=working_max_plus_one,
+                   variable="dob")
+      sql_minus_day<-sql_add_days(dialect=dialect,
+                                 days_to_add=-1,
+                                 variable=variable_name)
+
+      study_pop_db<-study_pop_db %>%
+        dplyr::mutate("date_max_age_{{working_max}}" :=
+                 dplyr::sql(sql_year_add)) %>%
+        dplyr::mutate("date_max_age_{{working_max}}" :=
+                        as.Date(dbplyr::sql(sql_minus_day)))
     }
     # for each prior_history requirement,
     # add the date at which they reach
     # observation start date + prior_history requirement
     for(i in 1:length(days_prior_history)){
       working_days_prior_history <- days_prior_history[[i]]
+      variable_name<-glue::glue("date_with_prior_history_{working_days_prior_history}")
+      sql_add_day<-sql_add_days(dialect=dialect,
+                                  days_to_add=working_days_prior_history,
+                                  variable="observation_period_start_date")
+
       study_pop_db <- study_pop_db %>%
         dplyr::mutate(
           "date_with_prior_history_{{working_days_prior_history}}" :=
-          .data$observation_period_start_date +
-          lubridate::days(.env$working_days_prior_history)
-      )
+            dplyr::sql(sql_add_day))
     }
 
     # keep people only if
