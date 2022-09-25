@@ -50,7 +50,7 @@ collect_denominator_pops <- function(cdm_ref,
                                      strata_cohort_id = NULL,
                                      verbose = FALSE) {
   if (verbose == TRUE) {
-    start <- Sys.time()
+    start_collect <- Sys.time()
     message("Progress: Checking inputs")
   }
 
@@ -141,11 +141,29 @@ collect_denominator_pops <- function(cdm_ref,
   checkmate::assert_logical(verbose,
     add = error_message
   )
-  # report initial assertions
+  if (!is.null(table_name_strata)) {
+    strata_table_exists <- inherits(cdm_ref[[table_name_strata]], 'tbl_dbi')
+    checkmate::assertTRUE(strata_table_exists, add = error_message)
+    if (!isTRUE(strata_table_exists)) {
+      error_message$push(
+        "- table `strata` is not found"
+      )
+    }
+  }
   checkmate::reportAssertions(collection = error_message)
-
+  if (verbose == TRUE) {
+    message("Progress: All input checks passed")
+    duration <- abs(as.numeric(Sys.time() - start_collect, units = "secs"))
+    message(glue::glue(
+      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+    ))
+  }
 
   # add broadest possible age group if no age strata were given
+  if (verbose == TRUE) {
+    message("Progress: Prepare inputs for creating denominator populations")
+    start <- Sys.time()
+  }
   if (is.null(study_age_stratas)) {
     study_age_stratas <- list(c(0, 150))
   }
@@ -175,6 +193,7 @@ collect_denominator_pops <- function(cdm_ref,
   # summarise combinations of inputs in a tibble
   age_gr_df <- data.frame(do.call(rbind, study_age_stratas)) %>%
     dplyr::mutate(age_strata = paste0(.data$X1, ";", .data$X2))
+
   pop_specs <- tidyr::expand_grid(
     age_strata = age_gr_df$age_strata,
     sex_strata= .env$study_sex_stratas,
@@ -187,32 +206,48 @@ collect_denominator_pops <- function(cdm_ref,
       remove = FALSE
     ) %>%
     dplyr::mutate(min_age = as.numeric(.data$min_age)) %>%
-    dplyr::mutate(max_age = as.numeric(.data$max_age))
-
-  pop_specs <- pop_specs %>%
+    dplyr::mutate(max_age = as.numeric(.data$max_age)) %>%
     dplyr::mutate(cohort_definition_id = as.character(dplyr::row_number()))
+
+  if (verbose == TRUE) {
+    message("Progress: Inputs prepared for creating denominator populations")
+    duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
+    message(glue::glue(
+      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+    ))
+  }
+
 
   # get the overall contributing population (without stratification)
   # we need to the output the corresponding dates when getting the denominator
-  get_study_start_date<- unique(pop_specs$study_start_date)
-  get_study_end_date<- unique(pop_specs$study_end_date)
-  get_min_age <- unique(pop_specs$min_age)
-  get_max_age <- unique(pop_specs$max_age)
-  get_study_days_prior_history <- unique(pop_specs$study_days_prior_history)
-
+  if (verbose == TRUE) {
+    message("Progress: Run get_denominator_pop to get overall population")
+    start <- Sys.time()
+  }
   dpop <- get_denominator_pop(
     cdm_ref = cdm_ref,
-    start_date = get_study_start_date,
-    end_date = get_study_end_date,
-    min_age = get_min_age,
-    max_age = get_max_age,
-    days_prior_history = get_study_days_prior_history,
+    start_date = unique(pop_specs$study_start_date),
+    end_date = unique(pop_specs$study_end_date),
+    min_age = unique(pop_specs$min_age),
+    max_age = unique(pop_specs$max_age),
+    days_prior_history = unique(pop_specs$study_days_prior_history),
     table_name_strata = table_name_strata,
     strata_cohort_id = strata_cohort_id
   )
+  if (verbose == TRUE) {
+    message("Progress: Overall denominator population identified")
+    duration <- abs(as.numeric(Sys.time() - start_collect, units = "secs"))
+    message(glue::glue(
+      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+    ))
+  }
 
   # build each of the cohorts of interest
-  if(!is.null(dpop$denominator_population)){
+  if (verbose == TRUE) {
+    message("Progress: Create each denominator population of interest")
+    start <- Sys.time()
+  }
+  if(dpop$denominator_population %>% dplyr::count() %>% dplyr::pull()>0){
   study_pops<-list()
 
   for(i in 1:length(pop_specs$cohort_definition_id)){
@@ -225,11 +260,14 @@ collect_denominator_pops <- function(cdm_ref,
   }
 
   # cohort start
-  working_dpop$cohort_start_date <- working_dpop[[glue::glue(
-   "cohort_start_date_min_age_{pop_specs$min_age[[i]]}_prior_history_{pop_specs$study_days_prior_history[[i]]}")]]
+  working_dpop <- working_dpop %>%
+    dplyr::rename("cohort_start_date"=
+      glue::glue("cohort_start_date_min_age_{pop_specs$min_age[[i]]}_prior_history_{pop_specs$study_days_prior_history[[i]]}"))
   # cohort end
-  working_dpop$cohort_end_date <- working_dpop[[glue::glue(
-    "cohort_start_date_max_age_{pop_specs$max_age[[i]]}")]]
+  working_dpop <- working_dpop %>%
+    dplyr::rename(cohort_end_date=
+      glue::glue(
+    "cohort_end_date_max_age_{pop_specs$max_age[[i]]}"))
 
   working_dpop <- working_dpop %>%
      dplyr::select("person_id", "cohort_start_date", "cohort_end_date")
@@ -238,18 +276,21 @@ collect_denominator_pops <- function(cdm_ref,
     dplyr::filter(.data$cohort_start_date <=
       .data$cohort_end_date)
 
-  # order by id and start date
-  working_dpop <-  working_dpop[order(working_dpop$person_id,
-                                      working_dpop$cohort_start_date),]
-
-  study_pops[[i]] <-working_dpop %>%
-    dplyr::mutate(cohort_definition_id = pop_specs$cohort_definition_id[[i]]) %>%
+  study_pops[[i]] <- working_dpop %>%
+    dplyr::mutate(cohort_definition_id = local(pop_specs$cohort_definition_id[[i]])) %>%
     dplyr::relocate(.data$cohort_definition_id)
 
   }
-  study_pops<-dplyr::bind_rows(study_pops,
-                                      .id = NULL
-  )
+
+  study_pops <- Reduce(dplyr::union_all, study_pops)
+
+  }
+  if (verbose == TRUE) {
+    message("Progress: Each denominator population of interest created")
+    duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
+    message(glue::glue(
+      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+    ))
   }
 
   #
@@ -259,14 +300,14 @@ collect_denominator_pops <- function(cdm_ref,
   # attrition <- dplyr::bind_rows(attrition,
   #                               .id = NULL
   # )
-  if(is.null(dpop$denominator_population)) {
+  if(dpop$denominator_population %>% dplyr::count() %>% dplyr::pull()==0) {
     message("- No people found for any denominator population")
   }
 
   if (verbose == TRUE) {
-    duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
+    duration <- abs(as.numeric(Sys.time() - start_collect, units = "secs"))
     message(glue::glue(
-      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      "Overall time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
 
@@ -274,7 +315,7 @@ collect_denominator_pops <- function(cdm_ref,
 
   # results to return as a list
   results <- list()
-  if(!is.null(dpop$denominator_population)) {
+  if(dpop$denominator_population %>% dplyr::count() %>% dplyr::pull()>0) {
   results[["denominator_populations"]] <- study_pops
   } else {
     results[["denominator_populations"]] <- tibble::tibble()

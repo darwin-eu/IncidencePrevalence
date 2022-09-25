@@ -46,26 +46,13 @@ get_denominator_pop <- function(cdm_ref,
                                 strata_cohort_id) {
 
   # make sure names are lowercase
-  person_db <- dplyr::rename_with(cdm_ref$person, tolower) %>%
-    dplyr::compute()
+  person_db <- dplyr::rename_with(cdm_ref$person, tolower)
   observation_period_db <- dplyr::rename_with(
     cdm_ref$observation_period, tolower
-  ) %>%
-    dplyr::compute()
+  )
 
   # stratify population on cohort
   if (!is.null(table_name_strata)) {
-
-    error_message <- checkmate::makeAssertCollection()
-    strata_table_exists <- inherits(cdm_ref[[table_name_strata]], 'tbl_dbi')
-    checkmate::assertTRUE(strata_table_exists, add = error_message)
-    if (!isTRUE(strata_table_exists)) {
-      error_message$push(
-        "- table `strata` is not found"
-      )
-    }
-    checkmate::reportAssertions(collection = error_message)
-
     strata_db <- cdm_ref[[table_name_strata]] %>%
         dplyr::filter(.data$cohort_definition_id == .env$strata_cohort_id)
 
@@ -152,6 +139,22 @@ get_denominator_pop <- function(cdm_ref,
   #   create_attrition_tibble(study_pop_db, "Doesn't satisfy the sex criteria")
   # )
 
+
+  # add date of birth
+  # fill in missing day to start of month if only day missing,
+  # month (January) if only month missing,
+  # month (January) and day (to 1st of month) if both missing
+  # ie to impute to the centre of the period
+  study_pop_db <- study_pop_db %>%
+    dplyr::mutate(year_of_birth1=as.character(as.integer(year_of_birth))) %>%
+    dplyr::mutate(month_of_birth1=as.character(as.integer(dplyr::if_else(is.na(month_of_birth), "01" , month_of_birth)))) %>%
+    dplyr::mutate(day_of_birth1=as.character(as.integer(dplyr::if_else(is.na(day_of_birth), "01" , day_of_birth)))) %>%
+    dplyr::mutate(dob=as_date(paste0(year_of_birth1, "/",
+                              month_of_birth1, "/",
+                              day_of_birth1)
+    )) %>%
+    dplyr::select(!c("year_of_birth1", "month_of_birth1", "day_of_birth1"))
+
   # filter
   # on year for simplicity
   # add a year to either side to make sure we only drop people we don´t want
@@ -163,9 +166,9 @@ get_denominator_pop <- function(cdm_ref,
 
   study_pop_db <- study_pop_db %>%
     # drop people too old even at study start
-    dplyr::filter(.data$year_of_birth + .env$upper_age_limit >= .env$earliest_year) %>%
+    dplyr::filter(.data$dob + years(.env$upper_age_limit) >= .env$start_date) %>%
     # drop people too young even at study end
-    dplyr::filter(.data$year_of_birth + .env$lower_age_limit <= .env$last_year)
+    dplyr::filter(.data$dob + years(.env$lower_age_limit) <= .env$end_date)
 
   attrition <- dplyr::bind_rows(
     attrition,
@@ -185,47 +188,32 @@ get_denominator_pop <- function(cdm_ref,
   )
 
   ## bring in to memory and finalise population
-  study_pop <- study_pop_db %>%
-    dplyr::collect()
+  # study_pop <- study_pop_db %>%
+  #   dplyr::collect()
 
-  if (nrow(study_pop) > 0) {
+  if ((study_pop_db %>% dplyr::count() %>% dplyr::pull()) > 0) {
     # only if we have found people
-
-    # get date of birth
-    # fill in missing day to start of month if only day missing,
-    # month (January) if only month missing,
-    # month (January) and day (to 1st of month) if both missing
-    # ie to impute to the centre of the period
-    study_pop <- study_pop %>%
-      dplyr::mutate(dob = as.Date(paste(.data$year_of_birth,
-                                        dplyr::if_else(is.na(.data$month_of_birth), "01",
-                                                       as.character(as.numeric(.data$month_of_birth))),
-                                        dplyr::if_else(is.na(.data$day_of_birth), "01",
-                                                       as.character(as.numeric(.data$day_of_birth))),
-                                        sep = "/"), "%Y/%m/%d"))
 
     # for each min age, add the date at which they reach it
     for(i in 1:length(min_age)){
       working_min <- min_age[[i]]
-      study_pop <- study_pop %>%
+      study_pop_db <- study_pop_db %>%
         dplyr::mutate(
           "date_min_age_{{working_min}}" :=
-            lubridate::add_with_rollback(
-              .data$dob,
-              lubridate::years(.env$working_min)
-            )
+              .data$dob +
+            lubridate::years(.env$working_min)
         )
     }
     # for each max age, add the date at which they reach it
     # the day before their next birthday
     for(i in 1:length(max_age)){
       working_max <- max_age[[i]]
-      study_pop <- study_pop %>%
+      working_max_plus_one <- max_age[[i]] + 1
+      study_pop_db <- study_pop_db %>%
         dplyr::mutate(
           "date_max_age_{{working_max}}" :=
-          lubridate::add_with_rollback(
-            .data$dob,
-            lubridate::years((.env$working_max + 1))
+          (.data$dob +
+            lubridate::years((.env$working_max_plus_one))
           ) - lubridate::days(1)
         )
     }
@@ -234,7 +222,7 @@ get_denominator_pop <- function(cdm_ref,
     # observation start date + prior_history requirement
     for(i in 1:length(days_prior_history)){
       working_days_prior_history <- days_prior_history[[i]]
-      study_pop <- study_pop %>%
+      study_pop_db <- study_pop_db %>%
         dplyr::mutate(
           "date_with_prior_history_{{working_days_prior_history}}" :=
           .data$observation_period_start_date +
@@ -246,24 +234,24 @@ get_denominator_pop <- function(cdm_ref,
     # 1) they satisfy age criteria at some point in the study
     var_lower_age_limit <- glue::glue("date_min_age_{lower_age_limit}")
     var_upper_age_limit <- glue::glue("date_max_age_{upper_age_limit}")
-    study_pop <- study_pop %>%
+    study_pop_db <- study_pop_db %>%
       dplyr::filter(.data[[!!rlang::sym(var_lower_age_limit)]] <= .env$end_date) %>%
       dplyr::filter(.data[[!!rlang::sym(var_upper_age_limit)]] >= .env$start_date)
 
     attrition <- dplyr::bind_rows(
       attrition,
-      create_attrition_tibble(study_pop, "Doesn't satisfy age criteria during the study period")
+      create_attrition_tibble(study_pop_db, "Doesn't satisfy age criteria during the study period")
     )
 
     # 2) and they satisfy priory history criteria at some point in the study
     var_lower_prior_history <- glue::glue("date_with_prior_history_{min(days_prior_history)}")
-    study_pop <- study_pop %>%
+    study_pop_db <- study_pop_db %>%
       dplyr::filter(.data[[!!rlang::sym(var_lower_prior_history)]] <= .env$end_date) %>%
       dplyr::filter(.data[[!!rlang::sym(var_lower_prior_history)]] <= .data$observation_period_end_date)
 
     attrition <- dplyr::bind_rows(
       attrition,
-      create_attrition_tibble(study_pop, "Prior history requirement not fullfilled during study period")
+      create_attrition_tibble(study_pop_db, "Prior history requirement not fullfilled during study period")
     )
 
     ## Get cohort start and end dates
@@ -279,17 +267,18 @@ get_denominator_pop <- function(cdm_ref,
     for(j in 1:length(days_prior_history)){
       working_min <- min_age[[i]]
       working_history <- days_prior_history[[j]]
-      study_pop[[glue::glue("cohort_start_date_min_age_{working_min}_prior_history_{working_history}")
-                 ]] <- do.call(
-        `pmax`,
-        study_pop %>%
-          dplyr::mutate(study_start_date = .env$start_date) %>%
-          dplyr::select(
-            "study_start_date",
-            glue::glue("date_min_age_{working_min}"),
-            glue::glue("date_with_prior_history_{working_history}")
-          )
-      )
+      study_pop_db <- study_pop_db %>%
+        dplyr::mutate("last_of_min_age_{working_min}_prior_history_{working_history}" :=
+                 dplyr::if_else(!! rlang::sym(glue::glue("date_min_age_{working_min}")) <
+                                !! rlang::sym(glue::glue("date_with_prior_history_{working_history}")),
+                         !! rlang::sym(glue::glue("date_with_prior_history_{working_history}")),
+                         !! rlang::sym(glue::glue("date_min_age_{working_min}"))
+                 )) %>%
+        dplyr::mutate("cohort_start_date_min_age_{working_min}_prior_history_{working_history}" :=
+                 dplyr::if_else(!! rlang::sym(glue::glue("last_of_min_age_{working_min}_prior_history_{working_history}")) <.env$start_date,
+                         .env$start_date,
+                         !! rlang::sym(glue::glue("last_of_min_age_{working_min}_prior_history_{working_history}"))
+                 ))
     }}
 
 
@@ -300,17 +289,19 @@ get_denominator_pop <- function(cdm_ref,
     # (whichever comes first)
     for(i in 1:length(max_age)){
     working_max <- max_age[[i]]
-    study_pop[[glue::glue("cohort_start_date_max_age_{working_max}")]] <-
-        do.call(
-      `pmin`,
-      study_pop %>%
-        dplyr::mutate(study_end_date = .env$end_date) %>%
-        dplyr::select(
-          "study_end_date",
-          "observation_period_end_date",
-          glue::glue("date_max_age_{working_max}")
-        )
-    )
+
+    study_pop_db <- study_pop_db %>%
+      dplyr::mutate("first_of_max_age_{working_max}_obs_period" :=
+               dplyr::if_else(!! rlang::sym(glue::glue("date_max_age_{working_max}")) <
+                         .data$observation_period_end_date,
+                       !! rlang::sym(glue::glue("date_max_age_{working_max}")),
+                       .data$observation_period_end_date
+               )) %>%
+      dplyr::mutate("cohort_end_date_max_age_{working_max}" :=
+               dplyr::if_else(!! rlang::sym(glue::glue("first_of_max_age_{working_max}_obs_period")) <.env$end_date,
+                       !! rlang::sym(glue::glue("first_of_max_age_{working_max}_obs_period")),
+                       .env$end_date
+               ))
     }
 
     # # Exclude people who are eligible only after cohort_end_date
@@ -333,9 +324,8 @@ get_denominator_pop <- function(cdm_ref,
 
 
   }
-  if (nrow(study_pop) == 0) {
+  if ((study_pop_db %>% dplyr::count() %>% dplyr::pull()) == 0) {
     message("-- No people found for denominator population")
-    study_pop <- NULL
   }
 
 
@@ -358,7 +348,11 @@ get_denominator_pop <- function(cdm_ref,
 
     # return list
     dpop <-list()
-    dpop[["denominator_population"]] <- study_pop
+    if ((study_pop_db %>% dplyr::count() %>% dplyr::pull()) == 0) {
+      dpop[["denominator_population"]] <- tibble::tibble()
+    } else {
+      dpop[["denominator_population"]] <- study_pop_db
+    }
     dpop[["attrition"]] <- attrition
 
     return(dpop)

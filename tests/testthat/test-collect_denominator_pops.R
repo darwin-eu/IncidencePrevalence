@@ -10,7 +10,7 @@ test_that("mock db: check output format", {
       "cohort_start_date",
       "cohort_end_date"
     ) %in%
-      names(dpop$denominator_populations)))
+      names(dpop$denominator_populations %>% dplyr::collect())))
 
     expect_true(all(c(
       "age_strata","min_age","max_age",
@@ -23,25 +23,25 @@ test_that("mock db: check output format", {
       names(dpop$denominator_settings)))
 
     # variable names
-    expect_true(length(names(dpop$denominator_population)) == 4)
+    expect_true(length(names(dpop$denominator_population %>% dplyr::collect())) == 4)
     expect_true(all(c(
       "cohort_definition_id", "person_id",
       "cohort_start_date", "cohort_end_date"
     ) %in%
-      names(dpop$denominator_population)))
+      names(dpop$denominator_population %>% dplyr::collect())))
     # types
-    expect_true(class(dpop$denominator_population$cohort_definition_id) == "character")
-    expect_true(class(dpop$denominator_population$person_id) == "character")
-    expect_true(class(dpop$denominator_population$cohort_start_date) == "Date")
-    expect_true(class(dpop$denominator_population$cohort_end_date) == "Date")
-
-    # no missing values
-    testthat::expect_true(!is.null(dpop$denominator_population$person_id) &
-                            (sum(is.na(dpop$denominator_population$person_id)) == 0))
-    testthat::expect_true(!is.null(dpop$denominator_population$cohort_start_date) &
-                            (sum(is.na(dpop$denominator_population$cohort_start_date)) == 0))
-    testthat::expect_true(!is.null(dpop$denominator_population$cohort_end_date) &
-                            (sum(is.na(dpop$denominator_population$cohort_end_date)) == 0))
+    expect_true(class(dpop$denominator_population %>%
+                        dplyr::collect() %>% dplyr::select(cohort_definition_id) %>%
+                        dplyr::pull()) == "character")
+    expect_true(class(dpop$denominator_population %>%
+                        dplyr::collect() %>% dplyr::select(person_id) %>%
+                        dplyr::pull()) == "character")
+    expect_true(class(dpop$denominator_population %>%
+                        dplyr::collect() %>% dplyr::select(cohort_start_date) %>%
+                        dplyr::pull())== "Date")
+    expect_true(class(dpop$denominator_population %>%
+                        dplyr::collect() %>% dplyr::select(cohort_end_date) %>%
+                        dplyr::pull())== "Date")
 
     # check verbose
     expect_message(collect_denominator_pops(
@@ -79,7 +79,7 @@ test_that("mock db: checks on working example", {
                                     study_sex_stratas = c("Female", "Male", "Both"),
                                     verbose = TRUE
   )
-  expect_true(nrow(dpops$denominator_populations) >= 1)
+  expect_true(dpops$denominator_populations %>% dplyr::count() %>% dplyr::pull() >= 1)
 
   # all pops without anyone
   expect_message(dpops <- collect_denominator_pops(cdm_ref,
@@ -88,7 +88,7 @@ test_that("mock db: checks on working example", {
                                                    study_age_stratas = list(c(50, 59), c(60, 69)),
                                                    study_days_prior_history = c(0, 365)
   ))
-  expect_true(nrow(dpops$denominator_population) == 0)
+  expect_true(dpops$denominator_populations %>% dplyr::count() %>% dplyr::pull() == 0)
 
 
   # using cohort strata
@@ -109,9 +109,11 @@ test_that("mock db: checks on working example", {
     table_name_strata = "strata",
     strata_cohort_id = "1"
   )
-  expect_true(dpop$denominator_population$cohort_start_date ==
+  expect_true(dpop$denominator_population %>%
+                dplyr::select(cohort_start_date) %>% dplyr::pull() ==
                 "2010-03-15")
-  expect_true(dpop$denominator_population$cohort_end_date ==
+  expect_true(dpop$denominator_population %>%
+                dplyr::select(cohort_end_date) %>% dplyr::pull() ==
                 "2012-03-15")
 
   DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
