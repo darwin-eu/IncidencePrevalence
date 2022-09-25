@@ -173,8 +173,8 @@ get_denominator_pop <- function(cdm_ref,
                 variable="dob")
 
   study_pop_db <- study_pop_db %>%
-    dplyr::mutate(upper_age_check = sql_year_upper) %>%
-    dplyr::mutate(lower_age_check = sql_year_lower) %>%
+    dplyr::mutate(upper_age_check = dplyr::sql(sql_year_upper)) %>%
+    dplyr::mutate(lower_age_check = dplyr::sql(sql_year_lower)) %>%
     # drop people too old even at study start
     dplyr::filter(.data$upper_age_check >= .env$start_date) %>%
     # drop people too young even at study end
