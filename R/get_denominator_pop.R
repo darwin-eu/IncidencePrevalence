@@ -165,11 +165,20 @@ get_denominator_pop <- function(cdm_ref,
   lower_age_limit<-min(min_age)
   upper_age_limit<-max(max_age)
 
+  sql_year_lower<-sql_add_years(dialect=dialect,
+                                years_to_add=lower_age_limit,
+                                variable="dob")
+  sql_year_upper<-sql_add_years(dialect=dialect,
+                years_to_add=upper_age_limit,
+                variable="dob")
+
   study_pop_db <- study_pop_db %>%
+    dplyr::mutate(upper_age_check = sql_year_upper) %>%
+    dplyr::mutate(lower_age_check = sql_year_lower) %>%
     # drop people too old even at study start
-    dplyr::filter(.data$dob + years(.env$upper_age_limit) >= .env$start_date) %>%
+    dplyr::filter(.data$upper_age_check >= .env$start_date) %>%
     # drop people too young even at study end
-    dplyr::filter(.data$dob + years(.env$lower_age_limit) <= .env$end_date)
+    dplyr::filter(.data$lower_age_check <= .env$end_date)
 
   attrition <- dplyr::bind_rows(
     attrition,
