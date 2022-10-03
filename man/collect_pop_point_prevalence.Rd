@@ -6,10 +6,10 @@
 \usage{
 collect_pop_point_prevalence(
   cdm_ref,
+  table_name_denominator,
+  cohort_ids_denominator_pops,
   table_name_outcomes,
   cohort_ids_outcomes,
-  study_denominator_pop,
-  cohort_ids_denominator_pops,
   time_intervals = "months",
   points = "start",
   confidence_interval = "none",
@@ -20,13 +20,13 @@ collect_pop_point_prevalence(
 \arguments{
 \item{cdm_ref}{CDMConnector CDM reference object}
 
+\item{table_name_denominator}{table_name_denominator}
+
+\item{cohort_ids_denominator_pops}{Cohort ids of denominator populations}
+
 \item{table_name_outcomes}{Name of the table with the outcome cohorts}
 
 \item{cohort_ids_outcomes}{Outcome cohort ids}
-
-\item{study_denominator_pop}{Tibble with denominator populations}
-
-\item{cohort_ids_denominator_pops}{Cohort ids of denominator populations}
 
 \item{time_intervals}{Time intervals for prevalence estimates}
 

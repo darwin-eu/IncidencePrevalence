@@ -33,11 +33,11 @@
 #'
 #' @return
 #' @importFrom rlang .data
+#' @importFrom rlang ":="
 #' @export
 #'
 #' @examples
 get_denominator_pop <- function(cdm_ref,
-                                dialect,
                                 start_date,
                                 end_date,
                                 min_age,
@@ -60,14 +60,14 @@ get_denominator_pop <- function(cdm_ref,
     # drop anyone not in the strata cohort
     person_db <- person_db %>%
       dplyr::inner_join(strata_db %>%
-                          dplyr::rename("person_id" = "subject_id") %>%
+                        dplyr::rename("person_id"="subject_id") %>%
                           dplyr::select("person_id") %>%
                           dplyr::distinct(),
                 by = "person_id") %>%
       dplyr::compute()
     observation_period_db <- observation_period_db %>%
       dplyr::inner_join(strata_db %>%
-                          dplyr::rename("person_id" = "subject_id") %>%
+                          dplyr::rename("person_id"="subject_id") %>%
                           dplyr::select("person_id") %>%
                           dplyr::distinct(),
                         by = "person_id") %>%
@@ -78,8 +78,8 @@ get_denominator_pop <- function(cdm_ref,
   # update observation end date to match cohort end date
   # if cohort end date is before observation start date
    observation_period_db <- observation_period_db %>%
-      dplyr::inner_join(strata_db %>%
-                          dplyr::rename("person_id" = "subject_id") %>%
+     dplyr::inner_join(strata_db %>%
+                         dplyr::rename("person_id"="subject_id") %>%
                           dplyr::select("person_id",
                                         "cohort_start_date",
                                         "cohort_end_date"),
@@ -110,7 +110,7 @@ get_denominator_pop <- function(cdm_ref,
   ## Identifying population of interest
   # filtering on database side
   # drop anyone missing year_of_birth or gender_concept_id
-  attrition <- create_attrition_tibble(person_db, NA)
+  attrition <- create_attrition_tibble(person_db, id = "person_id" ,NA)
 
   study_pop_db <- person_db %>%
     dplyr::left_join(observation_period_db,
@@ -118,9 +118,9 @@ get_denominator_pop <- function(cdm_ref,
     ) %>%
     dplyr::filter(!is.na(.data$year_of_birth))
 
-  attrition <- attrition <- dplyr::bind_rows(
+  attrition <- dplyr::bind_rows(
     attrition,
-    create_attrition_tibble(study_pop_db, "Missing year of birth")
+    create_attrition_tibble(study_pop_db, id = "person_id", "Missing year of birth")
   )
 
   study_pop_db <- study_pop_db %>%
@@ -132,7 +132,7 @@ get_denominator_pop <- function(cdm_ref,
 
   attrition <- dplyr::bind_rows(
     attrition,
-    create_attrition_tibble(study_pop_db, "Missing sex")
+    create_attrition_tibble(study_pop_db, id = "person_id", "Missing sex")
   )
 
   # attrition <- dplyr::bind_rows(
@@ -147,12 +147,12 @@ get_denominator_pop <- function(cdm_ref,
   # month (January) and day (to 1st of month) if both missing
   # ie to impute to the centre of the period
   study_pop_db <- study_pop_db %>%
-    dplyr::mutate(year_of_birth1=as.character(as.integer(year_of_birth))) %>%
-    dplyr::mutate(month_of_birth1=as.character(as.integer(dplyr::if_else(is.na(month_of_birth), "01" , month_of_birth)))) %>%
-    dplyr::mutate(day_of_birth1=as.character(as.integer(dplyr::if_else(is.na(day_of_birth), "01" , day_of_birth)))) %>%
-    dplyr::mutate(dob=as_date(paste0(year_of_birth1, "/",
-                              month_of_birth1, "/",
-                              day_of_birth1)
+    dplyr::mutate(year_of_birth1=as.character(as.integer(.data$year_of_birth))) %>%
+    dplyr::mutate(month_of_birth1=as.character(as.integer(dplyr::if_else(is.na(.data$month_of_birth), "01" , .data$month_of_birth)))) %>%
+    dplyr::mutate(day_of_birth1=as.character(as.integer(dplyr::if_else(is.na(.data$day_of_birth), "01" , .data$day_of_birth)))) %>%
+    dplyr::mutate(dob=as.Date(paste0(.data$year_of_birth1, "/",
+                                     .data$month_of_birth1, "/",
+                                     .data$day_of_birth1)
     )) %>%
     dplyr::select(!c("year_of_birth1", "month_of_birth1", "day_of_birth1"))
 
@@ -165,10 +165,10 @@ get_denominator_pop <- function(cdm_ref,
   lower_age_limit<-min(min_age)
   upper_age_limit<-max(max_age)
 
-  sql_year_lower<-sql_add_years(dialect=dialect,
+  sql_year_lower<-sql_add_years(dialect=CDMConnector::dbms(attr(cdm_ref, "dbcon")),
                                 years_to_add=lower_age_limit,
                                 variable="dob")
-  sql_year_upper<-sql_add_years(dialect=dialect,
+  sql_year_upper<-sql_add_years(dialect=CDMConnector::dbms(attr(cdm_ref, "dbcon")),
                 years_to_add=upper_age_limit,
                 variable="dob")
 
@@ -182,7 +182,7 @@ get_denominator_pop <- function(cdm_ref,
 
   attrition <- dplyr::bind_rows(
     attrition,
-    create_attrition_tibble(study_pop_db, "Doesn't satisfy age criteria during the study period")
+    create_attrition_tibble(study_pop_db, id = "person_id", "Doesn't satisfy age criteria during the study period")
   )
 
   study_pop_db <- study_pop_db %>%
@@ -192,14 +192,12 @@ get_denominator_pop <- function(cdm_ref,
     dplyr::filter(.data$observation_period_end_date >= .env$start_date) %>%
     dplyr::compute()
 
-  attrition <- attrition <- dplyr::bind_rows(
+  attrition <- dplyr::bind_rows(
     attrition,
-    create_attrition_tibble(study_pop_db, "No observation time available during study period")
+    create_attrition_tibble(study_pop_db, id = "person_id", "No observation time available during study period")
   )
 
-  ## bring in to memory and finalise population
-  # study_pop <- study_pop_db %>%
-  #   dplyr::collect()
+  #finalise population
 
   if ((study_pop_db %>% dplyr::count() %>% dplyr::pull()) > 0) {
     # only if we have found people
@@ -208,7 +206,7 @@ get_denominator_pop <- function(cdm_ref,
     for(i in 1:length(min_age)){
       working_min <- min_age[[i]]
       variable_name<-glue::glue("date_min_age_{working_min}")
-      sql_year_add<-sql_add_years(dialect=dialect,
+      sql_year_add<-sql_add_years(dialect=CDMConnector::dbms(attr(cdm_ref, "dbcon")),
                                   years_to_add=working_min,
                                   variable="dob")
       study_pop_db<-study_pop_db %>%
@@ -221,10 +219,10 @@ get_denominator_pop <- function(cdm_ref,
       working_max <- max_age[[i]]
       working_max_plus_one <- max_age[[i]] + 1
       variable_name<-glue::glue("date_max_age_{working_max}")
-      sql_year_add<-sql_add_years(dialect=dialect,
+      sql_year_add<-sql_add_years(dialect=CDMConnector::dbms(attr(cdm_ref, "dbcon")),
                    years_to_add=working_max_plus_one,
                    variable="dob")
-      sql_minus_day<-sql_add_days(dialect=dialect,
+      sql_minus_day<-sql_add_days(dialect=CDMConnector::dbms(attr(cdm_ref, "dbcon")),
                                  days_to_add=-1,
                                  variable=variable_name)
 
@@ -240,7 +238,7 @@ get_denominator_pop <- function(cdm_ref,
     for(i in 1:length(days_prior_history)){
       working_days_prior_history <- days_prior_history[[i]]
       variable_name<-glue::glue("date_with_prior_history_{working_days_prior_history}")
-      sql_add_day<-sql_add_days(dialect=dialect,
+      sql_add_day<-sql_add_days(dialect=CDMConnector::dbms(attr(cdm_ref, "dbcon")),
                                   days_to_add=working_days_prior_history,
                                   variable="observation_period_start_date")
 
@@ -260,7 +258,7 @@ get_denominator_pop <- function(cdm_ref,
 
     attrition <- dplyr::bind_rows(
       attrition,
-      create_attrition_tibble(study_pop_db, "Doesn't satisfy age criteria during the study period")
+      create_attrition_tibble(study_pop_db, id = "person_id", "Doesn't satisfy age criteria during the study period")
     )
 
     # 2) and they satisfy priory history criteria at some point in the study
@@ -271,7 +269,7 @@ get_denominator_pop <- function(cdm_ref,
 
     attrition <- dplyr::bind_rows(
       attrition,
-      create_attrition_tibble(study_pop_db, "Prior history requirement not fullfilled during study period")
+      create_attrition_tibble(study_pop_db, id = "person_id", "Prior history requirement not fullfilled during study period")
     )
 
     ## Get cohort start and end dates
@@ -336,11 +334,13 @@ get_denominator_pop <- function(cdm_ref,
 
     # # variables to keep
     # study_pop <- study_pop %>%
-    #   dplyr::select("person_id", "cohort_start_date", "cohort_end_date",
+    #   dplyr::select("subject_id", "cohort_start_date", "cohort_end_date",
     #                 "sex")
+
+    # compute and
     # order by id and start date
-    # study_pop <-  study_pop[order(study_pop$person_id,
-    #                               study_pop$cohort_start_date),]
+    # study_pop_db<- study_pop_db %>%
+    #     # dplyr::compute()
 
 
   }
@@ -349,29 +349,31 @@ get_denominator_pop <- function(cdm_ref,
   }
 
 
-  # attrition
-  attrition <- attrition %>%
-    dplyr::mutate(excluded = dplyr::lag(.data$current_n) - .data$current_n)
-
-  # combine the two age exclusions
-  attrition <- attrition %>%
-    dplyr::select(!"excluded") %>%
-    dplyr::left_join(attrition %>%
-                       dplyr::group_by(.data$reason) %>%
-                       dplyr::summarise(excluded = sum(.data$excluded)),
-                     by = "reason") %>%
-    dplyr::mutate(seq = 1:length(.data$reason)) %>%
-    dplyr::group_by(.data$reason) %>%
-    dplyr::slice_tail() %>%
-    dplyr::arrange(.data$seq) %>%
-    dplyr::select(!"seq")
+  # # attrition
+  # attrition <- attrition %>%
+  #   dplyr::mutate(excluded = dplyr::lag(.data$current_n) - .data$current_n)
+  #
+  # # combine the two age exclusions
+  # attrition <- attrition %>%
+  #   dplyr::select(!"excluded") %>%
+  #   dplyr::left_join(attrition %>%
+  #                      dplyr::group_by(.data$reason) %>%
+  #                      dplyr::summarise(excluded = sum(.data$excluded)),
+  #                    by = "reason") %>%
+  #   dplyr::mutate(seq = 1:length(.data$reason)) %>%
+  #   dplyr::group_by(.data$reason) %>%
+  #   dplyr::slice_tail() %>%
+  #   dplyr::arrange(.data$seq) %>%
+  #   dplyr::select(!"seq")
 
     # return list
     dpop <-list()
     if ((study_pop_db %>% dplyr::count() %>% dplyr::pull()) == 0) {
       dpop[["denominator_population"]] <- tibble::tibble()
     } else {
-      dpop[["denominator_population"]] <- study_pop_db
+      dpop[["denominator_population"]] <- study_pop_db %>%
+        dplyr::compute()
+        # dplyr::arrange(.data$subject_id, .data$cohort_start_date)
     }
     dpop[["attrition"]] <- attrition
 
@@ -381,15 +383,16 @@ get_denominator_pop <- function(cdm_ref,
 #' Creates an attrition tibble
 #'
 #' @param db_table Database table that contains a person_id
+#' @param id id variable
 #' @param reason the reason for the attrition
 #' @return a tibble
-create_attrition_tibble <- function(db_table, reason = NULL) {
+create_attrition_tibble <- function(db_table, id="person_id", reason = NULL) {
   checkmate::assertTRUE("tbl" %in% class(db_table), na.ok = FALSE)
   checkmate::assert_character(reason, null.ok = TRUE)
 
   tibble::tibble(
     current_n = db_table %>%
-      dplyr::select("person_id") %>%
+      dplyr::select(.env$id) %>%
       dplyr::distinct() %>%
       dplyr::tally()  %>%
       dplyr::pull(),

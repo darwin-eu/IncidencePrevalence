@@ -85,21 +85,23 @@ dpop <- collect_denominator_pops(cdm_ref = cdm_ref,
                                  study_age_stratas = NULL,
                                  study_sex_stratas = "Both",
                                  study_days_prior_history = 0)
-dpop<-dpop$denominator_population 
 
-dpop %>%  
+cdm_ref$denominator <- dpop$denominator_population
+
+cdm_ref$denominator %>%  
   glimpse()
 ```
+
 
 Let´s first calculate incidence rates on a yearly basis, without allowing repetitive events
 ```{r, message= FALSE, warning=FALSE}
 inc <- collect_pop_incidence(
   cdm_ref = cdm_ref,
+  table_name_denominator = "denominator",
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = "1",
-  study_denominator_pop = dpop,
-  time_intervals = c("Years"),
+  time_interval = c("Years"),
   outcome_washout_windows = 0,
   repetitive_events = FALSE
 )
@@ -118,11 +120,11 @@ Now with a washout of all prior history while still not allowing repetitive even
 ```{r, message= FALSE, warning=FALSE}
 inc <- collect_pop_incidence(
   cdm_ref = cdm_ref,
+  table_name_denominator = "denominator",
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = "1",
-  study_denominator_pop = dpop,
-  time_intervals = c("Years"),
+  time_interval = c("Years"),
   outcome_washout_windows = NULL,
   repetitive_events = FALSE
 )
@@ -141,11 +143,11 @@ Now we´ll set the washout to 180 days while still not allowing repetitive event
 ```{r, message= FALSE, warning=FALSE}
 inc <- collect_pop_incidence(
   cdm_ref = cdm_ref,
+  table_name_denominator = "denominator",
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = "1",
-  study_denominator_pop = dpop,
-  time_intervals = c("Years"),
+  time_interval = c("Years"),
   outcome_washout_windows = 180,
   repetitive_events = FALSE
 )
@@ -164,11 +166,11 @@ And finally we´ll set the washout to 180 days and allow repetitve events
 ```{r, message= FALSE, warning=FALSE}
 inc <- collect_pop_incidence(
   cdm_ref = cdm_ref,
+  table_name_denominator = "denominator",
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops = "1",
-  study_denominator_pop = dpop,
-  time_intervals = c("Years"),
+  time_interval = c("Years"),
   outcome_washout_windows = 180,
   repetitive_events = TRUE
 )

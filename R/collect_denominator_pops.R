@@ -41,7 +41,6 @@
 #'
 #' @examples
 collect_denominator_pops <- function(cdm_ref,
-                                     dialect="postgresql",
                                      study_start_date = NULL,
                                      study_end_date = NULL,
                                      study_age_stratas = NULL,
@@ -227,7 +226,6 @@ collect_denominator_pops <- function(cdm_ref,
   }
   dpop <- get_denominator_pop(
     cdm_ref = cdm_ref,
-    dialect=dialect,
     start_date = unique(pop_specs$study_start_date),
     end_date = unique(pop_specs$study_end_date),
     min_age = unique(pop_specs$min_age),
@@ -272,7 +270,8 @@ collect_denominator_pops <- function(cdm_ref,
     "cohort_end_date_max_age_{pop_specs$max_age[[i]]}"))
 
   working_dpop <- working_dpop %>%
-     dplyr::select("person_id", "cohort_start_date", "cohort_end_date")
+     dplyr::rename("subject_id"="person_id") %>%
+     dplyr::select("subject_id", "cohort_start_date", "cohort_end_date")
 
   working_dpop <- working_dpop %>%
     dplyr::filter(.data$cohort_start_date <=

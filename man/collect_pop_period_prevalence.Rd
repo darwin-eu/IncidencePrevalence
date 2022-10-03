@@ -6,9 +6,9 @@
 \usage{
 collect_pop_period_prevalence(
   cdm_ref,
+  table_name_denominator,
   table_name_outcomes,
   cohort_ids_outcomes,
-  study_denominator_pop,
   cohort_ids_denominator_pops,
   time_intervals = "months",
   full_period_requireds = TRUE,
@@ -21,11 +21,11 @@ collect_pop_period_prevalence(
 \arguments{
 \item{cdm_ref}{CDMConnector CDM reference object}
 
+\item{table_name_denominator}{table_name_denominator}
+
 \item{table_name_outcomes}{Name of the table with the outcome cohorts}
 
 \item{cohort_ids_outcomes}{Outcome cohort ids}
-
-\item{study_denominator_pop}{Tibble with denominator populations}
 
 \item{cohort_ids_denominator_pops}{Cohort ids of denominator populations}
 

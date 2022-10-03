@@ -102,25 +102,24 @@ dpop <- collect_denominator_pops(cdm_ref = cdm_ref,
                                  study_age_stratas = NULL,
                                  study_sex_stratas = "Both",
                                  study_days_prior_history = 0)
-dpop <- dpop$denominator_population
+dpop$denominator_population %>% glimpse()
 
-dpop %>% glimpse()
-
-dpop %>%
-  filter(person_id %in% c("1", "2", "3", "4", "5")) 
+dpop$denominator_population %>%
+  filter(subject_id %in% c("1", "2", "3", "4", "5")) 
 
 ```
 
 Let´s have a look at the included time of the first five patients
 
 ```{r, message=FALSE, warning=FALSE}
-dpop %>%
-  filter(person_id %in% c("1", "2", "3", "4", "5"))  %>% 
+dpop$denominator_population %>%
+  collect() %>% 
+  filter(subject_id %in% c("1", "2", "3", "4", "5"))  %>% 
   pivot_longer(cols = c("cohort_start_date",
                         "cohort_end_date")) %>%
   ggplot()+
-  geom_point(aes(x=value,  y=person_id))+
-  geom_line(aes(x=value,  y=person_id))+
+  geom_point(aes(x=value,  y=subject_id))+
+  geom_line(aes(x=value,  y=subject_id))+
   theme_minimal()+
   xlab("Year")
 
@@ -128,7 +127,8 @@ dpop %>%
 
 We can also plot a histogram of start and end dates of the 500 simulated patients 
 ```{r, message=FALSE, warning=FALSE}
-dpop %>% 
+dpop$denominator_population %>%
+  collect() %>% 
   ggplot() + 
   theme_minimal()+
   geom_histogram(aes(cohort_start_date),
@@ -136,7 +136,8 @@ dpop %>%
 ```
 
 ```{r, message=FALSE, warning=FALSE}
-dpop %>% 
+dpop$denominator_population %>%
+  collect() %>% 
   ggplot() + 
   theme_minimal()+
   geom_histogram(aes(cohort_end_date),
@@ -154,24 +155,24 @@ dpop <- collect_denominator_pops(cdm_ref = cdm_ref,
                                  study_age_stratas = NULL,
                                  study_sex_stratas = "Both",
                                  study_days_prior_history = 0)
-dpop <- dpop$denominator_population
+dpop$denominator_population %>%
+  glimpse()
 
-dpop %>%  glimpse()
-
-dpop %>%
-  filter(person_id %in% c("1", "2", "3", "4", "5")) 
+dpop$denominator_population %>%
+  filter(subject_id %in% c("1", "2", "3", "4", "5")) 
 ```
 
 Now we can see the person "2", "4" and "5" haven´t been included as they don´t have any observation time during the study period. Indeed, we´re now including 328 of the original 500 simulated patients.
 
 ```{r, message=FALSE, warning=FALSE}
-dpop %>%
-  filter(person_id %in% c("1", "2", "3", "4", "5")) %>% 
+dpop$denominator_population %>%
+  filter(subject_id %in% c("1", "2", "3", "4", "5")) %>% 
+  collect() %>% 
   pivot_longer(cols = c("cohort_start_date",
                         "cohort_end_date")) %>%
   ggplot()+
-  geom_point(aes(x=value,  y=person_id))+
-  geom_line(aes(x=value,  y=person_id))+
+  geom_point(aes(x=value,  y=subject_id))+
+  geom_line(aes(x=value,  y=subject_id))+
   theme_minimal()+
   xlab("Year")
 
@@ -179,7 +180,8 @@ dpop %>%
 
 We can also plot a histogram of start and end dates and we can see that now most people enter at the start of the study period and leave at the end.
 ```{r, message=FALSE, warning=FALSE}
-dpop %>% 
+dpop$denominator_population %>%
+  collect() %>% 
   ggplot() + 
   theme_minimal()+
   geom_histogram(aes(cohort_start_date),
@@ -187,7 +189,8 @@ dpop %>%
 ```
 
 ```{r, message=FALSE, warning=FALSE}
-dpop %>% 
+dpop$denominator_population %>%
+  collect() %>% 
   ggplot() + 
   theme_minimal()+
   geom_histogram(aes(cohort_end_date),
@@ -206,24 +209,24 @@ dpop <- collect_denominator_pops(cdm_ref = cdm_ref,
                                  study_age_stratas = NULL,
                                  study_sex_stratas = "Both",
                                  study_days_prior_history = 365)
-dpop <- dpop$denominator_population
+dpop$denominator_population %>%
+ glimpse()
 
-dpop %>%  glimpse()
-
-dpop %>%
-  filter(person_id %in% c("1", "2", "3", "4", "5")) 
+dpop$denominator_population %>%
+  filter(subject_id %in% c("1", "2", "3", "4", "5")) 
 ```
 
 Now we only include patient "1" of the original first five and we´re now including 178 of the original 500 simulated patients.
 
 ```{r, message=FALSE, warning=FALSE}
-dpop %>%
-  filter(person_id %in% c("1", "2", "3", "4", "5")) %>% 
+dpop$denominator_population %>%
+  filter(subject_id %in% c("1", "2", "3", "4", "5")) %>% 
+  collect() %>% 
   pivot_longer(cols = c("cohort_start_date",
                         "cohort_end_date")) %>%
   ggplot()+
-  geom_point(aes(x=value,  y=person_id))+
-  geom_line(aes(x=value,  y=person_id))+
+  geom_point(aes(x=value,  y=subject_id))+
+  geom_line(aes(x=value,  y=subject_id))+
   theme_minimal()+
   xlab("Year")
 
@@ -231,7 +234,8 @@ dpop %>%
 
 With the histograms of start and end dates now looking like
 ```{r, message=FALSE, warning=FALSE}
-dpop %>% 
+dpop$denominator_population %>%
+  collect() %>% 
   ggplot() + 
   theme_minimal()+
   geom_histogram(aes(cohort_start_date),
@@ -239,7 +243,8 @@ dpop %>%
 ```
 
 ```{r, message=FALSE, warning=FALSE}
-dpop %>% 
+dpop$denominator_population %>%
+  collect() %>% 
   ggplot() + 
   theme_minimal()+
   geom_histogram(aes(cohort_end_date),
@@ -257,19 +262,19 @@ dpop <- collect_denominator_pops(cdm_ref = cdm_ref,
                                  study_age_stratas = list(c(18,65)),
                                  study_sex_stratas = "Female",
                                  study_days_prior_history = 365)
-dpop<-dpop$denominator_population
+dpop$denominator_population %>%
+    glimpse()
 
-dpop %>%  glimpse()
-
-dpop %>%
-  filter(person_id %in% c("1", "2", "3", "4", "5")) 
+dpop$denominator_population %>%
+  filter(subject_id %in% c("1", "2", "3", "4", "5")) 
 ```
 
 Now none of the original first five are included and we´re including 48 of the original 500 simulated patients.
 
 The histograms of start and end dates now looking like
 ```{r, message=FALSE, warning=FALSE}
-dpop %>% 
+dpop$denominator_population %>%
+  collect() %>% 
   ggplot() + 
   theme_minimal()+
   geom_histogram(aes(cohort_start_date),
@@ -277,7 +282,8 @@ dpop %>%
 ```
 
 ```{r, message=FALSE, warning=FALSE}
-dpop %>% 
+dpop$denominator_population %>%
+  collect() %>% 
   ggplot() + 
   theme_minimal()+
   geom_histogram(aes(cohort_end_date),
@@ -296,17 +302,21 @@ dpop <- collect_denominator_pops(cdm_ref = cdm_ref,
                                  study_sex_stratas = "Both",
                                  study_days_prior_history = 0)
 dpop <- dpop$denominator_population %>% 
+  collect() %>% 
   left_join(dpop$denominator_settings)
 
-dpop %>%  glimpse()
+dpop %>%
+ glimpse()
 
-dpop %>% group_by(cohort_definition_id, age_strata) %>% tally()
+dpop %>% 
+  group_by(cohort_definition_id, age_strata) %>% tally()
 
 dpop %>%
-  filter(person_id %in% c("1","3","57", "353", "393", "496"))  %>% 
+  filter(subject_id %in% c("1","3","57", "353", "393", "496"))  %>% 
+  collect() %>% 
   pivot_longer(cols = c("cohort_start_date",
                         "cohort_end_date")) %>%
-  ggplot(aes(x=person_id,  y=value, colour=cohort_definition_id))+
+  ggplot(aes(x=subject_id,  y=value, colour=cohort_definition_id))+
   geom_point(position=position_dodge(width=0.5))+
   geom_line(position=position_dodge(width=0.5))+
   theme_minimal()+
@@ -326,18 +336,18 @@ dpop <- collect_denominator_pops(cdm_ref = cdm_ref,
                                  study_sex_stratas = c("Male", "Female","Both"),
                                  study_days_prior_history = 0)
 dpop <- dpop$denominator_population %>% 
+  collect() %>% 
   left_join(dpop$denominator_settings)
-
 
 dpop %>%  glimpse()
 
 dpop %>% group_by(cohort_definition_id, age_strata, sex_strata) %>% tally()
 
 dpop %>%
-  filter(person_id %in% c("1","3","57", "353", "393", "496"))  %>% 
+  filter(subject_id %in% c("1","3","57", "353", "393", "496"))  %>% 
   pivot_longer(cols = c("cohort_start_date",
                         "cohort_end_date")) %>%
-  ggplot(aes(x=person_id,  y=value, colour=cohort_definition_id))+
+  ggplot(aes(x=subject_id,  y=value, colour=cohort_definition_id))+
   facet_grid(sex_strata ~ ., space = "free_y") +
   geom_point(position=position_dodge(width=0.5))+
   geom_line(position=position_dodge(width=0.5))+
@@ -359,21 +369,21 @@ dpop <- collect_denominator_pops(cdm_ref = cdm_ref,
                                  study_sex_stratas = c("Male", "Female","Both"),
                                  study_days_prior_history = c(0,365))
 dpop <- dpop$denominator_population %>% 
+  collect() %>% 
   left_join(dpop$denominator_settings)
-
 
 dpop %>%  glimpse()
 
 dpop %>% 
-  group_by(cohort_definition_id, age_strata, sex_strata, required_days_prior_history) %>% 
+  group_by(cohort_definition_id, age_strata, sex_strata, study_days_prior_history) %>% 
   tally()
 
 dpop %>%
-  filter(person_id %in% c("1","3","57", "353", "393", "496"))  %>% 
+  filter(subject_id %in% c("1","3","57", "353", "393", "496"))  %>% 
   pivot_longer(cols = c("cohort_start_date",
                         "cohort_end_date")) %>%
-  ggplot(aes(x=person_id,  y=value, colour=cohort_definition_id))+
-  facet_grid(sex_strata+required_days_prior_history ~ ., space = "free_y") +
+  ggplot(aes(x=subject_id,  y=value, colour=cohort_definition_id))+
+  facet_grid(sex_strata+study_days_prior_history ~ ., space = "free_y") +
   geom_point(position=position_dodge(width=0.5))+
   geom_line(position=position_dodge(width=0.5))+
   theme_bw()+

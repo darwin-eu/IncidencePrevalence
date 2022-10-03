@@ -18,11 +18,11 @@
 #' Collect population incidence estimates
 #'
 #' @param cdm_ref CDMConnector CDM reference object
+#' @param table_name_denominator table_name_denominator
 #' @param table_name_outcomes Name of the table with the outcome cohorts
 #' @param cohort_ids_outcomes Outcome cohort ids
-#' @param study_denominator_pop Tibble with denominator populations
 #' @param cohort_ids_denominator_pops Cohort ids of denominator populations
-#' @param time_intervals Time intervals for incidence estimates
+#' @param time_interval Time intervals for incidence estimates
 #' @param outcome_washout_windows Clean windows
 #' @param repetitive_events Repeated events
 #' @param confidence_interval Method for confidence intervals
@@ -35,11 +35,11 @@
 #'
 #' @examples
 collect_pop_incidence <- function(cdm_ref,
+                                  table_name_denominator,
+                                  cohort_ids_denominator_pops,
                                   table_name_outcomes,
                                   cohort_ids_outcomes,
-                                  study_denominator_pop,
-                                  cohort_ids_denominator_pops,
-                                  time_intervals = "Months",
+                                  time_interval = "Months",
                                   outcome_washout_windows = 0,
                                   repetitive_events = FALSE,
                                   confidence_interval = "poisson",
@@ -54,14 +54,12 @@ collect_pop_incidence <- function(cdm_ref,
   if (is.numeric(cohort_ids_denominator_pops)) {
     cohort_ids_denominator_pops <- as.character(cohort_ids_denominator_pops)
   }
-  if (is.character(time_intervals)) {
-    time_intervals <- tolower(time_intervals)
+  if (is.character(time_interval)) {
+    time_interval <- tolower(time_interval)
   }
   if (is.character(confidence_interval)) {
     confidence_intervals <- tolower(confidence_interval)
   }
-
-
 
 
   ## check for standard types of user error
@@ -73,64 +71,117 @@ collect_pop_incidence <- function(cdm_ref,
   if (!isTRUE(db_inherits_check)) {
     "- cdm_ref must be a CDMConnector CDM reference object"
   }
-  checkmate::assert_character(cohort_ids_outcomes,
-    add = error_message,
-    null.ok = TRUE
-  )
 
-  checkmate::assert_tibble(study_denominator_pop,
-    add = error_message
-  )
-  checkmate::assertTRUE(all(study_denominator_pop$cohort_start_date <=
-    study_denominator_pop$cohort_end_date))
-  checkmate::assertTRUE(nrow(study_denominator_pop) > 0,
-    add = error_message
-  )
-  checkmate::assertTRUE(!is.null(study_denominator_pop$cohort_definition_id) &
-    sum(is.na(study_denominator_pop$cohort_definition_id)) == 0)
-  checkmate::assertTRUE(!is.null(study_denominator_pop$person_id) &
-    sum(is.na(study_denominator_pop$person_id)) == 0)
-  checkmate::assertTRUE(!is.null(study_denominator_pop$cohort_start_date) &
-    sum(is.na(study_denominator_pop$cohort_start_date)) == 0)
-  checkmate::assertTRUE(!is.null(study_denominator_pop$cohort_end_date) &
-    sum(is.na(study_denominator_pop$cohort_end_date)) == 0)
-  checkmate::assert_number(minimum_cell_count, null.ok = TRUE)
-  checkmate::assertTRUE(all(c(
-    "cohort_definition_id",
-    "person_id",
-    "cohort_start_date", "cohort_end_date"
-  ) %in%
-    names(study_denominator_pop)))
-
+  denominator_check<-table_name_denominator %in% names(cdm_ref)
+  checkmate::assertTRUE(denominator_check,
+                        add = error_message)
+  if (!isTRUE(denominator_check)) {
+    error_message$push(
+      "- `table_name_denominator` is not found in cdm_ref"
+    )
+  }
   checkmate::assert_character(cohort_ids_denominator_pops,
-    add = error_message,
-    null.ok = TRUE
+                              add = error_message,
+                              null.ok = TRUE
   )
-  checkmate::assertTRUE(all(time_intervals %in% c("months", "years")),
+  outcome_check<-table_name_outcomes %in% names(cdm_ref)
+  checkmate::assertTRUE(outcome_check,
+                        add = error_message)
+  if (!isTRUE(outcome_check)) {
+    error_message$push(
+      "- `table_name_outcomes` is not found in cdm_ref"
+    )
+  }
+  checkmate::assert_character(cohort_ids_outcomes,
+                              add = error_message,
+                              null.ok = TRUE
+  )
+  checkmate::assert_choice(time_interval,
+    choices = c("days","weeks","months","quarters","years"),
     add = error_message
   )
   checkmate::assert_numeric(outcome_washout_windows,
-    add = error_message,
-    null.ok = TRUE
+                            add = error_message,
+                            null.ok = TRUE
   )
   checkmate::assert_logical(repetitive_events,
-    add = error_message
-  )
-  checkmate::assert_logical(verbose,
-    add = error_message
+                            add = error_message
   )
   checkmate::assert_choice(confidence_interval,
-    choices = c("none","poisson"),
-    add = error_message,
-    null.ok = TRUE
+                           choices = c("none","poisson"),
+                           add = error_message,
+                           null.ok = TRUE
   )
-  # report initial assertions
+  checkmate::assert_number(minimum_cell_count)
+  checkmate::assert_logical(verbose,
+                            add = error_message
+  )
   checkmate::reportAssertions(collection = error_message)
+
+
+# further checks that there are the required data elements
+  error_message <- checkmate::makeAssertCollection()
+  checkmate::assertTRUE(all(c(
+    "cohort_definition_id",
+    "subject_id",
+    "cohort_start_date",
+    "cohort_end_date"
+  ) %in%
+    names(cdm_ref[[table_name_denominator]] %>% utils::head(1) %>% dplyr::collect())))
+
+  date_check<-nrow(cdm_ref[[table_name_denominator]] %>%
+                     dplyr::select("cohort_start_date", "cohort_end_date") %>%
+                     dplyr::filter(.data$cohort_start_date>.data$cohort_end_date) %>%
+                     dplyr::collect()) == 0
+  checkmate::assertTRUE(date_check)
+  if (!isTRUE(date_check)) {
+    error_message$push(
+      "- some end dates before start dates in denominator"
+    )
+  }
+  denominator_count_check<-cdm_ref[[table_name_denominator]] %>%
+    dplyr::filter(.data$cohort_definition_id %in% .env$cohort_ids_denominator_pops) %>%
+    dplyr::count() %>%
+    dplyr::pull() > 0
+  checkmate::assertTRUE(denominator_count_check,
+    add = error_message
+  )
+  if (!isTRUE(denominator_count_check)) {
+    error_message$push(
+      "- nobody found in `table_name_denominator` with one of the `cohort_ids_denominator_pops`"
+    )
+  }
+  outcome_count_check<-cdm_ref[[table_name_outcomes]] %>%
+    dplyr::filter(.data$cohort_definition_id %in% .env$cohort_ids_outcomes ) %>%
+    dplyr::count() %>%
+    dplyr::pull() > 0
+  checkmate::assertTRUE(outcome_count_check,
+                        add = error_message
+  )
+  if (!isTRUE(outcome_count_check)) {
+    error_message$push(
+      "- nobody found in `table_name_outcomes` with one of the `cohort_ids_outcomes`"
+    )
+  }
+
+  missing_check<-nrow(cdm_ref[[table_name_denominator]] %>%
+    dplyr::filter(is.na(.data$cohort_definition_id) | is.na(.data$subject_id) |
+                    is.na(.data$cohort_start_date)| is.na(.data$cohort_end_date)) %>%
+      dplyr::collect())==0
+  if (!isTRUE(missing_check)) {
+    error_message$push(
+      "- there is missing data in `table_name_denominator`"
+    )
+  }
+  checkmate::reportAssertions(collection = error_message)
+
+
+
 
   study_specs <- tidyr::expand_grid(
     cohort_id_outcome = cohort_ids_outcomes,
     cohort_id_denominator_pop = cohort_ids_denominator_pops,
-    time_interval = time_intervals,
+    time_interval = time_interval,
     outcome_washout_window = outcome_washout_windows,
     repetitive_events = repetitive_events,
     confidence_interval = confidence_interval,
@@ -153,10 +204,10 @@ collect_pop_incidence <- function(cdm_ref,
   irs_list <- lapply(study_specs, function(x) {
     working_inc <- get_pop_incidence(
       cdm_ref = cdm_ref,
+      table_name_denominator=table_name_denominator,
+      cohort_id_denominator_pop = x$cohort_id_denominator_pop,
       table_name_outcome = table_name_outcomes,
       cohort_id_outcome = x$cohort_id_outcome,
-      study_denominator_pop = study_denominator_pop,
-      cohort_id_denominator_pop = x$cohort_id_denominator_pop,
       time_interval = x$time_interval,
       outcome_washout_window = x$outcome_washout_window,
       repetitive_events = x$repetitive_events,

@@ -102,27 +102,18 @@ dpop <- collect_denominator_pops(
 )
 # this is what the data looks like
 head(dpop$denominator_population)
-#> # A tibble: 6 × 4
-#>   cohort_definition_id person_id cohort_start_date cohort_end_date
-#>   <chr>                <chr>     <date>            <date>         
-#> 1 1                    1         2013-12-18        2014-12-30     
-#> 2 1                    100       2016-07-23        2018-01-01     
-#> 3 1                    1000      2008-08-26        2010-11-03     
-#> 4 1                    1001      2013-06-23        2014-06-08     
-#> 5 1                    1002      2008-01-01        2010-03-18     
-#> 6 1                    1003      2012-01-16        2012-01-28
+#> # Source:   SQL [6 x 4]
+#> # Database: DuckDB 0.5.0 [unknown@Linux 5.4.0-125-generic:R 4.1.2/:memory:]
+#>   cohort_definition_id subject_id cohort_start_date cohort_end_date
+#>   <chr>                <chr>      <date>            <date>         
+#> 1 1                    1          2013-12-18        2014-12-30     
+#> 2 1                    4          2010-08-25        2011-02-12     
+#> 3 1                    6          2017-10-21        2018-01-01     
+#> 4 1                    8          2008-09-01        2008-10-15     
+#> 5 1                    11         2008-12-18        2010-08-13     
+#> 6 1                    12         2008-05-28        2010-06-13
 head(dpop$attrition)
-#> # A tibble: 6 × 4
-#> # Groups:   reason [6]
-#>   cohort_definition_id current_n reason                                  exclu…¹
-#>   <chr>                    <dbl> <chr>                                     <dbl>
-#> 1 1                         5000 <NA>                                         NA
-#> 2 1                         5000 Missing year of birth                         0
-#> 3 1                         5000 Missing gender                                0
-#> 4 1                         5000 Doesn't satisfy the sex criteria              0
-#> 5 1                         3811 No observation time available during s…    1189
-#> 6 1                         3811 Doesn't satisfy age criteria during th…       0
-#> # … with abbreviated variable name ¹​excluded
+#> # A tibble: 0 × 0
 ```
 
 Now we have identified our denominator population, we can calculate
@@ -131,14 +122,20 @@ our mock cdm_reference also has an outcome cohort defined). Again
 further details for each of these functions are provided in the
 vignettes.
 
+To do this, first we´ll add the denominator cohort to our cdm reference.
+
+``` r
+cdm$denominator <- dpop$denominator_population
+```
+
 ``` r
 # where the table with the outcome cohort is 
 # in a table called ´outcome´
 # schema called ´results´
 inc <- collect_pop_incidence(
   cdm_ref = cdm,
+  table_name_denominator = "denominator",
   table_name_outcomes = "outcome",
-  study_denominator_pop = dpop$denominator_population,
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops="1"
 )
@@ -159,13 +156,14 @@ head(inc$incidence_estimates)
 ```
 
 ``` r
-prev_point <- collect_pop_point_prevalence(
+prev_point <- collect_pop_prevalence(
   cdm_ref = cdm,
-  table_name_outcomes = "outcome",
-  study_denominator_pop = dpop$denominator_population,
-  cohort_ids_outcomes = "1",
+  table_name_denominator = "denominator",
   cohort_ids_denominator_pops="1",
-  time_intervals = "months"
+  table_name_outcomes = "outcome",
+  cohort_ids_outcomes = "1",
+  time_intervals = "months",
+  type = "point"
 )
 head(prev_point$prevalence_estimates)
 #> # A tibble: 6 × 11
@@ -183,13 +181,14 @@ head(prev_point$prevalence_estimates)
 ```
 
 ``` r
-prev_period <- collect_pop_period_prevalence(
+prev_period <- collect_pop_prevalence(
   cdm_ref = cdm,
+  table_name_denominator = "denominator",
   table_name_outcomes = "outcome",
-  study_denominator_pop = dpop$denominator_population,
   cohort_ids_outcomes = "1",
   cohort_ids_denominator_pops="1",
-  time_intervals = "months"
+  time_intervals = "months",
+  type = "period"
 )
 head(prev_period$prevalence_estimates)
 #> # A tibble: 6 × 11

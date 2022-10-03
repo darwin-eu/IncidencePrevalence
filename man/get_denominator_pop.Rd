@@ -6,15 +6,13 @@
 \usage{
 get_denominator_pop(
   cdm_ref,
-  start_date = NULL,
-  end_date = NULL,
-  min_age = NULL,
-  max_age = NULL,
-  sex = "Both",
-  days_prior_history = 0,
-  table_name_strata = NULL,
-  strata_cohort_id = NULL,
-  verbose = FALSE
+  start_date,
+  end_date,
+  min_age,
+  max_age,
+  days_prior_history,
+  table_name_strata,
+  strata_cohort_id
 )
 }
 \arguments{
@@ -32,17 +30,12 @@ will be used.}
 
 \item{max_age}{Maximum age for the cohort.}
 
-\item{sex}{Sex of the cohort}
-
 \item{days_prior_history}{Days of prior history required to enter
 the study cohort.}
 
 \item{table_name_strata}{table_name_strata}
 
 \item{strata_cohort_id}{strata_cohort_id}
-
-\item{verbose}{Either TRUE or FALSE.
-If TRUE, progress will be reported.}
 }
 \value{
 

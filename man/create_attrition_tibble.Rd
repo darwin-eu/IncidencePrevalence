@@ -4,10 +4,12 @@
 \alias{create_attrition_tibble}
 \title{Creates an attrition tibble}
 \usage{
-create_attrition_tibble(db_table, reason = NULL)
+create_attrition_tibble(db_table, id = "person_id", reason = NULL)
 }
 \arguments{
 \item{db_table}{Database table that contains a person_id}
+
+\item{id}{id variable}
 
 \item{reason}{the reason for the attrition}
 }

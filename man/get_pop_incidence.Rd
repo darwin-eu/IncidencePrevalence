@@ -6,26 +6,26 @@
 \usage{
 get_pop_incidence(
   cdm_ref,
+  table_name_denominator,
+  cohort_id_denominator_pop,
   table_name_outcome,
-  cohort_id_outcome = NULL,
-  study_denominator_pop,
-  cohort_id_denominator_pop = NULL,
-  time_interval = c("months"),
-  outcome_washout_window = NULL,
-  repetitive_events = FALSE,
-  verbose = FALSE
+  cohort_id_outcome,
+  time_interval,
+  outcome_washout_window,
+  repetitive_events,
+  verbose
 )
 }
 \arguments{
 \item{cdm_ref}{CDMConnector CDM reference object}
 
+\item{table_name_denominator}{table_name_denominator}
+
+\item{cohort_id_denominator_pop}{cohort_id_denominator_pop}
+
 \item{table_name_outcome}{table_name_outcome}
 
 \item{cohort_id_outcome}{cohort_id_outcome}
-
-\item{study_denominator_pop}{study_denominator_pop}
-
-\item{cohort_id_denominator_pop}{cohort_id_denominator_pop}
 
 \item{time_interval}{time_interval}
 

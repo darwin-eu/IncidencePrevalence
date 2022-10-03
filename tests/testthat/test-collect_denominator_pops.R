@@ -6,7 +6,7 @@ test_that("mock db: check output format", {
 
   expect_true(all(c(
       "cohort_definition_id",
-      "person_id",
+      "subject_id",
       "cohort_start_date",
       "cohort_end_date"
     ) %in%
@@ -25,7 +25,7 @@ test_that("mock db: check output format", {
     # variable names
     expect_true(length(names(dpop$denominator_population %>% dplyr::collect())) == 4)
     expect_true(all(c(
-      "cohort_definition_id", "person_id",
+      "cohort_definition_id", "subject_id",
       "cohort_start_date", "cohort_end_date"
     ) %in%
       names(dpop$denominator_population %>% dplyr::collect())))
@@ -34,7 +34,7 @@ test_that("mock db: check output format", {
                         dplyr::collect() %>% dplyr::select(cohort_definition_id) %>%
                         dplyr::pull()) == "character")
     expect_true(class(dpop$denominator_population %>%
-                        dplyr::collect() %>% dplyr::select(person_id) %>%
+                        dplyr::collect() %>% dplyr::select(subject_id) %>%
                         dplyr::pull()) == "character")
     expect_true(class(dpop$denominator_population %>%
                         dplyr::collect() %>% dplyr::select(cohort_start_date) %>%
@@ -139,9 +139,9 @@ test_that("mock db: check example we expect to work", {
                                                    observation_period = observation_period)
 
   dpop <- collect_denominator_pops(cdm_ref = cdm_ref)
-  expect_true(nrow(dpop$denominator_population) == 1)
-  expect_true(dpop$denominator_population$cohort_start_date == as.Date("2010-01-01"))
-  expect_true(dpop$denominator_population$cohort_end_date == as.Date("2015-06-01"))
+  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 1)
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) == as.Date("2010-01-01"))
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_end_date) == as.Date("2015-06-01"))
 
 
   dpop <- collect_denominator_pops(
@@ -149,9 +149,9 @@ test_that("mock db: check example we expect to work", {
     study_start_date = as.Date("2010-02-15"),
     study_end_date = as.Date("2010-05-15")
   )
-  expect_true(nrow(dpop$denominator_population) == 1)
-  expect_true(dpop$denominator_population$cohort_start_date == as.Date("2010-02-15"))
-  expect_true(dpop$denominator_population$cohort_end_date == as.Date("2010-05-15"))
+  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 1)
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) == as.Date("2010-02-15"))
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_end_date) == as.Date("2010-05-15"))
 
   DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
 })
@@ -177,9 +177,9 @@ test_that("mock db: check another example we expect to work", {
 
   dpop <- collect_denominator_pops(cdm_ref = cdm_ref)
 
-  expect_true(nrow(dpop$denominator_population) == 4)
-  expect_true(all(dpop$denominator_population$cohort_start_date == as.Date("2000-01-01")))
-  expect_true(all(dpop$denominator_population$cohort_end_date == as.Date("2015-06-01")))
+  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 4)
+  expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) == as.Date("2000-01-01")))
+  expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_end_date) == as.Date("2015-06-01")))
 
 
   dpop <- collect_denominator_pops(
@@ -188,20 +188,20 @@ test_that("mock db: check another example we expect to work", {
   )
   #check min age change cohort start date
   #check imputation
-  expect_true(dpop$denominator_population %>%
-    dplyr::filter(person_id == "1") %>%
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>%
+    dplyr::filter(subject_id == "1") %>%
     dplyr::summarise(check = cohort_start_date == as.Date("2005-07-25")) %>%
     dplyr::pull())
-  expect_true(dpop$denominator_population %>%
-    dplyr::filter(person_id == "2") %>%
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>%
+    dplyr::filter(subject_id == "2") %>%
     dplyr::summarise(check = cohort_start_date == as.Date("2003-01-01")) %>%
       dplyr::pull())
-  expect_true(dpop$denominator_population %>%
-    dplyr::filter(person_id == "3") %>%
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>%
+    dplyr::filter(subject_id == "3") %>%
     dplyr::summarise(check = cohort_start_date == as.Date("2004-06-01")) %>%
       dplyr::pull())
-  expect_true(dpop$denominator_population %>%
-    dplyr::filter(person_id == "4") %>%
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>%
+    dplyr::filter(subject_id == "4") %>%
     dplyr::summarise(check = cohort_start_date == as.Date("2006-05-02")) %>%
       dplyr::pull())
 
@@ -211,20 +211,20 @@ test_that("mock db: check another example we expect to work", {
     cdm_ref = cdm_ref,
     study_age_stratas = list(c(0,10))
   )
-  expect_true(dpop$denominator_population %>%
-    dplyr::filter(person_id == "1") %>%
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>%
+    dplyr::filter(subject_id == "1") %>%
     dplyr::summarise(check = cohort_end_date == as.Date("2006-07-24")) %>%
       dplyr::pull())
-   expect_true(dpop$denominator_population %>%
-    dplyr::filter(person_id == "2") %>%
+   expect_true(dpop$denominator_populations %>% dplyr::collect() %>%
+    dplyr::filter(subject_id == "2") %>%
     dplyr::summarise(check = cohort_end_date == as.Date("2003-12-31")) %>%
       dplyr::pull())
-  expect_true(dpop$denominator_population %>%
-    dplyr::filter(person_id == "3") %>%
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>%
+    dplyr::filter(subject_id == "3") %>%
     dplyr::summarise(check = cohort_end_date == as.Date("2005-05-31")) %>%
       dplyr::pull())
-  expect_true(dpop$denominator_population %>%
-    dplyr::filter(person_id == "4") %>%
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>%
+    dplyr::filter(subject_id == "4") %>%
     dplyr::summarise(check = cohort_end_date == as.Date("2007-05-01")) %>%
       dplyr::pull())
 
@@ -233,9 +233,9 @@ test_that("mock db: check another example we expect to work", {
     study_start_date = as.Date("2010-02-15"),
     study_end_date = as.Date("2010-05-15")
   )
-  expect_true(nrow(dpop$denominator_population) == 4)
-  expect_true(all(dpop$denominator_population$cohort_start_date == as.Date("2010-02-15")))
-  expect_true(all(dpop$denominator_population$cohort_end_date == as.Date("2010-05-15")))
+  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 4)
+  expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) == as.Date("2010-02-15")))
+  expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_end_date) == as.Date("2010-05-15")))
 
   DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
 })
@@ -251,7 +251,7 @@ test_that("mock db: mock example 10000", {
                                     study_days_prior_history = c(0,180),
                                     verbose = TRUE
   )
-  expect_true(nrow(dpops$denominator_population)>0)
+  expect_true(nrow(dpops$denominator_population %>% dplyr::collect())>0)
 
   # all options being used
   dpops <- collect_denominator_pops(cdm_ref,
@@ -262,10 +262,10 @@ test_that("mock db: mock example 10000", {
                                     study_days_prior_history = c(0,180),
                                     verbose = TRUE
   )
-  expect_true(nrow(dpops$denominator_population)>0)
-  expect_true(min(dpops$denominator_population$cohort_start_date) >=
+  expect_true(nrow(dpops$denominator_population %>% dplyr::collect())>0)
+  expect_true(min(dpops$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date)) >=
                 as.Date("2011-01-01"))
-  expect_true(max(dpops$denominator_population$cohort_end_date) <=
+  expect_true(max(dpops$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_end_date)) <=
                 as.Date("2013-06-15"))
 
   DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
@@ -300,11 +300,11 @@ test_that("mock db: subset denominator by cohort", {
 
   # without using strata cohort
   dpop <- collect_denominator_pops(cdm_ref = cdm_ref)
-  expect_true(all(dpop$denominator_population$person_id %in%
+  expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(subject_id) %in%
                     c("1", "2", "3")))
-  expect_true(all(dpop$denominator_population$cohort_start_date ==
+  expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) ==
                     "2010-01-01"))
-  expect_true(all(dpop$denominator_population$cohort_end_date ==
+  expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_end_date) ==
                     "2015-06-01"))
 
   # using strata cohort
@@ -313,13 +313,13 @@ test_that("mock db: subset denominator by cohort", {
     table_name_strata = "strata",
     strata_cohort_id = "1",
   )
-  expect_true(all(dpop$denominator_population$person_id %in%
+  expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(subject_id) %in%
                     c("1", "2")))
-  expect_true(all(!dpop$denominator_population$person_id  %in%
+  expect_true(all(!dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(subject_id)  %in%
                     c("3")))
-  expect_true(all(dpop$denominator_population$cohort_start_date ==
+  expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) ==
                     "2012-06-06"))
-  expect_true(all(dpop$denominator_population$cohort_end_date ==
+  expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_end_date) ==
                     "2013-06-06"))
 
 
@@ -340,22 +340,21 @@ test_that("mock db: subset denominator by cohort", {
                                                    observation_period = observation_period,
                                                    strata=strata)
 
-
   dpop <- collect_denominator_pops(
     cdm_ref = cdm_ref,
     table_name_strata = "strata",
     strata_cohort_id = "1",
   )
-  expect_true(all(dpop$denominator_population$person_id %in%
+  expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(subject_id) %in%
                     c("1", "2")))
-  expect_true(all(!dpop$denominator_population$person_id  %in%
+  expect_true(all(!dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(subject_id)  %in%
                     c("3")))
-  expect_true(sum(dpop$denominator_population$person_id == "1") == 1)
-  expect_true(sum(dpop$denominator_population$person_id == "2") == 2)
+  expect_true(sum(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(subject_id) == "1") == 1)
+  expect_true(sum(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(subject_id) == "2") == 2)
 
-  expect_true(all(dpop$denominator_population$cohort_start_date %in%
+  expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) %in%
                     as.Date(c("2012-06-06", "2013-11-01"))))
-  expect_true(all(dpop$denominator_population$cohort_end_date %in%
+  expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_end_date) %in%
                     as.Date(c("2013-06-06", "2014-02-01"))))
 
 
@@ -399,15 +398,13 @@ test_that("mock db: subset denominator by cohort", {
     table_name_strata = "strata",
     strata_cohort_id = "1",
   )
-  expect_true(sum(dpop$denominator_population$person_id == "1") == 3)
-  expect_true(dpop$denominator_population$cohort_start_date[1] == "2008-02-01")
-  expect_true(dpop$denominator_population$cohort_start_date[2] == "2009-02-01")
-  expect_true(dpop$denominator_population$cohort_start_date[3] == "2010-02-01")
+  expect_true(sum(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(subject_id) == "1") == 3)
 
-  expect_true(dpop$denominator_population$cohort_end_date[1] == "2008-04-01")
-  expect_true(dpop$denominator_population$cohort_end_date[2] == "2009-04-01")
-  expect_true(dpop$denominator_population$cohort_end_date[3] == "2010-04-01")
+  expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) %in%
+    as.Date(c("2010-02-01","2009-02-01", "2008-02-01"))))
 
+  expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_end_date) %in%
+                    as.Date(c("2008-04-01","2009-04-01", "2010-04-01"))))
 
   DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
 
@@ -434,21 +431,20 @@ test_that("mock db: one male, one female", {
   dpops <- collect_denominator_pops(cdm_ref,
                                     study_sex_stratas = c("Male")
   )
-  expect_true(dpops$denominator_populations$person_id == "1")
+  expect_true(dpops$denominator_populations %>% dplyr::collect() %>% dplyr::pull(subject_id) == "1")
 
   # female only
   dpops <- collect_denominator_pops(cdm_ref,
                                     study_sex_stratas = c("Female")
   )
-  expect_true(dpops$denominator_populations$person_id == "2")
+  expect_true(dpops$denominator_populations %>% dplyr::collect() %>% dplyr::pull(subject_id) == "2")
 
   # both
   dpops <- collect_denominator_pops(cdm_ref,
                                     study_sex_stratas = c("Both")
   )
-  expect_true(dpops$denominator_populations$person_id[1] == c("1"))
-  expect_true(dpops$denominator_populations$person_id[2] == c("2"))
-
+  expect_true(all(dpops$denominator_populations %>% dplyr::collect() %>%
+                    dplyr::pull(subject_id) %in% c("1","2")))
 
   DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
 })
@@ -484,9 +480,9 @@ test_that("mock db: check example with restriction on sex", {
     cdm_ref = cdm_ref,
     study_sex_stratas = "Female"
   )
-  expect_true(nrow(dpop1$denominator_population) == 2)
-  expect_true(nrow(dpop2$denominator_population) == 3)
-  expect_true(nrow(dpop3$denominator_population) == 1)
+  expect_true(nrow(dpop1$denominator_population %>% dplyr::collect()) == 2)
+  expect_true(nrow(dpop2$denominator_population %>% dplyr::collect()) == 3)
+  expect_true(nrow(dpop3$denominator_population %>% dplyr::collect()) == 1)
 
 
   # one male only
@@ -518,9 +514,9 @@ test_that("mock db: check example with restriction on sex", {
     cdm_ref = cdm_ref,
     study_sex_stratas = "Female"
   )
-  expect_true(nrow(dpop1$denominator_population) == 1)
-  expect_true(nrow(dpop2$denominator_population) == 1)
-  expect_true(nrow(dpop3$denominator_population) == 0)
+  expect_true(nrow(dpop1$denominator_population %>% dplyr::collect()) == 1)
+  expect_true(nrow(dpop2$denominator_population %>% dplyr::collect()) == 1)
+  expect_true(nrow(dpop3$denominator_population %>% dplyr::collect()) == 0)
 
   DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
 
@@ -563,10 +559,10 @@ test_that("mock db: check example with restriction on age", {
     study_age_stratas = list(c(40,150))
   )
 
-  expect_true(nrow(dpop1$denominator_population) == 3)
-  expect_true(nrow(dpop2$denominator_population) == 2)
-  expect_true(nrow(dpop3$denominator_population) == 1)
-  expect_true(nrow(dpop4$denominator_population)== 0)
+  expect_true(nrow(dpop1$denominator_population %>% dplyr::collect()) == 3)
+  expect_true(nrow(dpop2$denominator_population %>% dplyr::collect()) == 2)
+  expect_true(nrow(dpop3$denominator_population %>% dplyr::collect()) == 1)
+  expect_true(nrow(dpop4$denominator_population %>% dplyr::collect()) == 0)
 
   # one person, born in 2000
   person <- tibble::tibble(
@@ -590,7 +586,7 @@ test_that("mock db: check example with restriction on age", {
     study_age_stratas = list(c(10,150))
   )
   # start date is now date of 10th birthday
-  expect_true(dpop$denominator_population$cohort_start_date == as.Date("2010-06-01"))
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) == as.Date("2010-06-01"))
 
 
   # exit once they reach the max age criteria
@@ -599,7 +595,7 @@ test_that("mock db: check example with restriction on age", {
     study_age_stratas = list(c(0,10))
   )
   # end date is the day before their 11th birthday
-  expect_true(dpop$denominator_population$cohort_end_date == as.Date("2011-05-31"))
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_end_date) == as.Date("2011-05-31"))
 
   DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
 
@@ -674,25 +670,25 @@ test_that("mock db: check example with multiple observation periods", {
   # expect two rows
   # one per observation period
   dpop <- collect_denominator_pops(cdm_ref = cdm_ref)
-  expect_true(nrow(dpop$denominator_population) == 2)
+  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 2)
 
   # expect one rows- if start date is 1st Jan 2011
   dpop <- collect_denominator_pops(
     cdm_ref = cdm_ref,
     study_start_date = as.Date("2011-01-01")
   )
-  expect_true(nrow(dpop$denominator_population) == 1)
-  expect_true(dpop$denominator_population$cohort_start_date == as.Date("2011-01-01"))
-  expect_true(dpop$denominator_population$cohort_end_date == as.Date("2011-06-01"))
+  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 1)
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) == as.Date("2011-01-01"))
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_end_date) == as.Date("2011-06-01"))
 
   # expect one rows- if start date is end of 2020
   dpop <- collect_denominator_pops(
     cdm_ref = cdm_ref,
     study_end_date = as.Date("2010-12-31")
   )
-  expect_true(nrow(dpop$denominator_population) == 1)
-  expect_true(dpop$denominator_population$cohort_start_date == as.Date("2010-01-01"))
-  expect_true(dpop$denominator_population$cohort_end_date == as.Date("2010-06-01"))
+  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 1)
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) == as.Date("2010-01-01"))
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_end_date) == as.Date("2010-06-01"))
 
   DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
 
@@ -720,22 +716,22 @@ test_that("mock db: check imputation of date of birth", {
     cdm_ref = cdm_ref,
     study_age_stratas = list(c(10,100))
   )
-  expect_true(nrow(dpop$denominator_population) == 4)
+  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 4)
 
-  expect_true(dpop$denominator_population %>%
-                dplyr::filter(person_id == "1") %>%
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>%
+                dplyr::filter(subject_id == "1") %>%
                 dplyr::summarise(check = cohort_start_date == as.Date("2010-03-03")) %>%
                 dplyr::pull())
-  expect_true(dpop$denominator_population %>%
-                dplyr::filter(person_id == "2") %>%
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>%
+                dplyr::filter(subject_id == "2") %>%
                 dplyr::summarise(check = cohort_start_date == as.Date("2010-01-03")) %>%
                 dplyr::pull())
-  expect_true(dpop$denominator_population %>%
-                dplyr::filter(person_id == "3") %>%
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>%
+                dplyr::filter(subject_id == "3") %>%
                 dplyr::summarise(check = cohort_start_date == as.Date("2010-03-01")) %>%
                 dplyr::pull())
-  expect_true(dpop$denominator_population %>%
-                dplyr::filter(person_id == "4") %>%
+  expect_true(dpop$denominator_populations %>% dplyr::collect() %>%
+                dplyr::filter(subject_id == "4") %>%
                 dplyr::summarise(check = cohort_start_date == as.Date("2010-01-01")) %>%
                 dplyr::pull())
 
@@ -766,19 +762,19 @@ test_that("mock db: check edge cases (zero results expected)", {
     cdm_ref = cdm_ref,
     study_start_date = as.Date("2100-01-01")
   )
-  expect_true(nrow(dpop$denominator_population)==0)
+  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect())==0)
 
   dpop <- collect_denominator_pops(
     cdm_ref = cdm_ref,
     study_end_date = as.Date("1800-01-01")
   )
-  expect_true(nrow(dpop$denominator_population)==0)
+  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect())==0)
 
   dpop <- collect_denominator_pops(
     cdm_ref = cdm_ref,
     study_age_stratas = list(c(155,200))
   )
-  expect_true(nrow(dpop$denominator_population)==0)
+  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect())==0)
 
   # note could include people as it would go up to day before first birthday
   # but given observation period, here we would expect a null
@@ -786,7 +782,7 @@ test_that("mock db: check edge cases (zero results expected)", {
     cdm_ref = cdm_ref,
     study_age_stratas = list(c(0,1))
   )
-  expect_true(nrow(dpop$denominator_population)==0)
+  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect())==0)
 
   dpop <- collect_denominator_pops(
     cdm_ref = cdm_ref,
@@ -794,7 +790,7 @@ test_that("mock db: check edge cases (zero results expected)", {
     study_days_prior_history = 365000,
     verbose = FALSE
   )
-  expect_true(nrow(dpop$denominator_population)==0)
+  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect())==0)
 
   DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
 
