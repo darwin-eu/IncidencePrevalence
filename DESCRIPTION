@@ -37,7 +37,8 @@ Imports:
     rlang,
     purrr,
     tidyr,
-    CDMConnector
+    CDMConnector,
+    SqlRender
 Remotes:  OdyOSG/CDMConnector
 Depends:
     lubridate

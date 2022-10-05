@@ -142,11 +142,11 @@ compute_study_days <- function(start_date,
 
 #' Get population prevalence estimates
 #'
-#' @param cdm_ref CDMConnector CDM reference object
+#' @param cdm CDMConnector CDM reference object
+#' @param table_name_denominator table_name_denominator
+#' @param cohort_id_denominator_pop cohort_id_denominator_pop
 #' @param table_name_outcome table_name_outcome
 #' @param cohort_id_outcome cohort_id_outcome
-#' @param study_denominator_pop study_denominator_pop
-#' @param cohort_id_denominator_pop cohort_id_denominator_pop
 #' @param type type
 #' @param time_interval time_interval
 #' @param full_period_required full period requirement
@@ -158,11 +158,11 @@ compute_study_days <- function(start_date,
 #' @export
 #'
 #' @examples
-get_pop_prevalence <- function(cdm_ref,
+get_pop_prevalence <- function(cdm,
+                               table_name_denominator,
+                               cohort_id_denominator_pop = NULL,
                                table_name_outcome,
                                cohort_id_outcome = NULL,
-                               study_denominator_pop,
-                               cohort_id_denominator_pop = NULL,
                                type = "point",
                                time_interval = "months",
                                full_period_required = TRUE,
@@ -170,178 +170,40 @@ get_pop_prevalence <- function(cdm_ref,
                                minimum_representative_proportion = 0.5,
                                verbose = FALSE) {
 
-  # help to avoid formatting errors
-  if (is.numeric(cohort_id_outcome)) {
-    cohort_id_outcome <- as.character(cohort_id_outcome)
-  }
-  if (is.numeric(cohort_id_denominator_pop)) {
-    cohort_id_denominator_pop <- as.character(cohort_id_denominator_pop)
-  }
-  if (is.character(time_interval)) {
-    time_interval <- tolower(time_interval)
-  }
-  if (is.character(type)) {
-    type <- tolower(type)
-  }
-  if (is.character(point)) {
-    point <- tolower(point)
-  }
-
-  ## check for standard types of user error
-  error_message <- checkmate::makeAssertCollection()
-  db_inherits_check <- inherits(cdm_ref, "cdm_reference")
-  checkmate::assertTRUE(db_inherits_check,
-                        add = error_message
-  )
-  if (!isTRUE(db_inherits_check)) {
-    error_message$push(
-      "- cdm_ref must be a CDMConnector CDM reference object"
-    )
-  }
-  checkmate::assert_character(cohort_id_outcome,
-                              add = error_message,
-                              null.ok = TRUE
-  )
-
-  checkmate::assert_tibble(study_denominator_pop,
-                           add = error_message
-  )
-  checkmate::assertTRUE(all(study_denominator_pop$cohort_start_date <=
-                              study_denominator_pop$cohort_end_date))
-  checkmate::assertTRUE(nrow(study_denominator_pop) > 0,
-                        add = error_message
-  )
-  checkmate::assertTRUE(!is.null(study_denominator_pop$cohort_definition_id) &
-                          sum(is.na(study_denominator_pop$cohort_definition_id)) == 0)
-  checkmate::assertTRUE(!is.null(study_denominator_pop$person_id) &
-                          sum(is.na(study_denominator_pop$person_id)) == 0)
-  checkmate::assertTRUE(!is.null(study_denominator_pop$cohort_start_date) &
-                          sum(is.na(study_denominator_pop$cohort_start_date)) == 0)
-  checkmate::assertTRUE(!is.null(study_denominator_pop$cohort_end_date) &
-                          sum(is.na(study_denominator_pop$cohort_end_date)) == 0)
-  checkmate::assertTRUE(all(c(
-    "cohort_definition_id",
-    "person_id",
-    "cohort_start_date", "cohort_end_date"
-  ) %in%
-    names(study_denominator_pop)))
-
-  checkmate::assert_character(cohort_id_denominator_pop,
-                              add = error_message,
-                              null.ok = TRUE
-  )
-  checkmate::assert_choice(type,
-                           choices = c("point", "period"),
-                           add = error_message
-  )
-  checkmate::assert_choice(time_interval,
-                           choices = c("days","weeks","months","quarters","years"),
-                           add = error_message
-  )
-  if (type == "period"){
-    null_period <- TRUE
-  } else {
-    null_period <- FALSE
-  }
-  if (type == "point"){
-    null_point <- TRUE
-  } else {
-    null_point <- FALSE
-  }
-  checkmate::assert_choice(point,
-                           choices = c("start", "middle", "end"),
-                           null.ok = null_period,
-                           add = error_message
-  )
-  checkmate::assert_logical(full_period_required,
-                            null.ok = null_point,
-                            add = error_message
-  )
-  checkmate::assert_logical(verbose,
-                            add = error_message
-  )
-  checkmate::assert_numeric(minimum_representative_proportion,
-                            null.ok = null_point,
-                            add = error_message,
-                            lower = 0,
-                            upper = 1
-  )
-  # report initial assertions
-  checkmate::reportAssertions(collection = error_message)
-
-  if (verbose == TRUE) {
-    message("Inputs checked and all initial assertions passed")
-  }
-
   ## Analysis code
-  # bring in study popupulation
-  study_pop <- study_denominator_pop
+  # bring in study population
+  study_pop_db <- cdm[[table_name_denominator]]
   if (!is.null(cohort_id_denominator_pop)) {
-    study_pop <- study_pop %>%
+    study_pop_db <- study_pop_db %>%
       dplyr::filter(.data$cohort_definition_id ==
                       .env$cohort_id_denominator_pop)
   }
 
-  # check population n is above zero
-  # return error if not
-  error_message <- checkmate::makeAssertCollection()
-  checkmate::assertTRUE(nrow(study_pop) > 0,
-                        add = error_message
-  )
-  if (!nrow(study_pop) > 0) {
-    error_message$push(
-      glue::glue("- Zero rows in study_denominator_pop with
-      cohort_id_denominator_pop={cohort_id_denominator_pop}")
-    )
-  }
-  checkmate::reportAssertions(collection = error_message)
-
-  if (verbose == TRUE) {
-    message("Check passed: one or more people in denominator")
-  }
-
-  outcome_db <- cdm_ref$outcome
-  error_message <- checkmate::makeAssertCollection()
-  checkmate::assertTRUE(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0,
-                        add = error_message
-  )
-  if (!outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0) {
-    error_message$push(
-      glue::glue("- Zero rows in {table_name_outcome}")
-    )
-  }
-  checkmate::reportAssertions(collection = error_message)
-
+  outcome_db <- cdm$outcome
   if (!is.null(cohort_id_outcome)) {
     outcome_db <- outcome_db %>%
       dplyr::filter(.data$cohort_definition_id == .env$cohort_id_outcome) %>%
       dplyr::compute()
   }
-  error_message <- checkmate::makeAssertCollection()
-  checkmate::assertTRUE(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0,
-                        add = error_message
-  )
-  if (!outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0) {
-    error_message$push(
-      glue::glue("- Zero rows in {table_name_outcome}
-                 for cohort_id_outcome={cohort_id_outcome}")
-    )
-  }
-  checkmate::reportAssertions(collection = error_message)
 
-  if (verbose == TRUE) {
-    message("Check passed: one or more outcomes identified")
-  }
+  # keep outcomes of people in the denominator
+  outcome_db <- outcome_db %>%
+    dplyr::inner_join(study_pop_db %>%
+                        dplyr::select("subject_id"),
+                      by="subject_id")
 
   # bring outcomes into memory
   if (verbose == TRUE) {
     message("Bringing outcomes into memory")
   }
+
+  study_pop<- study_pop_db %>% dplyr::collect()
+
   outcome <- outcome_db %>%
-    dplyr::rename("person_id" = "subject_id") %>%
+    dplyr::rename("subject_id" = "subject_id") %>%
     dplyr::rename("outcome_start_date" = "cohort_start_date") %>%
     dplyr::rename("outcome_end_date" = "cohort_end_date") %>%
-    dplyr::select("person_id", "outcome_start_date", "outcome_end_date") %>%
+    dplyr::select("subject_id", "outcome_start_date", "outcome_end_date") %>%
     dplyr::collect()
 
   if (time_interval == "days"){
@@ -409,11 +271,11 @@ get_pop_prevalence <- function(cdm_ref,
 
     working_pop <- working_pop %>%
       dplyr::left_join(outcome,
-                       by = "person_id"
+                       by = "subject_id"
       )
 
     working_pop <- working_pop %>%
-      dplyr::select("person_id", "t_start_date",
+      dplyr::select("subject_id", "t_start_date",
                     "t_end_date", "outcome_start_date", "outcome_end_date")
 
     working_pop <- working_pop %>%
@@ -421,20 +283,20 @@ get_pop_prevalence <- function(cdm_ref,
                                                         .data$t_start_date,
                                                         units = "days")) + 1) /
                       working_period) %>%
-      dplyr::group_by(.data$person_id) %>%
+      dplyr::group_by(.data$subject_id) %>%
       dplyr::mutate(contribution = sum(.data$contribution)) %>%
       dplyr::ungroup() %>%
       dplyr::filter(.data$contribution >= .env$minimum_representative_proportion)
 
     denominator <- working_pop %>%
-      dplyr::select("person_id") %>%
+      dplyr::select("subject_id") %>%
       dplyr::distinct() %>%
       nrow()
 
     numerator <- working_pop %>%
       dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
       dplyr::filter(.data$outcome_end_date >= .data$t_start_date) %>%
-      dplyr::select("person_id") %>%
+      dplyr::select("subject_id") %>%
       dplyr::distinct() %>%
       nrow()
 
@@ -458,7 +320,7 @@ get_pop_prevalence <- function(cdm_ref,
   )
 
   study_pop <- study_pop %>%
-    dplyr::select("person_id","cohort_start_date","cohort_end_date")
+    dplyr::select("subject_id","cohort_start_date","cohort_end_date")
 
   results<-list()
   results[["pr"]]<-pr

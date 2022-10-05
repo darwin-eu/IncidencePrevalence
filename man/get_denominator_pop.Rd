@@ -5,20 +5,19 @@
 \title{Identify a single denominator population}
 \usage{
 get_denominator_pop(
-  cdm_ref,
-  start_date = NULL,
-  end_date = NULL,
-  min_age = NULL,
-  max_age = NULL,
-  sex = "Both",
-  days_prior_history = 0,
-  table_name_strata = NULL,
-  strata_cohort_id = NULL,
-  verbose = FALSE
+  cdm,
+  start_date,
+  end_date,
+  min_age,
+  max_age,
+  days_prior_history,
+  table_name_strata,
+  strata_cohort_id,
+  sample
 )
 }
 \arguments{
-\item{cdm_ref}{CDMConnector CDM reference object}
+\item{cdm}{CDMConnector CDM reference object}
 
 \item{start_date}{Date indicating the start of the study period. If NULL,
 the earliest observation_start_date in the observation_period table
@@ -32,8 +31,6 @@ will be used.}
 
 \item{max_age}{Maximum age for the cohort.}
 
-\item{sex}{Sex of the cohort}
-
 \item{days_prior_history}{Days of prior history required to enter
 the study cohort.}
 
@@ -41,11 +38,7 @@ the study cohort.}
 
 \item{strata_cohort_id}{strata_cohort_id}
 
-\item{verbose}{Either TRUE or FALSE.
-If TRUE, progress will be reported.}
-}
-\value{
-
+\item{sample}{sample n}
 }
 \description{
 Identify a single denominator population

@@ -5,12 +5,12 @@
 \title{Collect population incidence estimates}
 \usage{
 collect_pop_incidence(
-  cdm_ref,
+  cdm,
+  table_name_denominator,
+  cohort_ids_denominator_pops,
   table_name_outcomes,
   cohort_ids_outcomes,
-  study_denominator_pop,
-  cohort_ids_denominator_pops,
-  time_intervals = "Months",
+  time_interval = "Months",
   outcome_washout_windows = 0,
   repetitive_events = FALSE,
   confidence_interval = "poisson",
@@ -19,17 +19,17 @@ collect_pop_incidence(
 )
 }
 \arguments{
-\item{cdm_ref}{CDMConnector CDM reference object}
+\item{cdm}{CDMConnector CDM reference object}
+
+\item{table_name_denominator}{table_name_denominator}
+
+\item{cohort_ids_denominator_pops}{Cohort ids of denominator populations}
 
 \item{table_name_outcomes}{Name of the table with the outcome cohorts}
 
 \item{cohort_ids_outcomes}{Outcome cohort ids}
 
-\item{study_denominator_pop}{Tibble with denominator populations}
-
-\item{cohort_ids_denominator_pops}{Cohort ids of denominator populations}
-
-\item{time_intervals}{Time intervals for incidence estimates}
+\item{time_interval}{Time intervals for incidence estimates}
 
 \item{outcome_washout_windows}{Clean windows}
 
@@ -41,9 +41,6 @@ collect_pop_incidence(
 lower than this will be obscured. If NULL all results will be reported.}
 
 \item{verbose}{Whether to report progress}
-}
-\value{
-
 }
 \description{
 Collect population incidence estimates
