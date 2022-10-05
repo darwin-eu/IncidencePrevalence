@@ -76,19 +76,19 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 
-cdm_ref <- generate_mock_incidence_prevalence_db(sample_size=50000,
+cdm <- generate_mock_incidence_prevalence_db(sample_size=50000,
                                           out_pre=0.5)
 
-dpop <- collect_denominator_pops(cdm_ref = cdm_ref,
+dpop <- collect_denominator_pops(cdm = cdm,
                                  study_start_date = as.Date("2008-01-01"),
                                  study_end_date = as.Date("2012-01-01"),
-                                 study_age_stratas = NULL,
+                                 study_age_stratas = list(c(0,150)),
                                  study_sex_stratas = "Both",
                                  study_days_prior_history = 0)
 
-cdm_ref$denominator <- dpop$denominator_population
+cdm$denominator <- dpop$denominator_population
 
-cdm_ref$denominator %>%  
+cdm$denominator %>%  
   glimpse()
 ```
 
@@ -96,7 +96,7 @@ cdm_ref$denominator %>%
 Let´s first calculate incidence rates on a yearly basis, without allowing repetitive events
 ```{r, message= FALSE, warning=FALSE}
 inc <- collect_pop_incidence(
-  cdm_ref = cdm_ref,
+  cdm = cdm,
   table_name_denominator = "denominator",
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
@@ -119,7 +119,7 @@ inc$incidence_estimates %>%
 Now with a washout of all prior history while still not allowing repetitive events
 ```{r, message= FALSE, warning=FALSE}
 inc <- collect_pop_incidence(
-  cdm_ref = cdm_ref,
+  cdm = cdm,
   table_name_denominator = "denominator",
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
@@ -142,7 +142,7 @@ inc$incidence_estimates %>%
 Now we´ll set the washout to 180 days while still not allowing repetitive events
 ```{r, message= FALSE, warning=FALSE}
 inc <- collect_pop_incidence(
-  cdm_ref = cdm_ref,
+  cdm = cdm,
   table_name_denominator = "denominator",
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
@@ -165,7 +165,7 @@ inc$incidence_estimates %>%
 And finally we´ll set the washout to 180 days and allow repetitve events
 ```{r, message= FALSE, warning=FALSE}
 inc <- collect_pop_incidence(
-  cdm_ref = cdm_ref,
+  cdm = cdm,
   table_name_denominator = "denominator",
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",

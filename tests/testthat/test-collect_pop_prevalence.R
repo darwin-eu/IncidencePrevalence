@@ -1,12 +1,12 @@
 
 test_that("mock db: check output format", {
-  cdm_ref <- generate_mock_incidence_prevalence_db()
+  cdm <- generate_mock_incidence_prevalence_db()
 
-  dpop <- collect_denominator_pops(cdm_ref = cdm_ref)
-  cdm_ref$denominator <- dpop$denominator_populations
+  dpop <- collect_denominator_pops(cdm = cdm)
+  cdm$denominator <- dpop$denominator_populations
 
   prev <- collect_pop_prevalence(
-    cdm_ref = cdm_ref,
+    cdm = cdm,
     table_name_denominator = "denominator",
     cohort_ids_denominator_pops = "1",
     table_name_outcomes = "outcome",
@@ -50,7 +50,7 @@ test_that("mock db: check output format", {
   ) %in%
     names(prev[["prevalence_estimates"]])))
 
-  DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
 })
 
@@ -83,15 +83,15 @@ test_that("mock db: checks on working example", {
     )
   )
 
-  cdm_ref <- generate_mock_incidence_prevalence_db(person = person,
+  cdm <- generate_mock_incidence_prevalence_db(person = person,
                                               observation_period = observation_period,
                                               outcome = outcome)
 
-  dpop <- collect_denominator_pops(cdm_ref = cdm_ref)
-  cdm_ref$denominator <- dpop$denominator_populations
+  dpop <- collect_denominator_pops(cdm = cdm)
+  cdm$denominator <- dpop$denominator_populations
 
   prev <- collect_pop_prevalence(
-    cdm_ref = cdm_ref,
+    cdm = cdm,
     table_name_denominator = "denominator",
     table_name_outcomes = "outcome",
     cohort_ids_outcomes = "1",
@@ -100,7 +100,7 @@ test_that("mock db: checks on working example", {
   )
   expect_true(nrow(prev[["prevalence_estimates"]]) >= 1)
 
-  DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: working examples 2", {
@@ -131,16 +131,16 @@ test_that("mock db: working examples 2", {
       as.Date("2010-02-20")
     )
   )
-  cdm_ref <- generate_mock_incidence_prevalence_db(person = person,
+  cdm <- generate_mock_incidence_prevalence_db(person = person,
                                                    observation_period = observation_period,
                                                    outcome = outcome)
   dpop <- collect_denominator_pops(
-    cdm_ref = cdm_ref,
+    cdm = cdm,
     study_age_stratas = list(c(0, 100), c(0, 100))
   )
-  cdm_ref$denominator <- dpop$denominator_populations
+  cdm$denominator <- dpop$denominator_populations
 
-  prev <- collect_pop_prevalence(cdm_ref,
+  prev <- collect_pop_prevalence(cdm,
                              table_name_denominator = "denominator",
                              table_name_outcomes = "outcome",
                              cohort_ids_outcomes = "1",
@@ -150,7 +150,7 @@ test_that("mock db: working examples 2", {
   )
   expect_true(nrow(prev[["prevalence_estimates"]]) >= 1)
 
-  DBI::dbDisconnect(attr( cdm_ref, "dbcon"), shutdown = TRUE)
+  DBI::dbDisconnect(attr( cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: check minimum counts", {
@@ -198,15 +198,15 @@ test_that("mock db: check minimum counts", {
       )
     )
 
-  cdm_ref <- generate_mock_incidence_prevalence_db(person = person,
+  cdm <- generate_mock_incidence_prevalence_db(person = person,
                                                    observation_period = observation_period,
                                                    outcome = outcome)
 
-  dpop <- collect_denominator_pops(cdm_ref = cdm_ref)
-  cdm_ref$denominator <- dpop$denominator_populations
+  dpop <- collect_denominator_pops(cdm = cdm)
+  cdm$denominator <- dpop$denominator_populations
 
   prev <- collect_pop_prevalence(
-    cdm_ref = cdm_ref,
+    cdm = cdm,
     table_name_denominator = "denominator",
     table_name_outcomes = "outcome",
     cohort_ids_outcomes = "1",
@@ -234,7 +234,7 @@ test_that("mock db: check minimum counts", {
 
 
   prev <- collect_pop_prevalence(
-    cdm_ref = cdm_ref,
+    cdm = cdm,
     table_name_denominator = "denominator",
     table_name_outcomes = "outcome",
     cohort_ids_outcomes = "1",
@@ -260,7 +260,7 @@ test_that("mock db: check minimum counts", {
   expect_true(is.na(prev[["prevalence_estimates"]]$prev_high[2]))
   expect_true(is.na(prev[["prevalence_estimates"]]$prev_high[3]))
 
-  DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
 })
 
@@ -293,14 +293,14 @@ test_that("mock db: check study time periods", {
     )
   )
 
-  cdm_ref <- generate_mock_incidence_prevalence_db(person = person,
+  cdm <- generate_mock_incidence_prevalence_db(person = person,
                                                    observation_period = observation_period,
                                                    outcome = outcome)
 
-  dpop <- collect_denominator_pops(cdm_ref = cdm_ref)
-  cdm_ref$denominator <- dpop$denominator_populations
+  dpop <- collect_denominator_pops(cdm = cdm)
+  cdm$denominator <- dpop$denominator_populations
 
-  prev <- collect_pop_prevalence(cdm_ref,
+  prev <- collect_pop_prevalence(cdm,
                                  table_name_denominator = "denominator",
                                  cohort_ids_denominator_pop = "1",
                                  table_name_outcomes = "outcome",
@@ -316,7 +316,7 @@ test_that("mock db: check study time periods", {
   # as the person goes up to the last day of the month
   expect_true(nrow(prev[["prevalence_estimates"]]) == 12)
 
-  DBI::dbDisconnect(attr( cdm_ref, "dbcon"), shutdown = TRUE)
+  DBI::dbDisconnect(attr( cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: check periods follow calendar dates", {
@@ -353,19 +353,19 @@ test_that("mock db: check periods follow calendar dates", {
     )
   )
 
-  cdm_ref <- generate_mock_incidence_prevalence_db(person = person,
+  cdm <- generate_mock_incidence_prevalence_db(person = person,
                                                    observation_period = observation_period,
                                                    outcome = outcome)
 
   # study_start_date during a month (with month as time_interval)
   dpop <- collect_denominator_pops(
-    cdm_ref = cdm_ref,
+    cdm = cdm,
     study_start_date = as.Date("2011-01-15")
   )
-  cdm_ref$denominator <- dpop$denominator_populations
+  cdm$denominator <- dpop$denominator_populations
 
   # where we expect the study to start on 2011-01-15
-  prev <- collect_pop_prevalence(cdm_ref,
+  prev <- collect_pop_prevalence(cdm,
                                  table_name_denominator = "denominator",
                                  table_name_outcomes = "outcome",
                                  cohort_ids_outcomes = "1",
@@ -378,7 +378,7 @@ test_that("mock db: check periods follow calendar dates", {
   )
   expect_true(prev[["prevalence_estimates"]]$start_time[1]==as.Date("2011-01-15"))
   # where we expect the study to start the next month
-  prev <- collect_pop_prevalence(cdm_ref,
+  prev <- collect_pop_prevalence(cdm,
                                  table_name_denominator = "denominator",
                                  table_name_outcomes = "outcome",
                                  cohort_ids_outcomes = "1",
@@ -391,18 +391,18 @@ test_that("mock db: check periods follow calendar dates", {
   )
   expect_true(prev[["prevalence_estimates"]]$start_time[1]==as.Date("2011-02-01"))
 
-  DBI::dbDisconnect(attr( cdm_ref, "dbcon"), shutdown = TRUE)
+  DBI::dbDisconnect(attr( cdm, "dbcon"), shutdown = TRUE)
 
 })
 
 test_that("mock db: check conversion of user inputs", {
-  cdm_ref <- generate_mock_incidence_prevalence_db()
+  cdm <- generate_mock_incidence_prevalence_db()
 
-  dpop <- collect_denominator_pops(cdm_ref = cdm_ref)
-  cdm_ref$denominator <- dpop$denominator_populations
+  dpop <- collect_denominator_pops(cdm = cdm)
+  cdm$denominator <- dpop$denominator_populations
 
   prev <- collect_pop_prevalence(
-    cdm_ref = cdm_ref,
+    cdm = cdm,
     table_name_denominator = "denominator",
     table_name_outcomes = "outcome",
     cohort_ids_outcomes = 1,
@@ -411,7 +411,7 @@ test_that("mock db: check conversion of user inputs", {
   expect_true(nrow(prev[["prevalence_estimates"]]) >= 1)
 
 
-  DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: check messages when vebose is true", {
@@ -426,12 +426,12 @@ test_that("mock db: check messages when vebose is true", {
     )
   )
 
-  cdm_ref <- generate_mock_incidence_prevalence_db(outcome = outcome)
+  cdm <- generate_mock_incidence_prevalence_db(outcome = outcome)
 
-  dpop <- collect_denominator_pops(cdm_ref = cdm_ref)
-  cdm_ref$denominator <- dpop$denominator_populations
+  dpop <- collect_denominator_pops(cdm = cdm)
+  cdm$denominator <- dpop$denominator_populations
 
-  expect_message(collect_pop_prevalence(cdm_ref,
+  expect_message(collect_pop_prevalence(cdm,
                                         table_name_denominator = "denominator",
                                         table_name_outcome = "outcome",
                                         cohort_ids_outcomes = "1",
@@ -440,7 +440,7 @@ test_that("mock db: check messages when vebose is true", {
                                         verbose = TRUE
   ))
 
-  expect_message(collect_pop_prevalence(cdm_ref,
+  expect_message(collect_pop_prevalence(cdm,
                                         table_name_denominator = "denominator",
                                         table_name_outcome = "outcome",
                                         cohort_ids_outcomes = "1",
@@ -449,7 +449,7 @@ test_that("mock db: check messages when vebose is true", {
                                         verbose = TRUE
   ))
 
-  DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: check expected errors", {
@@ -480,22 +480,22 @@ test_that("mock db: check expected errors", {
       as.Date("2010-02-20")
     )
   )
-  cdm_ref <- generate_mock_incidence_prevalence_db(person = person,
+  cdm <- generate_mock_incidence_prevalence_db(person = person,
                                               observation_period = observation_period,
                                               outcome = outcome)
 
-  dpop <- collect_denominator_pops(cdm_ref = cdm_ref)
-  cdm_ref$denominator <- dpop$denominator_populations
+  dpop <- collect_denominator_pops(cdm = cdm)
+  cdm$denominator <- dpop$denominator_populations
 
   expect_error(collect_pop_prevalence(
-    cdm_ref = "a",
+    cdm = "a",
     table_name_denominator = "denominator",
     table_name_outcomes = "outcome",
     cohort_ids_outcomes = 1,
     cohort_ids_denominator_pops = 1
   ))
 
-  DBI::dbDisconnect(attr(cdm_ref, "dbcon"), shutdown = TRUE)
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 

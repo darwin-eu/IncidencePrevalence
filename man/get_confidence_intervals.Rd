@@ -11,9 +11,6 @@ get_confidence_intervals(x, confidence_intervals)
 
 \item{confidence_intervals}{Confidence intervals type}
 }
-\value{
-
-}
 \description{
 Get confidence intervals
 }

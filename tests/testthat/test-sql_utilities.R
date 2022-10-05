@@ -1,13 +1,13 @@
 test_that("sql_add_years", {
 
-cdm_ref <- generate_mock_incidence_prevalence_db()
+cdm <- generate_mock_incidence_prevalence_db()
 dialect<-"postgresql"
 
 # add 10
 sql_duckdb<-sql_add_years(dialect=dialect,
              years_to_add=10,
              variable="observation_period_start_date")
-obs<-cdm_ref$observation_period %>%
+obs<-cdm$observation_period %>%
   dplyr::mutate(observation_period_start_date1= as.Date(
     sql(sql_duckdb))) %>%
   dplyr::select("observation_period_start_date",
@@ -28,7 +28,7 @@ expect_true(obs %>%
 sql_duckdb<-sql_add_years(dialect=dialect,
                          years_to_add=0,
                          variable="observation_period_start_date")
-obs<-cdm_ref$observation_period %>%
+obs<-cdm$observation_period %>%
   dplyr::mutate(observation_period_start_date1= as.Date(
     sql(sql_duckdb))) %>%
   dplyr::select("observation_period_start_date",

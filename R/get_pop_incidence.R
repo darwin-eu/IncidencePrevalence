@@ -76,7 +76,7 @@ compute_study_days_inc <- function(start_date,
 
 #' Get population incidence estimates
 #'
-#' @param cdm_ref CDMConnector CDM reference object
+#' @param cdm CDMConnector CDM reference object
 #' @param table_name_denominator table_name_denominator
 #' @param table_name_outcome table_name_outcome
 #' @param cohort_id_outcome cohort_id_outcome
@@ -91,7 +91,7 @@ compute_study_days_inc <- function(start_date,
 #' @export
 #'
 #' @examples
-get_pop_incidence <- function(cdm_ref,
+get_pop_incidence <- function(cdm,
                               table_name_denominator,
                               cohort_id_denominator_pop,
                               table_name_outcome,
@@ -110,13 +110,13 @@ get_pop_incidence <- function(cdm_ref,
 
   # ## check for standard types of user error
   # error_message <- checkmate::makeAssertCollection()
-  # db_inherits_check <- inherits(cdm_ref, "cdm_reference")
+  # db_inherits_check <- inherits(cdm, "cdm_reference")
   # checkmate::assertTRUE(db_inherits_check,
   #   add = error_message
   # )
   # if (!isTRUE(db_inherits_check)) {
   #   error_message$push(
-  #     "- cdm_ref must be a CDMConnector CDM reference object"
+  #     "- cdm must be a CDMConnector CDM reference object"
   #   )
   # }
   # checkmate::assert_character(cohort_id_outcome,
@@ -174,7 +174,7 @@ get_pop_incidence <- function(cdm_ref,
 
   ## Analysis code
   # bring in study population
-  study_pop_db <- cdm_ref[[table_name_denominator]]
+  study_pop_db <- cdm[[table_name_denominator]]
   # if (!is.null(cohort_id_denominator_pop)) {
   study_pop_db <- study_pop_db %>%
       dplyr::filter(.data$cohort_definition_id ==
@@ -203,7 +203,7 @@ get_pop_incidence <- function(cdm_ref,
 
 
   #  link to outcome cohort
-  outcome_db <- cdm_ref[[table_name_outcome]]
+  outcome_db <- cdm[[table_name_outcome]]
   # if (!is.null(cohort_id_outcome)) {
   #   outcome_db <- outcome_db %>%
   #     dplyr::filter(.data$cohort_definition_id == .env$cohort_id_outcome) %>%

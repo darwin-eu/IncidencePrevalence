@@ -17,7 +17,7 @@
 
 #' Collect population prevalence estimates
 #'
-#' @param cdm_ref CDMConnector CDM reference object
+#' @param cdm CDMConnector CDM reference object
 #' @param table_name_denominator table_name_denominator
 #' @param cohort_ids_denominator_pops Cohort ids of denominator populations
 #' @param table_name_outcomes Name of the table with the outcome cohorts
@@ -37,7 +37,7 @@
 #' @export
 #'
 #' @examples
-collect_pop_prevalence <- function(cdm_ref,
+collect_pop_prevalence <- function(cdm,
                                   table_name_denominator,
                                   cohort_ids_denominator_pops,
                                   table_name_outcomes,
@@ -74,37 +74,37 @@ collect_pop_prevalence <- function(cdm_ref,
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
-  db_inherits_check <- inherits(cdm_ref, "cdm_reference")
+  db_inherits_check <- inherits(cdm, "cdm_reference")
   checkmate::assertTRUE(db_inherits_check,
     add = error_message
   )
   if (!isTRUE(db_inherits_check)) {
     error_message$push(
-      "- cdm_ref must be a CDMConnector CDM reference object"
+      "- cdm must be a CDMConnector CDM reference object"
     )
   }
   checkmate::assert_character(cohort_ids_outcomes,
     add = error_message,
     null.ok = TRUE
   )
-  denominator_check<-table_name_denominator %in% names(cdm_ref)
+  denominator_check<-table_name_denominator %in% names(cdm)
   checkmate::assertTRUE(denominator_check,
                         add = error_message)
   if (!isTRUE(denominator_check)) {
     error_message$push(
-      "- `table_name_denominator` is not found in cdm_ref"
+      "- `table_name_denominator` is not found in cdm"
     )
   }
   checkmate::assert_character(cohort_ids_denominator_pops,
                               add = error_message,
                               null.ok = TRUE
   )
-  outcome_check<-table_name_outcomes %in% names(cdm_ref)
+  outcome_check<-table_name_outcomes %in% names(cdm)
   checkmate::assertTRUE(outcome_check,
                         add = error_message)
   if (!isTRUE(outcome_check)) {
     error_message$push(
-      "- `table_name_outcomes` is not found in cdm_ref"
+      "- `table_name_outcomes` is not found in cdm"
     )
   }
   checkmate::assert_character(cohort_ids_outcomes,
@@ -164,7 +164,7 @@ collect_pop_prevalence <- function(cdm_ref,
   prs_list <- lapply(study_specs, function(x) {
 
     working_prev <- get_pop_prevalence(
-      cdm_ref = cdm_ref,
+      cdm = cdm,
       table_name_denominator=table_name_denominator,
       cohort_id_denominator_pop = x$cohort_id_denominator_pop,
       table_name_outcome = table_name_outcomes,

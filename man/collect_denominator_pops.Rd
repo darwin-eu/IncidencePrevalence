@@ -5,19 +5,20 @@
 \title{Identify a set of denominator populations}
 \usage{
 collect_denominator_pops(
-  cdm_ref,
+  cdm,
   study_start_date = NULL,
   study_end_date = NULL,
-  study_age_stratas = NULL,
+  study_age_stratas = list(c(0, 150)),
   study_sex_stratas = "Both",
   study_days_prior_history = 0,
   table_name_strata = NULL,
   strata_cohort_id = NULL,
+  sample = NULL,
   verbose = FALSE
 )
 }
 \arguments{
-\item{cdm_ref}{CDMConnector CDM reference object}
+\item{cdm}{CDMConnector CDM reference object}
 
 \item{study_start_date}{Date indicating the start of the study
 period. If NULL,
@@ -40,11 +41,10 @@ the study cohort.}
 
 \item{strata_cohort_id}{strata_cohort_id}
 
+\item{sample}{sample n}
+
 \item{verbose}{Either TRUE or FALSE.
 If TRUE, progress will be reported.}
-}
-\value{
-
 }
 \description{
 Identify a set of denominator populations

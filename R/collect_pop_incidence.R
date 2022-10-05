@@ -17,7 +17,7 @@
 
 #' Collect population incidence estimates
 #'
-#' @param cdm_ref CDMConnector CDM reference object
+#' @param cdm CDMConnector CDM reference object
 #' @param table_name_denominator table_name_denominator
 #' @param table_name_outcomes Name of the table with the outcome cohorts
 #' @param cohort_ids_outcomes Outcome cohort ids
@@ -34,7 +34,7 @@
 #' @export
 #'
 #' @examples
-collect_pop_incidence <- function(cdm_ref,
+collect_pop_incidence <- function(cdm,
                                   table_name_denominator,
                                   cohort_ids_denominator_pops,
                                   table_name_outcomes,
@@ -64,32 +64,32 @@ collect_pop_incidence <- function(cdm_ref,
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
-  db_inherits_check <- inherits(cdm_ref, "cdm_reference")
+  db_inherits_check <- inherits(cdm, "cdm_reference")
   checkmate::assertTRUE(db_inherits_check,
     add = error_message
   )
   if (!isTRUE(db_inherits_check)) {
-    "- cdm_ref must be a CDMConnector CDM reference object"
+    "- cdm must be a CDMConnector CDM reference object"
   }
 
-  denominator_check<-table_name_denominator %in% names(cdm_ref)
+  denominator_check<-table_name_denominator %in% names(cdm)
   checkmate::assertTRUE(denominator_check,
                         add = error_message)
   if (!isTRUE(denominator_check)) {
     error_message$push(
-      "- `table_name_denominator` is not found in cdm_ref"
+      "- `table_name_denominator` is not found in cdm"
     )
   }
   checkmate::assert_character(cohort_ids_denominator_pops,
                               add = error_message,
                               null.ok = TRUE
   )
-  outcome_check<-table_name_outcomes %in% names(cdm_ref)
+  outcome_check<-table_name_outcomes %in% names(cdm)
   checkmate::assertTRUE(outcome_check,
                         add = error_message)
   if (!isTRUE(outcome_check)) {
     error_message$push(
-      "- `table_name_outcomes` is not found in cdm_ref"
+      "- `table_name_outcomes` is not found in cdm"
     )
   }
   checkmate::assert_character(cohort_ids_outcomes,
@@ -127,9 +127,9 @@ collect_pop_incidence <- function(cdm_ref,
     "cohort_start_date",
     "cohort_end_date"
   ) %in%
-    names(cdm_ref[[table_name_denominator]] %>% utils::head(1) %>% dplyr::collect())))
+    names(cdm[[table_name_denominator]] %>% utils::head(1) %>% dplyr::collect())))
 
-  date_check<-nrow(cdm_ref[[table_name_denominator]] %>%
+  date_check<-nrow(cdm[[table_name_denominator]] %>%
                      dplyr::select("cohort_start_date", "cohort_end_date") %>%
                      dplyr::filter(.data$cohort_start_date>.data$cohort_end_date) %>%
                      dplyr::collect()) == 0
@@ -139,7 +139,7 @@ collect_pop_incidence <- function(cdm_ref,
       "- some end dates before start dates in denominator"
     )
   }
-  denominator_count_check<-cdm_ref[[table_name_denominator]] %>%
+  denominator_count_check<-cdm[[table_name_denominator]] %>%
     dplyr::filter(.data$cohort_definition_id %in% .env$cohort_ids_denominator_pops) %>%
     dplyr::count() %>%
     dplyr::pull() > 0
@@ -151,7 +151,7 @@ collect_pop_incidence <- function(cdm_ref,
       "- nobody found in `table_name_denominator` with one of the `cohort_ids_denominator_pops`"
     )
   }
-  outcome_count_check<-cdm_ref[[table_name_outcomes]] %>%
+  outcome_count_check<-cdm[[table_name_outcomes]] %>%
     dplyr::filter(.data$cohort_definition_id %in% .env$cohort_ids_outcomes ) %>%
     dplyr::count() %>%
     dplyr::pull() > 0
@@ -164,7 +164,7 @@ collect_pop_incidence <- function(cdm_ref,
     )
   }
 
-  missing_check<-nrow(cdm_ref[[table_name_denominator]] %>%
+  missing_check<-nrow(cdm[[table_name_denominator]] %>%
     dplyr::filter(is.na(.data$cohort_definition_id) | is.na(.data$subject_id) |
                     is.na(.data$cohort_start_date)| is.na(.data$cohort_end_date)) %>%
       dplyr::collect())==0
@@ -203,7 +203,7 @@ collect_pop_incidence <- function(cdm_ref,
   # get irs
   irs_list <- lapply(study_specs, function(x) {
     working_inc <- get_pop_incidence(
-      cdm_ref = cdm_ref,
+      cdm = cdm,
       table_name_denominator=table_name_denominator,
       cohort_id_denominator_pop = x$cohort_id_denominator_pop,
       table_name_outcome = table_name_outcomes,

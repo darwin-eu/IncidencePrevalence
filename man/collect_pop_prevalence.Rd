@@ -5,7 +5,7 @@
 \title{Collect population prevalence estimates}
 \usage{
 collect_pop_prevalence(
-  cdm_ref,
+  cdm,
   table_name_denominator,
   cohort_ids_denominator_pops,
   table_name_outcomes,
@@ -21,7 +21,7 @@ collect_pop_prevalence(
 )
 }
 \arguments{
-\item{cdm_ref}{CDMConnector CDM reference object}
+\item{cdm}{CDMConnector CDM reference object}
 
 \item{table_name_denominator}{table_name_denominator}
 
@@ -48,9 +48,6 @@ individuals must have to contribute}
 lower than this will be obscured. If NULL all results will be reported.}
 
 \item{verbose}{Whether to report progress}
-}
-\value{
-
 }
 \description{
 Collect population prevalence estimates

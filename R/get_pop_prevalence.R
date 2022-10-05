@@ -142,7 +142,7 @@ compute_study_days <- function(start_date,
 
 #' Get population prevalence estimates
 #'
-#' @param cdm_ref CDMConnector CDM reference object
+#' @param cdm CDMConnector CDM reference object
 #' @param table_name_denominator table_name_denominator
 #' @param cohort_id_denominator_pop cohort_id_denominator_pop
 #' @param table_name_outcome table_name_outcome
@@ -158,7 +158,7 @@ compute_study_days <- function(start_date,
 #' @export
 #'
 #' @examples
-get_pop_prevalence <- function(cdm_ref,
+get_pop_prevalence <- function(cdm,
                                table_name_denominator,
                                cohort_id_denominator_pop = NULL,
                                table_name_outcome,
@@ -172,14 +172,14 @@ get_pop_prevalence <- function(cdm_ref,
 
   ## Analysis code
   # bring in study population
-  study_pop_db <- cdm_ref[[table_name_denominator]]
+  study_pop_db <- cdm[[table_name_denominator]]
   if (!is.null(cohort_id_denominator_pop)) {
     study_pop_db <- study_pop_db %>%
       dplyr::filter(.data$cohort_definition_id ==
                       .env$cohort_id_denominator_pop)
   }
 
-  outcome_db <- cdm_ref$outcome
+  outcome_db <- cdm$outcome
   if (!is.null(cohort_id_outcome)) {
     outcome_db <- outcome_db %>%
       dplyr::filter(.data$cohort_definition_id == .env$cohort_id_outcome) %>%

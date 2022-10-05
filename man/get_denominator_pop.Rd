@@ -5,18 +5,19 @@
 \title{Identify a single denominator population}
 \usage{
 get_denominator_pop(
-  cdm_ref,
+  cdm,
   start_date,
   end_date,
   min_age,
   max_age,
   days_prior_history,
   table_name_strata,
-  strata_cohort_id
+  strata_cohort_id,
+  sample
 )
 }
 \arguments{
-\item{cdm_ref}{CDMConnector CDM reference object}
+\item{cdm}{CDMConnector CDM reference object}
 
 \item{start_date}{Date indicating the start of the study period. If NULL,
 the earliest observation_start_date in the observation_period table
@@ -36,9 +37,8 @@ the study cohort.}
 \item{table_name_strata}{table_name_strata}
 
 \item{strata_cohort_id}{strata_cohort_id}
-}
-\value{
 
+\item{sample}{sample n}
 }
 \description{
 Identify a single denominator population
