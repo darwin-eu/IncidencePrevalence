@@ -285,14 +285,14 @@ get_denominator_pop <- function(cdm,
             dplyr::sql(sql_add_day)
         )
 
-      if (i %% 5 == 0) {
+      # if (i %% 5 == 0) {
         # in case many options have been chosen
         # we'll use a temp table to keep the
         # sql queries manageable
-        study_pop_db <- compute(study_pop_db)
-      }
+        study_pop_db <- dplyr::compute(study_pop_db)
+      # }
     }
-    study_pop_db<-study_pop_db %>% dplyr::compute()
+    # study_pop_db<-study_pop_db %>% dplyr::compute()
 
     # keep people only if they satisfy
     # satisfy age criteria at some point in the study
