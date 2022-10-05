@@ -70,7 +70,7 @@ test_that("mock db: checks on working example", {
   )
 
   cdm <- generate_mock_incidence_prevalence_db(person = person,
-                                                   observation_period = observation_period)
+                                               observation_period = observation_period)
   # some pops with people, but some without
   dpops <- collect_denominator_pops(cdm,
                                     study_start_date = NULL,
