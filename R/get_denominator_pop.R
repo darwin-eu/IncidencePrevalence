@@ -284,6 +284,13 @@ get_denominator_pop <- function(cdm,
           "date_with_prior_history_{{working_days_prior_history}}" :=
             dplyr::sql(sql_add_day)
         )
+
+      if (i %% 5 == 0) {
+        # in case many options have been chosen
+        # we'll use a temp table to keep the
+        # sql queries manageable
+        study_pop_db <- compute(study_pop_db)
+      }
     }
     study_pop_db<-study_pop_db %>% dplyr::compute()
 
