@@ -17,7 +17,7 @@
 
 #' Identify a set of denominator populations
 #'
-#' @param cdm_ref CDMConnector CDM reference object
+#' @param cdm CDMConnector CDM reference object
 #' @param study_start_date Date indicating the start of the study
 #' period. If NULL,
 #'  the earliest observation_start_date in the observation_period table
@@ -32,6 +32,7 @@
 #' the study cohort.
 #' @param table_name_strata table_name_strata
 #' @param strata_cohort_id strata_cohort_id
+#' @param sample sample n
 #' @param verbose Either TRUE or FALSE.
 #' If TRUE, progress will be reported.
 #'
@@ -40,32 +41,44 @@
 #' @export
 #'
 #' @examples
-collect_denominator_pops <- function(cdm_ref,
+collect_denominator_pops <- function(cdm,
                                      study_start_date = NULL,
                                      study_end_date = NULL,
-                                     study_age_stratas = NULL,
+                                     study_age_stratas = list(c(0, 150)),
                                      study_sex_stratas = "Both",
                                      study_days_prior_history = 0,
                                      table_name_strata = NULL,
                                      strata_cohort_id = NULL,
+                                     sample = NULL,
                                      verbose = FALSE) {
   if (verbose == TRUE) {
-    start <- Sys.time()
-  }
-
-  if (verbose == TRUE) {
+    start_collect <- Sys.time()
     message("Progress: Checking inputs")
   }
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
-  cdm_inherits_check <- inherits(cdm_ref, "cdm_reference")
+  cdm_inherits_check <- inherits(cdm, "cdm_reference")
   checkmate::assertTRUE(cdm_inherits_check,
     add = error_message
   )
   if (!isTRUE(cdm_inherits_check)) {
     error_message$push(
-      "- cdm_ref must be a CDMConnector CDM reference object"
+      "- cdm must be a CDMConnector CDM reference object"
+    )
+  }
+  cdm_person_exists <- inherits(cdm$person, "tbl_dbi")
+  checkmate::assertTRUE(cdm_person_exists, add = error_message)
+  if (!isTRUE(cdm_person_exists)) {
+    error_message$push(
+      "- table `person` is not found"
+    )
+  }
+  cdm_observation_period_exists <- inherits(cdm$observation_period, "tbl_dbi")
+  checkmate::assertTRUE(cdm_observation_period_exists, add = error_message)
+  if (!isTRUE(cdm_observation_period_exists)) {
+    error_message$push(
+      "- table `observation_period` is not found"
     )
   }
   checkmate::assert_date(study_start_date,
@@ -76,7 +89,36 @@ collect_denominator_pops <- function(cdm_ref,
     add = error_message,
     null.ok = TRUE
   )
-  # add check of age groups here
+  checkmate::assert_list(study_age_stratas,
+    add = error_message
+  )
+  if (!is.null(study_age_stratas)) {
+    for (i in 1:length(study_age_stratas)) {
+      checkmate::assertTRUE(length(study_age_stratas[[i]]) == 2)
+      checkmate::assert_numeric(study_age_stratas[[i]][1],
+        add = error_message
+      )
+      checkmate::assert_numeric(study_age_stratas[[i]][2],
+        add = error_message
+      )
+      age_check <- study_age_stratas[[i]][1] <
+        study_age_stratas[[i]][2]
+      checkmate::assertTRUE(age_check,
+        add = error_message
+      )
+      if (!isTRUE(age_check)) {
+        error_message$push(
+          "- upper age value must be higher than lower age value"
+        )
+      }
+      checkmate::assertTRUE(study_age_stratas[[i]][1] >= 0,
+        add = error_message
+      )
+      checkmate::assertTRUE(study_age_stratas[[i]][2] >= 0,
+        add = error_message
+      )
+    }
+  }
   checkmate::assert_vector(study_sex_stratas,
     add = error_message
   )
@@ -89,134 +131,216 @@ collect_denominator_pops <- function(cdm_ref,
   checkmate::assert_numeric(study_days_prior_history,
     add = error_message
   )
+  days_check <- all(study_days_prior_history >= 0)
+  if (!isTRUE(days_check)) {
+    error_message$push(
+      "- study_days_prior_history cannot be negative"
+    )
+  }
   checkmate::assert_logical(verbose,
     add = error_message
   )
-  # report initial assertions
-  checkmate::reportAssertions(collection = error_message)
-
-  # add broadest possible age group if NULL
-  if (is.null(study_age_stratas)) {
-    study_age_stratas <- list(c(0, 150))
+  if (!is.null(table_name_strata)) {
+    strata_table_exists <- inherits(cdm[[table_name_strata]], "tbl_dbi")
+    checkmate::assertTRUE(strata_table_exists, add = error_message)
+    if (!isTRUE(strata_table_exists)) {
+      error_message$push(
+        "- table `strata` is not found"
+      )
+    }
+      strata_names_check<- all(names(cdm[["strata"]] %>% utils::head(1) %>% dplyr::collect()) ==
+         c("cohort_definition_id", "subject_id",
+           "cohort_start_date", "cohort_end_date"))
+      checkmate::assertTRUE(strata_names_check, add = error_message)
+      if (!isTRUE(strata_names_check)) {
+        error_message$push(
+          "- table `strata` does not conform to specification"
+        )
+    }
   }
-  # combinations of inputs
+  checkmate::assertNumeric(sample,
+                           add = error_message,
+                           null.ok = TRUE)
+  checkmate::reportAssertions(collection = error_message)
+  if (verbose == TRUE) {
+    message("Progress: All input checks passed")
+    duration <- abs(as.numeric(Sys.time() - start_collect, units = "secs"))
+    message(glue::glue(
+      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+    ))
+  }
+
+  # add broadest possible age group if no age strata were given
+  if (verbose == TRUE) {
+    message("Progress: Prepare inputs for creating denominator populations")
+    start <- Sys.time()
+  }
+  if (is.null(study_start_date)) {
+    study_start_date <- cdm$observation_period %>%
+      dplyr::summarise(
+        min(.data$observation_period_start_date,
+          na.rm = TRUE
+        )
+      ) %>%
+      dplyr::collect() %>%
+      dplyr::pull()
+  }
+  if (is.null(study_end_date)) {
+    study_end_date <- cdm$observation_period %>%
+      dplyr::summarise(
+        max(.data$observation_period_end_date,
+          na.rm = TRUE
+        )
+      ) %>%
+      dplyr::collect() %>%
+      dplyr::pull()
+  }
+
+  # summarise combinations of inputs
   age_gr_df <- data.frame(do.call(rbind, study_age_stratas)) %>%
-    dplyr::mutate(age_range = paste0(.data$X1, ";", .data$X2))
+    dplyr::mutate(age_strata = paste0(.data$X1, ";", .data$X2))
+
   pop_specs <- tidyr::expand_grid(
-    age_range = age_gr_df$age_range,
-    sex = .env$study_sex_stratas,
+    age_strata = age_gr_df$age_strata,
+    sex_strata = .env$study_sex_stratas,
     study_days_prior_history = .env$study_days_prior_history,
     study_start_date = .env$study_start_date,
     study_end_date = .env$study_end_date
   ) %>%
-    tidyr::separate(.data$age_range,
+    tidyr::separate(.data$age_strata,
       c("min_age", "max_age"),
       remove = FALSE
     ) %>%
     dplyr::mutate(min_age = as.numeric(.data$min_age)) %>%
-    dplyr::mutate(max_age = as.numeric(.data$max_age))
-  if (is.null(study_start_date)) {
-    pop_specs$study_start_date <- as.Date(NA)
-  }
-  if (is.null(study_end_date)) {
-    pop_specs$study_end_date <- as.Date(NA)
-  }
-  pop_specs <- pop_specs %>%
+    dplyr::mutate(max_age = as.numeric(.data$max_age)) %>%
     dplyr::mutate(cohort_definition_id = as.character(dplyr::row_number()))
 
-  n_pops <- nrow(pop_specs)
-
-  # to list
-  pop_specs <- split(
-    pop_specs,
-    factor(pop_specs$cohort_definition_id,
-      levels = unique(pop_specs$cohort_definition_id)
-    )
-  )
-
-
-  # get each population
-  study_populations <- lapply(pop_specs, function(x) {
-    if (verbose == TRUE) {
-      message(glue::glue(
-        "Progress: Fetching population {x$cohort_definition_id} of {n_pops}"
-      ))
-      message(glue::glue(
-        "Settings: {x$study_start_date}; {x$study_end_date}; {x$age_range}; {x$sex}; {x$study_days_prior_history}"
-      ))
-    }
-
-    denominator_pop <- get_denominator_pop(
-      cdm_ref = cdm_ref,
-      start_date = x$study_start_date,
-      end_date = x$study_end_date,
-      min_age = x$min_age,
-      max_age = x$max_age,
-      sex = x$sex,
-      days_prior_history = x$study_days_prior_history,
-      table_name_strata = table_name_strata,
-      strata_cohort_id = strata_cohort_id
-    )
-
-    if (!is.null(denominator_pop$denominator_population)) {
-        denominator_pop$denominator_population <-
-          denominator_pop$denominator_population  %>%
-          dplyr::mutate(cohort_definition_id = x$cohort_definition_id) %>%
-          dplyr::relocate(.data$cohort_definition_id)
-    }
-
-    denominator_pop$denominator_settings <-
-      denominator_pop$denominator_settings  %>%
-      dplyr::mutate(cohort_definition_id = x$cohort_definition_id) %>%
-      dplyr::relocate(.data$cohort_definition_id)
-
-    denominator_pop$attrition <-
-      denominator_pop$attrition  %>%
-      dplyr::mutate(cohort_definition_id = x$cohort_definition_id) %>%
-      dplyr::relocate(.data$cohort_definition_id)
-
-    return(denominator_pop)
-  })
-
-  study_populations <- purrr::flatten(study_populations)
-
-  # denominator settings
-  denominator_settings <- study_populations[names(study_populations) == "denominator_settings"]
-  # to tibble
-  denominator_settings <- dplyr::bind_rows(denominator_settings,
-                                        .id = NULL
-  )
-
-  # denominator population
-  dpop <- study_populations[names(study_populations) == "denominator_population"]
-  # to tibble
-  dpop <- dplyr::bind_rows(dpop,
-                          .id = NULL
-  )
-
-  # attrition summary
-  attrition <- study_populations[names(study_populations) == "attrition"]
-  # to tibble
-  attrition <- dplyr::bind_rows(attrition,
-                                .id = NULL
-  )
-
   if (verbose == TRUE) {
+    message("Progress: Inputs prepared for creating denominator populations")
     duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
     message(glue::glue(
       "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
 
-  if (nrow(dpop) == 0) {
+  # get the overall contributing population (without stratification)
+  # we need to the output the corresponding dates when getting the denominator
+  if (verbose == TRUE) {
+    message("Progress: Run get_denominator_pop to get overall population")
+    start <- Sys.time()
+  }
+  dpop <- get_denominator_pop(
+    cdm = cdm,
+    start_date = unique(pop_specs$study_start_date),
+    end_date = unique(pop_specs$study_end_date),
+    min_age = unique(pop_specs$min_age),
+    max_age = unique(pop_specs$max_age),
+    days_prior_history = unique(pop_specs$study_days_prior_history),
+    table_name_strata = table_name_strata,
+    strata_cohort_id = strata_cohort_id,
+    sample=sample
+  )
+  if (verbose == TRUE) {
+    message("Progress: Overall denominator population identified")
+    duration <- abs(as.numeric(Sys.time() - start_collect, units = "secs"))
+    message(glue::glue(
+      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+    ))
+  }
+
+  # build each of the cohorts of interest
+  if (verbose == TRUE) {
+    message("Progress: Create each denominator population of interest")
+    start <- Sys.time()
+  }
+  if (dpop$denominator_population %>% dplyr::count() %>% dplyr::pull() == 0) {
     message("- No people found for any denominator population")
   }
 
-  # results to return as a list
+  if (dpop$denominator_population %>% dplyr::count() %>% dplyr::pull() > 0) {
+
+    # first, if all cohorts are Male or Female get number that will be excluded
+    if (all(pop_specs$sex_strata == "Female")) {
+      dpop$attrition <- record_attrition(
+        table = dpop$denominator_population %>%
+          dplyr::filter(.data$sex == "Female"),
+        id = "person_id",
+        reason = "Not Female",
+        existing_attrition = dpop$attrition
+      )
+    }
+    if (all(pop_specs$sex_strata == "Male")) {
+      dpop$attrition <- record_attrition(
+        table = dpop$denominator_population %>%
+          dplyr::filter(.data$sex == "Male"),
+        id = "person_id",
+        reason = "Not Male",
+        existing_attrition = dpop$attrition
+      )
+    }
+
+    study_pops <- list()
+
+    for (i in 1:length(pop_specs$cohort_definition_id)) {
+      working_dpop <- dpop$denominator_population
+
+      if (pop_specs$sex_strata[[i]] %in% c("Male", "Female")) {
+        working_sex <- pop_specs$sex_strata[[i]]
+        working_dpop <- working_dpop %>%
+          dplyr::filter(.data$sex == .env$working_sex)
+      }
+
+      # cohort start
+      working_dpop <- working_dpop %>%
+        dplyr::rename(
+          "cohort_start_date" =
+            glue::glue("cohort_start_date_min_age_{pop_specs$min_age[[i]]}_prior_history_{pop_specs$study_days_prior_history[[i]]}")
+        )
+      # cohort end
+      working_dpop <- working_dpop %>%
+        dplyr::rename(
+          cohort_end_date =
+            glue::glue(
+              "cohort_end_date_max_age_{pop_specs$max_age[[i]]}"
+            )
+        )
+
+      working_dpop <- working_dpop %>%
+        dplyr::rename("subject_id" = "person_id") %>%
+        dplyr::select("subject_id", "cohort_start_date", "cohort_end_date") %>%
+        dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
+
+      study_pops[[i]] <- working_dpop %>%
+        dplyr::mutate(cohort_definition_id = local(pop_specs$cohort_definition_id[[i]])) %>%
+        dplyr::relocate(.data$cohort_definition_id)
+    }
+
+    study_pops <- Reduce(dplyr::union_all, study_pops)
+  }
+  if (verbose == TRUE) {
+    message("Progress: Each denominator population of interest created")
+    duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
+    message(glue::glue(
+      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+    ))
+  }
+
+  if (verbose == TRUE) {
+    duration <- abs(as.numeric(Sys.time() - start_collect, units = "secs"))
+    message(glue::glue(
+      "Overall time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+    ))
+  }
+
+  # return results as a list
   results <- list()
-  results[["denominator_populations"]] <- dpop
-  results[["denominator_settings"]] <- denominator_settings
-  results[["attrition"]] <- attrition
+  if (dpop$denominator_population %>% dplyr::count() %>% dplyr::pull() > 0) {
+    results[["denominator_populations"]] <- study_pops
+  } else {
+    results[["denominator_populations"]] <- tibble::tibble()
+  }
+  results[["denominator_settings"]] <- pop_specs
+  results[["attrition"]] <- dpop$attrition
 
   return(results)
 }

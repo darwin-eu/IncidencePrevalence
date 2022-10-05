@@ -5,11 +5,11 @@
 \title{Get population prevalence estimates}
 \usage{
 get_pop_prevalence(
-  cdm_ref,
+  cdm,
+  table_name_denominator,
+  cohort_id_denominator_pop = NULL,
   table_name_outcome,
   cohort_id_outcome = NULL,
-  study_denominator_pop,
-  cohort_id_denominator_pop = NULL,
   type = "point",
   time_interval = "months",
   full_period_required = TRUE,
@@ -19,15 +19,15 @@ get_pop_prevalence(
 )
 }
 \arguments{
-\item{cdm_ref}{CDMConnector CDM reference object}
+\item{cdm}{CDMConnector CDM reference object}
+
+\item{table_name_denominator}{table_name_denominator}
+
+\item{cohort_id_denominator_pop}{cohort_id_denominator_pop}
 
 \item{table_name_outcome}{table_name_outcome}
 
 \item{cohort_id_outcome}{cohort_id_outcome}
-
-\item{study_denominator_pop}{study_denominator_pop}
-
-\item{cohort_id_denominator_pop}{cohort_id_denominator_pop}
 
 \item{type}{type}
 
@@ -40,9 +40,6 @@ get_pop_prevalence(
 \item{minimum_representative_proportion}{minimum_representative_proportion}
 
 \item{verbose}{verbose}
-}
-\value{
-
 }
 \description{
 Get population prevalence estimates

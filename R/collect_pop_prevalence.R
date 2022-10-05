@@ -17,11 +17,11 @@
 
 #' Collect population prevalence estimates
 #'
-#' @param cdm_ref CDMConnector CDM reference object
+#' @param cdm CDMConnector CDM reference object
+#' @param table_name_denominator table_name_denominator
+#' @param cohort_ids_denominator_pops Cohort ids of denominator populations
 #' @param table_name_outcomes Name of the table with the outcome cohorts
 #' @param cohort_ids_outcomes Outcome cohort ids
-#' @param study_denominator_pop Tibble with denominator populations
-#' @param cohort_ids_denominator_pops Cohort ids of denominator populations
 #' @param type type of prevalence, point or period
 #' @param points where to compute the point prevalence
 #' @param time_intervals Time intervals for prevalence estimates
@@ -37,11 +37,11 @@
 #' @export
 #'
 #' @examples
-collect_pop_prevalence <- function(cdm_ref,
+collect_pop_prevalence <- function(cdm,
+                                  table_name_denominator,
+                                  cohort_ids_denominator_pops,
                                   table_name_outcomes,
                                   cohort_ids_outcomes,
-                                  study_denominator_pop,
-                                  cohort_ids_denominator_pops,
                                   type = "point",
                                   time_intervals = "months",
                                   full_period_requireds = TRUE,
@@ -74,58 +74,54 @@ collect_pop_prevalence <- function(cdm_ref,
 
   ## check for standard types of user error
   error_message <- checkmate::makeAssertCollection()
-  db_inherits_check <- inherits(cdm_ref, "cdm_reference")
+  db_inherits_check <- inherits(cdm, "cdm_reference")
   checkmate::assertTRUE(db_inherits_check,
     add = error_message
   )
   if (!isTRUE(db_inherits_check)) {
     error_message$push(
-      "- cdm_ref must be a CDMConnector CDM reference object"
+      "- cdm must be a CDMConnector CDM reference object"
     )
   }
   checkmate::assert_character(cohort_ids_outcomes,
     add = error_message,
     null.ok = TRUE
   )
-
-  checkmate::assert_tibble(study_denominator_pop,
-    add = error_message
-  )
-  checkmate::assertTRUE(all(study_denominator_pop$cohort_start_date <=
-    study_denominator_pop$cohort_end_date))
-  checkmate::assertTRUE(nrow(study_denominator_pop) > 0,
-    add = error_message
-  )
-  checkmate::assertTRUE(!is.null(study_denominator_pop$cohort_definition_id) &
-    sum(is.na(study_denominator_pop$cohort_definition_id)) == 0)
-  checkmate::assertTRUE(!is.null(study_denominator_pop$person_id) &
-    sum(is.na(study_denominator_pop$person_id)) == 0)
-  checkmate::assertTRUE(!is.null(study_denominator_pop$cohort_start_date) &
-    sum(is.na(study_denominator_pop$cohort_start_date)) == 0)
-  checkmate::assertTRUE(!is.null(study_denominator_pop$cohort_end_date) &
-    sum(is.na(study_denominator_pop$cohort_end_date)) == 0)
-  checkmate::assert_number(minimum_cell_count, null.ok = TRUE)
-  checkmate::assertTRUE(all(c(
-    "cohort_definition_id",
-    "person_id",
-    "cohort_start_date", "cohort_end_date"
-  ) %in%
-    names(study_denominator_pop)))
-
+  denominator_check<-table_name_denominator %in% names(cdm)
+  checkmate::assertTRUE(denominator_check,
+                        add = error_message)
+  if (!isTRUE(denominator_check)) {
+    error_message$push(
+      "- `table_name_denominator` is not found in cdm"
+    )
+  }
   checkmate::assert_character(cohort_ids_denominator_pops,
-    add = error_message,
-    null.ok = TRUE
+                              add = error_message,
+                              null.ok = TRUE
+  )
+  outcome_check<-table_name_outcomes %in% names(cdm)
+  checkmate::assertTRUE(outcome_check,
+                        add = error_message)
+  if (!isTRUE(outcome_check)) {
+    error_message$push(
+      "- `table_name_outcomes` is not found in cdm"
+    )
+  }
+  checkmate::assert_character(cohort_ids_outcomes,
+                              add = error_message,
+                              null.ok = TRUE
   )
   checkmate::assert_choice(type,
-    choices = c("point","period"),
-    add = error_message
+                           choices = c("point","period"),
+                           add = error_message
   )
   checkmate::assertTRUE(all(time_intervals %in% c("days","weeks","months","quarters","years")),
-    add = error_message
+                        add = error_message
   )
   checkmate::assertTRUE(all(points %in% c("start","middle","end")),
-    add = error_message
+                        add = error_message
   )
+  checkmate::assert_number(minimum_cell_count)
   checkmate::assert_numeric(minimum_representative_proportions,
     add = error_message,
     lower = 0,
@@ -168,11 +164,11 @@ collect_pop_prevalence <- function(cdm_ref,
   prs_list <- lapply(study_specs, function(x) {
 
     working_prev <- get_pop_prevalence(
-      cdm_ref = cdm_ref,
+      cdm = cdm,
+      table_name_denominator=table_name_denominator,
+      cohort_id_denominator_pop = x$cohort_id_denominator_pop,
       table_name_outcome = table_name_outcomes,
       cohort_id_outcome = x$cohort_id_outcome,
-      study_denominator_pop = study_denominator_pop,
-      cohort_id_denominator_pop = x$cohort_id_denominator_pop,
       type = type,
       time_interval = x$time_interval,
       full_period_required = x$full_period_required,
