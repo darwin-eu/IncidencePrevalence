@@ -240,6 +240,8 @@ get_denominator_pop <- function(cdm,
         dplyr::mutate("date_min_age_{{working_min}}" :=
           dplyr::sql(sql_year_add))
     }
+    study_pop_db<-study_pop_db %>% dplyr::compute()
+
     # for each max age, add the date at which they reach it
     # the day before their next birthday
     for (i in 1:length(max_age)) {
@@ -263,6 +265,8 @@ get_denominator_pop <- function(cdm,
         dplyr::mutate("date_max_age_{{working_max}}" :=
           as.Date(dbplyr::sql(sql_minus_day)))
     }
+    study_pop_db<-study_pop_db %>% dplyr::compute()
+
     # for each prior_history requirement,
     # add the date at which they reach
     # observation start date + prior_history requirement
@@ -280,7 +284,15 @@ get_denominator_pop <- function(cdm,
           "date_with_prior_history_{{working_days_prior_history}}" :=
             dplyr::sql(sql_add_day)
         )
+
+      # if (i %% 5 == 0) {
+        # in case many options have been chosen
+        # we'll use a temp table to keep the
+        # sql queries manageable
+        study_pop_db <- dplyr::compute(study_pop_db)
+      # }
     }
+    # study_pop_db<-study_pop_db %>% dplyr::compute()
 
     # keep people only if they satisfy
     # satisfy age criteria at some point in the study
@@ -337,6 +349,7 @@ get_denominator_pop <- function(cdm,
             ))
       }
     }
+    study_pop_db<-study_pop_db %>% dplyr::compute()
 
 
     # cohort end dates
