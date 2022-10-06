@@ -69,17 +69,17 @@ get_denominator_pop <- function(cdm,
     # drop anyone not in the strata cohort
     person_db <- person_db %>%
       dplyr::inner_join(strata_db %>%
-        dplyr::rename("person_id" = "subject_id") %>%
-        dplyr::select("person_id") %>%
-        dplyr::distinct(),
-      by = "person_id"
+                          dplyr::rename("person_id" = "subject_id") %>%
+                          dplyr::select("person_id") %>%
+                          dplyr::distinct(),
+                        by = "person_id"
       )
     observation_period_db <- observation_period_db %>%
       dplyr::inner_join(strata_db %>%
-        dplyr::rename("person_id" = "subject_id") %>%
-        dplyr::select("person_id") %>%
-        dplyr::distinct(),
-      by = "person_id"
+                          dplyr::rename("person_id" = "subject_id") %>%
+                          dplyr::select("person_id") %>%
+                          dplyr::distinct(),
+                        by = "person_id"
       )
 
     # update observation start date to cohort start date
@@ -88,13 +88,13 @@ get_denominator_pop <- function(cdm,
     # if cohort end date is before observation start date
     observation_period_db <- observation_period_db %>%
       dplyr::inner_join(strata_db %>%
-        dplyr::rename("person_id" = "subject_id") %>%
-        dplyr::select(
-          "person_id",
-          "cohort_start_date",
-          "cohort_end_date"
-        ),
-      by = "person_id"
+                          dplyr::rename("person_id" = "subject_id") %>%
+                          dplyr::select(
+                            "person_id",
+                            "cohort_start_date",
+                            "cohort_end_date"
+                          ),
+                        by = "person_id"
       )
 
     # to deal with potential multiple observation periods
@@ -102,23 +102,23 @@ get_denominator_pop <- function(cdm,
     # if not, drop
     observation_period_db <- observation_period_db %>%
       dplyr::filter(.data$observation_period_start_date <= .data$cohort_start_date &
-        .data$observation_period_end_date >= .data$cohort_start_date)
+                      .data$observation_period_end_date >= .data$cohort_start_date)
 
     observation_period_db <- observation_period_db %>%
       dplyr::mutate(
         observation_period_start_date =
           dplyr::if_else(.data$observation_period_start_date <=
-            .data$cohort_start_date,
-          .data$cohort_start_date,
-          .data$observation_period_start_date
+                           .data$cohort_start_date,
+                         .data$cohort_start_date,
+                         .data$observation_period_start_date
           )
       ) %>%
       dplyr::mutate(
         observation_period_end_date =
           dplyr::if_else(.data$observation_period_end_date >=
-            .data$cohort_end_date,
-          .data$cohort_end_date,
-          .data$observation_period_end_date
+                           .data$cohort_end_date,
+                         .data$cohort_end_date,
+                         .data$observation_period_end_date
           )
       ) %>%
       dplyr::select(!c("cohort_start_date", "cohort_end_date")) %>%
@@ -136,7 +136,7 @@ get_denominator_pop <- function(cdm,
 
   study_pop_db <- person_db %>%
     dplyr::left_join(observation_period_db,
-      by = "person_id"
+                     by = "person_id"
     ) %>%
     dplyr::filter(!is.na(.data$year_of_birth))
 
@@ -149,7 +149,7 @@ get_denominator_pop <- function(cdm,
 
   study_pop_db <- study_pop_db %>%
     dplyr::mutate(sex = ifelse(.data$gender_concept_id == "8507", "Male",
-      ifelse(.data$gender_concept_id == "8532", "Female", NA)
+                               ifelse(.data$gender_concept_id == "8532", "Female", NA)
     )) %>%
     dplyr::filter(!is.na(.data$sex)) %>%
     dplyr::compute()
@@ -210,7 +210,7 @@ get_denominator_pop <- function(cdm,
   )
 
   study_pop_db <- study_pop_db %>%
-    # drop people with observation_period_star_date after study end
+    # drop people with observation_period_start_date after study end
     dplyr::filter(.data$observation_period_start_date <= .env$end_date) %>%
     # drop people with observation_period_end_date before study start
     dplyr::filter(.data$observation_period_end_date >= .env$start_date) %>%
@@ -238,7 +238,14 @@ get_denominator_pop <- function(cdm,
       )
       study_pop_db <- study_pop_db %>%
         dplyr::mutate("date_min_age_{{working_min}}" :=
-          dplyr::sql(sql_year_add))
+                        dplyr::sql(sql_year_add))
+
+      if (i %% 10 == 0) {
+        # in case many options have been chosen
+        # we'll use a temp table to keep the
+        # sql queries manageable
+        study_pop_db <- dplyr::compute(study_pop_db)
+      }
     }
     study_pop_db<-study_pop_db %>% dplyr::compute()
 
@@ -261,9 +268,14 @@ get_denominator_pop <- function(cdm,
 
       study_pop_db <- study_pop_db %>%
         dplyr::mutate("date_max_age_{{working_max}}" :=
-          dplyr::sql(sql_year_add)) %>%
+                        dplyr::sql(sql_year_add)) %>%
         dplyr::mutate("date_max_age_{{working_max}}" :=
-          as.Date(dbplyr::sql(sql_minus_day)))
+                        as.Date(dbplyr::sql(sql_minus_day)))
+
+      if (i %% 10 == 0) {
+        study_pop_db <- dplyr::compute(study_pop_db)
+      }
+
     }
     study_pop_db<-study_pop_db %>% dplyr::compute()
 
@@ -285,12 +297,12 @@ get_denominator_pop <- function(cdm,
             dplyr::sql(sql_add_day)
         )
 
-      # if (i %% 5 == 0) {
+      if (i %% 5 == 0) {
         # in case many options have been chosen
         # we'll use a temp table to keep the
         # sql queries manageable
         study_pop_db <- dplyr::compute(study_pop_db)
-      # }
+      }
     }
     # study_pop_db<-study_pop_db %>% dplyr::compute()
 
@@ -337,16 +349,22 @@ get_denominator_pop <- function(cdm,
         working_history <- days_prior_history[[j]]
         study_pop_db <- study_pop_db %>%
           dplyr::mutate("last_of_min_age_{working_min}_prior_history_{working_history}" :=
-            dplyr::if_else(!!rlang::sym(glue::glue("date_min_age_{working_min}")) <
-              !!rlang::sym(glue::glue("date_with_prior_history_{working_history}")),
-            !!rlang::sym(glue::glue("date_with_prior_history_{working_history}")),
-            !!rlang::sym(glue::glue("date_min_age_{working_min}"))
-            )) %>%
+                          dplyr::if_else(!!rlang::sym(glue::glue("date_min_age_{working_min}")) <
+                                           !!rlang::sym(glue::glue("date_with_prior_history_{working_history}")),
+                                         !!rlang::sym(glue::glue("date_with_prior_history_{working_history}")),
+                                         !!rlang::sym(glue::glue("date_min_age_{working_min}"))
+                          )) %>%
           dplyr::mutate("cohort_start_date_min_age_{working_min}_prior_history_{working_history}" :=
-            dplyr::if_else(!!rlang::sym(glue::glue("last_of_min_age_{working_min}_prior_history_{working_history}")) < .env$start_date,
-              .env$start_date,
-              !!rlang::sym(glue::glue("last_of_min_age_{working_min}_prior_history_{working_history}"))
-            ))
+                          dplyr::if_else(!!rlang::sym(glue::glue("last_of_min_age_{working_min}_prior_history_{working_history}")) < .env$start_date,
+                                         .env$start_date,
+                                         !!rlang::sym(glue::glue("last_of_min_age_{working_min}_prior_history_{working_history}"))
+                          ))
+        if (j %% 5 == 0) {
+          study_pop_db <- study_pop_db %>% dplyr::compute()
+        }
+      }
+      if (i %% 5 == 0) {
+        study_pop_db <- study_pop_db %>% dplyr::compute()
       }
     }
     study_pop_db<-study_pop_db %>% dplyr::compute()
@@ -362,16 +380,16 @@ get_denominator_pop <- function(cdm,
 
       study_pop_db <- study_pop_db %>%
         dplyr::mutate("first_of_max_age_{working_max}_obs_period" :=
-          dplyr::if_else(!!rlang::sym(glue::glue("date_max_age_{working_max}")) <
-            .data$observation_period_end_date,
-          !!rlang::sym(glue::glue("date_max_age_{working_max}")),
-          .data$observation_period_end_date
-          )) %>%
+                        dplyr::if_else(!!rlang::sym(glue::glue("date_max_age_{working_max}")) <
+                                         .data$observation_period_end_date,
+                                       !!rlang::sym(glue::glue("date_max_age_{working_max}")),
+                                       .data$observation_period_end_date
+                        )) %>%
         dplyr::mutate("cohort_end_date_max_age_{working_max}" :=
-          dplyr::if_else(!!rlang::sym(glue::glue("first_of_max_age_{working_max}_obs_period")) < .env$end_date,
-            !!rlang::sym(glue::glue("first_of_max_age_{working_max}_obs_period")),
-            .env$end_date
-          ))
+                        dplyr::if_else(!!rlang::sym(glue::glue("first_of_max_age_{working_max}_obs_period")) < .env$end_date,
+                                       !!rlang::sym(glue::glue("first_of_max_age_{working_max}_obs_period")),
+                                       .env$end_date
+                        ))
     }
   }
   if ((study_pop_db %>% dplyr::count() %>% dplyr::pull()) == 0) {
