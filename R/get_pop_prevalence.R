@@ -179,7 +179,7 @@ get_pop_prevalence <- function(cdm,
                       .env$cohort_id_denominator_pop)
   }
 
-  outcome_db <- cdm$outcome
+  outcome_db <- cdm[[table_name_outcome]]
   if (!is.null(cohort_id_outcome)) {
     outcome_db <- outcome_db %>%
       dplyr::filter(.data$cohort_definition_id == .env$cohort_id_outcome) %>%

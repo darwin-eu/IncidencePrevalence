@@ -1,7 +1,7 @@
 library(testthat)
 library(dplyr, warn.conflicts = FALSE)
 
-test_that("collect_denominator_pops against test server", {
+test_that("test methods against test server", {
   skip_if(Sys.getenv("TESTDB_USER") == "")
 
   con <- DBI::dbConnect(odbc::odbc(),
@@ -12,9 +12,14 @@ test_that("collect_denominator_pops against test server", {
                         PWD      = Sys.getenv("TESTDB_PWD"),
                         Port     = Sys.getenv("TESTDB_PORT"))
 
-  cdm <- CDMConnector::cdm_from_con(con, cdm_schema = Sys.getenv("TESTDB_CDM_SCHEMA"), write_schema = Sys.getenv("TESTDB_WRITE_SCHEMA"))
+  cdm <- CDMConnector::cdm_from_con(con,
+                                    cdm_schema = Sys.getenv("TESTDB_CDM_SCHEMA"),
+                                    write_schema = Sys.getenv("TESTDB_WRITE_SCHEMA"),
+                                    cohort_tables = c("cohort"))
 
-  dpop <- collect_denominator_pops(cdm = cdm)
+  dpop <- collect_denominator_pops(cdm = cdm,
+                                   sample = 100)
+  cdm$denominator <- dpop$denominator_populations
 
   expect_true(all(c(
     "age_strata","min_age","max_age",
@@ -54,27 +59,7 @@ test_that("collect_denominator_pops against test server", {
   expect_true(class(dpop %>% dplyr::select(cohort_end_date) %>%
                       dplyr::pull())== "Date")
 
-  DBI::dbDisconnect(con)
-})
-
-test_that("collect_pop_incidence against test server", {
-  skip_if(Sys.getenv("TESTDB_USER") == "")
-
-  con <- DBI::dbConnect(odbc::odbc(),
-                        Driver   = Sys.getenv("TESTDB_DRIVER"),
-                        Server   = Sys.getenv("TESTDB_SERVER"),
-                        Database = Sys.getenv("TESTDB_NAME"),
-                        UID      = Sys.getenv("TESTDB_USER"),
-                        PWD      = Sys.getenv("TESTDB_PWD"),
-                        Port     = Sys.getenv("TESTDB_PORT"))
-
-  cdm <- CDMConnector::cdm_from_con(con, cdm_schema = Sys.getenv("TESTDB_CDM_SCHEMA"),
-                                         write_schema = Sys.getenv("TESTDB_WRITE_SCHEMA"),
-                                         cohort_tables = Sys.getenv("TESTDB_COHORT_TABLE"))
-
-  dpop <- collect_denominator_pops(cdm = cdm)
-  cdm$denominator <- dpop$denominator_populations
-
+  ## Pop incidence
   inc <- collect_pop_incidence(
     cdm = cdm,
     table_name_denominator = "denominator",
@@ -124,28 +109,7 @@ test_that("collect_pop_incidence against test server", {
   ) %in%
     names(inc[["incidence_estimates"]])))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-})
-
-
-test_that("collect_pop_prevalence against test server", {
-  skip_if(Sys.getenv("TESTDB_USER") == "")
-
-  con <- DBI::dbConnect(odbc::odbc(),
-                        Driver   = Sys.getenv("TESTDB_DRIVER"),
-                        Server   = Sys.getenv("TESTDB_SERVER"),
-                        Database = Sys.getenv("TESTDB_NAME"),
-                        UID      = Sys.getenv("TESTDB_USER"),
-                        PWD      = Sys.getenv("TESTDB_PWD"),
-                        Port     = Sys.getenv("TESTDB_PORT"))
-
-  cdm <- CDMConnector::cdm_from_con(con, cdm_schema = Sys.getenv("TESTDB_CDM_SCHEMA"),
-                                    write_schema = Sys.getenv("TESTDB_WRITE_SCHEMA"),
-                                    cohort_tables = Sys.getenv("TESTDB_COHORT_TABLE"))
-
-  dpop <- collect_denominator_pops(cdm = cdm)
-  cdm$denominator <- dpop$denominator_populations
-
+  ## Pop prevalence
   prev <- collect_pop_prevalence(
     cdm = cdm,
     table_name_denominator = "denominator",
