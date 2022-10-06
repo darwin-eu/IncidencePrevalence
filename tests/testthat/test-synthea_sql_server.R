@@ -12,6 +12,12 @@ test_that("test methods against test server", {
                         PWD      = Sys.getenv("TESTDB_PWD"),
                         Port     = Sys.getenv("TESTDB_PORT"))
 
+  # Write cohort to db
+  # sql <- SqlRender::readSql(system.file("sql/sql_server/", "cohortsTestDb.sql", package = "IncidencePrevalence"))
+  # sql <- SqlRender::render(sql = sql, cdmDatabaseSchema = Sys.getenv("TESTDB_CDM_SCHEMA"), resultsDatabaseSchema = Sys.getenv("TESTDB_WRITE_SCHEMA"))
+  # sql <- SqlRender::translate(sql = sql, targetDialect = Sys.getenv("TESTDB_DBMS"))
+  # DBI::dbSendQuery(con, sql)
+
   cdm <- CDMConnector::cdm_from_con(con,
                                     cdm_schema = Sys.getenv("TESTDB_CDM_SCHEMA"),
                                     write_schema = Sys.getenv("TESTDB_WRITE_SCHEMA"),
