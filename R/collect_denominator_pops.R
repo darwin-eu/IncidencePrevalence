@@ -148,7 +148,8 @@ collect_denominator_pops <- function(cdm,
         "- table `strata` is not found"
       )
     }
-    strata_names_check<- all(names(cdm[["strata"]] %>% utils::head(1) %>% dplyr::collect()) ==
+    strata_names_check<- all(names(cdm[[table_name_strata]] %>%
+                                     utils::head(1) %>% dplyr::collect()) ==
                                c("cohort_definition_id", "subject_id",
                                  "cohort_start_date", "cohort_end_date"))
     checkmate::assertTRUE(strata_names_check, add = error_message)

@@ -411,6 +411,18 @@ test_that("mock db: subset denominator by cohort", {
   expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_end_date) %in%
                     as.Date(c("2008-04-01","2009-04-01", "2010-04-01"))))
 
+
+  # should allow strata cohort to have any name
+  cdm$condition_cohort<-cdm$strata
+  cdm$strata<-NULL
+  dpop <- collect_denominator_pops(
+    cdm = cdm,
+    table_name_strata = "condition_cohort",
+    strata_cohort_id = "1",
+  )
+  expect_true(sum(dpop$denominator_populations %>% dplyr::collect() %>%
+                    dplyr::pull(subject_id) == "1") == 3)
+
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
 })
