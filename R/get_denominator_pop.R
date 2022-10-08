@@ -48,11 +48,17 @@ get_denominator_pop <- function(cdm,
                                 strata_cohort_id,
                                 sample) {
 
-  # make sure names are lowercase
-  person_db <- dplyr::rename_with(cdm$person, tolower)
+
+  # make sure names are lowercase and keep variables required
+  person_db <- dplyr::rename_with(cdm$person, tolower) %>%
+    dplyr::select("person_id", "gender_concept_id",
+                  "year_of_birth","month_of_birth","day_of_birth")
   observation_period_db <- dplyr::rename_with(
     cdm$observation_period, tolower
-  )
+  ) %>%
+    dplyr::select("person_id", "observation_period_id",
+                  "observation_period_start_date",
+                  "observation_period_end_date")
 
   # sample
   if(!is.null(sample)){
@@ -238,7 +244,7 @@ get_denominator_pop <- function(cdm,
       )
       study_pop_db <- study_pop_db %>%
         dplyr::mutate("date_min_age_{{working_min}}" :=
-                        dplyr::sql(sql_year_add))
+                        as.Date(dplyr::sql(sql_year_add)))
 
       if (i %% 10 == 0) {
         # in case many options have been chosen
@@ -294,7 +300,7 @@ get_denominator_pop <- function(cdm,
       study_pop_db <- study_pop_db %>%
         dplyr::mutate(
           "date_with_prior_history_{{working_days_prior_history}}" :=
-            dplyr::sql(sql_add_day)
+            as.Date(dplyr::sql(sql_add_day))
         )
 
       if (i %% 5 == 0) {
