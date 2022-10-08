@@ -249,6 +249,8 @@ collect_denominator_pops <- function(cdm,
     ))
   }
 
+  sql_queries<-dpop$sql_queries
+
   # build each of the cohorts of interest
   if (verbose == TRUE) {
     message("Progress: Create each denominator population of interest")
@@ -323,13 +325,22 @@ collect_denominator_pops <- function(cdm,
       study_pops_batches<-split(study_pops,
                                 ceiling(seq_along(study_pops)/n.batches))
       for(i in 1:length(study_pops_batches)){
-        study_pops_batches[[i]]<-Reduce(dplyr::union_all, study_pops_batches[[i]]) %>%
+        study_pops_batches[[i]]<-Reduce(dplyr::union_all, study_pops_batches[[i]])
+        sql_queries[[paste0("combine_cohorts_batch_",i)]]<-study_pops %>%
+          extract_query(description = paste0("combine_cohorts_batch_",i))
+        study_pops_batches[[i]]<-study_pops_batches[[i]] %>%
           dplyr::compute()
       }
       study_pops <- Reduce(dplyr::union_all, study_pops_batches)
+      sql_queries[["combine_cohorts_batch"]]<-study_pops %>%
+        extract_query(description = "combine_cohorts_batch")
+      study_pops <-study_pops %>% dplyr::compute()
     } else {
       # otherwise combine all at once
       study_pops <- Reduce(dplyr::union_all, study_pops)
+      sql_queries[["combine_cohorts"]]<-study_pops %>%
+        extract_query(description = "combine_cohorts")
+      study_pops <-study_pops %>% dplyr::compute()
     }
 
   }
@@ -357,6 +368,7 @@ collect_denominator_pops <- function(cdm,
   }
   results[["denominator_settings"]] <- pop_specs
   results[["attrition"]] <- dpop$attrition
+  results[["sql_queries"]] <- unlist(sql_queries)
 
   return(results)
 }

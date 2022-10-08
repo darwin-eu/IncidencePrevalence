@@ -32,3 +32,11 @@ sql_add_days<-function(dialect, days_to_add, variable){
     targetDialect = dialect)
   return(rendered_translated_sql)
 }
+
+extract_query<-function(query, description=""){
+ sql <- dbplyr::sql_render(query)
+ sql <- gsub("\"", "", sql)
+ sql<- rbind(paste0("< SQL ",description ,">"),
+                    sql, " ")
+ return(sql)
+}
