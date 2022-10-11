@@ -80,6 +80,22 @@ get_confidence_intervals <- function(x,
                             dplyr::mutate(var_low = dplyr::if_else(is.na(.data$var_low), 0, .data$var_low)) %>%
                             dplyr::mutate(var_high = dplyr::if_else(is.na(.data$var_high), 0, .data$var_high))
     )
+  } else if (confidence_intervals == "binomial") {
+    x <- dplyr::bind_cols(x,
+                          x %>%
+                            dplyr::left_join(
+                              x %>%
+                                dplyr::filter(.data$num >= 1) %>%
+                                dplyr::mutate(var_low = .data$var - qnorm(0.975)*sqrt(.data$var*(1-.data$var)/.data$den)) %>%
+                                dplyr::mutate(var_low = dplyr::if_else(.data$var_low < 0, 0, .data$var_low)) %>%
+                                dplyr::mutate(var_high = .data$var + qnorm(0.975)*sqrt(.data$var*(1-.data$var)/.data$den)) %>%
+                                dplyr::mutate(var_high = dplyr::if_else(.data$var_high > 1, 1, .data$var_high)),
+                              by = names(x)
+                            ) %>%
+                            dplyr::select("var_low", "var_high") %>%
+                            dplyr::mutate(var_low = dplyr::if_else(is.na(.data$var_low), 0, .data$var_low)) %>%
+                            dplyr::mutate(var_high = dplyr::if_else(is.na(.data$var_high), 0, .data$var_high))
+    )
   }
 
   x <- x %>%
