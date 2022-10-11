@@ -1,4 +1,4 @@
-# Copyright 2022 DARWIN EU (C)
+# Copyright 2022 DARWIN EU®
 #
 # This file is part of IncidencePrevalence
 #
@@ -72,54 +72,56 @@ collect_pop_incidence <- function(cdm,
     "- cdm must be a CDMConnector CDM reference object"
   }
 
-  denominator_check<-table_name_denominator %in% names(cdm)
+  denominator_check <- table_name_denominator %in% names(cdm)
   checkmate::assertTRUE(denominator_check,
-                        add = error_message)
+    add = error_message
+  )
   if (!isTRUE(denominator_check)) {
     error_message$push(
       "- `table_name_denominator` is not found in cdm"
     )
   }
   checkmate::assert_character(cohort_ids_denominator_pops,
-                              add = error_message,
-                              null.ok = TRUE
+    add = error_message,
+    null.ok = TRUE
   )
-  outcome_check<-table_name_outcomes %in% names(cdm)
+  outcome_check <- table_name_outcomes %in% names(cdm)
   checkmate::assertTRUE(outcome_check,
-                        add = error_message)
+    add = error_message
+  )
   if (!isTRUE(outcome_check)) {
     error_message$push(
       "- `table_name_outcomes` is not found in cdm"
     )
   }
   checkmate::assert_character(cohort_ids_outcomes,
-                              add = error_message,
-                              null.ok = TRUE
+    add = error_message,
+    null.ok = TRUE
   )
   checkmate::assert_choice(time_interval,
-    choices = c("days","weeks","months","quarters","years"),
+    choices = c("days", "weeks", "months", "quarters", "years"),
     add = error_message
   )
   checkmate::assert_numeric(outcome_washout_windows,
-                            add = error_message,
-                            null.ok = TRUE
+    add = error_message,
+    null.ok = TRUE
   )
   checkmate::assert_logical(repetitive_events,
-                            add = error_message
+    add = error_message
   )
   checkmate::assert_choice(confidence_interval,
-                           choices = c("none","poisson"),
-                           add = error_message,
-                           null.ok = TRUE
+    choices = c("none", "poisson"),
+    add = error_message,
+    null.ok = TRUE
   )
   checkmate::assert_number(minimum_cell_count)
   checkmate::assert_logical(verbose,
-                            add = error_message
+    add = error_message
   )
   checkmate::reportAssertions(collection = error_message)
 
 
-# further checks that there are the required data elements
+  # further checks that there are the required data elements
   error_message <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(all(c(
     "cohort_definition_id",
@@ -129,17 +131,17 @@ collect_pop_incidence <- function(cdm,
   ) %in%
     names(cdm[[table_name_denominator]] %>% utils::head(1) %>% dplyr::collect())))
 
-  date_check<-nrow(cdm[[table_name_denominator]] %>%
-                     dplyr::select("cohort_start_date", "cohort_end_date") %>%
-                     dplyr::filter(.data$cohort_start_date>.data$cohort_end_date) %>%
-                     dplyr::collect()) == 0
+  date_check <- nrow(cdm[[table_name_denominator]] %>%
+    dplyr::select("cohort_start_date", "cohort_end_date") %>%
+    dplyr::filter(.data$cohort_start_date > .data$cohort_end_date) %>%
+    dplyr::collect()) == 0
   checkmate::assertTRUE(date_check)
   if (!isTRUE(date_check)) {
     error_message$push(
       "- some end dates before start dates in denominator"
     )
   }
-  denominator_count_check<-cdm[[table_name_denominator]] %>%
+  denominator_count_check <- cdm[[table_name_denominator]] %>%
     dplyr::filter(.data$cohort_definition_id %in% .env$cohort_ids_denominator_pops) %>%
     dplyr::count() %>%
     dplyr::pull() > 0
@@ -151,12 +153,12 @@ collect_pop_incidence <- function(cdm,
       "- nobody found in `table_name_denominator` with one of the `cohort_ids_denominator_pops`"
     )
   }
-  outcome_count_check<-cdm[[table_name_outcomes]] %>%
-    dplyr::filter(.data$cohort_definition_id %in% .env$cohort_ids_outcomes ) %>%
+  outcome_count_check <- cdm[[table_name_outcomes]] %>%
+    dplyr::filter(.data$cohort_definition_id %in% .env$cohort_ids_outcomes) %>%
     dplyr::count() %>%
     dplyr::pull() > 0
   checkmate::assertTRUE(outcome_count_check,
-                        add = error_message
+    add = error_message
   )
   if (!isTRUE(outcome_count_check)) {
     error_message$push(
@@ -164,10 +166,10 @@ collect_pop_incidence <- function(cdm,
     )
   }
 
-  missing_check<-nrow(cdm[[table_name_denominator]] %>%
+  missing_check <- nrow(cdm[[table_name_denominator]] %>%
     dplyr::filter(is.na(.data$cohort_definition_id) | is.na(.data$subject_id) |
-                    is.na(.data$cohort_start_date)| is.na(.data$cohort_end_date)) %>%
-      dplyr::collect())==0
+      is.na(.data$cohort_start_date) | is.na(.data$cohort_end_date)) %>%
+    dplyr::collect()) == 0
   if (!isTRUE(missing_check)) {
     error_message$push(
       "- there is missing data in `table_name_denominator`"
@@ -175,8 +177,47 @@ collect_pop_incidence <- function(cdm,
   }
   checkmate::reportAssertions(collection = error_message)
 
+  # get outcomes + cohort_start_date & cohort_end_date
+  outcome <- cdm[[table_name_outcomes]] %>%
+    dplyr::filter(.data$cohort_definition_id %in% .env$cohort_ids_outcomes) %>%
+    dplyr::rename("outcome_id" = "cohort_definition_id") %>%
+    dplyr::rename("outcome_start_date" = "cohort_start_date") %>%
+    dplyr::rename("outcome_end_date" = "cohort_end_date") %>%
+    dplyr::inner_join(
+      cdm[[table_name_denominator]] %>%
+        dplyr::filter(.data$cohort_definition_id %in% .env$cohort_ids_denominator_pops) %>%
+        dplyr::select(-"cohort_definition_id") %>%
+        dplyr::distinct(),
+      by = "subject_id"
+    ) %>%
+    dplyr::compute()
 
+  # get only the outcomes that will affect the incidence calculation
+  outcome <- outcome %>%
+    dplyr::filter(.data$outcome_start_date < .data$cohort_start_date) %>%
+    dplyr::filter(.data$outcome_start_date == max(.data$outcome_start_date, na.rm = TRUE)) %>%
+    dplyr::union_all(
+      outcome %>%
+        dplyr::filter(.data$outcome_start_date >= .data$cohort_start_date) %>%
+        dplyr::filter(.data$outcome_start_date <= .data$cohort_end_date)
+    ) %>%
+    dplyr::group_by(.data$subject_id, .data$cohort_start_date, .data$outcome_id) %>%
+    dplyr::arrange(.data$outcome_start_date) %>%
+    dplyr::mutate(index = dplyr::row_number()) %>%
+    dplyr::ungroup() %>%
+    dplyr::compute()
 
+  outcome <- outcome %>%
+    dplyr::select(-"outcome_end_date") %>%
+    dplyr::full_join(
+      outcome %>%
+        dplyr::mutate(index = .data$index + 1) %>%
+        dplyr::rename("outcome_prev_end_date" = "outcome_end_date") %>%
+        dplyr::select(-"outcome_start_date"),
+      by = c("subject_id", "cohort_start_date", "cohort_end_date", "outcome_id", "index")
+    ) %>%
+    dplyr::select(-"index") %>%
+    dplyr::compute()
 
   study_specs <- tidyr::expand_grid(
     cohort_id_outcome = cohort_ids_outcomes,
@@ -204,9 +245,9 @@ collect_pop_incidence <- function(cdm,
   irs_list <- lapply(study_specs, function(x) {
     working_inc <- get_pop_incidence(
       cdm = cdm,
-      table_name_denominator=table_name_denominator,
+      table_name_denominator = table_name_denominator,
       cohort_id_denominator_pop = x$cohort_id_denominator_pop,
-      table_name_outcome = table_name_outcomes,
+      table_outcome = outcome,
       cohort_id_outcome = x$cohort_id_outcome,
       time_interval = x$time_interval,
       outcome_washout_window = x$outcome_washout_window,
@@ -224,20 +265,20 @@ collect_pop_incidence <- function(cdm,
 
     working_inc_analysis_settings <- working_inc[["analysis_settings"]] %>%
       dplyr::mutate(
-      cohort_id_outcome = x$cohort_id_outcome,
-      cohort_id_denominator_pop = x$cohort_id_denominator_pop,
-      time_interval = x$time_interval,
-      outcome_washout_window = x$outcome_washout_window,
-      repetitive_events = x$repetitive_events,
-      confidence_interval = .env$confidence_interval,
-      minimum_cell_count = .env$minimum_cell_count,
-      incidence_analysis_id = x$incidence_analysis_id
-    ) %>%
+        cohort_id_outcome = x$cohort_id_outcome,
+        cohort_id_denominator_pop = x$cohort_id_denominator_pop,
+        time_interval = x$time_interval,
+        outcome_washout_window = x$outcome_washout_window,
+        repetitive_events = x$repetitive_events,
+        confidence_interval = .env$confidence_interval,
+        minimum_cell_count = .env$minimum_cell_count,
+        incidence_analysis_id = x$incidence_analysis_id
+      ) %>%
       dplyr::relocate(.data$incidence_analysis_id)
 
 
     working_inc_attrition <- working_inc[["attrition"]] %>%
-      dplyr::mutate(incidence_analysis_id = x$incidence_analysis_id ) %>%
+      dplyr::mutate(incidence_analysis_id = x$incidence_analysis_id) %>%
       dplyr::relocate(.data$incidence_analysis_id)
 
     result <- list()
@@ -256,7 +297,7 @@ collect_pop_incidence <- function(cdm,
   analysis_settings <- irs_list[names(irs_list) == "analysis_settings"]
   # to tibble
   analysis_settings <- dplyr::bind_rows(analysis_settings,
-                          .id = NULL
+    .id = NULL
   )
 
   # incidence estimates
@@ -279,7 +320,7 @@ collect_pop_incidence <- function(cdm,
 
   # obscure counts
   if (!is.null(minimum_cell_count)) {
-  irs <- obscure_counts(irs, minimum_cell_count = minimum_cell_count, substitute = NA)
+    irs <- obscure_counts(irs, minimum_cell_count = minimum_cell_count, substitute = NA)
   } else {
     # no results obscured due to a low count
     irs <- irs %>%
@@ -291,14 +332,14 @@ collect_pop_incidence <- function(cdm,
   person_table <- irs_list[names(irs_list) == "person_table"]
   # to tibble
   person_table <- dplyr::bind_rows(person_table,
-                                   .id = NULL
+    .id = NULL
   )
 
   # attrition summary
   attrition <- irs_list[names(irs_list) == "attrition"]
   # to tibble
   attrition <- dplyr::bind_rows(attrition,
-                          .id = NULL
+    .id = NULL
   )
 
   # results to return as a list
