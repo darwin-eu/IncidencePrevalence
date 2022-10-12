@@ -207,7 +207,7 @@ collect_pop_incidence <- function(cdm,
     dplyr::ungroup() %>%
     dplyr::compute()
 
-  outcome <- outcome %>%
+  cdm[[table_name_outcomes]] <- outcome %>%
     dplyr::select(-"outcome_end_date") %>%
     dplyr::full_join(
       outcome %>%

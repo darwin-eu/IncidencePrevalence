@@ -87,7 +87,7 @@ compute_study_days_inc <- function(start_date,
 #'
 #' @param cdm CDMConnector CDM reference object
 #' @param table_name_denominator table_name_denominator
-#' @param table_outcome table_name_outcome
+#' @param table_name_outcome table_name_outcome
 #' @param cohort_id_outcome cohort_id_outcome
 #' @param cohort_id_denominator_pop cohort_id_denominator_pop
 #' @param time_interval time_interval
@@ -103,7 +103,7 @@ compute_study_days_inc <- function(start_date,
 get_pop_incidence <- function(cdm,
                               table_name_denominator,
                               cohort_id_denominator_pop,
-                              table_outcome,
+                              table_name_outcome,
                               cohort_id_outcome,
                               time_interval,
                               outcome_washout_window,
@@ -229,7 +229,7 @@ get_pop_incidence <- function(cdm,
   # checkmate::reportAssertions(collection = error_message)
 
   # keep outcomes of people in the denominator
-  outcome <- table_outcome %>%
+  outcome <- cdm[[table_name_outcome]] %>%
     dplyr::filter(.data$outcome_id == .env$cohort_id_outcome) %>%
     dplyr::select(-"outcome_id") %>%
     dplyr::inner_join(study_pop,
