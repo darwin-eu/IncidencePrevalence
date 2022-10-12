@@ -20,47 +20,56 @@
 #' @param time_interval interval to compute prevalence
 #' @noRd
 compute_study_days_inc <- function(start_date,
-                               end_date,
-                               time_interval) {
+                                   end_date,
+                                   time_interval) {
   if (time_interval == "weeks") {
     week_correction <- lubridate::days(1)
   } else {
     week_correction <- lubridate::days(0)
   }
   if (time_interval == "days") {
-    study_days <- dplyr::tibble(start_time = seq.Date(from = start_date,
-                                                  to = end_date,
-                                                  by = "days")) %>%
+    study_days <- dplyr::tibble(start_time = seq.Date(
+      from = start_date,
+      to = end_date,
+      by = "days"
+    )) %>%
       dplyr::mutate(day = lubridate::day(.data$start_time)) %>%
       dplyr::mutate(month = lubridate::month(.data$start_time)) %>%
       dplyr::mutate(year = lubridate::year(.data$start_time)) %>%
       dplyr::mutate(time = dplyr::if_else(.data$month < 10,
-                                        paste0(.data$year,"_0",.data$month),
-                                        paste0(.data$year,"_",.data$month))) %>%
+        paste0(.data$year, "_0", .data$month),
+        paste0(.data$year, "_", .data$month)
+      )) %>%
       dplyr::mutate(time = dplyr::if_else(.data$day < 10,
-                                        paste0(.data$time,"_0",.data$day),
-                                        paste0(.data$time,"_",.data$day))) %>%
+        paste0(.data$time, "_0", .data$day),
+        paste0(.data$time, "_", .data$day)
+      )) %>%
       dplyr::mutate(end_time = .data$start_time) %>%
-      dplyr::select("time","start_time","end_time")
+      dplyr::select("time", "start_time", "end_time")
   } else {
-    study_days <- dplyr::tibble(dates = seq.Date(from = start_date,
-                                               to = end_date,
-                                               by = "days")) %>%
+    study_days <- dplyr::tibble(dates = seq.Date(
+      from = start_date,
+      to = end_date,
+      by = "days"
+    )) %>%
       dplyr::mutate(isoweek = lubridate::isoweek(.data$dates)) %>%
       dplyr::mutate(month = lubridate::month(.data$dates)) %>%
       dplyr::mutate(quarter = quarters(.data$dates)) %>%
       dplyr::mutate(year = lubridate::year(.data$dates)) %>%
       dplyr::mutate(years = glue::glue("{year}")) %>%
       dplyr::mutate(months = dplyr::if_else(.data$month < 10,
-                                          paste0(.data$year,"_0",.data$month),
-                                          paste0(.data$year,"_",.data$month))) %>%
+        paste0(.data$year, "_0", .data$month),
+        paste0(.data$year, "_", .data$month)
+      )) %>%
       dplyr::mutate(quarters = glue::glue("{year}_{quarter}")) %>%
       dplyr::mutate(year = dplyr::if_else(.data$month == 1 & .data$isoweek > 50,
-                                        .data$year - 1,
-                                        .data$year)) %>%
+        .data$year - 1,
+        .data$year
+      )) %>%
       dplyr::mutate(weeks = dplyr::if_else(.data$isoweek < 10,
-                                         paste0(.data$year,"_0",.data$isoweek),
-                                         paste0(.data$year,"_",.data$isoweek))) %>%
+        paste0(.data$year, "_0", .data$isoweek),
+        paste0(.data$year, "_", .data$isoweek)
+      )) %>%
       dplyr::rename("time" = time_interval) %>%
       dplyr::mutate(time = as.character(.data$time)) %>%
       dplyr::group_by(.data$time) %>%
@@ -100,7 +109,6 @@ get_pop_incidence <- function(cdm,
                               outcome_washout_window,
                               repetitive_events,
                               verbose) {
-
   if (!is.null(outcome_washout_window)) {
     if (is.na(outcome_washout_window)) {
       outcome_washout_window <- NULL
@@ -174,12 +182,13 @@ get_pop_incidence <- function(cdm,
 
   ## Analysis code
   # bring in study population
-  study_pop_db <- cdm[[table_name_denominator]]
+  study_pop <- cdm[[table_name_denominator]]
   # if (!is.null(cohort_id_denominator_pop)) {
-  study_pop_db <- study_pop_db %>%
-      dplyr::filter(.data$cohort_definition_id ==
-        .env$cohort_id_denominator_pop)
-  study_pop<-study_pop_db %>% dplyr::collect()
+  study_pop <- study_pop %>%
+    dplyr::filter(.data$cohort_definition_id ==
+      .env$cohort_id_denominator_pop) %>%
+    dplyr::select(-"cohort_definition_id") %>%
+    dplyr::compute()
 
   # }
 
@@ -196,14 +205,13 @@ get_pop_incidence <- function(cdm,
   #   )
   # }
   # checkmate::reportAssertions(collection = error_message)
-#
-#   if (verbose == TRUE) {
-#     message("Check passed: one or more people in denominator")
-#   }
+  #
+  #   if (verbose == TRUE) {
+  #     message("Check passed: one or more people in denominator")
+  #   }
 
 
   #  link to outcome cohort
-  outcome_db <- cdm[[table_name_outcome]]
   # if (!is.null(cohort_id_outcome)) {
   #   outcome_db <- outcome_db %>%
   #     dplyr::filter(.data$cohort_definition_id == .env$cohort_id_outcome) %>%
@@ -221,225 +229,90 @@ get_pop_incidence <- function(cdm,
   # checkmate::reportAssertions(collection = error_message)
 
   # keep outcomes of people in the denominator
-  outcome_db <- outcome_db %>%
-    dplyr::inner_join(study_pop_db %>%
-              dplyr::select("subject_id"),
-               by="subject_id")
+  outcome <- cdm[[table_name_outcome]] %>%
+    dplyr::filter(.data$outcome_id == .env$cohort_id_outcome) %>%
+    dplyr::select(-"outcome_id") %>%
+    dplyr::inner_join(study_pop,
+      by = c("subject_id", "cohort_start_date", "cohort_end_date")
+    ) %>%
+    dplyr::compute()
 
   # bring outcomes into memory
   if (verbose == TRUE) {
     message("Bringing outcomes into memory")
   }
-  outcome <- outcome_db %>%
-    dplyr::rename("outcome_start_date" = "cohort_start_date") %>%
-    dplyr::rename("outcome_end_date" = "cohort_end_date") %>%
-    dplyr::select("subject_id", "outcome_start_date", "outcome_end_date") %>%
-    dplyr::collect()
 
   # start date
-  start_date <- min(study_pop$cohort_start_date)
+  start_date <- min(dplyr::pull(study_pop, "cohort_start_date"), na.rm = TRUE)
   # end date to the last day of last available full period
-  end_date <- max(study_pop$cohort_end_date)
+  end_date <- max(dplyr::pull(study_pop, "cohort_end_date"), na.rm = TRUE)
 
   # study dates
   study_days <- compute_study_days_inc(
     start_date = start_date,
     end_date = end_date,
     time_interval = time_interval
-    )
+  )
 
   if (nrow(study_days) == 0) {
     stop("Not enough following to compute the desired incidence.")
   }
 
-  # select only the interesting variables of study_pop
   study_pop <- study_pop %>%
-    dplyr::select("subject_id", "cohort_start_date", "cohort_end_date")
-  # get only the outcomes of the study population
+    dplyr::anti_join(
+      outcome,
+      by = c("subject_id", "cohort_start_date", "cohort_end_date")
+    ) %>%
+    dplyr::mutate(outcome_start_date = as.Date(NA))
+
   outcome <- outcome %>%
-    dplyr::inner_join(study_pop %>%
-      dplyr::select("subject_id") %>%
-      dplyr::distinct(),
-    by = "subject_id"
-    )
-  # get study dates of the individuals that present an outcome
-  study_pop_outcome <- study_pop %>%
-    dplyr::inner_join(outcome %>%
-      dplyr::select("subject_id") %>%
-      dplyr::distinct(),
-    by = "subject_id"
-    )
+    dplyr::mutate(cohort_end_date = dplyr::if_else(
+      !is.na(.data$outcome_start_date) & .data$outcome_start_date < .data$cohort_end_date,
+      .data$outcome_start_date,
+      .data$cohort_end_date
+    ))
 
-  if (nrow(outcome) > 0) {
-    if (is.null(outcome_washout_window)) {
-      study_pop <- study_pop %>%
-        dplyr::anti_join(outcome, by = "subject_id") %>%
-        dplyr::mutate(outcome_start_date = base::as.Date(NA)) %>%
-        dplyr::union_all(outcome %>%
-          dplyr::group_by(.data$subject_id) %>%
-          dplyr::summarise(outcome_start_date = min(.data$outcome_start_date, na.rm = TRUE)) %>%
-          dplyr::ungroup() %>%
-          dplyr::left_join(study_pop_outcome,
-            by = "subject_id"
-          ) %>%
-          dplyr::mutate(cohort_end_date = dplyr::if_else(
-            .data$outcome_start_date < .data$cohort_end_date,
-            .data$outcome_start_date,
-            .data$cohort_end_date
-          )) %>%
-          dplyr::filter(.data$cohort_end_date >= .data$cohort_start_date))
-    } else {
-      if (repetitive_events == TRUE) {
-        # add the study dates to the outcome
-        outcome <- outcome %>%
-          dplyr::left_join(study_pop_outcome,
-            by = "subject_id"
-          )
-        # get last event previous the start date
-        outcome_previous <- outcome %>%
-          dplyr::filter(.data$outcome_start_date < .data$cohort_start_date) %>%
-          dplyr::select("subject_id", "outcome_end_date", "cohort_start_date")
-        if (nrow(outcome_previous) > 0) {
-          outcome_previous <- outcome_previous %>%
-            dplyr::group_by(.data$subject_id, .data$cohort_start_date) %>%
-            dplyr::summarise(outcome_end_date = max(.data$outcome_end_date)) %>%
-            dplyr::ungroup()
-        }
-        # get event after the start date in the period
-        outcome_post <- outcome %>%
-          dplyr::filter(.data$outcome_start_date >= .data$cohort_start_date) %>%
-          dplyr::filter(.data$outcome_start_date <= .data$cohort_end_date) %>%
-          dplyr::select("subject_id", "cohort_start_date", "outcome_start_date", "outcome_end_date")
-
-        if (nrow(outcome_post) > 0) {
-          # get first event after the start date
-          outcome_first <- outcome_post %>%
-            dplyr::select(-"outcome_end_date") %>%
-            dplyr::group_by(.data$subject_id, .data$cohort_start_date) %>%
-            dplyr::filter(.data$outcome_start_date == min(.data$outcome_start_date, na.rm = TRUE)) %>%
-            dplyr::ungroup()
-          # sort outcomes inside the observation period
-          outcome_post <- outcome_post %>%
-            dplyr::group_by(.data$subject_id, .data$cohort_start_date) %>%
-            dplyr::arrange(.data$outcome_start_date) %>%
-            dplyr::mutate(index = dplyr::row_number()) %>%
-            dplyr::ungroup()
-        }
-
-        if (nrow(outcome_post) == 0) {
-          outcome_pairs <- outcome_previous %>%
-            dplyr::rename("outcome_end_date_prev" = "outcome_end_date") %>%
-            dplyr::mutate(outcome_start_date = as.Date(NA))
-        } else if (nrow(outcome_previous) == 0) {
-          outcome_pairs <- outcome_first %>%
-            dplyr::mutate(outcome_end_date_prev = as.Date(NA)) %>%
-            dplyr::union_all(outcome_post %>%
-                               dplyr::select(-"outcome_end_date") %>%
-                               dplyr::right_join(outcome_post %>%
-                                                   dplyr::mutate(index = .data$index + 1) %>%
-                                                   dplyr::rename("outcome_end_date_prev" = "outcome_end_date") %>%
-                                                   dplyr::select("subject_id", "outcome_end_date_prev", "index", "cohort_start_date"),
-                                                 by = c("subject_id", "index", "cohort_start_date")
-                               ) %>%
-                               dplyr::select("subject_id", "outcome_end_date_prev", "cohort_start_date", "outcome_start_date"))
-        } else {
-          # get the pairs of previous + first outcome
-          outcome_pairs <- outcome_previous %>%
-            dplyr::rename("outcome_end_date_prev" = "outcome_end_date") %>%
-            dplyr::full_join(outcome_first, by = c("subject_id", "cohort_start_date"))
-          # get next pairs
-          outcome_pairs <- outcome_pairs %>%
-            dplyr::union_all(outcome_post %>%
-              dplyr::select(-"outcome_end_date") %>%
-              dplyr::right_join(outcome_post %>%
-                dplyr::mutate(index = .data$index + 1) %>%
-                dplyr::rename("outcome_end_date_prev" = "outcome_end_date") %>%
-                dplyr::select("subject_id", "outcome_end_date_prev", "index", "cohort_start_date"),
-              by = c("subject_id", "index", "cohort_start_date")
-              ) %>%
-              dplyr::select("subject_id", "outcome_end_date_prev", "cohort_start_date", "outcome_start_date"))
-        }
-      } else {
-        # The same but just the first pair
-        # add the study dates to the outcome
-        outcome <- outcome %>%
-          dplyr::left_join(study_pop_outcome %>%
-            dplyr::group_by(.data$subject_id) %>%
-            dplyr::filter(.data$cohort_start_date == min(.data$cohort_start_date, na.rm = TRUE)) %>%
-            dplyr::ungroup(),
-          by = "subject_id"
-          )
-        # get last event previous the start date
-        outcome_previous <- outcome %>%
-          dplyr::filter(.data$outcome_start_date < .data$cohort_start_date) %>%
-          dplyr::select("subject_id", "outcome_end_date", "cohort_start_date")
-        if (nrow(outcome_previous) > 0) {
-          outcome_previous <- outcome_previous %>%
-            dplyr::group_by(.data$subject_id) %>%
-            dplyr::filter(.data$outcome_end_date == max(.data$outcome_end_date)) %>%
-            dplyr::ungroup()
-        }
-        # get event after the start date
-        outcome_post <- outcome %>%
-          dplyr::filter(.data$outcome_start_date >= .data$cohort_start_date) %>%
-          dplyr::filter(.data$outcome_start_date <= .data$cohort_end_date) %>%
-          dplyr::select(-"outcome_end_date")
-        if (nrow(outcome_post) > 0) {
-          outcome_post <- outcome_post %>%
-            dplyr::group_by(.data$subject_id) %>%
-            dplyr::filter(.data$outcome_start_date == min(.data$outcome_start_date, na.rm = TRUE)) %>%
-            dplyr::ungroup()
-        }
-        # get the pairs of previous + first outcome
-        if (nrow(outcome_post) == 0) {
-          outcome_pairs <- outcome_previous %>%
-            dplyr::rename("outcome_end_date_prev" = "outcome_end_date") %>%
-            dplyr::mutate(outcome_start_date = as.Date(NA))
-        } else if (nrow(outcome_previous) == 0) {
-          outcome_pairs <- outcome_post %>%
-            dplyr::select(-"cohort_end_date") %>%
-            dplyr::mutate(outcome_end_date_prev = as.Date(NA))
-        } else {
-          outcome_pairs <- outcome_previous %>%
-            dplyr::rename("outcome_end_date_prev" = "outcome_end_date") %>%
-            dplyr::full_join(outcome_post, by = c("subject_id", "cohort_start_date")) %>%
-            dplyr::select("subject_id", "outcome_end_date_prev", "cohort_start_date", "outcome_start_date")
-        }
-      }
-      study_pop <- study_pop %>%
-        dplyr::anti_join(outcome_pairs %>%
-          dplyr::select("subject_id"),
-        by = "subject_id"
-        ) %>%
-        dplyr::mutate(outcome_start_date = base::as.Date(NA)) %>%
-        dplyr::union_all(outcome_pairs %>%
-          dplyr::inner_join(study_pop,
-            by = c("subject_id", "cohort_start_date")
-          ) %>%
-          dplyr::mutate(outcome_end_date_prev = .data$outcome_end_date_prev + outcome_washout_window + 1) %>% # I think that it needs a + 1
-          dplyr::mutate(cohort_start_date = dplyr::if_else(.data$cohort_start_date > .data$outcome_end_date_prev,
-            .data$cohort_start_date,
-            .data$outcome_end_date_prev,
-            .data$cohort_start_date
-          )) %>%
-          dplyr::mutate(cohort_end_date = dplyr::if_else(.data$outcome_start_date < .data$cohort_end_date,
-            .data$outcome_start_date,
-            .data$cohort_end_date,
-            .data$cohort_end_date
-          )) %>%
-          dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date) %>%
-          dplyr::select(-"outcome_end_date_prev"))
-    }
+  if (is.null(outcome_washout_window)) {
+    outcome <- outcome %>%
+      dplyr::filter(is.na(.data$outcome_prev_end_date)) %>%
+      dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
   } else {
-    study_pop <- study_pop %>%
-      dplyr::mutate(outcome_start_date = as.Date(NA))
+    outcome <- outcome %>%
+      dplyr::mutate(outcome_prev_end_date = dplyr::if_else(
+        is.na(.data$outcome_prev_end_date),
+        .data$outcome_prev_end_date,
+        .data$outcome_prev_end_date + lubridate::days(1) + lubridate::days(.env$outcome_washout_window)
+      )) %>%
+      dplyr::mutate(cohort_start_date = dplyr::if_else(
+        is.na(.data$outcome_prev_end_date) |
+          (.data$cohort_start_date > .data$outcome_prev_end_date),
+        .data$cohort_start_date,
+        .data$outcome_prev_end_date
+      )) %>%
+      dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
+    if (repetitive_events == FALSE) {
+      outcome <- outcome %>%
+        dplyr::group_by(.data$subject_id) %>%
+        dplyr::filter(is.na(.data$outcome_prev_end_date) |
+          .data$outcome_start_date == min(.data$outcome_start_date, na.rm = TRUE)) %>%
+        dplyr::ungroup()
+    }
   }
+
+  study_pop <- study_pop %>%
+    dplyr::union_all(outcome %>%
+      dplyr::select(-"outcome_prev_end_date") %>%
+      dplyr::mutate(cohort_end_date = dplyr::if_else(
+        !is.na(.data$outcome_start_date),
+        .data$outcome_start_date,
+        .data$cohort_end_date
+      ))) %>%
+    dplyr::collect()
 
   # fetch incidence rates
   # looping through each time interval
   ir <- list()
   for (i in seq_along(1:nrow(study_days))) {
-
     working_t_name <- study_days$time[i]
     working_t_start <- study_days$start_time[i]
     working_t_end <- study_days$end_time[i]
@@ -471,7 +344,7 @@ get_pop_incidence <- function(cdm,
       )
 
     working_pop <- working_pop %>%
-      dplyr::select("subject_id", "t_start_date", "t_end_date","outcome_start_date")
+      dplyr::select("subject_id", "t_start_date", "t_end_date", "outcome_start_date")
 
     # compute working days and
     # erase outcome_start_date if not
@@ -494,11 +367,11 @@ get_pop_incidence <- function(cdm,
 
     ir[[paste0(i)]] <- working_pop %>%
       dplyr::summarise(
-        n_persons = length(unique(working_pop$subject_id)),
+        n_persons = dplyr::n_distinct(.data$subject_id),
         person_days = sum(.data$working_days),
-        person_years = (.data$person_days / 365.25),
         n_events = sum(!is.na(.data$outcome_start_date))
       ) %>%
+      dplyr::mutate(person_years = .data$person_days / 365.25) %>%
       dplyr::mutate(ir_100000_pys = (.data$n_events / .data$person_years) * 100000) %>%
       dplyr::mutate(time = .env$working_t_name) %>%
       dplyr::mutate(start_time = .env$working_t_start) %>%
@@ -509,12 +382,13 @@ get_pop_incidence <- function(cdm,
 
   # study design related variables
   analysis_settings <- tibble::tibble(
-      outcome_washout_window = .env$outcome_washout_window,
-      repetitive_events = .env$repetitive_events,
-      time_interval = .env$time_interval)
+    outcome_washout_window = .env$outcome_washout_window,
+    repetitive_events = .env$repetitive_events,
+    time_interval = .env$time_interval
+  )
 
   study_pop <- study_pop %>%
-    dplyr::select("subject_id","cohort_start_date","cohort_end_date")
+    dplyr::select("subject_id", "cohort_start_date", "cohort_end_date")
 
   # return list
   results <- list()
