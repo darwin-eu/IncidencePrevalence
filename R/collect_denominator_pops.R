@@ -326,7 +326,7 @@ collect_denominator_pops <- function(cdm,
                                 ceiling(seq_along(study_pops)/n.batches))
       for(i in 1:length(study_pops_batches)){
         study_pops_batches[[i]]<-Reduce(dplyr::union_all, study_pops_batches[[i]])
-        sql_queries[[paste0("combine_cohorts_batch_",i)]]<-study_pops %>%
+        sql_queries[[paste0("combine_cohorts_batch_",i)]]<-study_pops_batches[[i]] %>%
           extract_query(description = paste0("combine_cohorts_batch_",i))
         study_pops_batches[[i]]<-study_pops_batches[[i]] %>%
           dplyr::compute()
