@@ -281,7 +281,7 @@ get_pop_incidence <- function(cdm,
       dplyr::mutate(outcome_prev_end_date = dplyr::if_else(
         is.na(.data$outcome_prev_end_date),
         .data$outcome_prev_end_date,
-        .data$outcome_prev_end_date + lubridate::days(1) + lubridate::days(.env$outcome_washout_window)
+        as.Date(.data$outcome_prev_end_date + lubridate::days(1) + lubridate::days(.env$outcome_washout_window))
       )) %>%
       dplyr::mutate(cohort_start_date = dplyr::if_else(
         is.na(.data$outcome_prev_end_date) |
