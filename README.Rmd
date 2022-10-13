@@ -59,7 +59,7 @@ To identify our denominator population we can use the `collect_denominator_pops`
 
 ```{r}
 dpop <- collect_denominator_pops(
-  cdm_ref = cdm,
+  cdm = cdm,
   study_start_date = as.Date("2008-01-01"),
   study_end_date = as.Date("2018-01-01")
 )
@@ -82,7 +82,7 @@ Now we´ve added the denominator cohort to our cdm reference, we can go on and e
 # in a table called ´outcome´
 # schema called ´results´
 inc <- collect_pop_incidence(
-  cdm_ref = cdm,
+  cdm = cdm,
   table_name_denominator = "denominator",
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",
@@ -93,7 +93,7 @@ head(inc$incidence_estimates)
 
 ```{r}
 prev_point <- collect_pop_prevalence(
-  cdm_ref = cdm,
+  cdm = cdm,
   table_name_denominator = "denominator",
   cohort_ids_denominator_pops="1",
   table_name_outcomes = "outcome",
@@ -106,7 +106,7 @@ head(prev_point$prevalence_estimates)
 
 ```{r}
 prev_period <- collect_pop_prevalence(
-  cdm_ref = cdm,
+  cdm = cdm,
   table_name_denominator = "denominator",
   table_name_outcomes = "outcome",
   cohort_ids_outcomes = "1",

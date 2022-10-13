@@ -86,9 +86,9 @@ get_confidence_intervals <- function(x,
                             dplyr::left_join(
                               x %>%
                                 dplyr::filter(.data$num >= 1) %>%
-                                dplyr::mutate(var_low = .data$var - qnorm(0.975)*sqrt(.data$var*(1-.data$var)/.data$den)) %>%
+                                dplyr::mutate(var_low = .data$var - stats::qnorm(0.975)*sqrt(.data$var*(1-.data$var)/.data$den)) %>%
                                 dplyr::mutate(var_low = dplyr::if_else(.data$var_low < 0, 0, .data$var_low)) %>%
-                                dplyr::mutate(var_high = .data$var + qnorm(0.975)*sqrt(.data$var*(1-.data$var)/.data$den)) %>%
+                                dplyr::mutate(var_high = .data$var + stats::qnorm(0.975)*sqrt(.data$var*(1-.data$var)/.data$den)) %>%
                                 dplyr::mutate(var_high = dplyr::if_else(.data$var_high > 1, 1, .data$var_high)),
                               by = names(x)
                             ) %>%

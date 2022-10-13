@@ -17,6 +17,8 @@
 
 #' Identify a set of denominator populations
 #'
+#' `collect_denominator_pops()` creates a set of denominator cohorts
+#'
 #' @param cdm CDMConnector CDM reference object
 #' @param study_start_date Date indicating the start of the study
 #' period. If NULL,
@@ -30,6 +32,9 @@
 #' @param study_sex_stratas Sex of the cohorts
 #' @param study_days_prior_history Days of prior history required to enter
 #' the study cohort.
+#' @param combine_subgroups If TRUE all combinations of age, sex, and
+#' days prior history will be created. If FALSE age, sex, and
+#' days prior history will be considered separately.
 #' @param table_name_strata table_name_strata
 #' @param strata_cohort_id strata_cohort_id
 #' @param sample sample n
@@ -41,12 +46,25 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' db <- DBI::dbConnect(" Your database connection here ")
+#' cdm <- CDMConnector::cdm_from_con(
+#'   con = db,
+#'   cdm_schema = "cdm schema name"
+#' )
+#' dpop <- collect_denominator_pops(
+#'   cdm = cdm,
+#'   study_start_date = as.Date("2008-01-01"),
+#'   study_end_date = as.Date("2018-01-01")
+#' )
+#' }
 collect_denominator_pops <- function(cdm,
                                      study_start_date = NULL,
                                      study_end_date = NULL,
                                      study_age_stratas = list(c(0, 150)),
                                      study_sex_stratas = "Both",
                                      study_days_prior_history = 0,
+                                     combine_subgroups = TRUE,
                                      table_name_strata = NULL,
                                      strata_cohort_id = NULL,
                                      sample = NULL,
@@ -60,7 +78,7 @@ collect_denominator_pops <- function(cdm,
   error_message <- checkmate::makeAssertCollection()
   cdm_inherits_check <- inherits(cdm, "cdm_reference")
   checkmate::assertTRUE(cdm_inherits_check,
-                        add = error_message
+    add = error_message
   )
   if (!isTRUE(cdm_inherits_check)) {
     error_message$push(
@@ -82,29 +100,29 @@ collect_denominator_pops <- function(cdm,
     )
   }
   checkmate::assert_date(study_start_date,
-                         add = error_message,
-                         null.ok = TRUE
+    add = error_message,
+    null.ok = TRUE
   )
   checkmate::assert_date(study_end_date,
-                         add = error_message,
-                         null.ok = TRUE
+    add = error_message,
+    null.ok = TRUE
   )
   checkmate::assert_list(study_age_stratas,
-                         add = error_message
+    add = error_message
   )
   if (!is.null(study_age_stratas)) {
-    for (i in 1:length(study_age_stratas)) {
+    for (i in seq_along(study_age_stratas)) {
       checkmate::assertTRUE(length(study_age_stratas[[i]]) == 2)
       checkmate::assert_numeric(study_age_stratas[[i]][1],
-                                add = error_message
+        add = error_message
       )
       checkmate::assert_numeric(study_age_stratas[[i]][2],
-                                add = error_message
+        add = error_message
       )
       age_check <- study_age_stratas[[i]][1] <
         study_age_stratas[[i]][2]
       checkmate::assertTRUE(age_check,
-                            add = error_message
+        add = error_message
       )
       if (!isTRUE(age_check)) {
         error_message$push(
@@ -112,15 +130,15 @@ collect_denominator_pops <- function(cdm,
         )
       }
       checkmate::assertTRUE(study_age_stratas[[i]][1] >= 0,
-                            add = error_message
+        add = error_message
       )
       checkmate::assertTRUE(study_age_stratas[[i]][2] >= 0,
-                            add = error_message
+        add = error_message
       )
     }
   }
   checkmate::assert_vector(study_sex_stratas,
-                           add = error_message
+    add = error_message
   )
   sex_check <- all(study_sex_stratas %in% c("Male", "Female", "Both"))
   if (!isTRUE(sex_check)) {
@@ -129,7 +147,7 @@ collect_denominator_pops <- function(cdm,
     )
   }
   checkmate::assert_numeric(study_days_prior_history,
-                            add = error_message
+    add = error_message
   )
   days_check <- all(study_days_prior_history >= 0)
   if (!isTRUE(days_check)) {
@@ -137,8 +155,8 @@ collect_denominator_pops <- function(cdm,
       "- study_days_prior_history cannot be negative"
     )
   }
-  checkmate::assert_logical(verbose,
-                            add = error_message
+  checkmate::assert_logical(combine_subgroups,
+    add = error_message
   )
   if (!is.null(table_name_strata)) {
     strata_table_exists <- inherits(cdm[[table_name_strata]], "tbl_dbi")
@@ -148,10 +166,12 @@ collect_denominator_pops <- function(cdm,
         "- table `strata` is not found"
       )
     }
-    strata_names_check<- all(names(cdm[[table_name_strata]] %>%
-                                     utils::head(1) %>% dplyr::collect()) ==
-                               c("cohort_definition_id", "subject_id",
-                                 "cohort_start_date", "cohort_end_date"))
+    strata_names_check <- all(names(cdm[[table_name_strata]] %>%
+      utils::head(1) %>% dplyr::collect()) ==
+      c(
+        "cohort_definition_id", "subject_id",
+        "cohort_start_date", "cohort_end_date"
+      ))
     checkmate::assertTRUE(strata_names_check, add = error_message)
     if (!isTRUE(strata_names_check)) {
       error_message$push(
@@ -160,8 +180,12 @@ collect_denominator_pops <- function(cdm,
     }
   }
   checkmate::assertNumeric(sample,
-                           add = error_message,
-                           null.ok = TRUE)
+    add = error_message,
+    null.ok = TRUE
+  )
+  checkmate::assert_logical(verbose,
+    add = error_message
+  )
   checkmate::reportAssertions(collection = error_message)
   if (verbose == TRUE) {
     message("Progress: All input checks passed")
@@ -180,7 +204,7 @@ collect_denominator_pops <- function(cdm,
     study_start_date <- cdm$observation_period %>%
       dplyr::summarise(
         min(.data$observation_period_start_date,
-            na.rm = TRUE
+          na.rm = TRUE
         )
       ) %>%
       dplyr::collect() %>%
@@ -190,7 +214,7 @@ collect_denominator_pops <- function(cdm,
     study_end_date <- cdm$observation_period %>%
       dplyr::summarise(
         max(.data$observation_period_end_date,
-            na.rm = TRUE
+          na.rm = TRUE
         )
       ) %>%
       dplyr::collect() %>%
@@ -201,20 +225,48 @@ collect_denominator_pops <- function(cdm,
   age_gr_df <- data.frame(do.call(rbind, study_age_stratas)) %>%
     dplyr::mutate(age_strata = paste0(.data$X1, ";", .data$X2))
 
-  pop_specs <- tidyr::expand_grid(
-    age_strata = age_gr_df$age_strata,
-    sex_strata = .env$study_sex_stratas,
-    study_days_prior_history = .env$study_days_prior_history,
-    study_start_date = .env$study_start_date,
-    study_end_date = .env$study_end_date
-  ) %>%
+  if (isTRUE(combine_subgroups)) {
+    pop_specs <- tidyr::expand_grid(
+      age_strata = age_gr_df$age_strata,
+      sex_strata = .env$study_sex_stratas,
+      study_days_prior_history = .env$study_days_prior_history,
+      study_start_date = .env$study_start_date,
+      study_end_date = .env$study_end_date
+    )
+  } else {
+    pop_specs <- dplyr::bind_rows(
+      tibble::tibble(
+        # varying age - others held at default
+        age_strata = age_gr_df$age_strata,
+        sex_strata = "Both",
+        study_days_prior_history = 0,
+      ),
+      tibble::tibble(
+        # varying sex - others held at default
+        age_strata = "0;150",
+        sex_strata = .env$study_sex_stratas,
+        study_days_prior_history = 0,
+      ),
+      tibble::tibble(
+        # varying prior history - others held at default
+        age_strata = "0;150",
+        sex_strata = "Both",
+        study_days_prior_history = .env$study_days_prior_history,
+      )
+    ) %>%
+      dplyr::distinct() %>%
+      dplyr::mutate(study_start_date = .env$study_start_date) %>%
+      dplyr::mutate(study_end_date = .env$study_end_date)
+  }
+  pop_specs <- pop_specs %>%
     tidyr::separate(.data$age_strata,
-                    c("min_age", "max_age"),
-                    remove = FALSE
+      c("min_age", "max_age"),
+      remove = FALSE
     ) %>%
     dplyr::mutate(min_age = as.numeric(.data$min_age)) %>%
     dplyr::mutate(max_age = as.numeric(.data$max_age)) %>%
     dplyr::mutate(cohort_definition_id = as.character(dplyr::row_number()))
+
 
   if (verbose == TRUE) {
     message("Progress: Inputs prepared for creating denominator populations")
@@ -239,7 +291,7 @@ collect_denominator_pops <- function(cdm,
     days_prior_history = unique(pop_specs$study_days_prior_history),
     table_name_strata = table_name_strata,
     strata_cohort_id = strata_cohort_id,
-    sample=sample
+    sample = sample
   )
   if (verbose == TRUE) {
     message("Progress: Overall denominator population identified")
@@ -249,7 +301,7 @@ collect_denominator_pops <- function(cdm,
     ))
   }
 
-  sql_queries<-dpop$sql_queries
+  sql_queries <- dpop$sql_queries
 
   # build each of the cohorts of interest
   if (verbose == TRUE) {
@@ -284,7 +336,7 @@ collect_denominator_pops <- function(cdm,
 
     study_pops <- list()
 
-    for (i in 1:length(pop_specs$cohort_definition_id)) {
+    for (i in seq_along(pop_specs$cohort_definition_id)) {
       working_dpop <- dpop$denominator_population
 
       if (pop_specs$sex_strata[[i]] %in% c("Male", "Female")) {
@@ -319,30 +371,31 @@ collect_denominator_pops <- function(cdm,
     }
 
 
-    if(length(study_pops)>20){
+    if (length(study_pops) > 20) {
       # combine in batches in case of many subgroups
-      n.batches<-20 # number in a batch
-      study_pops_batches<-split(study_pops,
-                                ceiling(seq_along(study_pops)/n.batches))
-      for(i in 1:length(study_pops_batches)){
-        study_pops_batches[[i]]<-Reduce(dplyr::union_all, study_pops_batches[[i]])
-        sql_queries[[paste0("combine_cohorts_batch_",i)]]<-study_pops_batches[[i]] %>%
-          extract_query(description = paste0("combine_cohorts_batch_",i))
-        study_pops_batches[[i]]<-study_pops_batches[[i]] %>%
+      n.batches <- 20 # number in a batch
+      study_pops_batches <- split(
+        study_pops,
+        ceiling(seq_along(study_pops) / n.batches)
+      )
+      for (i in seq_along(study_pops_batches)) {
+        study_pops_batches[[i]] <- Reduce(dplyr::union_all, study_pops_batches[[i]])
+        sql_queries[[paste0("combine_cohorts_batch_", i)]] <- study_pops_batches[[i]] %>%
+          extract_query(description = paste0("combine_cohorts_batch_", i))
+        study_pops_batches[[i]] <- study_pops_batches[[i]] %>%
           dplyr::compute()
       }
       study_pops <- Reduce(dplyr::union_all, study_pops_batches)
-      sql_queries[["combine_cohorts_batch"]]<-study_pops %>%
+      sql_queries[["combine_cohorts_batch"]] <- study_pops %>%
         extract_query(description = "combine_cohorts_batch")
-      study_pops <-study_pops %>% dplyr::compute()
+      study_pops <- study_pops %>% dplyr::compute()
     } else {
       # otherwise combine all at once
       study_pops <- Reduce(dplyr::union_all, study_pops)
-      sql_queries[["combine_cohorts"]]<-study_pops %>%
+      sql_queries[["combine_cohorts"]] <- study_pops %>%
         extract_query(description = "combine_cohorts")
-      study_pops <-study_pops %>% dplyr::compute()
+      study_pops <- study_pops %>% dplyr::compute()
     }
-
   }
   if (verbose == TRUE) {
     message("Progress: Each denominator population of interest created")

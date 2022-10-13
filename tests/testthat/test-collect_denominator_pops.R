@@ -276,6 +276,111 @@ test_that("mock db: mock example 10000", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
+test_that("mock db: check subgroups", {
+  cdm <- generate_mock_incidence_prevalence_db(sample_size = 100)
+
+  # all being used
+  dpops_combine_subgroups <- collect_denominator_pops(cdm,
+                                    study_start_date = NULL,
+                                    study_end_date = NULL,
+                                    study_age_stratas = list(c(0, 59), c(60, 69)),
+                                    study_sex_stratas = c("Female", "Male", "Both"),
+                                    study_days_prior_history = c(0,180),
+                                    combine_subgroups = TRUE
+  )
+  dpops_independent_subgroups <- collect_denominator_pops(cdm,
+                                                      study_start_date = NULL,
+                                                      study_end_date = NULL,
+                                                      study_age_stratas = list(c(0, 59), c(60, 69)),
+                                                      study_sex_stratas = c("Female", "Male", "Both"),
+                                                      study_days_prior_history = c(0,180),
+                                                      combine_subgroups = FALSE
+  )
+
+  expect_true(length(dpops_combine_subgroups$denominator_populations %>%
+    dplyr::select("cohort_definition_id") %>%
+    dplyr::distinct() %>%
+    dplyr::collect()%>%
+    dplyr::pull()) == 12)
+  expect_true(nrow(dpops_combine_subgroups$denominator_settings) == 12)
+
+  expect_true(length(dpops_independent_subgroups$denominator_populations %>%
+                       dplyr::select("cohort_definition_id") %>%
+                       dplyr::distinct() %>%
+                       dplyr::collect()%>%
+                       dplyr::pull()) == 6)
+  expect_true(nrow(dpops_independent_subgroups$denominator_settings) == 6)
+
+
+
+  # age and sex
+  dpops_combine_subgroups <- collect_denominator_pops(cdm,
+                                                      study_start_date = NULL,
+                                                      study_end_date = NULL,
+                                                      study_age_stratas = list(c(0, 59), c(60, 69)),
+                                                      study_sex_stratas = c("Female", "Male", "Both"),
+                                                      combine_subgroups = TRUE
+  )
+  dpops_independent_subgroups <- collect_denominator_pops(cdm,
+                                                          study_start_date = NULL,
+                                                          study_end_date = NULL,
+                                                          study_age_stratas = list(c(0, 59), c(60, 69)),
+                                                          study_sex_stratas = c("Female", "Male", "Both"),
+                                                          combine_subgroups = FALSE
+  )
+
+  expect_true(length(dpops_combine_subgroups$denominator_populations %>%
+                       dplyr::select("cohort_definition_id") %>%
+                       dplyr::distinct() %>%
+                       dplyr::collect()%>%
+                       dplyr::pull()) == 6)
+  expect_true(nrow(dpops_combine_subgroups$denominator_settings) == 6)
+
+  expect_true(length(dpops_independent_subgroups$denominator_populations %>%
+                       dplyr::select("cohort_definition_id") %>%
+                       dplyr::distinct() %>%
+                       dplyr::collect()%>%
+                       dplyr::pull()) == 5)
+  expect_true(nrow(dpops_independent_subgroups$denominator_settings) == 5)
+
+
+
+  # sex and prior history
+  dpops_combine_subgroups <- collect_denominator_pops(cdm,
+                                                      study_start_date = NULL,
+                                                      study_end_date = NULL,
+                                                      study_sex_stratas = c("Female", "Male", "Both"),
+                                                      study_days_prior_history = c(10,180),
+                                                      combine_subgroups = TRUE
+  )
+  dpops_independent_subgroups <- collect_denominator_pops(cdm,
+                                                          study_start_date = NULL,
+                                                          study_end_date = NULL,
+                                                          study_sex_stratas = c("Female", "Male", "Both"),
+                                                          study_days_prior_history = c(10,180),
+                                                          combine_subgroups = FALSE
+  )
+
+  expect_true(length(dpops_combine_subgroups$denominator_populations %>%
+                       dplyr::select("cohort_definition_id") %>%
+                       dplyr::distinct() %>%
+                       dplyr::collect()%>%
+                       dplyr::pull()) == 6)
+  expect_true(nrow(dpops_combine_subgroups$denominator_settings) == 6)
+
+  # note there will be 5,
+  # because we still have one with styudy day prior = 0 (the default value)
+  expect_true(length(dpops_independent_subgroups$denominator_populations %>%
+                       dplyr::select("cohort_definition_id") %>%
+                       dplyr::distinct() %>%
+                       dplyr::collect()%>%
+                       dplyr::pull()) == 5)
+  expect_true(nrow(dpops_independent_subgroups$denominator_settings) == 5)
+
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
 test_that("mock db: subset denominator by cohort", {
   # one person, one observation periods
   person <- tibble::tibble(

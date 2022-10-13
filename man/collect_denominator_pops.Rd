@@ -11,6 +11,7 @@ collect_denominator_pops(
   study_age_stratas = list(c(0, 150)),
   study_sex_stratas = "Both",
   study_days_prior_history = 0,
+  combine_subgroups = TRUE,
   table_name_strata = NULL,
   strata_cohort_id = NULL,
   sample = NULL,
@@ -37,6 +38,10 @@ will be used.}
 \item{study_days_prior_history}{Days of prior history required to enter
 the study cohort.}
 
+\item{combine_subgroups}{If TRUE all combinations of age, sex, and
+days prior history will be created. If FALSE age, sex, and
+days prior history will be considered separately.}
+
 \item{table_name_strata}{table_name_strata}
 
 \item{strata_cohort_id}{strata_cohort_id}
@@ -47,5 +52,17 @@ the study cohort.}
 If TRUE, progress will be reported.}
 }
 \description{
-Identify a set of denominator populations
+\code{collect_denominator_pops()} creates a set of denominator cohorts
+}
+\examples{
+\dontrun{
+db <- DBI::dbConnect(" Your database connection here ")
+cdm <- CDMConnector::cdm_from_con(con = db,
+                                  cdm_schema = "cdm schema name")
+dpop <- collect_denominator_pops(
+ cdm = cdm,
+ study_start_date = as.Date("2008-01-01"),
+ study_end_date = as.Date("2018-01-01")
+)
+}
 }
