@@ -47,7 +47,7 @@ collect_pop_prevalence <- function(cdm,
                                   full_period_requireds = TRUE,
                                   points = "start",
                                   minimum_representative_proportions = 0.5,
-                                  confidence_interval = "none",
+                                  confidence_interval = "binomial",
                                   minimum_cell_count = 5,
                                   verbose = FALSE) {
 
@@ -134,7 +134,7 @@ collect_pop_prevalence <- function(cdm,
     add = error_message
   )
   checkmate::assert_choice(confidence_interval,
-    choices = c("none", "poisson"),
+    choices = c("none", "binomial"),
     add = error_message,
     null.ok = TRUE
   )
@@ -237,15 +237,9 @@ collect_pop_prevalence <- function(cdm,
   )
 
   # get confidence intervals
-  if (confidence_interval != "none") {
-    prs <- get_confidence_intervals(prs, confidence_interval)
-  } else {
-    prs <- prs %>%
-      dplyr::mutate(prev_low = NA) %>%
-      dplyr::mutate(prev_high = NA) %>%
-      dplyr::relocate(.data$prev_low, .after = .data$prev) %>%
-      dplyr::relocate(.data$prev_high, .after = .data$prev_low)
-  }
+  prs <- get_ci_prevalence(prs, confidence_interval) %>%
+    dplyr::relocate(.data$prev_low, .after = .data$prev) %>%
+    dplyr::relocate(.data$prev_high, .after = .data$prev_low)
 
   # obscure counts
   if (!is.null(minimum_cell_count)) {
