@@ -57,12 +57,14 @@ If TRUE, progress will be reported.}
 \examples{
 \dontrun{
 db <- DBI::dbConnect(" Your database connection here ")
-cdm <- CDMConnector::cdm_from_con(con = db,
-                                  cdm_schema = "cdm schema name")
+cdm <- CDMConnector::cdm_from_con(
+  con = db,
+  cdm_schema = "cdm schema name"
+)
 dpop <- collect_denominator_pops(
- cdm = cdm,
- study_start_date = as.Date("2008-01-01"),
- study_end_date = as.Date("2018-01-01")
+  cdm = cdm,
+  study_start_date = as.Date("2008-01-01"),
+  study_end_date = as.Date("2018-01-01")
 )
 }
 }

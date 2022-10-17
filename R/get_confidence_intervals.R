@@ -15,108 +15,71 @@
 # limitations under the License.
 
 
-#' Get confidence intervals
+#' Get confidence intervals for incidence estimates
 #'
-#' @param x x
-#' @param confidence_intervals Confidence intervals type
-#'
-#' @return
-#' @export
-#'
-#' @examples
-get_confidence_intervals <- function(x,
-                                     confidence_intervals) {
-
-  ## check for standard types of user error
-  error_message <- checkmate::makeAssertCollection()
-
-  checkmate::assert_tibble(x,
-    add = error_message
-  )
-  checkmate::assertTRUE(
-    all(c("n_events", "person_years", "ir_100000_pys") %in% names(x)) ||
-      all(c("numerator", "denominator", "prev") %in% names(x))
-  )
-  checkmate::assertFALSE(
-    all(c("n_events", "person_years", "ir_100000_pys") %in% names(x)) &&
-      all(c("numerator", "denominator", "prev") %in% names(x))
-  )
-  checkmate::assertFALSE(
-    any(c("num", "den", "var", "var_low", "var_high") %in% names(x))
-  )
-
-  checkmate::assert_choice(confidence_intervals,
-    choices = c("poisson"), # Add binomial at some point
-    add = error_message
-  )
-
-  checkmate::reportAssertions(collection = error_message)
-
-  if (c("n_events") %in% names(x)) {
-    x <- x %>%
-      dplyr::rename("num" = "n_events") %>%
-      dplyr::rename("den" = "person_years") %>%
-      dplyr::rename("var" = "ir_100000_pys")
-    type <- "Incidence"
-  } else if (c("numerator") %in% names(x)) {
-    x <- x %>%
-      dplyr::rename("num" = "numerator") %>%
-      dplyr::rename("den" = "denominator") %>%
-      dplyr::rename("var" = "prev")
-    type <- "Prevalence"
+#' @noRd
+get_ci_incidence <- function(ir,
+                             mode) {
+  if (mode == "poisson") {
+    ir <- ir %>%
+      dplyr::left_join(
+        ir %>%
+          dplyr::filter(.data$n_events >= 1) %>%
+          dplyr::mutate(
+            ir_100000_pys_low =
+              100000 *
+                stats::qchisq(0.05 / 2, df = 2 * (.data$n_events - 1))
+                / 2 / .data$person_years
+          ) %>%
+          dplyr::mutate(
+            ir_100000_pys_high =
+              100000 *
+                stats::qchisq(1 - 0.05 / 2, df = 2 * .data$n_events)
+                / 2 / .data$person_years
+          ),
+        by = names(ir)
+      )
+  } else if (mode == "none"){
+    ir <- ir %>%
+      dplyr::mutate(ir_100000_pys_low = NA) %>%
+      dplyr::mutate(ir_100000_pys_high = NA)
   }
 
-  if (confidence_intervals == "poisson") {
-    x <- dplyr::bind_cols(x,
-                          x %>%
-                            dplyr::left_join(
-                              x %>%
-                                dplyr::filter(.data$num >= 1) %>%
-                                dplyr::mutate(var_low = stats::qchisq(0.05 / 2, df = 2 * (.data$num - 1)) / 2 / .data$den) %>%
-                                dplyr::mutate(var_high = stats::qchisq(1 - 0.05 / 2, df = 2 * .data$num) / 2 / .data$den),
-                              by = names(x)
-                            ) %>%
-                            dplyr::select("var_low", "var_high") %>%
-                            dplyr::mutate(var_low = dplyr::if_else(is.na(.data$var_low), 0, .data$var_low)) %>%
-                            dplyr::mutate(var_high = dplyr::if_else(is.na(.data$var_high), 0, .data$var_high))
-    )
-  } else if (confidence_intervals == "binomial") {
-    x <- dplyr::bind_cols(x,
-                          x %>%
-                            dplyr::left_join(
-                              x %>%
-                                dplyr::filter(.data$num >= 1) %>%
-                                dplyr::mutate(var_low = .data$var - stats::qnorm(0.975)*sqrt(.data$var*(1-.data$var)/.data$den)) %>%
-                                dplyr::mutate(var_low = dplyr::if_else(.data$var_low < 0, 0, .data$var_low)) %>%
-                                dplyr::mutate(var_high = .data$var + stats::qnorm(0.975)*sqrt(.data$var*(1-.data$var)/.data$den)) %>%
-                                dplyr::mutate(var_high = dplyr::if_else(.data$var_high > 1, 1, .data$var_high)),
-                              by = names(x)
-                            ) %>%
-                            dplyr::select("var_low", "var_high") %>%
-                            dplyr::mutate(var_low = dplyr::if_else(is.na(.data$var_low), 0, .data$var_low)) %>%
-                            dplyr::mutate(var_high = dplyr::if_else(is.na(.data$var_high), 0, .data$var_high))
-    )
+  return(ir)
+}
+
+#' Get confidence intervals for prevalence estimates
+#'
+#' @noRd
+get_ci_prevalence <- function(pr,
+                              mode) {
+  if (mode == "binomial") {
+    pr <- pr %>%
+      dplyr::left_join(
+        pr %>%
+          dplyr::filter(.data$prev < 1 & .data$prev > 0) %>%
+          dplyr::mutate(prev_low = .data$prev - stats::qnorm(0.975) *
+            sqrt(.data$prev * (1 - .data$prev) / .data$denominator)) %>%
+          dplyr::mutate(prev_low = dplyr::if_else(
+            .data$prev_low < 0,
+            0,
+            .data$prev_low
+          )) %>%
+          dplyr::mutate(prev_high = .data$prev + stats::qnorm(0.975) *
+            sqrt(.data$prev * (1 - .data$prev) / .data$denominator)) %>%
+          dplyr::mutate(prev_high = dplyr::if_else(
+            .data$prev_high > 1,
+            1,
+            .data$prev_high
+          )),
+        by = names(pr)
+      )
+  } else if (mode == "none"){
+    pr <- pr %>%
+      dplyr::mutate(prev_low = NA) %>%
+      dplyr::mutate(prev_high = NA)
   }
 
-  x <- x %>%
-    dplyr::relocate(.data$var_low, .after = .data$var) %>%
-    dplyr::relocate(.data$var_high, .after = .data$var_low)
+  return(pr)
 
-  if (type == "Incidence"){
-    x <- x %>%
-      dplyr::rename("n_events" = "num") %>%
-      dplyr::rename("person_years" = "den") %>%
-      dplyr::rename("ir_100000_pys" = "var") %>%
-      dplyr::rename("ir_100000_pys_low" = "var_low") %>%
-      dplyr::rename("ir_100000_pys_high" = "var_high")
-  } else if (type == "Prevalence"){
-    x <- x %>%
-      dplyr::rename("numerator" = "num") %>%
-      dplyr::rename("denominator" = "den") %>%
-      dplyr::rename("prev" = "var") %>%
-      dplyr::rename("prev_low" = "var_low") %>%
-      dplyr::rename("prev_high" = "var_high")
-  }
-
-  return(x)
 }

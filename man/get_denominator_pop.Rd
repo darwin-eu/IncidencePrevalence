@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_denominator_pop.R
 \name{get_denominator_pop}
 \alias{get_denominator_pop}
-\title{Identify a single denominator population}
+\title{Identify the denominator populations}
 \usage{
 get_denominator_pop(
   cdm,
@@ -19,17 +19,13 @@ get_denominator_pop(
 \arguments{
 \item{cdm}{CDMConnector CDM reference object}
 
-\item{start_date}{Date indicating the start of the study period. If NULL,
-the earliest observation_start_date in the observation_period table
-will be used.}
+\item{start_date}{Date indicating the start of the study period.}
 
-\item{end_date}{Date indicating the end of the study period. If NULL,
-the latest observation_end_date in the observation_period table
-will be used.}
+\item{end_date}{Date indicating the end of the study period.}
 
-\item{min_age}{Minimum age for the cohort}
+\item{min_age}{Minimum ages for the cohort}
 
-\item{max_age}{Maximum age for the cohort.}
+\item{max_age}{Maximum ages for the cohort}
 
 \item{days_prior_history}{Days of prior history required to enter
 the study cohort.}
@@ -41,5 +37,5 @@ the study cohort.}
 \item{sample}{sample n}
 }
 \description{
-Identify a single denominator population
+Identify the denominator populations
 }

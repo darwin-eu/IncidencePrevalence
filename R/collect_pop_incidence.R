@@ -308,15 +308,9 @@ collect_pop_incidence <- function(cdm,
   )
 
   # get confidence intervals
-  if (confidence_interval != "none") {
-    irs <- get_confidence_intervals(irs, confidence_interval)
-  } else {
-    irs <- irs %>%
-      dplyr::mutate(ir_100000_pys_low = NA) %>%
-      dplyr::mutate(ir_100000_pys_high = NA) %>%
-      dplyr::relocate(.data$ir_100000_pys_low, .after = .data$ir_100000_pys) %>%
-      dplyr::relocate(.data$ir_100000_pys_high, .after = .data$ir_100000_pys_low)
-  }
+  irs <- get_ci_incidence(irs, confidence_interval) %>%
+    dplyr::relocate(.data$ir_100000_pys_low, .after = .data$ir_100000_pys) %>%
+    dplyr::relocate(.data$ir_100000_pys_high, .after = .data$ir_100000_pys_low)
 
   # obscure counts
   if (!is.null(minimum_cell_count)) {

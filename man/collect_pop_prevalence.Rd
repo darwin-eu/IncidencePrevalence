@@ -15,7 +15,7 @@ collect_pop_prevalence(
   full_period_requireds = TRUE,
   points = "start",
   minimum_representative_proportions = 0.5,
-  confidence_interval = "none",
+  confidence_interval = "binomial",
   minimum_cell_count = 5,
   verbose = FALSE
 )
