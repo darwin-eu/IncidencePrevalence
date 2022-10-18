@@ -36,9 +36,9 @@
 #' @examples
 collect_pop_incidence <- function(cdm,
                                   table_name_denominator,
-                                  cohort_ids_denominator_pops,
                                   table_name_outcomes,
-                                  cohort_ids_outcomes,
+                                  cohort_ids_denominator_pops = NULL,
+                                  cohort_ids_outcomes = NULL,
                                   time_interval = "Months",
                                   outcome_washout_windows = 0,
                                   repetitive_events = FALSE,
@@ -48,11 +48,13 @@ collect_pop_incidence <- function(cdm,
 
 
   # help to avoid formatting errors
-  if (is.numeric(cohort_ids_outcomes)) {
-    cohort_ids_outcomes <- as.character(cohort_ids_outcomes)
-  }
-  if (is.numeric(cohort_ids_denominator_pops)) {
+  if (!is.null(cohort_ids_denominator_pops) &
+      is.numeric(cohort_ids_denominator_pops)) {
     cohort_ids_denominator_pops <- as.character(cohort_ids_denominator_pops)
+  }
+  if (!is.null(cohort_ids_outcomes) &
+      is.numeric(cohort_ids_outcomes)) {
+    cohort_ids_outcomes <- as.character(cohort_ids_outcomes)
   }
   if (is.character(time_interval)) {
     time_interval <- tolower(time_interval)
@@ -71,7 +73,6 @@ collect_pop_incidence <- function(cdm,
   if (!isTRUE(db_inherits_check)) {
     "- cdm must be a CDMConnector CDM reference object"
   }
-
   denominator_check <- table_name_denominator %in% names(cdm)
   checkmate::assertTRUE(denominator_check,
     add = error_message
@@ -81,6 +82,15 @@ collect_pop_incidence <- function(cdm,
       "- `table_name_denominator` is not found in cdm"
     )
   }
+  checkmate::assertTRUE(all(c(
+    "cohort_definition_id",
+    "subject_id",
+    "cohort_start_date",
+    "cohort_end_date"
+  ) %in%
+    names(cdm[[table_name_denominator]] %>%
+            utils::head(1) %>%
+            dplyr::collect())))
   checkmate::assert_character(cohort_ids_denominator_pops,
     add = error_message,
     null.ok = TRUE
@@ -121,16 +131,22 @@ collect_pop_incidence <- function(cdm,
   checkmate::reportAssertions(collection = error_message)
 
 
+  # if not given, use all denominator and outcome cohorts
+if(is.null(cohort_ids_denominator_pops)){
+  cohort_ids_denominator_pops <-   cdm[[table_name_denominator]] %>%
+    dplyr::select("cohort_definition_id") %>%
+    dplyr::collect() %>%
+    dplyr::pull()
+  }
+if(is.null(cohort_ids_outcomes)){
+  cohort_ids_outcomes <- cdm[[table_name_outcomes]] %>%
+      dplyr::select("cohort_definition_id") %>%
+      dplyr::collect() %>%
+      dplyr::pull()
+  }
+
   # further checks that there are the required data elements
   error_message <- checkmate::makeAssertCollection()
-  checkmate::assertTRUE(all(c(
-    "cohort_definition_id",
-    "subject_id",
-    "cohort_start_date",
-    "cohort_end_date"
-  ) %in%
-    names(cdm[[table_name_denominator]] %>% utils::head(1) %>% dplyr::collect())))
-
   date_check <- nrow(cdm[[table_name_denominator]] %>%
     dplyr::select("cohort_start_date", "cohort_end_date") %>%
     dplyr::filter(.data$cohort_start_date > .data$cohort_end_date) %>%
@@ -142,7 +158,8 @@ collect_pop_incidence <- function(cdm,
     )
   }
   denominator_count_check <- cdm[[table_name_denominator]] %>%
-    dplyr::filter(.data$cohort_definition_id %in% .env$cohort_ids_denominator_pops) %>%
+    dplyr::filter(.data$cohort_definition_id %in%
+                    .env$cohort_ids_denominator_pops) %>%
     dplyr::count() %>%
     dplyr::pull() > 0
   checkmate::assertTRUE(denominator_count_check,
@@ -176,6 +193,7 @@ collect_pop_incidence <- function(cdm,
     )
   }
   checkmate::reportAssertions(collection = error_message)
+
 
   # get outcomes + cohort_start_date & cohort_end_date
   outcome <- cdm[[table_name_outcomes]] %>%

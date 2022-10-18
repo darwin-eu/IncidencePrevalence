@@ -154,9 +154,7 @@ test_that("mock db: check working example 2", {
 
   inc <- collect_pop_incidence(cdm,
                             table_name_denominator = "denominator",
-                            cohort_ids_denominator_pops="1",
                            table_name_outcomes = "outcome",
-                           cohort_ids_outcomes = "1",
                            repetitive_events = FALSE,
                            outcome_washout_window = 0,
                            minimum_cell_count = 0
@@ -165,9 +163,7 @@ test_that("mock db: check working example 2", {
 
   inc <- collect_pop_incidence(cdm,
                                table_name_denominator = "denominator",
-                               cohort_ids_denominator_pops="1",
                                table_name_outcomes = "outcome",
-                               cohort_ids_outcomes = "1",
                                repetitive_events = TRUE,
                                outcome_washout_window = 2,
                                minimum_cell_count = 0
@@ -176,9 +172,7 @@ test_that("mock db: check working example 2", {
 
   inc <- collect_pop_incidence(cdm,
                                table_name_denominator = "denominator",
-                               cohort_ids_denominator_pops="1",
                                table_name_outcomes = "outcome",
-                               cohort_ids_outcomes = "1",
                                repetitive_events = TRUE,
                                outcome_washout_window = 10,
                                minimum_cell_count = 0
@@ -190,9 +184,7 @@ test_that("mock db: check working example 2", {
   # then it won´t be possible to have any recurrent events
   inc <- collect_pop_incidence(cdm,
                                table_name_denominator = "denominator",
-                               cohort_ids_denominator_pops="1",
                                table_name_outcomes = "outcome",
-                               cohort_ids_outcomes = "1",
                                repetitive_events = TRUE,
                                outcome_washout_window = NULL,
                                minimum_cell_count = 0
@@ -201,9 +193,7 @@ test_that("mock db: check working example 2", {
 
   inc <- collect_pop_incidence(cdm,
                                table_name_denominator = "denominator",
-                               cohort_ids_denominator_pops="1",
                                table_name_outcomes = "outcome",
-                               cohort_ids_outcomes = "1",
                                repetitive_events = TRUE,
                                outcome_washout_window = NULL,
                                minimum_cell_count = 0,
@@ -213,9 +203,7 @@ test_that("mock db: check working example 2", {
 
   inc <- collect_pop_incidence(cdm,
                                table_name_denominator = "denominator",
-                               cohort_ids_denominator_pops="1",
                                table_name_outcomes = "outcome",
-                               cohort_ids_outcomes = "1",
                                repetitive_events = TRUE,
                                outcome_washout_window = NULL,
                                minimum_cell_count = 0,
