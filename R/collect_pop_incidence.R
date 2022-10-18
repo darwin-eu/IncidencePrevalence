@@ -135,12 +135,14 @@ collect_pop_incidence <- function(cdm,
 if(is.null(cohort_ids_denominator_pops)){
   cohort_ids_denominator_pops <-   cdm[[table_name_denominator]] %>%
     dplyr::select("cohort_definition_id") %>%
+    dplyr::distinct() %>%
     dplyr::collect() %>%
     dplyr::pull()
   }
 if(is.null(cohort_ids_outcomes)){
   cohort_ids_outcomes <- cdm[[table_name_outcomes]] %>%
       dplyr::select("cohort_definition_id") %>%
+      dplyr::distinct() %>%
       dplyr::collect() %>%
       dplyr::pull()
   }

@@ -7,9 +7,9 @@
 collect_pop_incidence(
   cdm,
   table_name_denominator,
-  cohort_ids_denominator_pops,
   table_name_outcomes,
-  cohort_ids_outcomes,
+  cohort_ids_denominator_pops = NULL,
+  cohort_ids_outcomes = NULL,
   time_interval = "Months",
   outcome_washout_windows = 0,
   repetitive_events = FALSE,
@@ -23,9 +23,9 @@ collect_pop_incidence(
 
 \item{table_name_denominator}{table_name_denominator}
 
-\item{cohort_ids_denominator_pops}{Cohort ids of denominator populations}
-
 \item{table_name_outcomes}{Name of the table with the outcome cohorts}
+
+\item{cohort_ids_denominator_pops}{Cohort ids of denominator populations}
 
 \item{cohort_ids_outcomes}{Outcome cohort ids}
 
