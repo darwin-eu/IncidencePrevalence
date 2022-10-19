@@ -12,7 +12,7 @@ get_pop_prevalence(
   cohort_id_outcome = NULL,
   type = "point",
   time_interval = "months",
-  full_period_required = TRUE,
+  full_periods_required = TRUE,
   point = "start",
   minimum_representative_proportion = 0.5,
   verbose = FALSE
@@ -33,13 +33,16 @@ get_pop_prevalence(
 
 \item{time_interval}{time_interval}
 
-\item{full_period_required}{full period requirement}
+\item{full_periods_required}{full period requirement}
 
 \item{point}{point where to compute prevalence inside interval}
 
 \item{minimum_representative_proportion}{minimum_representative_proportion}
 
 \item{verbose}{verbose}
+}
+\value{
+
 }
 \description{
 Get population prevalence estimates

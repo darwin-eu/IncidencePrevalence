@@ -12,7 +12,7 @@ collect_pop_prevalence(
   cohort_ids_outcomes,
   type = "point",
   time_intervals = "months",
-  full_period_requireds = TRUE,
+  full_periods_required = TRUE,
   points = "start",
   minimum_representative_proportions = 0.5,
   confidence_interval = "binomial",
@@ -35,7 +35,7 @@ collect_pop_prevalence(
 
 \item{time_intervals}{Time intervals for prevalence estimates}
 
-\item{full_period_requireds}{If full period is required}
+\item{full_periods_required}{If full period is required}
 
 \item{points}{where to compute the point prevalence}
 
@@ -48,6 +48,9 @@ individuals must have to contribute}
 lower than this will be obscured. If NULL all results will be reported.}
 
 \item{verbose}{Whether to report progress}
+}
+\value{
+
 }
 \description{
 Collect population prevalence estimates

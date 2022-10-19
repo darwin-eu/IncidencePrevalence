@@ -11,6 +11,7 @@ get_pop_incidence(
   table_name_outcome,
   cohort_id_outcome,
   time_interval,
+  full_periods_required,
   outcome_washout_window,
   repetitive_events,
   verbose
@@ -34,6 +35,9 @@ get_pop_incidence(
 \item{repetitive_events}{repetitive_events}
 
 \item{verbose}{verbose}
+}
+\value{
+
 }
 \description{
 Get population incidence estimates

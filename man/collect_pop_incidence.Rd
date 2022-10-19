@@ -11,6 +11,7 @@ collect_pop_incidence(
   cohort_ids_denominator_pops = NULL,
   cohort_ids_outcomes = NULL,
   time_interval = "Months",
+  full_periods_required = TRUE,
   outcome_washout_windows = 0,
   repetitive_events = FALSE,
   confidence_interval = "poisson",
@@ -31,6 +32,8 @@ collect_pop_incidence(
 
 \item{time_interval}{Time intervals for incidence estimates}
 
+\item{full_periods_required}{If full period is required}
+
 \item{outcome_washout_windows}{Clean windows}
 
 \item{repetitive_events}{Repeated events}
@@ -41,6 +44,9 @@ collect_pop_incidence(
 lower than this will be obscured. If NULL all results will be reported.}
 
 \item{verbose}{Whether to report progress}
+}
+\value{
+
 }
 \description{
 Collect population incidence estimates

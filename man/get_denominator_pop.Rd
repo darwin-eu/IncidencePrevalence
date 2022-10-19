@@ -36,6 +36,9 @@ the study cohort.}
 
 \item{sample}{sample n}
 }
+\value{
+
+}
 \description{
 Identify the denominator populations
 }

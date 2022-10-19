@@ -51,6 +51,9 @@ days prior history will be considered separately.}
 \item{verbose}{Either TRUE or FALSE.
 If TRUE, progress will be reported.}
 }
+\value{
+
+}
 \description{
 \code{collect_denominator_pops()} creates a set of denominator cohorts
 }
