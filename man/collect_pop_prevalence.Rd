@@ -7,9 +7,9 @@
 collect_pop_prevalence(
   cdm,
   table_name_denominator,
-  cohort_ids_denominator_pops,
   table_name_outcomes,
-  cohort_ids_outcomes,
+  cohort_ids_denominator_pops = NULL,
+  cohort_ids_outcomes = NULL,
   type = "point",
   time_intervals = "months",
   full_periods_required = TRUE,
@@ -25,9 +25,9 @@ collect_pop_prevalence(
 
 \item{table_name_denominator}{table_name_denominator}
 
-\item{cohort_ids_denominator_pops}{Cohort ids of denominator populations}
-
 \item{table_name_outcomes}{Name of the table with the outcome cohorts}
+
+\item{cohort_ids_denominator_pops}{Cohort ids of denominator populations}
 
 \item{cohort_ids_outcomes}{Outcome cohort ids}
 

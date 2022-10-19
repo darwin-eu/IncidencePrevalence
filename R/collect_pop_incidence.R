@@ -20,8 +20,8 @@
 #' @param cdm CDMConnector CDM reference object
 #' @param table_name_denominator table_name_denominator
 #' @param table_name_outcomes Name of the table with the outcome cohorts
-#' @param cohort_ids_outcomes Outcome cohort ids
 #' @param cohort_ids_denominator_pops Cohort ids of denominator populations
+#' @param cohort_ids_outcomes Outcome cohort ids
 #' @param time_interval Time intervals for incidence estimates
 #' @param full_periods_required If full period is required
 #' @param outcome_washout_windows Clean windows

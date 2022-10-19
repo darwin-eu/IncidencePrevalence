@@ -143,8 +143,6 @@ test_that("mock db: working examples 2", {
   prev <- collect_pop_prevalence(cdm,
                              table_name_denominator = "denominator",
                              table_name_outcomes = "outcome",
-                             cohort_ids_outcomes = "1",
-                             cohort_ids_denominator_pop = c("1","2"),
                              type = "point",
                              time_interval = "months",
   )

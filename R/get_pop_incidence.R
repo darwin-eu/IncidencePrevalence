@@ -18,6 +18,7 @@
 #' @param start_date start date of the study
 #' @param end_date end date of the study
 #' @param time_interval interval to compute incidence
+#' @param full_periods_required whether full periods are required
 #' @noRd
 compute_study_days_inc <- function(start_date,
                                    end_date,
@@ -106,6 +107,7 @@ compute_study_days_inc <- function(start_date,
 #' @param cohort_id_outcome cohort_id_outcome
 #' @param cohort_id_denominator_pop cohort_id_denominator_pop
 #' @param time_interval time_interval
+#' @param full_periods_required full_periods_required
 #' @param outcome_washout_window outcome_washout_window
 #' @param repetitive_events repetitive_events
 #' @param verbose verbose

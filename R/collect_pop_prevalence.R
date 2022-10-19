@@ -19,8 +19,8 @@
 #'
 #' @param cdm CDMConnector CDM reference object
 #' @param table_name_denominator table_name_denominator
-#' @param cohort_ids_denominator_pops Cohort ids of denominator populations
 #' @param table_name_outcomes Name of the table with the outcome cohorts
+#' @param cohort_ids_denominator_pops Cohort ids of denominator populations
 #' @param cohort_ids_outcomes Outcome cohort ids
 #' @param type type of prevalence, point or period
 #' @param points where to compute the point prevalence
@@ -39,9 +39,9 @@
 #' @examples
 collect_pop_prevalence <- function(cdm,
                                   table_name_denominator,
-                                  cohort_ids_denominator_pops,
                                   table_name_outcomes,
-                                  cohort_ids_outcomes,
+                                  cohort_ids_denominator_pops = NULL,
+                                  cohort_ids_outcomes = NULL,
                                   type = "point",
                                   time_intervals = "months",
                                   full_periods_required = TRUE,
@@ -53,11 +53,13 @@ collect_pop_prevalence <- function(cdm,
 
 
   # help to avoid formatting errors
-  if (is.numeric(cohort_ids_outcomes)) {
-    cohort_ids_outcomes <- as.character(cohort_ids_outcomes)
-  }
-  if (is.numeric(cohort_ids_denominator_pops)) {
+  if (!is.null(cohort_ids_denominator_pops) &
+      is.numeric(cohort_ids_denominator_pops)) {
     cohort_ids_denominator_pops <- as.character(cohort_ids_denominator_pops)
+  }
+  if (!is.null(cohort_ids_outcomes) &
+      is.numeric(cohort_ids_outcomes)) {
+    cohort_ids_outcomes <- as.character(cohort_ids_outcomes)
   }
   if (is.character(type)) {
     type <- tolower(type)
@@ -140,6 +142,23 @@ collect_pop_prevalence <- function(cdm,
   )
   # report initial assertions
   checkmate::reportAssertions(collection = error_message)
+
+
+  # if not given, use all denominator and outcome cohorts
+  if(is.null(cohort_ids_denominator_pops)){
+    cohort_ids_denominator_pops <-   cdm[[table_name_denominator]] %>%
+      dplyr::select("cohort_definition_id") %>%
+      dplyr::distinct() %>%
+      dplyr::collect() %>%
+      dplyr::pull()
+  }
+  if(is.null(cohort_ids_outcomes)){
+    cohort_ids_outcomes <- cdm[[table_name_outcomes]] %>%
+      dplyr::select("cohort_definition_id") %>%
+      dplyr::distinct() %>%
+      dplyr::collect() %>%
+      dplyr::pull()
+  }
 
 
   study_specs <- tidyr::expand_grid(

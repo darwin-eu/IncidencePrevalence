@@ -30,6 +30,8 @@ get_pop_incidence(
 
 \item{time_interval}{time_interval}
 
+\item{full_periods_required}{full_periods_required}
+
 \item{outcome_washout_window}{outcome_washout_window}
 
 \item{repetitive_events}{repetitive_events}
