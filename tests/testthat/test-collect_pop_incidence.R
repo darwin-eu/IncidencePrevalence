@@ -157,7 +157,8 @@ test_that("mock db: check working example 2", {
                            table_name_outcomes = "outcome",
                            repetitive_events = FALSE,
                            outcome_washout_window = 0,
-                           minimum_cell_count = 0
+                           minimum_cell_count = 0,
+                           full_periods_required = FALSE
   )
   expect_true(sum(inc[["incidence_estimates"]]$n_events) == 1)
 
@@ -166,7 +167,8 @@ test_that("mock db: check working example 2", {
                                table_name_outcomes = "outcome",
                                repetitive_events = TRUE,
                                outcome_washout_window = 2,
-                               minimum_cell_count = 0
+                               minimum_cell_count = 0,
+                               full_periods_required = FALSE
   )
   expect_true(sum(inc[["incidence_estimates"]]$n_events) == 3)
 
@@ -175,7 +177,8 @@ test_that("mock db: check working example 2", {
                                table_name_outcomes = "outcome",
                                repetitive_events = TRUE,
                                outcome_washout_window = 10,
-                               minimum_cell_count = 0
+                               minimum_cell_count = 0,
+                               full_periods_required = FALSE
   )
   expect_true(sum(inc[["incidence_estimates"]]$n_events) == 2)
 
@@ -187,7 +190,8 @@ test_that("mock db: check working example 2", {
                                table_name_outcomes = "outcome",
                                repetitive_events = TRUE,
                                outcome_washout_window = NULL,
-                               minimum_cell_count = 0
+                               minimum_cell_count = 0,
+                               full_periods_required = FALSE
   )
   expect_true(sum(inc[["incidence_estimates"]]$n_events) == 1)
 
@@ -197,7 +201,8 @@ test_that("mock db: check working example 2", {
                                repetitive_events = TRUE,
                                outcome_washout_window = NULL,
                                minimum_cell_count = 0,
-                               time_interval ="weeks"
+                               time_interval ="weeks",
+                               full_periods_required = FALSE
   )
   expect_true(sum(inc[["incidence_estimates"]]$n_events) == 1)
 
@@ -207,14 +212,15 @@ test_that("mock db: check working example 2", {
                                repetitive_events = TRUE,
                                outcome_washout_window = NULL,
                                minimum_cell_count = 0,
-                               time_interval ="days"
+                               time_interval ="days",
+                               full_periods_required = FALSE
   )
   expect_true(sum(inc[["incidence_estimates"]]$n_events) == 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
-test_that("mock db: check study periods ", {
+test_that("mock db: check study periods", {
   person <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -225,8 +231,8 @@ test_that("mock db: check study periods ", {
   observation_period <- tibble::tibble(
     observation_period_id = "1",
     person_id = "1",
-    observation_period_start_date = as.Date("2010-01-01"),
-    observation_period_end_date = as.Date("2010-12-31")
+    observation_period_start_date = as.Date("2010-01-15"),
+    observation_period_end_date = as.Date("2010-12-15")
   )
   outcome <- tibble::tibble(
     cohort_definition_id = "1",
@@ -255,13 +261,32 @@ test_that("mock db: check study periods ", {
                                cohort_ids_denominator_pops = "1",
                            table_name_outcomes = "outcome",
                            cohort_ids_outcomes = "1",
-                           minimum_cell_count = 0
+                           time_interval = "months",
+                           repetitive_events = TRUE,
+                           minimum_cell_count = 0,
+                           full_periods_required = FALSE
   )
 
   # we expect 12 months of which the last in december
   # the last month should also be included
   # as the person goes up to the last day of the month
   expect_true(length(inc[["incidence_estimates"]]$time) == 12)
+
+
+  inc <- collect_pop_incidence(cdm,
+                               table_name_denominator = "denominator",
+                               cohort_ids_denominator_pops = "1",
+                               table_name_outcomes = "outcome",
+                               cohort_ids_outcomes = "1",
+                               time_interval = "months",
+                               repetitive_events = TRUE,
+                               minimum_cell_count = 0,
+                               full_periods_required = TRUE
+  )
+
+  # now with full_periods_required is TRUE
+  # we expect 10 months of which the last in november
+  expect_true(length(inc[["incidence_estimates"]]$time) == 10)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -307,7 +332,8 @@ test_that("mock db: check person days", {
     repetitive_events = FALSE,
     time_interval = c("Years"),
     verbose = TRUE,
-    minimum_cell_count = 0
+    minimum_cell_count = 0,
+    full_periods_required = FALSE
   )
 
   # in 2019 we expect person 2 to contribute from 1st july to end of December
@@ -398,7 +424,8 @@ test_that("mock db: check periods follow calendar dates", {
     outcome_washout_window = 0,
     time_interval = c("Years"),
     verbose = TRUE,
-    minimum_cell_count = 0
+    minimum_cell_count = 0,
+    full_periods_required = FALSE
   )
   expect_true(inc[["incidence_estimates"]]$n_events[1] == 1)
   expect_true(inc[["incidence_estimates"]]$n_events[2] == 3)
@@ -421,7 +448,8 @@ test_that("mock db: check periods follow calendar dates", {
     outcome_washout_window = 0,
     time_interval = c("months"),
     verbose = TRUE,
-    minimum_cell_count = 0
+    minimum_cell_count = 0,
+    full_periods_required = FALSE
   )
   expect_true(inc[["incidence_estimates"]]$n_events[1] == 1)
   expect_true(inc[["incidence_estimates"]]$n_events[2] == 1)
@@ -741,7 +769,8 @@ test_that("mock db: check entry and event on same day", {
     repetitive_events = FALSE,
     outcome_washout_window = NULL,
     time_interval = "years",
-    minimum_cell_count = 0
+    minimum_cell_count = 0,
+    full_periods_required = FALSE
   )
   expect_true(sum(inc_without_rep[["incidence_estimates"]]$n_events) == 1)
 
@@ -754,7 +783,8 @@ test_that("mock db: check entry and event on same day", {
     repetitive_events = TRUE,
     outcome_washout_window = NULL,
     time_interval = "years",
-    minimum_cell_count = 0
+    minimum_cell_count = 0,
+    full_periods_required = FALSE
   )
   expect_true(sum(inc_with_rep[["incidence_estimates"]]$n_events) == 1)
 
@@ -861,20 +891,17 @@ test_that("mock db: check minimum counts", {
     table_name_outcomes = "outcome",
     cohort_ids_outcomes = "1",
     repetitive_events = FALSE,
-    minimum_cell_count = 0
+    minimum_cell_count = 0,
+    full_periods_required = FALSE
   )
   expect_true(inc[["incidence_estimates"]]$n_persons[1] == 20)
   expect_true(inc[["incidence_estimates"]]$n_persons[2] == 3)
-  expect_true(inc[["incidence_estimates"]]$n_persons[3] == 0)
   expect_true(!is.na(inc[["incidence_estimates"]]$person_days[1]))
   expect_true(!is.na(inc[["incidence_estimates"]]$person_days[2]))
-  expect_true(!is.na(inc[["incidence_estimates"]]$person_days[3]))
   expect_true(!is.na(inc[["incidence_estimates"]]$person_years[1]))
   expect_true(!is.na(inc[["incidence_estimates"]]$person_years[2]))
-  expect_true(!is.na(inc[["incidence_estimates"]]$person_years[3]))
   expect_true(inc[["incidence_estimates"]]$n_events[1] == 17)
   expect_true(inc[["incidence_estimates"]]$n_events[2] == 3)
-  expect_true(inc[["incidence_estimates"]]$n_events[3] == 0)
   expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys[1]))
   expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys[2]))
   expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys_low[1]))
@@ -889,20 +916,17 @@ test_that("mock db: check minimum counts", {
     table_name_outcomes = "outcome",
     cohort_ids_outcomes = "1",
     repetitive_events = FALSE,
-    minimum_cell_count = 5
+    minimum_cell_count = 5,
+    full_periods_required = FALSE
   )
   expect_true(inc[["incidence_estimates"]]$n_persons[1] == 20)
   expect_true(is.na(inc[["incidence_estimates"]]$n_persons[2]))
-  expect_true(is.na(inc[["incidence_estimates"]]$n_persons[3]))
   expect_true(!is.na(inc[["incidence_estimates"]]$person_days[1]))
   expect_true(is.na(inc[["incidence_estimates"]]$person_days[2]))
-  expect_true(is.na(inc[["incidence_estimates"]]$person_days[3]))
   expect_true(!is.na(inc[["incidence_estimates"]]$person_years[1]))
   expect_true(is.na(inc[["incidence_estimates"]]$person_years[2]))
-  expect_true(is.na(inc[["incidence_estimates"]]$person_years[3]))
   expect_true(inc[["incidence_estimates"]]$n_events[1] == 17)
   expect_true(is.na(inc[["incidence_estimates"]]$n_events[2]))
-  expect_true(is.na(inc[["incidence_estimates"]]$n_events[3]))
   expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys[1]))
   expect_true(is.na(inc[["incidence_estimates"]]$ir_100000_pys[2]))
   expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys_low[1]))
@@ -1076,7 +1100,7 @@ test_that("mock db: cohort before start of period and ending after end of period
 })
 
 test_that("mock db: check full period requirement - year", {
-  # expected to work
+
   person <- tibble::tibble(
     person_id = c("1","2"),
     gender_concept_id = c("8507","8532"),
@@ -1273,6 +1297,103 @@ test_that("mock db: check full period requirement - month", {
 
 })
 
+test_that("mock db: check full_periods_required", {
+
+  person <- tibble::tibble(
+    person_id = c("1","2"),
+    gender_concept_id = c("8507","8532"),
+    year_of_birth = c(1995,1995),
+    month_of_birth = c(07,07),
+    day_of_birth = c(01,01)
+  )
+  observation_period <- tibble::tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2019-05-09"),as.Date("2019-02-02")),
+    observation_period_end_date = c(as.Date("2022-06-01"),as.Date("2020-06-06"))
+  )
+  outcome <- tibble::tibble(
+    cohort_definition_id = c("1"),
+    subject_id = c("1"),
+    cohort_start_date = c(as.Date("2020-04-28")),
+    cohort_end_date = c(as.Date("2020-05-19"))
+  )
+
+  cdm <- generate_mock_incidence_prevalence_db(person = person,
+                                               observation_period = observation_period,
+                                               outcome = outcome)
+
+  dpop <- collect_denominator_pops(
+    cdm = cdm
+  )
+  cdm$denominator <- dpop$denominator_populations
+
+# full periods required TRUE
+# repetitive events TRUE
+# - we expect to start in 2020 (both start during 2019)
+# - we expect to go up to 2021 (id 2 end date is in 2022)
+inc <- collect_pop_incidence(
+    cdm = cdm,
+    table_name_denominator = "denominator",
+    table_name_outcomes = "outcome",
+    time_interval = c("Years"),
+    repetitive_events = TRUE,
+    full_periods_required = TRUE,
+    minimum_cell_count = 0
+  )
+  expect_true(nrow(inc$incidence_estimates) == 2)
+  expect_true(inc$incidence_estimates$time[1] == "2020")
+  expect_true(inc$incidence_estimates$time[2] == "2021")
+# repetitive events FALSE
+# - now we expect only to use 2020 (id 2 obs end is in 20)
+inc <- collect_pop_incidence(
+    cdm = cdm,
+    table_name_denominator = "denominator",
+    table_name_outcomes = "outcome",
+    time_interval = c("Years"),
+    repetitive_events = FALSE,
+    full_periods_required = TRUE,
+    minimum_cell_count = 0
+  )
+expect_true(nrow(inc$incidence_estimates) == 1)
+expect_true(inc$incidence_estimates$time[1] == "2020")
+
+# full periods required FALSE
+# repetitive events TRUE
+# - we expect to start in 2019
+# - we expect to go up to 2022
+inc <- collect_pop_incidence(
+  cdm = cdm,
+  table_name_denominator = "denominator",
+  table_name_outcomes = "outcome",
+  time_interval = c("Years"),
+  repetitive_events = TRUE,
+  full_periods_required = FALSE,
+  minimum_cell_count = 0
+)
+expect_true(nrow(inc$incidence_estimates) == 4)
+expect_true(inc$incidence_estimates$time[1] == "2019")
+expect_true(inc$incidence_estimates$time[2] == "2020")
+expect_true(inc$incidence_estimates$time[3] == "2021")
+expect_true(inc$incidence_estimates$time[4] == "2022")
+# repetitive events FALSE
+inc <- collect_pop_incidence(
+  cdm = cdm,
+  table_name_denominator = "denominator",
+  table_name_outcomes = "outcome",
+  time_interval = c("Years"),
+  repetitive_events = FALSE,
+  full_periods_required = FALSE,
+  minimum_cell_count = 0
+)
+expect_true(nrow(inc$incidence_estimates) == 2)
+expect_true(inc$incidence_estimates$time[1] == "2019")
+expect_true(inc$incidence_estimates$time[2] == "2020")
+
+DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+})
+
 test_that("mock db: check conversion of user inputs", {
   cdm <- generate_mock_incidence_prevalence_db()
 
@@ -1401,6 +1522,20 @@ test_that("expected errors with mock", {
                                  table_name_outcomes = "outcome",
                                  cohort_ids_outcomes = "11"
   ))
+
+
+
+  dpop <- collect_denominator_pops(
+    cdm = cdm,
+    study_start_date= as.Date("2019-06-01"),
+    study_end_date= as.Date("2019-08-01"))
+  cdm$denominator <- dpop$denominator_populations
+
+  expect_error(collect_pop_incidence(cdm,
+                                     table_name_denominator = "denominator",
+                                     table_name_outcomes = "outcome",
+                                     time_interval = "Years"))
+
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })

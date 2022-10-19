@@ -20,7 +20,7 @@
 #' @param type point or period prevalence
 #' @param time_interval interval to compute prevalence
 #' @param point point where to compute prevalence, if point prevalence#
-#' @param full_period_required wether full periods are required, if period
+#' @param full_periods_required wether full periods are required, if period
 #' prevalence
 #' @noRd
 compute_study_days <- function(start_date,
@@ -28,7 +28,7 @@ compute_study_days <- function(start_date,
                                type,
                                time_interval,
                                point,
-                               full_period_required) {
+                               full_periods_required) {
   if (time_interval == "weeks"){
     week_correction <- lubridate::days(1)
   } else {
@@ -122,7 +122,7 @@ compute_study_days <- function(start_date,
         end_time = max(.data$dates, na.rm = TRUE)
       ) %>%
       dplyr::ungroup()
-    if (full_period_required){
+    if (full_periods_required){
       study_days <- study_days %>%
         dplyr::filter(.data$start_time == lubridate::floor_date(.data$start_time, unit = time_interval) + week_correction) %>%
         dplyr::filter(.data$end_time == lubridate::floor_date(
@@ -149,7 +149,7 @@ compute_study_days <- function(start_date,
 #' @param cohort_id_outcome cohort_id_outcome
 #' @param type type
 #' @param time_interval time_interval
-#' @param full_period_required full period requirement
+#' @param full_periods_required full period requirement
 #' @param point point where to compute prevalence inside interval
 #' @param minimum_representative_proportion minimum_representative_proportion
 #' @param verbose verbose
@@ -165,7 +165,7 @@ get_pop_prevalence <- function(cdm,
                                cohort_id_outcome = NULL,
                                type = "point",
                                time_interval = "months",
-                               full_period_required = TRUE,
+                               full_periods_required = TRUE,
                                point = "start",
                                minimum_representative_proportion = 0.5,
                                verbose = FALSE) {
@@ -221,7 +221,7 @@ get_pop_prevalence <- function(cdm,
     type = type,
     time_interval = time_interval,
     point = point,
-    full_period_required = full_period_required
+    full_periods_required = full_periods_required
   )
 
   if (nrow(study_days) == 0){
@@ -316,7 +316,7 @@ get_pop_prevalence <- function(cdm,
     point = .env$point,
     time_interval = .env$time_interval,
     minimum_representative_proportion = .env$minimum_representative_proportion,
-    full_period_required = .env$full_period_required
+    full_periods_required = .env$full_periods_required
   )
 
   study_pop <- study_pop %>%

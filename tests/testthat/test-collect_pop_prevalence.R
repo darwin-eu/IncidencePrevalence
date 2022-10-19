@@ -28,7 +28,7 @@ test_that("mock db: check output format", {
     "point",
     "time_interval",
     "minimum_representative_proportion",
-    "full_period_required",
+    "full_periods_required",
     "cohort_id_outcome",
     "cohort_id_denominator_pop",
     "confidence_interval",
@@ -333,8 +333,8 @@ test_that("mock db: check periods follow calendar dates", {
   observation_period <- tibble::tibble(
     observation_period_id = "1",
     person_id = "1",
-    observation_period_start_date = as.Date("2010-01-01"),
-    observation_period_end_date = as.Date("2012-12-31")
+    observation_period_start_date = as.Date("2010-06-05"),
+    observation_period_end_date = as.Date("2013-06-15")
   )
   outcome <- tibble::tibble(
     cohort_definition_id = "1",
@@ -357,7 +357,41 @@ test_that("mock db: check periods follow calendar dates", {
                                                    observation_period = observation_period,
                                                    outcome = outcome)
 
-  # study_start_date during a month (with month as time_interval)
+  # if full_periods_required is TRUE we should go from 2010 to 2013
+  # but if FALSE we should go from 2011 to 2012
+  # for yearly incidence
+  dpop <- collect_denominator_pops(
+    cdm = cdm)
+  cdm$denominator <- dpop$denominator_populations
+  prev1 <- collect_pop_prevalence(cdm,
+                                 table_name_denominator = "denominator",
+                                 table_name_outcomes = "outcome",
+                                 cohort_ids_outcomes = "1",
+                                 cohort_ids_denominator_pop = "1",
+                                 type = "period",
+                                 time_interval = "years",
+                                 minimum_cell_count = 0,
+                                 minimum_representative_proportions = 0,
+                                 full_periods_required = FALSE
+  )
+  expect_true(nrow(prev1$prevalence_estimates)==4)
+  expect_true(all(prev1$prevalence_estimates$time == c("2010", "2011", "2012", "2013")))
+
+  prev2 <- collect_pop_prevalence(cdm,
+                                 table_name_denominator = "denominator",
+                                 table_name_outcomes = "outcome",
+                                 cohort_ids_outcomes = "1",
+                                 cohort_ids_denominator_pop = "1",
+                                 type = "period",
+                                 time_interval = "years",
+                                 minimum_cell_count = 0,
+                                 minimum_representative_proportions = 0,
+                                 full_periods_required = TRUE
+  )
+  expect_true(nrow(prev2$prevalence_estimates)==2)
+  expect_true(all(prev2$time == c("2011", "2012")))
+
+  # for months
   dpop <- collect_denominator_pops(
     cdm = cdm,
     study_start_date = as.Date("2011-01-15")
@@ -374,7 +408,7 @@ test_that("mock db: check periods follow calendar dates", {
                                  time_interval = "months",
                                  minimum_cell_count = 0,
                                  minimum_representative_proportions = 0,
-                                 full_period_requireds = FALSE
+                                 full_periods_required = FALSE
   )
   expect_true(prev[["prevalence_estimates"]]$start_time[1]==as.Date("2011-01-15"))
   # where we expect the study to start the next month
@@ -387,7 +421,7 @@ test_that("mock db: check periods follow calendar dates", {
                                  time_interval = "months",
                                  minimum_cell_count = 0,
                                  minimum_representative_proportions = 0,
-                                 full_period_requireds = TRUE
+                                 full_periods_required = TRUE
   )
   expect_true(prev[["prevalence_estimates"]]$start_time[1]==as.Date("2011-02-01"))
 
@@ -497,6 +531,5 @@ test_that("mock db: check expected errors", {
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
-
 
 

@@ -17,11 +17,12 @@
 #' Compute study dates for incidence
 #' @param start_date start date of the study
 #' @param end_date end date of the study
-#' @param time_interval interval to compute prevalence
+#' @param time_interval interval to compute incidence
 #' @noRd
 compute_study_days_inc <- function(start_date,
                                    end_date,
-                                   time_interval) {
+                                   time_interval,
+                                   full_periods_required) {
   if (time_interval == "weeks") {
     week_correction <- lubridate::days(1)
   } else {
@@ -79,6 +80,20 @@ compute_study_days_inc <- function(start_date,
       ) %>%
       dplyr::ungroup()
   }
+  if (full_periods_required){
+    study_days <- study_days %>%
+      dplyr::filter(.data$start_time == lubridate::floor_date(.data$start_time, unit = time_interval) + week_correction) %>%
+      dplyr::filter(.data$end_time == lubridate::floor_date(
+        .data$end_time,
+        unit = time_interval
+      ) + week_correction + switch(time_interval,
+                                   "weeks" = lubridate::days(6),
+                                   "months" = months(1) - lubridate::days(1),
+                                   "quarters" = months(3) - lubridate::days(1),
+                                   "years" = lubridate::years(1) - lubridate::days(1)
+      ))
+  }
+
   return(study_days)
 }
 
@@ -106,79 +121,16 @@ get_pop_incidence <- function(cdm,
                               table_name_outcome,
                               cohort_id_outcome,
                               time_interval,
+                              full_periods_required,
                               outcome_washout_window,
                               repetitive_events,
                               verbose) {
+
   if (!is.null(outcome_washout_window)) {
     if (is.na(outcome_washout_window)) {
       outcome_washout_window <- NULL
     }
   }
-
-
-  # ## check for standard types of user error
-  # error_message <- checkmate::makeAssertCollection()
-  # db_inherits_check <- inherits(cdm, "cdm_reference")
-  # checkmate::assertTRUE(db_inherits_check,
-  #   add = error_message
-  # )
-  # if (!isTRUE(db_inherits_check)) {
-  #   error_message$push(
-  #     "- cdm must be a CDMConnector CDM reference object"
-  #   )
-  # }
-  # checkmate::assert_character(cohort_id_outcome,
-  #   add = error_message,
-  #   null.ok = TRUE
-  # )
-  #
-  # checkmate::assert_tibble(study_denominator_pop,
-  #   add = error_message
-  # )
-  # checkmate::assertTRUE(all(study_denominator_pop$cohort_start_date <=
-  #   study_denominator_pop$cohort_end_date))
-  # checkmate::assertTRUE(nrow(study_denominator_pop) > 0,
-  #   add = error_message
-  # )
-  # checkmate::assertTRUE(!is.null(study_denominator_pop$cohort_definition_id) &
-  #   sum(is.na(study_denominator_pop$cohort_definition_id)) == 0)
-  # checkmate::assertTRUE(!is.null(study_denominator_pop$subject_id) &
-  #   sum(is.na(study_denominator_pop$subject_id)) == 0)
-  # checkmate::assertTRUE(!is.null(study_denominator_pop$cohort_start_date) &
-  #   sum(is.na(study_denominator_pop$cohort_start_date)) == 0)
-  # checkmate::assertTRUE(!is.null(study_denominator_pop$cohort_end_date) &
-  #   sum(is.na(study_denominator_pop$cohort_end_date)) == 0)
-  # checkmate::assertTRUE(all(c(
-  #   "cohort_definition_id",
-  #   "subject_id",
-  #   "cohort_start_date", "cohort_end_date"
-  # ) %in%
-  #   names(study_denominator_pop)))
-  #
-  # checkmate::assert_character(cohort_id_denominator_pop,
-  #   add = error_message,
-  #   null.ok = TRUE
-  # )
-  # checkmate::assert_choice(time_interval,
-  #   choices = c("days","weeks","months","quarters","years"),
-  #   add = error_message
-  # )
-  # checkmate::assert_numeric(outcome_washout_window,
-  #   add = error_message,
-  #   null.ok = TRUE
-  # )
-  # checkmate::assert_logical(repetitive_events,
-  #   add = error_message
-  # )
-  # checkmate::assert_logical(verbose,
-  #   add = error_message
-  # )
-  # # report initial assertions
-  # checkmate::reportAssertions(collection = error_message)
-  #
-  # if (verbose == TRUE) {
-  #   message("Inputs checked and all initial assertions passed")
-  # }
 
   ## Analysis code
   # bring in study population
@@ -189,44 +141,6 @@ get_pop_incidence <- function(cdm,
       .env$cohort_id_denominator_pop) %>%
     dplyr::select(-"cohort_definition_id") %>%
     dplyr::compute()
-
-  # }
-
-  # # check population n is above zero
-  # # return error if not
-  # error_message <- checkmate::makeAssertCollection()
-  # checkmate::assertTRUE(nrow(study_pop) > 0,
-  #   add = error_message
-  # )
-  # if (!nrow(study_pop) > 0) {
-  #   error_message$push(
-  #     glue::glue("- Zero rows in study_denominator_pop with
-  #     cohort_id_denominator_pop={cohort_id_denominator_pop}")
-  #   )
-  # }
-  # checkmate::reportAssertions(collection = error_message)
-  #
-  #   if (verbose == TRUE) {
-  #     message("Check passed: one or more people in denominator")
-  #   }
-
-
-  #  link to outcome cohort
-  # if (!is.null(cohort_id_outcome)) {
-  #   outcome_db <- outcome_db %>%
-  #     dplyr::filter(.data$cohort_definition_id == .env$cohort_id_outcome) %>%
-  #     dplyr::compute()
-  # }
-  # error_message <- checkmate::makeAssertCollection()
-  # checkmate::assertTRUE(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0,
-  #   add = error_message
-  # )
-  # if (!(outcome_db %>% dplyr::tally() %>% dplyr::pull() > 0)) {
-  #   error_message$push(
-  #     glue::glue("- Zero rows for cohort_id_outcome={cohort_id_outcome}")
-  #   )
-  # }
-  # checkmate::reportAssertions(collection = error_message)
 
   # keep outcomes of people in the denominator
   outcome <- cdm[[table_name_outcome]] %>%
@@ -251,11 +165,12 @@ get_pop_incidence <- function(cdm,
   study_days <- compute_study_days_inc(
     start_date = start_date,
     end_date = end_date,
-    time_interval = time_interval
+    time_interval = time_interval,
+    full_periods_required = full_periods_required
   )
 
   if (nrow(study_days) == 0) {
-    stop("Not enough following to compute the desired incidence.")
+    stop("Not enough time observed to compute the desired incidence")
   }
 
   study_pop <- study_pop %>%
@@ -324,6 +239,7 @@ get_pop_incidence <- function(cdm,
       dplyr::filter(.data$cohort_end_date >= .env$working_t_start) %>%
       dplyr::filter(.data$cohort_start_date <= .env$working_t_end)
 
+    if(nrow(working_pop>0)){
     # individuals start date for this period
     # which could be start of the period or later
     working_pop <- working_pop %>%
@@ -376,6 +292,7 @@ get_pop_incidence <- function(cdm,
       dplyr::mutate(time = .env$working_t_name) %>%
       dplyr::mutate(start_time = .env$working_t_start) %>%
       dplyr::mutate(end_time = .env$working_t_end)
+    }
   }
 
   ir <- dplyr::bind_rows(ir)
@@ -384,7 +301,8 @@ get_pop_incidence <- function(cdm,
   analysis_settings <- tibble::tibble(
     outcome_washout_window = .env$outcome_washout_window,
     repetitive_events = .env$repetitive_events,
-    time_interval = .env$time_interval
+    time_interval = .env$time_interval,
+    full_periods_required = .env$full_periods_required
   )
 
   study_pop <- study_pop %>%

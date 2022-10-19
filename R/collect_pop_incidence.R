@@ -23,6 +23,7 @@
 #' @param cohort_ids_outcomes Outcome cohort ids
 #' @param cohort_ids_denominator_pops Cohort ids of denominator populations
 #' @param time_interval Time intervals for incidence estimates
+#' @param full_periods_required If full period is required
 #' @param outcome_washout_windows Clean windows
 #' @param repetitive_events Repeated events
 #' @param confidence_interval Method for confidence intervals
@@ -40,6 +41,7 @@ collect_pop_incidence <- function(cdm,
                                   cohort_ids_denominator_pops = NULL,
                                   cohort_ids_outcomes = NULL,
                                   time_interval = "Months",
+                                  full_periods_required = TRUE,
                                   outcome_washout_windows = 0,
                                   repetitive_events = FALSE,
                                   confidence_interval = "poisson",
@@ -111,6 +113,9 @@ collect_pop_incidence <- function(cdm,
   checkmate::assert_choice(time_interval,
     choices = c("days", "weeks", "months", "quarters", "years"),
     add = error_message
+  )
+  checkmate::assert_logical(full_periods_required,
+                            add = error_message
   )
   checkmate::assert_numeric(outcome_washout_windows,
     add = error_message,
@@ -243,6 +248,7 @@ if(is.null(cohort_ids_outcomes)){
     cohort_id_outcome = cohort_ids_outcomes,
     cohort_id_denominator_pop = cohort_ids_denominator_pops,
     time_interval = time_interval,
+    full_periods_required = full_periods_required,
     outcome_washout_window = outcome_washout_windows,
     repetitive_events = repetitive_events,
     confidence_interval = confidence_interval,
@@ -270,6 +276,7 @@ if(is.null(cohort_ids_outcomes)){
       table_name_outcome = table_name_outcomes,
       cohort_id_outcome = x$cohort_id_outcome,
       time_interval = x$time_interval,
+      full_periods_required = full_periods_required,
       outcome_washout_window = x$outcome_washout_window,
       repetitive_events = x$repetitive_events,
       verbose = x$verbose

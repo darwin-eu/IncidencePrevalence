@@ -25,7 +25,7 @@
 #' @param type type of prevalence, point or period
 #' @param points where to compute the point prevalence
 #' @param time_intervals Time intervals for prevalence estimates
-#' @param full_period_requireds If full period is required
+#' @param full_periods_required If full period is required
 #' @param minimum_representative_proportions Minimum proportions that
 #' individuals must have to contribute
 #' @param confidence_interval Method for confidence intervals
@@ -44,7 +44,7 @@ collect_pop_prevalence <- function(cdm,
                                   cohort_ids_outcomes,
                                   type = "point",
                                   time_intervals = "months",
-                                  full_period_requireds = TRUE,
+                                  full_periods_required = TRUE,
                                   points = "start",
                                   minimum_representative_proportions = 0.5,
                                   confidence_interval = "binomial",
@@ -130,7 +130,7 @@ collect_pop_prevalence <- function(cdm,
   checkmate::assert_logical(verbose,
     add = error_message
   )
-  checkmate::assert_logical(full_period_requireds,
+  checkmate::assert_logical(full_periods_required,
     add = error_message
   )
   checkmate::assert_choice(confidence_interval,
@@ -146,7 +146,6 @@ collect_pop_prevalence <- function(cdm,
     cohort_id_outcome = cohort_ids_outcomes,
     cohort_id_denominator_pop = cohort_ids_denominator_pops,
     time_interval = time_intervals,
-    full_period_required = full_period_requireds,
     point = points,
     minimum_representative_proportion = minimum_representative_proportions,
     verbose = verbose
@@ -171,7 +170,7 @@ collect_pop_prevalence <- function(cdm,
       cohort_id_outcome = x$cohort_id_outcome,
       type = type,
       time_interval = x$time_interval,
-      full_period_required = x$full_period_required,
+      full_periods_required = full_periods_required,
       point = x$point,
       minimum_representative_proportion = x$minimum_representative_proportion,
       verbose = x$verbose
@@ -187,7 +186,7 @@ collect_pop_prevalence <- function(cdm,
         cohort_id_denominator_pop = x$cohort_id_denominator_pop,
         type = type,
         time_interval = x$time_interval,
-        full_period_required = x$full_period_required,
+        full_periods_required = full_periods_required,
         point = x$point,
         minimum_representative_proportion = x$minimum_representative_proportion,
         confidence_interval = confidence_interval,
