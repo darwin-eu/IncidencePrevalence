@@ -45,9 +45,6 @@ lower than this will be obscured. If NULL all results will be reported.}
 
 \item{verbose}{Whether to report progress}
 }
-\value{
-
-}
 \description{
 Collect population incidence estimates
 }

@@ -14,91 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#' Compute study dates for incidence
-#' @param start_date start date of the study
-#' @param end_date end date of the study
-#' @param time_interval interval to compute incidence
-#' @param full_periods_required whether full periods are required
-#' @noRd
-compute_study_days_inc <- function(start_date,
-                                   end_date,
-                                   time_interval,
-                                   full_periods_required) {
-  if (time_interval == "weeks") {
-    week_correction <- lubridate::days(1)
-  } else {
-    week_correction <- lubridate::days(0)
-  }
-  if (time_interval == "days") {
-    study_days <- dplyr::tibble(start_time = seq.Date(
-      from = start_date,
-      to = end_date,
-      by = "days"
-    )) %>%
-      dplyr::mutate(day = lubridate::day(.data$start_time)) %>%
-      dplyr::mutate(month = lubridate::month(.data$start_time)) %>%
-      dplyr::mutate(year = lubridate::year(.data$start_time)) %>%
-      dplyr::mutate(time = dplyr::if_else(.data$month < 10,
-        paste0(.data$year, "_0", .data$month),
-        paste0(.data$year, "_", .data$month)
-      )) %>%
-      dplyr::mutate(time = dplyr::if_else(.data$day < 10,
-        paste0(.data$time, "_0", .data$day),
-        paste0(.data$time, "_", .data$day)
-      )) %>%
-      dplyr::mutate(end_time = .data$start_time) %>%
-      dplyr::select("time", "start_time", "end_time")
-  } else {
-    study_days <- dplyr::tibble(dates = seq.Date(
-      from = start_date,
-      to = end_date,
-      by = "days"
-    )) %>%
-      dplyr::mutate(isoweek = lubridate::isoweek(.data$dates)) %>%
-      dplyr::mutate(month = lubridate::month(.data$dates)) %>%
-      dplyr::mutate(quarter = quarters(.data$dates)) %>%
-      dplyr::mutate(year = lubridate::year(.data$dates)) %>%
-      dplyr::mutate(years = glue::glue("{year}")) %>%
-      dplyr::mutate(months = dplyr::if_else(.data$month < 10,
-        paste0(.data$year, "_0", .data$month),
-        paste0(.data$year, "_", .data$month)
-      )) %>%
-      dplyr::mutate(quarters = glue::glue("{year}_{quarter}")) %>%
-      dplyr::mutate(year = dplyr::if_else(.data$month == 1 & .data$isoweek > 50,
-        .data$year - 1,
-        .data$year
-      )) %>%
-      dplyr::mutate(weeks = dplyr::if_else(.data$isoweek < 10,
-        paste0(.data$year, "_0", .data$isoweek),
-        paste0(.data$year, "_", .data$isoweek)
-      )) %>%
-      dplyr::rename("time" = time_interval) %>%
-      dplyr::mutate(time = as.character(.data$time)) %>%
-      dplyr::group_by(.data$time) %>%
-      dplyr::summarise(
-        start_time = min(.data$dates, na.rm = TRUE),
-        end_time = max(.data$dates, na.rm = TRUE)
-      ) %>%
-      dplyr::ungroup()
-  }
-  if (full_periods_required){
-    study_days <- study_days %>%
-      dplyr::filter(.data$start_time == lubridate::floor_date(.data$start_time, unit = time_interval) + week_correction) %>%
-      dplyr::filter(.data$end_time == lubridate::floor_date(
-        .data$end_time,
-        unit = time_interval
-      ) + week_correction + switch(time_interval,
-                                   "weeks" = lubridate::days(6),
-                                   "months" = months(1) - lubridate::days(1),
-                                   "quarters" = months(3) - lubridate::days(1),
-                                   "years" = lubridate::years(1) - lubridate::days(1)
-      ))
-  }
-
-  return(study_days)
-}
-
-
 #' Get population incidence estimates
 #'
 #' @param cdm CDMConnector CDM reference object
@@ -164,7 +79,7 @@ get_pop_incidence <- function(cdm,
   end_date <- max(dplyr::pull(study_pop, "cohort_end_date"), na.rm = TRUE)
 
   # study dates
-  study_days <- compute_study_days_inc(
+  study_days <- compute_study_days(
     start_date = start_date,
     end_date = end_date,
     time_interval = time_interval,
