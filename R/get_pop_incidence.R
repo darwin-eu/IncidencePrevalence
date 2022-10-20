@@ -79,11 +79,11 @@ get_pop_incidence <- function(cdm,
   end_date <- max(dplyr::pull(study_pop, "cohort_end_date"), na.rm = TRUE)
 
   # study dates
-  study_days <- compute_study_days(
-    start_date = start_date,
-    end_date = end_date,
-    time_interval = time_interval,
-    full_periods_required = full_periods_required
+  study_days <- computeStudyDays(
+    startDate = start_date,
+    endDate = end_date,
+    timeInterval = time_interval,
+    fullPeriodsRequired = full_periods_required
   )
 
   if (nrow(study_days) == 0) {

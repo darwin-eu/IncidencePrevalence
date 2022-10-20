@@ -89,11 +89,11 @@ get_pop_prevalence <- function(cdm,
   # end date
   end_date <- max(study_pop$cohort_end_date)
   # compute study_days as a function of inputs
-  study_days <- compute_study_days(
-    start_date = start_date,
-    end_date = end_date,
-    time_interval = time_interval,
-    full_periods_required = full_periods_required,
+  study_days <- computeStudyDays(
+    startDate = start_date,
+    endDate = end_date,
+    timeInterval = time_interval,
+    fullPeriodsRequired = full_periods_required,
     type = type,
     point = point
   )
