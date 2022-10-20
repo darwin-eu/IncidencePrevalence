@@ -35,7 +35,7 @@ compute_study_days <- function(start_date,
   } else {
     week_correction <- lubridate::days(0)
   }
-  if (time_interval == "days"){
+  if (time_interval == "days") {
     study_days<-dplyr::tibble(start_time=seq.Date(from=start_date,
                                                   to=end_date,
                                                   by="days")) %>%
@@ -48,9 +48,10 @@ compute_study_days <- function(start_date,
       dplyr::mutate(time=dplyr::if_else(.data$day < 10,
                                         paste0(.data$time,"_0",.data$day),
                                         paste0(.data$time,"_",.data$day))) %>%
-      dplyr::mutate(end_time = as.Date(NA)) %>%
+      #dplyr::mutate(end_time = as.Date(NA)) %>%
+      dplyr::mutate(end_time = .data$start_time) %>%
       dplyr::select("time","start_time","end_time")
-  } else if (type == "point"){
+  } else if (type == "point") {
     unit <- substr(time_interval, 1, nchar(time_interval) - 1)
     start_day <- lubridate::floor_date(start_date, unit = unit) +
       week_correction +

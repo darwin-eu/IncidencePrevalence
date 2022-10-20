@@ -94,8 +94,8 @@ get_pop_prevalence <- function(cdm,
     end_date = end_date,
     time_interval = time_interval,
     full_periods_required = full_periods_required,
-    point = point,
-    type = type
+    type = type,
+    point = point
   )
 
   if (nrow(study_days) == 0){
