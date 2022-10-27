@@ -122,7 +122,7 @@ test_that("test methods against test server", {
     cohort_ids_denominator_pops = "1",
     table_name_outcomes = "cohort",
     cohort_ids_outcomes = "1",
-    confidence_interval = "poisson"
+    confidence_interval = "binomial"
   )
 
   expect_true(class(prev) == "list")
@@ -139,7 +139,7 @@ test_that("test methods against test server", {
     "point",
     "time_interval",
     "minimum_representative_proportion",
-    "full_period_required",
+    "full_periods_required",
     "cohort_id_outcome",
     "cohort_id_denominator_pop",
     "confidence_interval",
