@@ -226,9 +226,12 @@ if(is.null(cohort_ids_outcomes)){
         dplyr::filter(.data$outcome_start_date >= .data$cohort_start_date) %>%
         dplyr::filter(.data$outcome_start_date <= .data$cohort_end_date)
     ) %>%
+    dplyr::compute()
+
+  outcome <- outcome %>%
     dplyr::group_by(.data$subject_id, .data$cohort_start_date, .data$outcome_id) %>%
-    dplyr::arrange(.data$outcome_start_date) %>%
-    dplyr::mutate(index = dplyr::row_number()) %>%
+    dbplyr::window_order(.data$outcome_start_date) %>%
+    dplyr::mutate(index = rank()) %>%
     dplyr::ungroup() %>%
     dplyr::compute()
 

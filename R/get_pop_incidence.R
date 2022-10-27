@@ -109,12 +109,18 @@ get_pop_incidence <- function(cdm,
       dplyr::filter(is.na(.data$outcome_prev_end_date)) %>%
       dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
   } else {
+
+    sql_add_days_washout <- sql_add_days(
+      dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
+      days_to_add = 1+outcome_washout_window,
+      variable = "outcome_prev_end_date"
+    )
+
     outcome <- outcome %>%
       dplyr::mutate(outcome_prev_end_date = dplyr::if_else(
         is.na(.data$outcome_prev_end_date),
         .data$outcome_prev_end_date,
-        as.Date(.data$outcome_prev_end_date + lubridate::days(1) + lubridate::days(.env$outcome_washout_window))
-      )) %>%
+        as.Date(dbplyr::sql(sql_add_days_washout)))) %>%
       dplyr::mutate(cohort_start_date = dplyr::if_else(
         is.na(.data$outcome_prev_end_date) |
           (.data$cohort_start_date > .data$outcome_prev_end_date),
@@ -182,8 +188,15 @@ get_pop_incidence <- function(cdm,
     # compute working days and
     # erase outcome_start_date if not
     # inside interval
+    sql_add_day_to_t_end <- sql_add_days(
+      dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
+      days_to_add = 1,
+      variable = "t_end_date"
+    )
+
     working_pop <- working_pop %>%
-      dplyr::mutate(working_days = as.numeric(difftime(.data$t_end_date + lubridate::days(1),
+      dplyr::mutate(working_days = as.numeric(difftime(.data$t_end_date +
+                                                         lubridate::days(1),
         .data$t_start_date,
         units = "days"
       ))) %>%

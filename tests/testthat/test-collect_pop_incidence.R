@@ -838,6 +838,192 @@ test_that("mock db: cohort start overlaps with the outcome", {
   )
 
   expect_true(all(inc$incidence_estimates$n_persons == c(1,2)))
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
+test_that("mock db: check outcome before observation period start", {
+  # 1) with outcome starting and ending before observation period start
+  person <- tibble::tibble(
+    person_id = c("1","2"),
+    gender_concept_id = c("8507","8532"),
+    year_of_birth = c(1995,1995),
+    month_of_birth = c(07,07),
+    day_of_birth = c(01,01)
+  )
+  observation_period <- tibble::tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2000-01-01"),as.Date("2000-01-01")),
+    observation_period_end_date = c(as.Date("2020-12-31"),as.Date("2020-12-31"))
+  )
+  outcome <- tibble::tibble(
+    cohort_definition_id = c("1","1"),
+    subject_id = c("1","1"),
+    cohort_start_date = c(as.Date("1999-01-01")),
+    cohort_end_date = c(as.Date("1999-05-01"))
+  )
+
+  cdm <- generate_mock_incidence_prevalence_db(person = person,
+                                               observation_period = observation_period,
+                                               outcome = outcome)
+
+  dpop <- collect_denominator_pops(
+    cdm = cdm,
+    study_start_date = as.Date("2000-01-01"),
+    study_end_date = as.Date("2004-01-01")
+  )
+  cdm$denominator <- dpop$denominator_populations
+
+  # with rep events - should have both people
+  inc_rep <- collect_pop_incidence(
+    cdm = cdm,
+    table_name_denominator="denominator",
+    table_name_outcomes = "outcome",
+    cohort_ids_outcomes = "1",
+    cohort_ids_denominator_pops = "1",
+    outcome_washout_window = 0,
+    repetitive_events = TRUE,
+    time_interval = c("Years"),
+    minimum_cell_count = 0
+  )
+  inc_no_rep <- collect_pop_incidence(
+    cdm = cdm,
+    table_name_denominator="denominator",
+    table_name_outcomes = "outcome",
+    cohort_ids_outcomes = "1",
+    cohort_ids_denominator_pops = "1",
+    outcome_washout_window = NULL,
+    repetitive_events = TRUE,
+    time_interval = c("Years"),
+    minimum_cell_count = 0
+  )
+
+  expect_true(all(inc_rep$incidence_estimates$n_persons == 2))
+  expect_true(all(inc_no_rep$incidence_estimates$n_persons == 1))
+
+  # 2) with outcome starting before observation period start,
+  # ending during observation period
+  person <- tibble::tibble(
+    person_id = c("1","2"),
+    gender_concept_id = c("8507","8532"),
+    year_of_birth = c(1995,1995),
+    month_of_birth = c(07,07),
+    day_of_birth = c(01,01)
+  )
+  observation_period <- tibble::tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2000-01-01"),as.Date("2000-01-01")),
+    observation_period_end_date = c(as.Date("2020-12-31"),as.Date("2020-12-31"))
+  )
+  outcome <- tibble::tibble(
+    cohort_definition_id = c("1","1"),
+    subject_id = c("1","1"),
+    cohort_start_date = c(as.Date("1999-01-01")),
+    cohort_end_date = c(as.Date("2021-05-01"))
+  )
+
+  cdm <- generate_mock_incidence_prevalence_db(person = person,
+                                               observation_period = observation_period,
+                                               outcome = outcome[1,])
+
+  dpop <- collect_denominator_pops(
+    cdm = cdm,
+    study_start_date = as.Date("2000-01-01"),
+    study_end_date = as.Date("2004-01-01")
+  )
+  cdm$denominator <- dpop$denominator_populations
+
+  # with rep events - should have one person for rep, both people in second
+  inc_rep <- collect_pop_incidence(
+    cdm = cdm,
+    table_name_denominator="denominator",
+    table_name_outcomes = "outcome",
+    cohort_ids_outcomes = "1",
+    cohort_ids_denominator_pops = "1",
+    outcome_washout_window = 0,
+    repetitive_events = TRUE,
+    time_interval = c("Years"),
+    minimum_cell_count = 0
+  )
+  inc_no_rep <- collect_pop_incidence(
+    cdm = cdm,
+    table_name_denominator="denominator",
+    table_name_outcomes = "outcome",
+    cohort_ids_outcomes = "1",
+    cohort_ids_denominator_pops = "1",
+    outcome_washout_window = NULL,
+    repetitive_events = TRUE,
+    time_interval = c("Years"),
+    minimum_cell_count = 0
+  )
+
+  expect_true(all(inc_rep$incidence_estimates$n_persons == 1))
+  expect_true(all(inc_no_rep$incidence_estimates$n_persons == 1))
+
+  # 3) with outcome starting before observation period start,
+  # ending after observation period end
+  person <- tibble::tibble(
+    person_id = c("1","2"),
+    gender_concept_id = c("8507","8532"),
+    year_of_birth = c(1995,1995),
+    month_of_birth = c(07,07),
+    day_of_birth = c(01,01)
+  )
+  observation_period <- tibble::tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2000-01-01"),as.Date("2000-01-01")),
+    observation_period_end_date = c(as.Date("2020-12-31"),as.Date("2020-12-31"))
+  )
+  outcome <- tibble::tibble(
+    cohort_definition_id = c("1"),
+    subject_id = c("1"),
+    cohort_start_date = c(as.Date("1999-01-01")),
+    cohort_end_date = c(as.Date("2001-05-01"))
+  )
+
+  cdm <- generate_mock_incidence_prevalence_db(person = person,
+                                               observation_period = observation_period,
+                                               outcome = outcome)
+
+  dpop <- collect_denominator_pops(
+    cdm = cdm,
+    study_start_date = as.Date("2000-01-01"),
+    study_end_date = as.Date("2004-01-01")
+  )
+  cdm$denominator <- dpop$denominator_populations
+
+  # with rep events - should have both people
+  inc_rep <- collect_pop_incidence(
+    cdm = cdm,
+    table_name_denominator="denominator",
+    table_name_outcomes = "outcome",
+    cohort_ids_outcomes = "1",
+    cohort_ids_denominator_pops = "1",
+    outcome_washout_window = 0,
+    repetitive_events = TRUE,
+    time_interval = c("Years"),
+    minimum_cell_count = 0
+  )
+  inc_no_rep <- collect_pop_incidence(
+    cdm = cdm,
+    table_name_denominator="denominator",
+    table_name_outcomes = "outcome",
+    cohort_ids_outcomes = "1",
+    cohort_ids_denominator_pops = "1",
+    outcome_washout_window = NULL,
+    repetitive_events = TRUE,
+    time_interval = c("Years"),
+    minimum_cell_count = 0
+  )
+
+  expect_true(all(inc_rep$incidence_estimates$n_persons == c(1,2,2,2)))
+  expect_true(all(inc_no_rep$incidence_estimates$n_persons == 1))
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
 })
 
 test_that("mock db: check minimum counts", {
