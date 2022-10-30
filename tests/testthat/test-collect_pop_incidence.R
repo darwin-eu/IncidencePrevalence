@@ -1602,7 +1602,7 @@ test_that("mock db: check conversion of user inputs", {
 test_that("mock db: check with and without study start and end date", {
 
   person <- tibble::tibble(
-    person_id = c("1","2", "3", "4", "5"),
+    person_id = c("1","2", "3", "4", "5", "6"),
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 07,
