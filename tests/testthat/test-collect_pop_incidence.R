@@ -1599,6 +1599,408 @@ test_that("mock db: check conversion of user inputs", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
+test_that("mock db: check with and without study start and end date", {
+
+  person <- tibble::tibble(
+    person_id = c("1","2", "3", "4", "5", "6"),
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 07,
+    day_of_birth = 01
+  )
+  # one person leaving before 2010
+  observation_period <- tibble::tibble(
+    observation_period_id = c("1","2", "3", "4", "5", "6"),
+    person_id = c("1","2", "3", "4", "5", "6"),
+    observation_period_start_date = c(rep(as.Date("2007-01-01"),5),
+                                      as.Date("2010-06-01")),
+    observation_period_end_date = c(rep(as.Date("2022-12-31"), 4),
+                                    as.Date("2009-06-01"),
+                                    as.Date("2010-11-01")))
+  outcome <- dplyr::bind_rows(
+    # 1 event before obs start ending after obs end
+    tibble::tibble(
+      cohort_definition_id = "1",
+      subject_id = "1",
+      cohort_start_date = c(as.Date("2002-01-01")),
+      cohort_end_date = c(as.Date("2022-12-31"))
+    ),
+    # 2 multiple events
+    tibble::tibble(
+      cohort_definition_id = "1",
+      subject_id = "2",
+      cohort_start_date = c(as.Date("2008-06-01")),
+      cohort_end_date = c(as.Date("2008-10-01"))
+    ),
+    tibble::tibble(
+      cohort_definition_id = "1",
+      subject_id = "2",
+      cohort_start_date = c(as.Date("2008-11-01")),
+      cohort_end_date = c(as.Date("2010-10-14"))
+    ),
+    tibble::tibble(
+      cohort_definition_id = "1",
+      subject_id = "2",
+      cohort_start_date = c(as.Date("2010-12-01")),
+      cohort_end_date = c(as.Date("2011-06-18"))
+    ),
+    tibble::tibble(
+      cohort_definition_id = "1",
+      subject_id = "2",
+      cohort_start_date = c(as.Date("2011-06-01")),
+      cohort_end_date = c(as.Date("2012-12-31"))
+    ),
+    # 3 multiple events into the period
+    tibble::tibble(
+      cohort_definition_id = "1",
+      subject_id = "3",
+      cohort_start_date = c(as.Date("2009-06-01")),
+      cohort_end_date = c(as.Date("2010-02-01"))
+    ),
+    tibble::tibble(
+      cohort_definition_id = "1",
+      subject_id = "3",
+      cohort_start_date = c(as.Date("2010-06-01")),
+      cohort_end_date = c(as.Date("2022-12-31"))
+    ))
+
+
+  cdm <- generate_mock_incidence_prevalence_db(person = person,
+                                               observation_period=observation_period,
+                                               outcome =outcome)
+
+  # no study period required
+  dpop1 <- collect_denominator_pops(cdm = cdm)
+  cdm$denominator1 <- dpop1$denominator_populations
+  # study period
+  dpop2 <- collect_denominator_pops(cdm = cdm,
+                                    study_start_date = as.Date("2009-01-01"),
+                                    study_end_date = as.Date("2011-01-01"))
+  cdm$denominator2 <- dpop2$denominator_populations
+
+  # no washout, repetitive events
+  inc1_a <- collect_pop_incidence(cdm,
+                                  table_name_denominator = "denominator1",
+                                  table_name_outcomes = "outcome",
+                                  time_interval = "years",
+                                  repetitive_events = TRUE,
+                                  outcome_washout_windows = 0,
+                                  minimum_cell_count = 0,
+                                  full_periods_required = FALSE
+  )
+  inc2_a <- collect_pop_incidence(cdm,
+                                  table_name_denominator = "denominator2",
+                                  table_name_outcomes = "outcome",
+                                  time_interval = "years",
+                                  repetitive_events = TRUE,
+                                  outcome_washout_windows = 0,
+                                  minimum_cell_count = 0,
+                                  full_periods_required = FALSE
+  )
+
+  # given the settings above we would expect the same results for 2010
+  expect_true(inc1_a$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_persons") %>%
+                dplyr::pull() ==
+                inc2_a$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_persons") %>%
+                dplyr::pull())
+  expect_true(inc1_a$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("person_days") %>%
+                dplyr::pull() ==
+                inc2_a$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("person_days") %>%
+                dplyr::pull())
+  expect_true(inc1_a$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_events") %>%
+                dplyr::pull() ==
+                inc2_a$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_events") %>%
+                dplyr::pull())
+
+  # 365 washout, repetitive events
+  inc1_b <- collect_pop_incidence(cdm,
+                                  table_name_denominator = "denominator1",
+                                  table_name_outcomes = "outcome",
+                                  time_interval = "years",
+                                  repetitive_events = TRUE,
+                                  outcome_washout_windows = 365,
+                                  minimum_cell_count = 0,
+                                  full_periods_required = FALSE
+  )
+  inc2_b <- collect_pop_incidence(cdm,
+                                  table_name_denominator = "denominator2",
+                                  table_name_outcomes = "outcome",
+                                  time_interval = "years",
+                                  repetitive_events = TRUE,
+                                  outcome_washout_windows = 365,
+                                  minimum_cell_count = 0,
+                                  full_periods_required = FALSE
+  )
+  # given the settings above we would expect the same results for 2010
+  expect_true(inc1_b$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_persons") %>%
+                dplyr::pull() ==
+                inc2_b$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_persons") %>%
+                dplyr::pull())
+  expect_true(inc1_b$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("person_days") %>%
+                dplyr::pull() ==
+                inc2_b$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("person_days") %>%
+                dplyr::pull())
+
+  expect_true(inc1_b$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_events") %>%
+                dplyr::pull() ==
+                inc2_b$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_events") %>%
+                dplyr::pull())
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
+test_that("mock db: check study start and end date 10000", {
+
+  # with one outcome per person
+  cdm <- generate_mock_incidence_prevalence_db(
+    sample_size = 10000,
+    earliest_observation_start_date = as.Date("2000-01-01") ,
+    latest_date_of_birth = as.Date("2005-01-01"),
+    max_outcomes_per_person = 1,
+    min_outcome_days = 100,
+    max_outcome_days = 1000
+  )
+
+  # no study period required
+  dpop1 <- collect_denominator_pops(cdm = cdm)
+  cdm$denominator1 <- dpop1$denominator_populations
+  # study period
+  dpop2 <- collect_denominator_pops(cdm = cdm,
+                                    study_start_date = as.Date("2009-01-01"),
+                                    study_end_date = as.Date("2011-01-01"))
+  cdm$denominator2 <- dpop2$denominator_populations
+
+  # no washout, repetitive events
+  inc1_a <- collect_pop_incidence(cdm,
+                                  table_name_denominator = "denominator1",
+                                  table_name_outcomes = "outcome",
+                                  time_interval = "years",
+                                  repetitive_events = TRUE,
+                                  outcome_washout_windows = 0,
+                                  minimum_cell_count = 0,
+                                  full_periods_required = FALSE
+  )
+  inc2_a <- collect_pop_incidence(cdm,
+                                  table_name_denominator = "denominator2",
+                                  table_name_outcomes = "outcome",
+                                  time_interval = "years",
+                                  repetitive_events = TRUE,
+                                  outcome_washout_windows = 0,
+                                  minimum_cell_count = 0,
+                                  full_periods_required = FALSE
+  )
+
+  expect_true(inc1_a$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_persons") %>%
+                dplyr::pull() ==
+                inc2_a$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_persons") %>%
+                dplyr::pull())
+  expect_true(inc1_a$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("person_days") %>%
+                dplyr::pull() ==
+                inc2_a$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("person_days") %>%
+                dplyr::pull())
+  expect_true(inc1_a$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_events") %>%
+                dplyr::pull() ==
+                inc2_a$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_events") %>%
+                dplyr::pull())
+
+  # 365 washout, repetitive events
+  inc1_b <- collect_pop_incidence(cdm,
+                                  table_name_denominator = "denominator1",
+                                  table_name_outcomes = "outcome",
+                                  time_interval = "years",
+                                  repetitive_events = TRUE,
+                                  outcome_washout_windows = 365,
+                                  minimum_cell_count = 0,
+                                  full_periods_required = FALSE
+  )
+  inc2_b <- collect_pop_incidence(cdm,
+                                  table_name_denominator = "denominator2",
+                                  table_name_outcomes = "outcome",
+                                  time_interval = "years",
+                                  repetitive_events = TRUE,
+                                  outcome_washout_windows = 365,
+                                  minimum_cell_count = 0,
+                                  full_periods_required = FALSE
+  )
+
+  expect_true(inc1_b$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_persons") %>%
+                dplyr::pull() ==
+                inc2_b$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_persons") %>%
+                dplyr::pull())
+  expect_true(inc1_b$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("person_days") %>%
+                dplyr::pull() ==
+                inc2_b$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("person_days") %>%
+                dplyr::pull())
+
+  expect_true(inc1_b$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_events") %>%
+                dplyr::pull() ==
+                inc2_b$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_events") %>%
+                dplyr::pull())
+
+
+
+
+  # with multiple outcomes per person
+  cdm <- generate_mock_incidence_prevalence_db(
+    sample_size = 10000,
+    earliest_observation_start_date = as.Date("2000-01-01") ,
+    latest_date_of_birth = as.Date("2005-01-01"),
+    max_outcomes_per_person = 5,
+    min_outcome_days = 100,
+    max_outcome_days = 1000
+      )
+
+  # no study period required
+  dpop1 <- collect_denominator_pops(cdm = cdm)
+  cdm$denominator1 <- dpop1$denominator_populations
+  # study period
+  dpop2 <- collect_denominator_pops(cdm = cdm,
+                                    study_start_date = as.Date("2009-01-01"),
+                                    study_end_date = as.Date("2011-01-01"))
+  cdm$denominator2 <- dpop2$denominator_populations
+
+  # no washout, repetitive events
+  inc1_a <- collect_pop_incidence(cdm,
+                                  table_name_denominator = "denominator1",
+                                  table_name_outcomes = "outcome",
+                                  time_interval = "years",
+                                  repetitive_events = TRUE,
+                                  outcome_washout_windows = 0,
+                                  minimum_cell_count = 0,
+                                  full_periods_required = FALSE
+  )
+  inc2_a <- collect_pop_incidence(cdm,
+                                  table_name_denominator = "denominator2",
+                                  table_name_outcomes = "outcome",
+                                  time_interval = "years",
+                                  repetitive_events = TRUE,
+                                  outcome_washout_windows = 0,
+                                  minimum_cell_count = 0,
+                                  full_periods_required = FALSE
+  )
+
+  expect_true(inc1_a$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_persons") %>%
+                dplyr::pull() ==
+                inc2_a$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_persons") %>%
+                dplyr::pull())
+  expect_true(inc1_a$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("person_days") %>%
+                dplyr::pull() ==
+                inc2_a$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("person_days") %>%
+                dplyr::pull())
+  expect_true(inc1_a$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_events") %>%
+                dplyr::pull() ==
+                inc2_a$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_events") %>%
+                dplyr::pull())
+
+  # 365 washout, repetitive events
+  inc1_b <- collect_pop_incidence(cdm,
+                                  table_name_denominator = "denominator1",
+                                  table_name_outcomes = "outcome",
+                                  time_interval = "years",
+                                  repetitive_events = TRUE,
+                                  outcome_washout_windows = 365,
+                                  minimum_cell_count = 0,
+                                  full_periods_required = FALSE
+  )
+  inc2_b <- collect_pop_incidence(cdm,
+                                  table_name_denominator = "denominator2",
+                                  table_name_outcomes = "outcome",
+                                  time_interval = "years",
+                                  repetitive_events = TRUE,
+                                  outcome_washout_windows = 365,
+                                  minimum_cell_count = 0,
+                                  full_periods_required = FALSE
+  )
+
+  expect_true(inc1_b$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_persons") %>%
+                dplyr::pull() ==
+                inc2_b$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_persons") %>%
+                dplyr::pull())
+  expect_true(inc1_b$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("person_days") %>%
+                dplyr::pull() ==
+                inc2_b$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("person_days") %>%
+                dplyr::pull())
+
+  expect_true(inc1_b$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_events") %>%
+                dplyr::pull() ==
+                inc2_b$incidence_estimates %>%
+                dplyr::filter(time==2010) %>%
+                dplyr::select("n_events") %>%
+                dplyr::pull())
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
 test_that("mock db: check messages when vebose is true", {
   person <- tibble::tibble(
     person_id = "1",

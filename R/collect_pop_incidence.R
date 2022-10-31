@@ -219,9 +219,12 @@ if(is.null(cohort_ids_outcomes)){
 
   # get only the outcomes that will affect the incidence calculation
   outcome <- outcome %>%
+    # most recent outcome starting before cohort start per person
     dplyr::filter(.data$outcome_start_date < .data$cohort_start_date) %>%
+    dplyr::group_by(.data$subject_id, .data$cohort_start_date, .data$outcome_id) %>%
     dplyr::filter(.data$outcome_start_date == max(.data$outcome_start_date, na.rm = TRUE)) %>%
     dplyr::union_all(
+    # all starting during cohort period
       outcome %>%
         dplyr::filter(.data$outcome_start_date >= .data$cohort_start_date) %>%
         dplyr::filter(.data$outcome_start_date <= .data$cohort_end_date)
