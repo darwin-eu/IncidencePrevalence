@@ -222,9 +222,7 @@ if(is.null(cohort_ids_outcomes)){
     # most recent outcome starting before cohort start per person
     dplyr::filter(.data$outcome_start_date < .data$cohort_start_date) %>%
     dplyr::group_by(.data$subject_id, .data$cohort_start_date, .data$outcome_id) %>%
-    dbplyr::window_order(desc(.data$outcome_start_date)) %>%
-    dplyr::mutate(index = rank()) %>%
-    dplyr::filter(index=="1") %>%
+    dplyr::filter(.data$outcome_start_date == max(.data$outcome_start_date, na.rm = TRUE)) %>%
     dplyr::union_all(
     # all starting during cohort period
       outcome %>%
