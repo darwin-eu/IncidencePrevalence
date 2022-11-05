@@ -1,5 +1,5 @@
 
-sql_add_years<-function(dialect, years_to_add, variable){
+sqlAddYears<-function(dialect, years_to_add, variable){
 
   error_message <- checkmate::makeAssertCollection()
   year_check<-(years_to_add%%1==0)
@@ -16,7 +16,7 @@ sql_add_years<-function(dialect, years_to_add, variable){
   return(rendered_translated_sql)
 }
 
-sql_add_days<-function(dialect, days_to_add, variable){
+sqlAddDays<-function(dialect, days_to_add, variable){
 
   error_message <- checkmate::makeAssertCollection()
   days_check<-(days_to_add%%1==0)
@@ -33,7 +33,7 @@ sql_add_days<-function(dialect, days_to_add, variable){
   return(rendered_translated_sql)
 }
 
-extract_query<-function(query, description=""){
+extractQuery<-function(query, description=""){
  sql <- dbplyr::sql_render(query)
  sql <- gsub("\"", "", sql)
  sql<- rbind(paste0("< SQL ",description ,">"),

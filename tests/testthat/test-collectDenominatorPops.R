@@ -2,7 +2,7 @@
 test_that("mock db: check output format", {
   cdm <- generate_mock_incidence_prevalence_db()
 
-  dpop <- collect_denominator_pops(cdm = cdm)
+  dpop <- collectDenominatorPops(cdm = cdm)
 
   expect_true(all(c(
       "cohort_definition_id",
@@ -15,9 +15,9 @@ test_that("mock db: check output format", {
     expect_true(all(c(
       "age_strata","min_age","max_age",
       "sex_strata",
-      "study_start_date",
-      "study_end_date",
-      "study_days_prior_history",
+      "start_date",
+      "end_date",
+      "days_prior_history",
       "cohort_definition_id"
     ) %in%
       names(dpop$denominator_settings)))
@@ -44,7 +44,7 @@ test_that("mock db: check output format", {
                         dplyr::pull())== "Date")
 
     # check verbose
-    expect_message(collect_denominator_pops(
+    expect_message(collectDenominatorPops(
       cdm = cdm,
       verbose = TRUE
     ))
@@ -72,21 +72,21 @@ test_that("mock db: checks on working example", {
   cdm <- generate_mock_incidence_prevalence_db(person = person,
                                                observation_period = observation_period)
   # some pops with people, but some without
-  dpops <- collect_denominator_pops(cdm,
-                                    study_start_date = NULL,
-                                    study_end_date = NULL,
-                                    study_age_stratas = list(c(0, 59), c(60, 69)),
-                                    study_sex_stratas = c("Female", "Male", "Both"),
+  dpops <- collectDenominatorPops(cdm,
+                                    startDate = NULL,
+                                    endDate = NULL,
+                                    ageStrata = list(c(0, 59), c(60, 69)),
+                                    sexStrata = c("Female", "Male", "Both"),
                                     verbose = TRUE
   )
   expect_true(dpops$denominator_populations %>% dplyr::count() %>% dplyr::pull() >= 1)
 
   # all pops without anyone
-  expect_message(dpops <- collect_denominator_pops(cdm,
-                                                   study_start_date = NULL,
-                                                   study_end_date = NULL,
-                                                   study_age_stratas = list(c(50, 59), c(60, 69)),
-                                                   study_days_prior_history = c(0, 365)
+  expect_message(dpops <- collectDenominatorPops(cdm,
+                                                   startDate = NULL,
+                                                   endDate = NULL,
+                                                   ageStrata = list(c(50, 59), c(60, 69)),
+                                                   daysPriorHistory= c(0, 365)
   ))
   expect_true(dpops$denominator_populations %>% dplyr::count() %>% dplyr::pull() == 0)
 
@@ -104,10 +104,10 @@ test_that("mock db: checks on working example", {
                                                    strata = strata)
 
   # using strata cohort
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    table_name_strata = "strata",
-    strata_cohort_id = "1"
+    strataTable = "strata",
+    strataCohortId = "1"
   )
   expect_true(dpop$denominator_population %>%
                 dplyr::select(cohort_start_date) %>% dplyr::pull() ==
@@ -138,16 +138,16 @@ test_that("mock db: check example we expect to work", {
   cdm <- generate_mock_incidence_prevalence_db(person = person,
                                                    observation_period = observation_period)
 
-  dpop <- collect_denominator_pops(cdm = cdm)
+  dpop <- collectDenominatorPops(cdm = cdm)
   expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 1)
   expect_true(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) == as.Date("2010-01-01"))
   expect_true(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_end_date) == as.Date("2015-06-01"))
 
 
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    study_start_date = as.Date("2010-02-15"),
-    study_end_date = as.Date("2010-05-15")
+    startDate = as.Date("2010-02-15"),
+    endDate = as.Date("2010-05-15")
   )
   expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 1)
   expect_true(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) == as.Date("2010-02-15"))
@@ -175,16 +175,16 @@ test_that("mock db: check another example we expect to work", {
   cdm <- generate_mock_incidence_prevalence_db(person = person,
                                                    observation_period = observation_period)
 
-  dpop <- collect_denominator_pops(cdm = cdm)
+  dpop <- collectDenominatorPops(cdm = cdm)
 
   expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 4)
   expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) == as.Date("2000-01-01")))
   expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_end_date) == as.Date("2015-06-01")))
 
 
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    study_age_stratas = list(c(10,100))
+    ageStrata = list(c(10,100))
   )
   #check min age change cohort start date
   #check imputation
@@ -207,9 +207,9 @@ test_that("mock db: check another example we expect to work", {
 
   #check max age change cohort start date
   #check imputation
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    study_age_stratas = list(c(0,10))
+    ageStrata = list(c(0,10))
   )
   expect_true(dpop$denominator_populations %>% dplyr::collect() %>%
     dplyr::filter(subject_id == "1") %>%
@@ -228,10 +228,10 @@ test_that("mock db: check another example we expect to work", {
     dplyr::summarise(check = cohort_end_date == as.Date("2007-05-01")) %>%
       dplyr::pull())
 
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    study_start_date = as.Date("2010-02-15"),
-    study_end_date = as.Date("2010-05-15")
+    startDate = as.Date("2010-02-15"),
+    endDate = as.Date("2010-05-15")
   )
   expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 4)
   expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) == as.Date("2010-02-15")))
@@ -243,23 +243,23 @@ test_that("mock db: check another example we expect to work", {
 test_that("mock db: mock example 10000", {
   cdm <- generate_mock_incidence_prevalence_db(sample_size = 10000)
   # all options being used except study start and end
-  dpops <- collect_denominator_pops(cdm,
-                                    study_start_date = NULL,
-                                    study_end_date = NULL,
-                                    study_age_stratas = list(c(0, 59), c(60, 69)),
-                                    study_sex_stratas = c("Female", "Male", "Both"),
-                                    study_days_prior_history = c(0,180),
+  dpops <- collectDenominatorPops(cdm,
+                                    startDate = NULL,
+                                    endDate = NULL,
+                                    ageStrata = list(c(0, 59), c(60, 69)),
+                                    sexStrata = c("Female", "Male", "Both"),
+                                    daysPriorHistory= c(0,180),
                                     verbose = TRUE
   )
   expect_true(nrow(dpops$denominator_population %>% dplyr::collect())>0)
 
   # all options being used
-  dpops <- collect_denominator_pops(cdm,
-                                    study_start_date = as.Date("2011-01-01"),
-                                    study_end_date = as.Date("2013-06-15"),
-                                    study_age_stratas = list(c(0, 59), c(60, 69)),
-                                    study_sex_stratas = c("Female", "Male", "Both"),
-                                    study_days_prior_history = c(0,180),
+  dpops <- collectDenominatorPops(cdm,
+                                    startDate = as.Date("2011-01-01"),
+                                    endDate = as.Date("2013-06-15"),
+                                    ageStrata = list(c(0, 59), c(60, 69)),
+                                    sexStrata = c("Female", "Male", "Both"),
+                                    daysPriorHistory= c(0,180),
                                     verbose = TRUE
   )
   expect_true(nrow(dpops$denominator_population %>% dplyr::collect())>0)
@@ -269,114 +269,9 @@ test_that("mock db: mock example 10000", {
                 as.Date("2013-06-15"))
 
   # with sampling
-  dpops <- collect_denominator_pops(cdm,
+  dpops <- collectDenominatorPops(cdm,
                                     sample = 55)
   expect_true(nrow(dpops$denominator_populations %>% dplyr::collect())==55)
-
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-})
-
-test_that("mock db: check subgroups", {
-  cdm <- generate_mock_incidence_prevalence_db(sample_size = 100)
-
-  # all being used
-  dpops_combine_subgroups <- collect_denominator_pops(cdm,
-                                    study_start_date = NULL,
-                                    study_end_date = NULL,
-                                    study_age_stratas = list(c(0, 59), c(60, 69)),
-                                    study_sex_stratas = c("Female", "Male", "Both"),
-                                    study_days_prior_history = c(0,180),
-                                    combine_subgroups = TRUE
-  )
-  dpops_independent_subgroups <- collect_denominator_pops(cdm,
-                                                      study_start_date = NULL,
-                                                      study_end_date = NULL,
-                                                      study_age_stratas = list(c(0, 59), c(60, 69)),
-                                                      study_sex_stratas = c("Female", "Male", "Both"),
-                                                      study_days_prior_history = c(0,180),
-                                                      combine_subgroups = FALSE
-  )
-
-  expect_true(length(dpops_combine_subgroups$denominator_populations %>%
-    dplyr::select("cohort_definition_id") %>%
-    dplyr::distinct() %>%
-    dplyr::collect()%>%
-    dplyr::pull()) == 12)
-  expect_true(nrow(dpops_combine_subgroups$denominator_settings) == 12)
-
-  expect_true(length(dpops_independent_subgroups$denominator_populations %>%
-                       dplyr::select("cohort_definition_id") %>%
-                       dplyr::distinct() %>%
-                       dplyr::collect()%>%
-                       dplyr::pull()) == 6)
-  expect_true(nrow(dpops_independent_subgroups$denominator_settings) == 6)
-
-
-
-  # age and sex
-  dpops_combine_subgroups <- collect_denominator_pops(cdm,
-                                                      study_start_date = NULL,
-                                                      study_end_date = NULL,
-                                                      study_age_stratas = list(c(0, 59), c(60, 69)),
-                                                      study_sex_stratas = c("Female", "Male", "Both"),
-                                                      combine_subgroups = TRUE
-  )
-  dpops_independent_subgroups <- collect_denominator_pops(cdm,
-                                                          study_start_date = NULL,
-                                                          study_end_date = NULL,
-                                                          study_age_stratas = list(c(0, 59), c(60, 69)),
-                                                          study_sex_stratas = c("Female", "Male", "Both"),
-                                                          combine_subgroups = FALSE
-  )
-
-  expect_true(length(dpops_combine_subgroups$denominator_populations %>%
-                       dplyr::select("cohort_definition_id") %>%
-                       dplyr::distinct() %>%
-                       dplyr::collect()%>%
-                       dplyr::pull()) == 6)
-  expect_true(nrow(dpops_combine_subgroups$denominator_settings) == 6)
-
-  expect_true(length(dpops_independent_subgroups$denominator_populations %>%
-                       dplyr::select("cohort_definition_id") %>%
-                       dplyr::distinct() %>%
-                       dplyr::collect()%>%
-                       dplyr::pull()) == 5)
-  expect_true(nrow(dpops_independent_subgroups$denominator_settings) == 5)
-
-
-
-  # sex and prior history
-  dpops_combine_subgroups <- collect_denominator_pops(cdm,
-                                                      study_start_date = NULL,
-                                                      study_end_date = NULL,
-                                                      study_sex_stratas = c("Female", "Male", "Both"),
-                                                      study_days_prior_history = c(10,180),
-                                                      combine_subgroups = TRUE
-  )
-  dpops_independent_subgroups <- collect_denominator_pops(cdm,
-                                                          study_start_date = NULL,
-                                                          study_end_date = NULL,
-                                                          study_sex_stratas = c("Female", "Male", "Both"),
-                                                          study_days_prior_history = c(10,180),
-                                                          combine_subgroups = FALSE
-  )
-
-  expect_true(length(dpops_combine_subgroups$denominator_populations %>%
-                       dplyr::select("cohort_definition_id") %>%
-                       dplyr::distinct() %>%
-                       dplyr::collect()%>%
-                       dplyr::pull()) == 6)
-  expect_true(nrow(dpops_combine_subgroups$denominator_settings) == 6)
-
-  # note there will be 5,
-  # because we still have one with styudy day prior = 0 (the default value)
-  expect_true(length(dpops_independent_subgroups$denominator_populations %>%
-                       dplyr::select("cohort_definition_id") %>%
-                       dplyr::distinct() %>%
-                       dplyr::collect()%>%
-                       dplyr::pull()) == 5)
-  expect_true(nrow(dpops_independent_subgroups$denominator_settings) == 5)
-
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -409,7 +304,7 @@ test_that("mock db: subset denominator by cohort", {
                                                    strata=strata)
 
   # without using strata cohort
-  dpop <- collect_denominator_pops(cdm = cdm)
+  dpop <- collectDenominatorPops(cdm = cdm)
   expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(subject_id) %in%
                     c("1", "2", "3")))
   expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) ==
@@ -418,10 +313,10 @@ test_that("mock db: subset denominator by cohort", {
                     "2015-06-01"))
 
   # using strata cohort
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    table_name_strata = "strata",
-    strata_cohort_id = "1",
+    strataTable = "strata",
+    strataCohortId = "1",
   )
   expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(subject_id) %in%
                     c("1", "2")))
@@ -450,10 +345,10 @@ test_that("mock db: subset denominator by cohort", {
                                                    observation_period = observation_period,
                                                    strata=strata)
 
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    table_name_strata = "strata",
-    strata_cohort_id = "1",
+    strataTable = "strata",
+    strataCohortId = "1",
   )
   expect_true(all(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(subject_id) %in%
                     c("1", "2")))
@@ -503,10 +398,10 @@ test_that("mock db: subset denominator by cohort", {
                                                    observation_period = observation_period,
                                                    strata=strata)
 
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    table_name_strata = "strata",
-    strata_cohort_id = "1",
+    strataTable = "strata",
+    strataCohortId = "1",
   )
   expect_true(sum(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(subject_id) == "1") == 3)
 
@@ -520,10 +415,10 @@ test_that("mock db: subset denominator by cohort", {
   # should allow strata cohort to have any name
   cdm$condition_cohort<-cdm$strata
   cdm$strata<-NULL
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    table_name_strata = "condition_cohort",
-    strata_cohort_id = "1",
+    strataTable = "condition_cohort",
+    strataCohortId = "1",
   )
   expect_true(sum(dpop$denominator_populations %>% dplyr::collect() %>%
                     dplyr::pull(subject_id) == "1") == 3)
@@ -550,20 +445,20 @@ test_that("mock db: one male, one female", {
   cdm <- generate_mock_incidence_prevalence_db(person = person,
                                                    observation_period = observation_period)
   # male only
-  dpops <- collect_denominator_pops(cdm,
-                                    study_sex_stratas = c("Male")
+  dpops <- collectDenominatorPops(cdm,
+                                    sexStrata = c("Male")
   )
   expect_true(dpops$denominator_populations %>% dplyr::collect() %>% dplyr::pull(subject_id) == "1")
 
   # female only
-  dpops <- collect_denominator_pops(cdm,
-                                    study_sex_stratas = c("Female")
+  dpops <- collectDenominatorPops(cdm,
+                                    sexStrata = c("Female")
   )
   expect_true(dpops$denominator_populations %>% dplyr::collect() %>% dplyr::pull(subject_id) == "2")
 
   # both
-  dpops <- collect_denominator_pops(cdm,
-                                    study_sex_stratas = c("Both")
+  dpops <- collectDenominatorPops(cdm,
+                                    sexStrata = c("Both")
   )
   expect_true(all(dpops$denominator_populations %>% dplyr::collect() %>%
                     dplyr::pull(subject_id) %in% c("1","2")))
@@ -590,17 +485,17 @@ test_that("mock db: check example with restriction on sex", {
   cdm <- generate_mock_incidence_prevalence_db(person = person,
                                                    observation_period = observation_period)
 
-  dpop1 <- collect_denominator_pops(
+  dpop1 <- collectDenominatorPops(
     cdm = cdm,
-    study_sex_stratas = "Male"
+    sexStrata = "Male"
   )
-  dpop2 <- collect_denominator_pops(
+  dpop2 <- collectDenominatorPops(
     cdm = cdm,
-    study_sex_stratas = "Both"
+    sexStrata = "Both"
   )
-  dpop3 <- collect_denominator_pops(
+  dpop3 <- collectDenominatorPops(
     cdm = cdm,
-    study_sex_stratas = "Female"
+    sexStrata = "Female"
   )
   expect_true(nrow(dpop1$denominator_population %>% dplyr::collect()) == 2)
   expect_true(nrow(dpop2$denominator_population %>% dplyr::collect()) == 3)
@@ -624,17 +519,17 @@ test_that("mock db: check example with restriction on sex", {
   cdm <- generate_mock_incidence_prevalence_db(person = person,
                                                    observation_period = observation_period)
 
-  dpop1 <- collect_denominator_pops(
+  dpop1 <- collectDenominatorPops(
     cdm = cdm,
-    study_sex_stratas = "Male"
+    sexStrata = "Male"
   )
-  dpop2 <- collect_denominator_pops(
+  dpop2 <- collectDenominatorPops(
     cdm = cdm,
-    study_sex_stratas = "Both"
+    sexStrata = "Both"
   )
-  dpop3 <- collect_denominator_pops(
+  dpop3 <- collectDenominatorPops(
     cdm = cdm,
-    study_sex_stratas = "Female"
+    sexStrata = "Female"
   )
   expect_true(nrow(dpop1$denominator_population %>% dplyr::collect()) == 1)
   expect_true(nrow(dpop2$denominator_population %>% dplyr::collect()) == 1)
@@ -664,21 +559,21 @@ test_that("mock db: check example with restriction on age", {
                                                    observation_period = observation_period)
 
   # check min_age
-  dpop1 <- collect_denominator_pops(
+  dpop1 <- collectDenominatorPops(
     cdm = cdm,
-    study_age_stratas = list(c(0,150))
+    ageStrata = list(c(0,150))
   )
-  dpop2 <- collect_denominator_pops(
+  dpop2 <- collectDenominatorPops(
     cdm = cdm,
-    study_age_stratas = list(c(8,150))
+    ageStrata = list(c(8,150))
   )
-  dpop3 <- collect_denominator_pops(
+  dpop3 <- collectDenominatorPops(
     cdm = cdm,
-    study_age_stratas = list(c(12,150))
+    ageStrata = list(c(12,150))
   )
-  dpop4 <- collect_denominator_pops(
+  dpop4 <- collectDenominatorPops(
     cdm = cdm,
-    study_age_stratas = list(c(40,150))
+    ageStrata = list(c(40,150))
   )
 
   expect_true(nrow(dpop1$denominator_population %>% dplyr::collect()) == 3)
@@ -703,18 +598,18 @@ test_that("mock db: check example with restriction on age", {
   cdm <- generate_mock_incidence_prevalence_db(person, observation_period)
 
   # entry once they reach the min age criteria
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    study_age_stratas = list(c(10,150))
+    ageStrata = list(c(10,150))
   )
   # start date is now date of 10th birthday
   expect_true(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) == as.Date("2010-06-01"))
 
 
   # exit once they reach the max age criteria
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    study_age_stratas = list(c(0,10))
+    ageStrata = list(c(0,10))
   )
   # end date is the day before their 11th birthday
   expect_true(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_end_date) == as.Date("2011-05-31"))
@@ -745,8 +640,8 @@ test_that("mock db check age strata entry and exit", {
   # to the day before their 13th birthday
   # and in the second from their 13th birthday
   # up to the day before their 15th birthday
-dpops <- collect_denominator_pops(cdm = cdm,
-study_age_stratas = list(c(11, 12),
+dpops <- collectDenominatorPops(cdm = cdm,
+ageStrata = list(c(11, 12),
                          c(13,14))
 )
 expect_true(dpops$denominator_populations %>%
@@ -791,22 +686,22 @@ test_that("mock db: check example with multiple observation periods", {
 
   # expect two rows
   # one per observation period
-  dpop <- collect_denominator_pops(cdm = cdm)
+  dpop <- collectDenominatorPops(cdm = cdm)
   expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 2)
 
   # expect one rows- if start date is 1st Jan 2011
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    study_start_date = as.Date("2011-01-01")
+    startDate = as.Date("2011-01-01")
   )
   expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 1)
   expect_true(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) == as.Date("2011-01-01"))
   expect_true(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_end_date) == as.Date("2011-06-01"))
 
   # expect one rows- if start date is end of 2020
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    study_end_date = as.Date("2010-12-31")
+    endDate = as.Date("2010-12-31")
   )
   expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 1)
   expect_true(dpop$denominator_populations %>% dplyr::collect() %>% dplyr::pull(cohort_start_date) == as.Date("2010-01-01"))
@@ -834,9 +729,9 @@ test_that("mock db: check imputation of date of birth", {
   cdm <- generate_mock_incidence_prevalence_db(person = person,
                                                    observation_period = observation_period)
 
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    study_age_stratas = list(c(10,100))
+    ageStrata = list(c(10,100))
   )
   expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 4)
 
@@ -880,36 +775,36 @@ test_that("mock db: check edge cases (zero results expected)", {
   cdm <- generate_mock_incidence_prevalence_db(person = person,
                                                    observation_period = observation_period)
 
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    study_start_date = as.Date("2100-01-01")
+    startDate = as.Date("2100-01-01")
   )
   expect_true(nrow(dpop$denominator_populations %>% dplyr::collect())==0)
 
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    study_end_date = as.Date("1800-01-01")
+    endDate = as.Date("1800-01-01")
   )
   expect_true(nrow(dpop$denominator_populations %>% dplyr::collect())==0)
 
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    study_age_stratas = list(c(155,200))
+    ageStrata = list(c(155,200))
   )
   expect_true(nrow(dpop$denominator_populations %>% dplyr::collect())==0)
 
   # note could include people as it would go up to day before first birthday
   # but given observation period, here we would expect a null
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    study_age_stratas = list(c(0,1))
+    ageStrata = list(c(0,1))
   )
   expect_true(nrow(dpop$denominator_populations %>% dplyr::collect())==0)
 
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    study_age_stratas = list(c(0,15)),
-    study_days_prior_history = 365000,
+    ageStrata = list(c(0,15)),
+    daysPriorHistory= 365000,
     verbose = FALSE
   )
   expect_true(nrow(dpop$denominator_populations %>% dplyr::collect())==0)
@@ -923,52 +818,52 @@ test_that("mock db: check expected errors", {
   cdm <- generate_mock_incidence_prevalence_db()
 
   # not a cdm reference
-  testthat::expect_error(collect_denominator_pops(
+  testthat::expect_error(collectDenominatorPops(
     cdm = "a"))
 
-  testthat::expect_error(collect_denominator_pops(
+  testthat::expect_error(collectDenominatorPops(
     cdm = cdm,
-    study_age_stratas = list(c(10,10))))
-  testthat::expect_error(collect_denominator_pops(
+    ageStrata = list(c(10,10))))
+  testthat::expect_error(collectDenominatorPops(
     cdm = cdm,
-    study_age_stratas = list(c(-2,1))))
-  testthat::expect_error(collect_denominator_pops(
+    ageStrata = list(c(-2,1))))
+  testthat::expect_error(collectDenominatorPops(
     cdm = cdm,
-    study_age_stratas = list(c(0,-1))))
+    ageStrata = list(c(0,-1))))
 
-  testthat::expect_error(collect_denominator_pops(
+  testthat::expect_error(collectDenominatorPops(
     cdm = cdm,
     max_age = c(100,110),
     verbose = FALSE))
 
-  testthat::expect_error(collect_denominator_pops(
+  testthat::expect_error(collectDenominatorPops(
     cdm = cdm,
-    study_sex_stratas = "Men",
+    sexStrata = "Men",
     verbose = FALSE))
 
-  testthat::expect_error(collect_denominator_pops(
+  testthat::expect_error(collectDenominatorPops(
     cdm = cdm,
-    study_days_prior_history = -30,
+    daysPriorHistory= -30,
     verbose = FALSE))
 
   # no person table
   cdm1<-cdm
   cdm1$person<-NULL
-  testthat::expect_error(collect_denominator_pops(
+  testthat::expect_error(collectDenominatorPops(
     cdm = cdm1))
 
   # no observation_period table
   cdm1<-cdm
   cdm1$observation_period<-NULL
-  testthat::expect_error(collect_denominator_pops(
+  testthat::expect_error(collectDenominatorPops(
     cdm = cdm1))
 
   # no strata table
   cdm1<-cdm
   cdm1$strata<-NULL
-  testthat::expect_error(collect_denominator_pops(
+  testthat::expect_error(collectDenominatorPops(
     cdm = cdm1,
-    table_name_strata="strata"
+    strataTable="strata"
   ))
 
   # strata table doesn´t conform
@@ -979,9 +874,9 @@ test_that("mock db: check expected errors", {
     end_date = as.Date("2013-06-06")
   )
   cdm <- generate_mock_incidence_prevalence_db(strata=strata)
-  testthat::expect_error(collect_denominator_pops(
+  testthat::expect_error(collectDenominatorPops(
     cdm = cdm,
-    table_name_strata="strata"
+    strataTable="strata"
   ))
 
 DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
@@ -1007,47 +902,47 @@ test_that("mock db: check attrition table", {
   # mock database
   cdm <- generate_mock_incidence_prevalence_db(person = person,
                                                    observation_period = observation_period)
-  dpop <- collect_denominator_pops(cdm = cdm)
+  dpop <- collectDenominatorPops(cdm = cdm)
 
   # check last n_current equals the number of rows of the denominator pop
   expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) ==
                 dpop$attrition$current_n[7])
 
   # check missings
-  dpop <- collect_denominator_pops(cdm = cdm)
+  dpop <- collectDenominatorPops(cdm = cdm)
   expect_true(dpop$attrition$excluded[2] == 1)
   expect_true(dpop$attrition$excluded[3] == 1)
 
   # check sex criteria
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    study_sex_stratas = "Female"
+    sexStrata = "Female"
   )
   expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) ==
                 dpop$attrition$current_n[8])
   expect_true(dpop$attrition$excluded[8] == 2)
 
   # check age criteria
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    study_age_stratas = list(c(24,25))
+    ageStrata = list(c(24,25))
   )
   expect_true(dpop$attrition$excluded[3] == 1)
 
   # check observation criteria
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    study_start_date = as.Date("2010-01-01"),
-    study_end_date = as.Date("2012-01-01")
+    startDate = as.Date("2010-01-01"),
+    endDate = as.Date("2012-01-01")
   )
   expect_true(dpop$attrition$excluded[5] == 2)
 
   # check prior observation criteria
-  dpop <- collect_denominator_pops(
+  dpop <- collectDenominatorPops(
     cdm = cdm,
-    study_start_date = as.Date("2015-01-01"),
-    study_end_date = as.Date("2016-06-30"),
-    study_days_prior_history = 365
+    startDate = as.Date("2015-01-01"),
+    endDate = as.Date("2016-06-30"),
+    daysPriorHistory= 365
   )
   expect_true(dpop$attrition$excluded[7] == 1)
 
@@ -1072,7 +967,7 @@ test_that("mock db: check attrition table", {
   # mock database
   cdm <- generate_mock_incidence_prevalence_db(person = person,
                                                    observation_period = observation_period)
-  dpop <- collect_denominator_pops(cdm = cdm)
+  dpop <- collectDenominatorPops(cdm = cdm)
   expect_true(all(dpop$attrition$current_n == 1))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)

@@ -18,18 +18,18 @@
 #' Collect population prevalence estimates
 #'
 #' @param cdm CDMConnector CDM reference object
-#' @param table_name_denominator table_name_denominator
-#' @param table_name_outcomes Name of the table with the outcome cohorts
-#' @param cohort_ids_denominator_pops Cohort ids of denominator populations
-#' @param cohort_ids_outcomes Outcome cohort ids
+#' @param denominatorTable denominatorTable
+#' @param outcomesTable Name of the table with the outcome cohorts
+#' @param denominatorCohortIds Cohort ids of denominator populations
+#' @param outcomeCohortIds Outcome cohort ids
 #' @param type type of prevalence, point or period
 #' @param points where to compute the point prevalence
-#' @param time_intervals Time intervals for prevalence estimates
-#' @param full_periods_required If full period is required
-#' @param minimum_representative_proportions Minimum proportions that
+#' @param interval Time intervals for prevalence estimates
+#' @param fullPeriodsRequired If full period is required
+#' @param minContribution Minimum proportions that
 #' individuals must have to contribute
-#' @param confidence_interval Method for confidence intervals
-#' @param minimum_cell_count Minimum number of events to report- results
+#' @param confidenceInterval Method for confidence intervals
+#' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
 #' @param verbose Whether to report progress
 #'
@@ -37,38 +37,38 @@
 #' @export
 #'
 #' @examples
-collect_pop_prevalence <- function(cdm,
-                                  table_name_denominator,
-                                  table_name_outcomes,
-                                  cohort_ids_denominator_pops = NULL,
-                                  cohort_ids_outcomes = NULL,
+collectPopPrevalence <- function(cdm,
+                                  denominatorTable,
+                                  outcomesTable,
+                                  denominatorCohortIds = NULL,
+                                  outcomeCohortIds = NULL,
                                   type = "point",
-                                  time_intervals = "months",
-                                  full_periods_required = TRUE,
+                                  interval = "months",
+                                  fullPeriodsRequired = TRUE,
                                   points = "start",
-                                  minimum_representative_proportions = 0.5,
-                                  confidence_interval = "binomial",
-                                  minimum_cell_count = 5,
+                                  minContribution = 0.5,
+                                  confidenceInterval = "binomial",
+                                  minCellCount = 5,
                                   verbose = FALSE) {
 
 
   # help to avoid formatting errors
-  if (!is.null(cohort_ids_denominator_pops) &
-      is.numeric(cohort_ids_denominator_pops)) {
-    cohort_ids_denominator_pops <- as.character(cohort_ids_denominator_pops)
+  if (!is.null(denominatorCohortIds) &
+      is.numeric(denominatorCohortIds)) {
+    denominatorCohortIds <- as.character(denominatorCohortIds)
   }
-  if (!is.null(cohort_ids_outcomes) &
-      is.numeric(cohort_ids_outcomes)) {
-    cohort_ids_outcomes <- as.character(cohort_ids_outcomes)
+  if (!is.null(outcomeCohortIds) &
+      is.numeric(outcomeCohortIds)) {
+    outcomeCohortIds <- as.character(outcomeCohortIds)
   }
   if (is.character(type)) {
     type <- tolower(type)
   }
-  if (is.character(time_intervals)) {
-    time_intervals <- tolower(time_intervals)
+  if (is.character(interval)) {
+    interval <- tolower(interval)
   }
-  if (is.character(confidence_interval)) {
-    confidence_interval <- tolower(confidence_interval)
+  if (is.character(confidenceInterval)) {
+    confidenceInterval <- tolower(confidenceInterval)
   }
   if (is.character(points)) {
     points <- tolower(points)
@@ -85,31 +85,31 @@ collect_pop_prevalence <- function(cdm,
       "- cdm must be a CDMConnector CDM reference object"
     )
   }
-  checkmate::assert_character(cohort_ids_outcomes,
+  checkmate::assert_character(outcomeCohortIds,
     add = error_message,
     null.ok = TRUE
   )
-  denominator_check<-table_name_denominator %in% names(cdm)
+  denominator_check<-denominatorTable %in% names(cdm)
   checkmate::assertTRUE(denominator_check,
                         add = error_message)
   if (!isTRUE(denominator_check)) {
     error_message$push(
-      "- `table_name_denominator` is not found in cdm"
+      "- `denominatorTable` is not found in cdm"
     )
   }
-  checkmate::assert_character(cohort_ids_denominator_pops,
+  checkmate::assert_character(denominatorCohortIds,
                               add = error_message,
                               null.ok = TRUE
   )
-  outcome_check<-table_name_outcomes %in% names(cdm)
+  outcome_check<-outcomesTable %in% names(cdm)
   checkmate::assertTRUE(outcome_check,
                         add = error_message)
   if (!isTRUE(outcome_check)) {
     error_message$push(
-      "- `table_name_outcomes` is not found in cdm"
+      "- `outcomesTable` is not found in cdm"
     )
   }
-  checkmate::assert_character(cohort_ids_outcomes,
+  checkmate::assert_character(outcomeCohortIds,
                               add = error_message,
                               null.ok = TRUE
   )
@@ -117,14 +117,14 @@ collect_pop_prevalence <- function(cdm,
                            choices = c("point","period"),
                            add = error_message
   )
-  checkmate::assertTRUE(all(time_intervals %in% c("days","weeks","months","quarters","years")),
+  checkmate::assertTRUE(all(interval %in% c("days","weeks","months","quarters","years")),
                         add = error_message
   )
   checkmate::assertTRUE(all(points %in% c("start","middle","end")),
                         add = error_message
   )
-  checkmate::assert_number(minimum_cell_count)
-  checkmate::assert_numeric(minimum_representative_proportions,
+  checkmate::assert_number(minCellCount)
+  checkmate::assert_numeric(minContribution,
     add = error_message,
     lower = 0,
     upper = 1
@@ -132,10 +132,10 @@ collect_pop_prevalence <- function(cdm,
   checkmate::assert_logical(verbose,
     add = error_message
   )
-  checkmate::assert_logical(full_periods_required,
+  checkmate::assert_logical(fullPeriodsRequired,
     add = error_message
   )
-  checkmate::assert_choice(confidence_interval,
+  checkmate::assert_choice(confidenceInterval,
     choices = c("none", "binomial"),
     add = error_message,
     null.ok = TRUE
@@ -145,15 +145,15 @@ collect_pop_prevalence <- function(cdm,
 
 
   # if not given, use all denominator and outcome cohorts
-  if(is.null(cohort_ids_denominator_pops)){
-    cohort_ids_denominator_pops <-   cdm[[table_name_denominator]] %>%
+  if(is.null(denominatorCohortIds)){
+    denominatorCohortIds <-   cdm[[denominatorTable]] %>%
       dplyr::select("cohort_definition_id") %>%
       dplyr::distinct() %>%
       dplyr::collect() %>%
       dplyr::pull()
   }
-  if(is.null(cohort_ids_outcomes)){
-    cohort_ids_outcomes <- cdm[[table_name_outcomes]] %>%
+  if(is.null(outcomeCohortIds)){
+    outcomeCohortIds <- cdm[[outcomesTable]] %>%
       dplyr::select("cohort_definition_id") %>%
       dplyr::distinct() %>%
       dplyr::collect() %>%
@@ -162,11 +162,11 @@ collect_pop_prevalence <- function(cdm,
 
 
   study_specs <- tidyr::expand_grid(
-    cohort_id_outcome = cohort_ids_outcomes,
-    cohort_id_denominator_pop = cohort_ids_denominator_pops,
-    time_interval = time_intervals,
+    outcomeCohortIds = outcomeCohortIds,
+    denominatorCohortIds = denominatorCohortIds,
+    interval = interval,
     point = points,
-    minimum_representative_proportion = minimum_representative_proportions,
+    minContribution = minContribution,
     verbose = verbose
   )
 
@@ -181,17 +181,17 @@ collect_pop_prevalence <- function(cdm,
   # get prs
   prs_list <- lapply(study_specs, function(x) {
 
-    working_prev <- get_pop_prevalence(
+    working_prev <- getPopPrevalence(
       cdm = cdm,
-      table_name_denominator=table_name_denominator,
-      cohort_id_denominator_pop = x$cohort_id_denominator_pop,
-      table_name_outcome = table_name_outcomes,
-      cohort_id_outcome = x$cohort_id_outcome,
+      denominatorTable=denominatorTable,
+      denominatorCohortIds = x$denominatorCohortIds,
+      outcomesTable = outcomesTable,
+      outcomeCohortIds = x$outcomeCohortIds,
       type = type,
-      time_interval = x$time_interval,
-      full_periods_required = full_periods_required,
+      interval = x$interval,
+      fullPeriodsRequired = fullPeriodsRequired,
       point = x$point,
-      minimum_representative_proportion = x$minimum_representative_proportion,
+      minContribution = x$minContribution,
       verbose = x$verbose
     )
 
@@ -201,15 +201,15 @@ collect_pop_prevalence <- function(cdm,
 
     working_prev_analysis_settings <- working_prev[["analysis_settings"]]  %>%
       dplyr::mutate(
-        cohort_id_outcome = x$cohort_id_outcome,
-        cohort_id_denominator_pop = x$cohort_id_denominator_pop,
+        outcome_cohort_ids = x$outcomeCohortIds,
+        denominator_cohort_id = x$denominatorCohortIds,
         type = type,
-        time_interval = x$time_interval,
-        full_periods_required = full_periods_required,
+        interval = x$interval,
+        full_periods_required = fullPeriodsRequired,
         point = x$point,
-        minimum_representative_proportion = x$minimum_representative_proportion,
-        confidence_interval = confidence_interval,
-        minimum_cell_count = minimum_cell_count,
+        min_contribution = x$minContribution,
+        confidence_interval = confidenceInterval,
+        min_cell_count = minCellCount,
         prevalence_analysis_id = x$prevalence_analysis_id) %>%
       dplyr::relocate(.data$prevalence_analysis_id)
 
@@ -255,14 +255,14 @@ collect_pop_prevalence <- function(cdm,
   )
 
   # get confidence intervals
-  prs <- get_ci_prevalence(prs, confidence_interval) %>%
+  prs <- get_ci_prevalence(prs, confidenceInterval) %>%
     dplyr::relocate(.data$prev_low, .after = .data$prev) %>%
     dplyr::relocate(.data$prev_high, .after = .data$prev_low)
 
   # obscure counts
-  if (!is.null(minimum_cell_count)) {
+  if (!is.null(minCellCount)) {
   prs <- obscure_counts(prs,
-                        minimum_cell_count = minimum_cell_count,
+                        minCellCount = minCellCount,
                         substitute = NA)
   } else {
     # no results obscured due to a low count

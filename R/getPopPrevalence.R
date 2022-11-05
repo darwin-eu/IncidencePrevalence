@@ -17,46 +17,46 @@
 #' Get population prevalence estimates
 #'
 #' @param cdm CDMConnector CDM reference object
-#' @param table_name_denominator table_name_denominator
-#' @param cohort_id_denominator_pop cohort_id_denominator_pop
-#' @param table_name_outcome table_name_outcome
-#' @param cohort_id_outcome cohort_id_outcome
+#' @param denominatorTable denominatorTable
+#' @param denominatorCohortIds denominatorCohortIds
+#' @param outcomesTable outcomesTable
+#' @param outcomeCohortIds outcomeCohortIds
 #' @param type type
-#' @param time_interval time_interval
-#' @param full_periods_required full period requirement
+#' @param interval interval
+#' @param fullPeriodsRequired full period requirement
 #' @param point point where to compute prevalence inside interval
-#' @param minimum_representative_proportion minimum_representative_proportion
+#' @param minContribution minContribution
 #' @param verbose verbose
 #'
 #' @return
 #' @export
 #'
 #' @examples
-get_pop_prevalence <- function(cdm,
-                               table_name_denominator,
-                               cohort_id_denominator_pop = NULL,
-                               table_name_outcome,
-                               cohort_id_outcome = NULL,
+getPopPrevalence <- function(cdm,
+                               denominatorTable,
+                               denominatorCohortIds = NULL,
+                               outcomesTable,
+                               outcomeCohortIds = NULL,
                                type = "point",
-                               time_interval = "months",
-                               full_periods_required = TRUE,
+                               interval = "months",
+                               fullPeriodsRequired = TRUE,
                                point = "start",
-                               minimum_representative_proportion = 0.5,
+                               minContribution = 0.5,
                                verbose = FALSE) {
 
   ## Analysis code
   # bring in study population
-  study_pop_db <- cdm[[table_name_denominator]]
-  if (!is.null(cohort_id_denominator_pop)) {
+  study_pop_db <- cdm[[denominatorTable]]
+  if (!is.null(denominatorCohortIds)) {
     study_pop_db <- study_pop_db %>%
       dplyr::filter(.data$cohort_definition_id ==
-                      .env$cohort_id_denominator_pop)
+                      .env$denominatorCohortIds)
   }
 
-  outcome_db <- cdm[[table_name_outcome]]
-  if (!is.null(cohort_id_outcome)) {
+  outcome_db <- cdm[[outcomesTable]]
+  if (!is.null(outcomeCohortIds)) {
     outcome_db <- outcome_db %>%
-      dplyr::filter(.data$cohort_definition_id == .env$cohort_id_outcome) %>%
+      dplyr::filter(.data$cohort_definition_id == .env$outcomeCohortIds) %>%
       dplyr::compute()
   }
 
@@ -80,7 +80,7 @@ get_pop_prevalence <- function(cdm,
     dplyr::select("subject_id", "outcome_start_date", "outcome_end_date") %>%
     dplyr::collect()
 
-  if (time_interval == "days"){
+  if (interval == "days"){
     type <- "point"
   }
 
@@ -92,8 +92,8 @@ get_pop_prevalence <- function(cdm,
   study_days <- computeStudyDays(
     startDate = start_date,
     endDate = end_date,
-    timeInterval = time_interval,
-    fullPeriodsRequired = full_periods_required,
+    timeInterval = interval,
+    fullPeriodsRequired = fullPeriodsRequired,
     type = type,
     point = point
   )
@@ -160,7 +160,7 @@ get_pop_prevalence <- function(cdm,
       dplyr::group_by(.data$subject_id) %>%
       dplyr::mutate(contribution = sum(.data$contribution)) %>%
       dplyr::ungroup() %>%
-      dplyr::filter(.data$contribution >= .env$minimum_representative_proportion)
+      dplyr::filter(.data$contribution >= .env$minContribution)
 
     denominator <- working_pop %>%
       dplyr::select("subject_id") %>%
@@ -188,9 +188,9 @@ get_pop_prevalence <- function(cdm,
   analysis_settings <- tibble::tibble(
     type = .env$type,
     point = .env$point,
-    time_interval = .env$time_interval,
-    minimum_representative_proportion = .env$minimum_representative_proportion,
-    full_periods_required = .env$full_periods_required
+    interval = .env$interval,
+    min_contribution = .env$minContribution,
+    full_periods_required = .env$fullPeriodsRequired
   )
 
   study_pop <- study_pop %>%

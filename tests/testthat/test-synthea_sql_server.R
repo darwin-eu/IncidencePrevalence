@@ -23,7 +23,7 @@ test_that("test methods against test server", {
                                     write_schema = Sys.getenv("TESTDB_WRITE_SCHEMA"),
                                     cohort_tables = c("cohort"))
 
-  dpop <- collect_denominator_pops(cdm = cdm,
+  dpop <- collectDenominatorPops(cdm = cdm,
                                    sample = 100)
   cdm$denominator <- dpop$denominator_populations
 
@@ -66,7 +66,7 @@ test_that("test methods against test server", {
                       dplyr::pull())== "Date")
 
   ## Pop incidence
-  inc <- collect_pop_incidence(
+  inc <- collectPopIncidence(
     cdm = cdm,
     table_name_denominator = "denominator",
     cohort_ids_denominator_pops = "1",
@@ -116,7 +116,7 @@ test_that("test methods against test server", {
     names(inc[["incidence_estimates"]])))
 
   ## Pop prevalence
-  prev <- collect_pop_prevalence(
+  prev <- collectPopPrevalence(
     cdm = cdm,
     table_name_denominator = "denominator",
     cohort_ids_denominator_pops = "1",

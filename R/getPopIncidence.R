@@ -17,14 +17,14 @@
 #' Get population incidence estimates
 #'
 #' @param cdm CDMConnector CDM reference object
-#' @param table_name_denominator table_name_denominator
-#' @param table_name_outcome table_name_outcome
-#' @param cohort_id_outcome cohort_id_outcome
-#' @param cohort_id_denominator_pop cohort_id_denominator_pop
-#' @param time_interval time_interval
-#' @param full_periods_required full_periods_required
-#' @param outcome_washout_window outcome_washout_window
-#' @param repetitive_events repetitive_events
+#' @param denominatorTable denominatorTable
+#' @param outcomesTable outcomesTable
+#' @param denominatorCohortIds denominatorCohortIds
+#' @param outcomeCohortIds outcomeCohortIds
+#' @param interval interval
+#' @param fullPeriodsRequired fullPeriodsRequired
+#' @param outcomeWashout outcomeWashout
+#' @param repeatedEvents repeatedEvents
 #' @param verbose verbose
 #'
 #' @importFrom lubridate `%within%`
@@ -33,35 +33,33 @@
 #'
 #' @examples
 get_pop_incidence <- function(cdm,
-                              table_name_denominator,
-                              cohort_id_denominator_pop,
-                              table_name_outcome,
-                              cohort_id_outcome,
-                              time_interval,
-                              full_periods_required,
-                              outcome_washout_window,
-                              repetitive_events,
+                              denominatorTable,
+                              outcomesTable,
+                              denominatorCohortIds,
+                              outcomeCohortIds,
+                              interval,
+                              fullPeriodsRequired,
+                              outcomeWashout,
+                              repeatedEvents,
                               verbose) {
 
-  if (!is.null(outcome_washout_window)) {
-    if (is.na(outcome_washout_window)) {
-      outcome_washout_window <- NULL
+  if (!is.null(outcomeWashout)) {
+    if (is.na(outcomeWashout)) {
+      outcomeWashout <- NULL
     }
   }
 
   ## Analysis code
   # bring in study population
-  study_pop <- cdm[[table_name_denominator]]
-  # if (!is.null(cohort_id_denominator_pop)) {
-  study_pop <- study_pop %>%
+  study_pop <- cdm[[denominatorTable]] %>%
     dplyr::filter(.data$cohort_definition_id ==
-      .env$cohort_id_denominator_pop) %>%
+      .env$denominatorCohortIds) %>%
     dplyr::select(-"cohort_definition_id") %>%
     dplyr::compute()
 
   # keep outcomes of people in the denominator
-  outcome <- cdm[[table_name_outcome]] %>%
-    dplyr::filter(.data$outcome_id == .env$cohort_id_outcome) %>%
+  outcome <- cdm[[outcomesTable]] %>%
+    dplyr::filter(.data$outcome_id == .env$outcomeCohortIds) %>%
     dplyr::select(-"outcome_id") %>%
     dplyr::inner_join(study_pop,
       by = c("subject_id", "cohort_start_date", "cohort_end_date")
@@ -82,8 +80,8 @@ get_pop_incidence <- function(cdm,
   study_days <- computeStudyDays(
     startDate = start_date,
     endDate = end_date,
-    timeInterval = time_interval,
-    fullPeriodsRequired = full_periods_required
+    timeInterval = interval,
+    fullPeriodsRequired = fullPeriodsRequired
   )
 
   if (nrow(study_days) == 0) {
@@ -104,15 +102,15 @@ get_pop_incidence <- function(cdm,
       .data$cohort_end_date
     ))
 
-  if (is.null(outcome_washout_window)) {
+  if (is.null(outcomeWashout)) {
     outcome <- outcome %>%
       dplyr::filter(is.na(.data$outcome_prev_end_date)) %>%
       dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
   } else {
 
-    sql_add_days_washout <- sql_add_days(
+    sqlAddDays_washout <- sqlAddDays(
       dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
-      days_to_add = 1+outcome_washout_window,
+      days_to_add = 1+outcomeWashout,
       variable = "outcome_prev_end_date"
     )
 
@@ -120,7 +118,7 @@ get_pop_incidence <- function(cdm,
       dplyr::mutate(outcome_prev_end_date = dplyr::if_else(
         is.na(.data$outcome_prev_end_date),
         .data$outcome_prev_end_date,
-        as.Date(dbplyr::sql(sql_add_days_washout)))) %>%
+        as.Date(dbplyr::sql(sqlAddDays_washout)))) %>%
       dplyr::mutate(cohort_start_date = dplyr::if_else(
         is.na(.data$outcome_prev_end_date) |
           (.data$cohort_start_date > .data$outcome_prev_end_date),
@@ -128,7 +126,7 @@ get_pop_incidence <- function(cdm,
         .data$outcome_prev_end_date
       )) %>%
       dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
-    if (repetitive_events == FALSE) {
+    if (repeatedEvents == FALSE) {
       outcome <- outcome %>%
         dplyr::group_by(.data$subject_id) %>%
         dplyr::filter(is.na(.data$outcome_prev_end_date) |
@@ -188,7 +186,7 @@ get_pop_incidence <- function(cdm,
     # compute working days and
     # erase outcome_start_date if not
     # inside interval
-    sql_add_day_to_t_end <- sql_add_days(
+    sql_add_day_to_t_end <- sqlAddDays(
       dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
       days_to_add = 1,
       variable = "t_end_date"
@@ -229,10 +227,10 @@ get_pop_incidence <- function(cdm,
 
   # study design related variables
   analysis_settings <- tibble::tibble(
-    outcome_washout_window = .env$outcome_washout_window,
-    repetitive_events = .env$repetitive_events,
-    time_interval = .env$time_interval,
-    full_periods_required = .env$full_periods_required
+    outcome_washout = .env$outcomeWashout,
+    repeated_events = .env$repeatedEvents,
+    interval = .env$interval,
+    full_periods_required = .env$fullPeriodsRequired
   )
 
   study_pop <- study_pop %>%

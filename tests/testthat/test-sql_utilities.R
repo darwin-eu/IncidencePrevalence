@@ -1,10 +1,10 @@
-test_that("sql_add_years", {
+test_that("sqlAddYears", {
 
 cdm <- generate_mock_incidence_prevalence_db()
 dialect<-"postgresql"
 
 # add 10
-sql_duckdb<-sql_add_years(dialect=dialect,
+sql_duckdb<-sqlAddYears(dialect=dialect,
              years_to_add=10,
              variable="observation_period_start_date")
 obs<-cdm$observation_period %>%
@@ -25,7 +25,7 @@ expect_true(obs %>%
     dplyr::pull())
 
 # add 0
-sql_duckdb<-sql_add_years(dialect=dialect,
+sql_duckdb<-sqlAddYears(dialect=dialect,
                          years_to_add=0,
                          variable="observation_period_start_date")
 obs<-cdm$observation_period %>%
@@ -45,7 +45,7 @@ expect_true(obs %>%
 # expect error if dialect is not supported
 
 # expect error with decimal
-expect_error(sql_add_years(dialect=dialect,
+expect_error(sqlAddYears(dialect=dialect,
                          years_to_add=10.5,
                          variable="observation_period_start_date"))
 

@@ -18,14 +18,14 @@
 #' Identify the denominator populations
 #'
 #' @param cdm CDMConnector CDM reference object
-#' @param start_date Date indicating the start of the study period.
-#' @param end_date Date indicating the end of the study period.
-#' @param min_age Minimum ages for the cohort
-#' @param max_age Maximum ages for the cohort
-#' @param days_prior_history Days of prior history required to enter
+#' @param startDate Date indicating the start of the study period.
+#' @param endDate Date indicating the end of the study period.
+#' @param minAge Minimum ages for the cohort
+#' @param maxAge Maximum ages for the cohort
+#' @param daysPriorHistory Days of prior history required to enter
 #' the study cohort.
-#' @param table_name_strata table_name_strata
-#' @param strata_cohort_id strata_cohort_id
+#' @param strataTable strataTable
+#' @param strataCohortId strataCohortId
 #' @param sample sample n
 #'
 #' @return
@@ -34,14 +34,14 @@
 #' @export
 #'
 #' @examples
-get_denominator_pop <- function(cdm,
-                                start_date,
-                                end_date,
-                                min_age,
-                                max_age,
-                                days_prior_history,
-                                table_name_strata,
-                                strata_cohort_id,
+getDenominatorPop <- function(cdm,
+                                startDate,
+                                endDate,
+                                minAge,
+                                maxAge,
+                                daysPriorHistory,
+                                strataTable,
+                                strataCohortId,
                                 sample) {
   sql_queries <- list()
 
@@ -65,15 +65,15 @@ get_denominator_pop <- function(cdm,
     person_db <- person_db %>%
       dplyr::slice_sample(n = sample)
     sql_queries[["getting_cohort_end"]] <- person_db %>%
-      extract_query(description = "sample")
+      extractQuery(description = "sample")
     person_db <- person_db %>%
       dplyr::compute()
   }
 
   # stratify population on cohort
-  if (!is.null(table_name_strata)) {
-    strata_db <- cdm[[table_name_strata]] %>%
-      dplyr::filter(.data$cohort_definition_id == .env$strata_cohort_id)
+  if (!is.null(strataTable)) {
+    strata_db <- cdm[[strataTable]] %>%
+      dplyr::filter(.data$cohort_definition_id == .env$strataCohortId)
 
     # drop anyone not in the strata cohort
     person_db <- person_db %>%
@@ -84,7 +84,7 @@ get_denominator_pop <- function(cdm,
       by = "person_id"
       )
     sql_queries[["person_strata"]] <- person_db %>%
-      extract_query(description = "person_strata")
+      extractQuery(description = "person_strata")
     person_db <- person_db %>%
       dplyr::compute()
 
@@ -139,7 +139,7 @@ get_denominator_pop <- function(cdm,
       dplyr::select(!c("cohort_start_date", "cohort_end_date"))
 
     sql_queries[["obs_strata_start_end"]] <- observation_period_db %>%
-      extract_query(description = "obs_strata_start_end")
+      extractQuery(description = "obs_strata_start_end")
     observation_period_db <- observation_period_db %>%
       dplyr::compute()
   }
@@ -172,7 +172,7 @@ get_denominator_pop <- function(cdm,
     )) %>%
     dplyr::filter(!is.na(.data$sex))
   sql_queries[["sex_added"]] <- study_pop_db %>%
-    extract_query(description = "sex_added")
+    extractQuery(description = "sex_added")
   study_pop_db <- study_pop_db %>%
     dplyr::compute()
 
@@ -208,15 +208,15 @@ get_denominator_pop <- function(cdm,
 
   # filter for those within the age limits (of all the age strata)
   # during the study
-  lower_age_limit <- min(min_age)
-  upper_age_limit <- max(max_age)
+  lower_age_limit <- min(minAge)
+  upper_age_limit <- max(maxAge)
 
-  sql_year_lower <- sql_add_years(
+  sql_year_lower <- sqlAddYears(
     dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
     years_to_add = lower_age_limit,
     variable = "dob"
   )
-  sql_year_upper <- sql_add_years(
+  sql_year_upper <- sqlAddYears(
     dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
     years_to_add = upper_age_limit,
     variable = "dob"
@@ -226,9 +226,9 @@ get_denominator_pop <- function(cdm,
     dplyr::mutate(lower_age_check = dplyr::sql(sql_year_lower)) %>%
     dplyr::mutate(upper_age_check = dplyr::sql(sql_year_upper)) %>%
     # drop people too old even at study start
-    dplyr::filter(.data$upper_age_check >= .env$start_date) %>%
+    dplyr::filter(.data$upper_age_check >= .env$startDate) %>%
     # drop people too young even at study end
-    dplyr::filter(.data$lower_age_check <= .env$end_date) %>%
+    dplyr::filter(.data$lower_age_check <= .env$endDate) %>%
     dplyr::select(!c("lower_age_check", "upper_age_check"))
 
   attrition <- record_attrition(
@@ -240,12 +240,12 @@ get_denominator_pop <- function(cdm,
 
   study_pop_db <- study_pop_db %>%
     # drop people with observation_period_start_date after study end
-    dplyr::filter(.data$observation_period_start_date <= .env$end_date) %>%
+    dplyr::filter(.data$observation_period_start_date <= .env$endDate) %>%
     # drop people with observation_period_end_date before study start
-    dplyr::filter(.data$observation_period_end_date >= .env$start_date)
+    dplyr::filter(.data$observation_period_end_date >= .env$startDate)
 
   sql_queries[["drop_on_age_and_obs_date"]] <- study_pop_db %>%
-    extract_query(description = "drop_on_age_and_obs_date")
+    extractQuery(description = "drop_on_age_and_obs_date")
   study_pop_db <- study_pop_db %>%
     dplyr::compute()
 
@@ -261,10 +261,10 @@ get_denominator_pop <- function(cdm,
     # only if we have found people
 
     # for each min age, add the date at which they reach it
-    for (i in seq_along(min_age)) {
-      working_min <- min_age[[i]]
+    for (i in seq_along(minAge)) {
+      working_min <- minAge[[i]]
       variable_name <- glue::glue("date_min_age_{working_min}")
-      sql_year_add <- sql_add_years(
+      sql_year_add <- sqlAddYears(
         dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
         years_to_add = working_min,
         variable = "dob"
@@ -278,26 +278,26 @@ get_denominator_pop <- function(cdm,
         # we'll use a temp table to keep the
         # sql queries manageable
         sql_queries[[paste0("getting_min_age_", i)]] <- study_pop_db %>%
-          extract_query(description = paste0("getting_min_age_", i))
+          extractQuery(description = paste0("getting_min_age_", i))
         study_pop_db <- dplyr::compute(study_pop_db)
       }
     }
     sql_queries[["getting_min_age"]] <- study_pop_db %>%
-      extract_query(description = "getting_min_age")
+      extractQuery(description = "getting_min_age")
     study_pop_db <- study_pop_db %>% dplyr::compute()
 
     # for each max age, add the date at which they reach it
     # the day before their next birthday
-    for (i in seq_along(max_age)) {
-      working_max <- max_age[[i]]
-      working_max_plus_one <- max_age[[i]] + 1
+    for (i in seq_along(maxAge)) {
+      working_max <- maxAge[[i]]
+      working_max_plus_one <- maxAge[[i]] + 1
       variable_name <- glue::glue("date_max_age_{working_max}")
-      sql_year_add <- sql_add_years(
+      sql_year_add <- sqlAddYears(
         dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
         years_to_add = working_max_plus_one,
         variable = "dob"
       )
-      sql_minus_day <- sql_add_days(
+      sql_minus_day <- sqlAddDays(
         dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
         days_to_add = -1,
         variable = variable_name
@@ -311,21 +311,21 @@ get_denominator_pop <- function(cdm,
 
       if (i %% 10 == 0) {
         sql_queries[[paste0("getting_max_age_", i)]] <- study_pop_db %>%
-          extract_query(description = paste0("getting_max_age_", i))
+          extractQuery(description = paste0("getting_max_age_", i))
         study_pop_db <- dplyr::compute(study_pop_db)
       }
     }
     sql_queries[["getting_max_age"]] <- study_pop_db %>%
-      extract_query(description = "getting_max_age")
+      extractQuery(description = "getting_max_age")
     study_pop_db <- study_pop_db %>% dplyr::compute()
 
     # for each prior_history requirement,
     # add the date at which they reach
     # observation start date + prior_history requirement
-    for (i in seq_along(days_prior_history)) {
-      working_days_prior_history <- days_prior_history[[i]]
+    for (i in seq_along(daysPriorHistory)) {
+      working_days_prior_history <- daysPriorHistory[[i]]
       variable_name <- glue::glue("date_with_prior_history_{working_days_prior_history}")
-      sql_add_day <- sql_add_days(
+      sql_add_day <- sqlAddDays(
         dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
         days_to_add = working_days_prior_history,
         variable = "observation_period_start_date"
@@ -342,12 +342,12 @@ get_denominator_pop <- function(cdm,
         # we'll use a temp table to keep the
         # sql queries manageable
         sql_queries[[paste0("getting_prior_history_", i)]] <- study_pop_db %>%
-          extract_query(description = paste0("getting_prior_history_", i))
+          extractQuery(description = paste0("getting_prior_history_", i))
         study_pop_db <- dplyr::compute(study_pop_db)
       }
     }
     sql_queries[["getting_prior_history"]] <- study_pop_db %>%
-      extract_query(description = "getting_prior_history")
+      extractQuery(description = "getting_prior_history")
     study_pop_db <- study_pop_db %>% dplyr::compute()
 
     # keep people only if they satisfy
@@ -356,9 +356,9 @@ get_denominator_pop <- function(cdm,
     var_upper_age_limit <- glue::glue("date_max_age_{upper_age_limit}")
     study_pop_db <- study_pop_db %>%
       dplyr::filter(.data[[!!rlang::sym(var_lower_age_limit)]] <=
-                      .env$end_date) %>%
+                      .env$endDate) %>%
       dplyr::filter(.data[[!!rlang::sym(var_upper_age_limit)]] >=
-                      .env$start_date)
+                      .env$startDate)
 
     attrition <- record_attrition(
       table = study_pop_db,
@@ -368,10 +368,10 @@ get_denominator_pop <- function(cdm,
     )
 
     # priory history criteria at some point in the study
-    var_lower_prior_history <- glue::glue("date_with_prior_history_{min(days_prior_history)}")
+    var_lower_prior_history <- glue::glue("date_with_prior_history_{min(daysPriorHistory)}")
     study_pop_db <- study_pop_db %>%
       dplyr::filter(.data[[!!rlang::sym(var_lower_prior_history)]] <=
-                      .env$end_date) %>%
+                      .env$endDate) %>%
       dplyr::filter(.data[[!!rlang::sym(var_lower_prior_history)]] <=
                       .data$observation_period_end_date)
 
@@ -391,10 +391,10 @@ get_denominator_pop <- function(cdm,
 
     # cohort start dates
     # for every combination of min age and prior history required
-    for (i in seq_along(min_age)) {
-      for (j in seq_along(days_prior_history)) {
-        working_min <- min_age[[i]]
-        working_history <- days_prior_history[[j]]
+    for (i in seq_along(minAge)) {
+      for (j in seq_along(daysPriorHistory)) {
+        working_min <- minAge[[i]]
+        working_history <- daysPriorHistory[[j]]
         study_pop_db <- study_pop_db %>%
           dplyr::mutate("last_of_min_age_{working_min}_prior_history_{working_history}" :=
             dplyr::if_else(!!rlang::sym(glue::glue("date_min_age_{working_min}")) <
@@ -403,24 +403,24 @@ get_denominator_pop <- function(cdm,
             !!rlang::sym(glue::glue("date_min_age_{working_min}"))
             )) %>%
           dplyr::mutate("cohort_start_date_min_age_{working_min}_prior_history_{working_history}" :=
-            dplyr::if_else(!!rlang::sym(glue::glue("last_of_min_age_{working_min}_prior_history_{working_history}")) < .env$start_date,
-              .env$start_date,
+            dplyr::if_else(!!rlang::sym(glue::glue("last_of_min_age_{working_min}_prior_history_{working_history}")) < .env$startDate,
+              .env$startDate,
               !!rlang::sym(glue::glue("last_of_min_age_{working_min}_prior_history_{working_history}"))
             ))
         if (j %% 5 == 0) {
           sql_queries[[paste0("getting_cohort_start_ph_", j)]] <- study_pop_db %>%
-            extract_query(description = paste0("getting_cohort_start_ph_", j))
+            extractQuery(description = paste0("getting_cohort_start_ph_", j))
           study_pop_db <- study_pop_db %>% dplyr::compute()
         }
       }
       if (i %% 5 == 0) {
         sql_queries[[paste0("getting_cohort_start_age_", i)]] <- study_pop_db %>%
-          extract_query(description = paste0("getting_cohort_start_age_", i))
+          extractQuery(description = paste0("getting_cohort_start_age_", i))
         study_pop_db <- study_pop_db %>% dplyr::compute()
       }
     }
     sql_queries[["getting_cohort_start"]] <- study_pop_db %>%
-      extract_query(description = "getting_cohort_start")
+      extractQuery(description = "getting_cohort_start")
     study_pop_db <- study_pop_db %>% dplyr::compute()
 
 
@@ -429,8 +429,8 @@ get_denominator_pop <- function(cdm,
     # end of observation,
     # max.age
     # (whichever comes first)
-    for (i in seq_along(max_age)) {
-      working_max <- max_age[[i]]
+    for (i in seq_along(maxAge)) {
+      working_max <- maxAge[[i]]
 
       study_pop_db <- study_pop_db %>%
         dplyr::mutate("first_of_max_age_{working_max}_obs_period" :=
@@ -440,18 +440,18 @@ get_denominator_pop <- function(cdm,
           .data$observation_period_end_date
           )) %>%
         dplyr::mutate("cohort_end_date_max_age_{working_max}" :=
-          dplyr::if_else(!!rlang::sym(glue::glue("first_of_max_age_{working_max}_obs_period")) < .env$end_date,
+          dplyr::if_else(!!rlang::sym(glue::glue("first_of_max_age_{working_max}_obs_period")) < .env$endDate,
             !!rlang::sym(glue::glue("first_of_max_age_{working_max}_obs_period")),
-            .env$end_date
+            .env$endDate
           ))
       if (i %% 5 == 0) {
         sql_queries[[paste0("getting_cohort_end_", i)]] <- study_pop_db %>%
-          extract_query(description = paste0("getting_cohort_end_", i))
+          extractQuery(description = paste0("getting_cohort_end_", i))
         study_pop_db <- study_pop_db %>% dplyr::compute()
       }
     }
     sql_queries[["getting_cohort_end"]] <- study_pop_db %>%
-      extract_query(description = "getting_cohort_end")
+      extractQuery(description = "getting_cohort_end")
     study_pop_db <- study_pop_db %>% dplyr::compute()
   }
   if ((study_pop_db %>% dplyr::count() %>% dplyr::pull()) == 0) {

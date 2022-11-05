@@ -39,3 +39,9 @@ devtools::build_vignettes()
 # usethis::use_github_actions()
 # usethis::use_github_action("lint")
 # usethis::use_github_action("test-coverage")
+
+lintr::lint_package(".",
+                    linters = lintr::linters_with_defaults(
+                      lintr::object_name_linter(styles = "camelCase")
+                    )
+)

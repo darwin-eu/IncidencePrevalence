@@ -42,8 +42,8 @@ knitr::include_graphics(here("vignettes/point_prev.png"))
 knitr::include_graphics(here("vignettes/period_prev.png"))
 ```
 
-# Using collect_pop_prevalence()
-`collect_pop_prevalence()` is the function we use to estimate prevalence. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `generate_mock_incidence_prevalence_db()` function, from whom we´ll create a denominator population without adding any restrictions other than a study period.
+# Using collectPopPrevalence()
+`collectPopPrevalence()` is the function we use to estimate prevalence. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `generate_mock_incidence_prevalence_db()` function, from whom we´ll create a denominator population without adding any restrictions other than a study period.
 
 ```{r setup}
 library(IncidencePrevalence)
@@ -54,12 +54,12 @@ library(ggplot2)
 cdm <- generate_mock_incidence_prevalence_db(sample_size = 50000,
                                                  out_pre = 0.5)
 
-dpop <- collect_denominator_pops(cdm = cdm,
-                                 study_start_date = as.Date("2008-01-01"),
-                                 study_end_date = as.Date("2012-01-01"),
-                                 study_age_stratas = list(c(0,150)),
-                                 study_sex_stratas = "Both",
-                                 study_days_prior_history = 0)
+dpop <- collectDenominatorPops(cdm = cdm,
+                                 startDate = as.Date("2008-01-01"),
+                                 endDate = as.Date("2012-01-01"),
+                                 ageStrata = list(c(0,150)),
+                                 sexStrata = "Both",
+                                 daysPriorHistory = 0)
 
 cdm$denominator <- dpop$denominator_population
 
@@ -69,15 +69,13 @@ cdm$denominator %>%
 
 Let´s first calculate point prevalence on a yearly basis.
 ```{r, message= FALSE, warning=FALSE}
-prev <- collect_pop_prevalence(
+prev <- collectPopPrevalence( 
   cdm = cdm,
-  table_name_denominator = "denominator",
-  table_name_outcomes = "outcome",
-  cohort_ids_outcomes = "1",
-  cohort_ids_denominator_pops = "1",
-  time_intervals = "Years",
+  denominatorTable = "denominator",
+  outcomesTable = "outcome",
+  interval = "Years",
   type = "point",
-  minimum_cell_count = 0
+  minCellCount = 0
 )
 
 prev$prevalence_estimates  %>%  
@@ -94,15 +92,13 @@ prev$prevalence_estimates %>%
 
 We can also calculate point prevalence by calendar month
 ```{r, message= FALSE, warning=FALSE}
-prev <- collect_pop_prevalence(
+prev <- collectPopPrevalence(
   cdm = cdm,
-  table_name_denominator = "denominator",
-  table_name_outcomes = "outcome",
-  cohort_ids_outcomes = "1",
-  cohort_ids_denominator_pops = "1",
-  time_intervals="Months",
+  denominatorTable = "denominator",
+  outcomesTable = "outcome",
+  interval="Months",
   type = "point",
-  minimum_cell_count = 0
+  minCellCount = 0
 )
 
 prev$prevalence_estimates %>%  
@@ -119,15 +115,13 @@ prev$prevalence_estimates %>%
 
 To calculate period prevalence by year (i.e. each period is a calendar year)
 ```{r, message= FALSE, warning=FALSE}
-prev <- collect_pop_prevalence(
+prev <- collectPopPrevalence( 
   cdm = cdm,
-  table_name_denominator = "denominator",
-  table_name_outcomes = "outcome",
-  cohort_ids_outcomes = "1",
-  cohort_ids_denominator_pops = "1",
-  time_intervals = "Years",
+  denominatorTable = "denominator",
+  outcomesTable = "outcome",
+  interval = "Years",
   type = "period",
-  minimum_cell_count = 0
+  minCellCount = 0
 )
 
 prev$prevalence_estimates  %>%  
@@ -145,15 +139,13 @@ prev$prevalence_estimates %>%
 
 To calculate period prevalence by month (i.e. each period is a calendar month)
 ```{r, message= FALSE, warning=FALSE}
-prev <- collect_pop_prevalence(
+prev <- collectPopPrevalence( 
   cdm = cdm,
-  table_name_denominator = "denominator",
-  table_name_outcomes = "outcome",
-  cohort_ids_outcomes = "1",
-  cohort_ids_denominator_pops = "1",
-  time_intervals = "Months",
+  denominatorTable = "denominator",
+  outcomesTable = "outcome",
+  interval = "Months",
   type = "period",
-  minimum_cell_count = 0
+  minCellCount = 0
 )
 
 prev$prevalence_estimates  %>%  
@@ -193,26 +185,26 @@ cdm2 <- generate_mock_incidence_prevalence_db(sample_size=500000,
 print(nrow(dplyr::tbl(attr(cdm2, 'dbcon'), "person") %>% collect()))
 print(nrow(dplyr::tbl(attr(cdm2, 'dbcon'), "outcome") %>% collect()))
 
-dpop2 <- collect_denominator_pops(cdm = cdm2,
-                                  study_start_date = as.Date("2008-01-01"),
-                                  study_end_date = as.Date("2016-01-01"),
-                                  study_age_stratas = list(c(0,39),
+dpop2 <- collectDenominatorPops(cdm = cdm2,
+                                  startDate = as.Date("2008-01-01"),
+                                  endDate = as.Date("2016-01-01"),
+                                  ageStrata = list(c(0,39),
                                                            c(40,59),
                                                            c(60,150)),
-                                  study_sex_stratas = c("Male", "Female"),
-                                  study_days_prior_history = 0)
+                                  sexStrata = c("Male", "Female"),
+                                  daysPriorHistory = 0)
 
 cdm2$denominator<-dpop2$denominator_populations
 
-prev2 <- collect_pop_prevalence(
+prev2 <- collectPopPrevalence(    
   cdm = cdm2,
-  table_name_denominator = "denominator",
-  table_name_outcomes = "outcome",
-  cohort_ids_outcomes = "1",
-  cohort_ids_denominator_pops = c("1", "2", "3","4","5","6"),
-  time_intervals="months",
+  denominatorTable = "denominator",
+  outcomesTable = "outcome",
+  outcomeCohortIds = "1",
+  denominatorCohortIds = c("1", "2", "3","4","5","6"),
+  interval="months",
   type = "period",
-  minimum_cell_count = 0
+  minCellCount = 0
 )
 
 
@@ -221,7 +213,7 @@ prev2$prevalence_estimates %>%
   left_join(prev2$analysis_settings,
             by = "prevalence_analysis_id") %>% 
   left_join(dpop2$denominator_settings,
-            by=c("cohort_id_denominator_pop"="cohort_definition_id")) %>% 
+            by=c("denominator_cohort_id"="cohort_definition_id")) %>% 
   ggplot(aes(start_time, prev))+
   facet_grid(age_strata ~ sex_strata)+
   geom_point()+
