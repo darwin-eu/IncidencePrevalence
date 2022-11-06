@@ -34,27 +34,21 @@ remotes::install_github("darwin-eu/CDMConnector")
 
 ## Example
 
-First, we need to create a cdm_reference for the data we´ll be using.
-Here we´ll use generate an example one, but to see how you would set
-this up for your database please consult the CDMConnector documentation
-at <https://odyosg.github.io/CDMConnector/>
+First, we need to create a cdm reference for the data we´ll be using.
+Here we´ll generate an example with simulated data, but to see how you
+would set this up for your database please consult the CDMConnector
+package documentation.
 
 ``` r
 library(CDMConnector)
 library(IncidencePrevalence)
-#> Loading required package: lubridate
-#> 
-#> Attaching package: 'lubridate'
-#> The following objects are masked from 'package:base':
-#> 
-#>     date, intersect, setdiff, union
 
 # We first need to create a cdm_reference 
-cdm<-generate_mock_incidence_prevalence_db(sample_size=5000)
+cdm<-mockIncidencePrevalenceRef(sampleSize=5000)
 # and this is what this example data looks like
 head(cdm$person)
 #> # Source:   SQL [6 x 5]
-#> # Database: DuckDB 0.5.1 [martics@Windows 10 x64:R 4.2.1/:memory:]
+#> # Database: DuckDB 0.5.0 [unknown@Linux 5.4.0-126-generic:R 4.1.2/:memory:]
 #>   person_id gender_concept_id year_of_birth month_of_birth day_of_birth
 #>   <chr>     <chr>                     <dbl>          <dbl>        <dbl>
 #> 1 1         8532                       1926              8            2
@@ -65,7 +59,7 @@ head(cdm$person)
 #> 6 6         8532                       1960              9           25
 head(cdm$observation_period)
 #> # Source:   SQL [6 x 4]
-#> # Database: DuckDB 0.5.1 [martics@Windows 10 x64:R 4.2.1/:memory:]
+#> # Database: DuckDB 0.5.0 [unknown@Linux 5.4.0-126-generic:R 4.1.2/:memory:]
 #>   observation_period_id person_id observation_period_start_date observation_pe…¹
 #>   <chr>                 <chr>     <date>                        <date>          
 #> 1 1                     1         2013-12-18                    2014-12-30      
@@ -77,7 +71,7 @@ head(cdm$observation_period)
 #> # … with abbreviated variable name ¹​observation_period_end_date
 head(cdm$outcome)
 #> # Source:   SQL [6 x 4]
-#> # Database: DuckDB 0.5.1 [martics@Windows 10 x64:R 4.2.1/:memory:]
+#> # Database: DuckDB 0.5.0 [unknown@Linux 5.4.0-126-generic:R 4.1.2/:memory:]
 #>   cohort_definition_id subject_id cohort_start_date cohort_end_date
 #>   <chr>                <chr>      <date>            <date>         
 #> 1 1                    1          2014-07-01        2014-07-09     
@@ -89,21 +83,21 @@ head(cdm$outcome)
 ```
 
 To identify our denominator population we can use the
-`collect_denominator_pops` function. Here for example, we want to
-identify a denominator population for a study period between 2008 and
-2018. To note, other options ave available when defining this population
-which are summarised in the package vignettes.
+`collectDenominatorPops` function. Here for example, we want to identify
+a denominator population for a study period between 2008 and 2018. To
+note, other options ave available when defining this population which
+are summarised in the package vignettes.
 
 ``` r
-dpop <- collect_denominator_pops(
+dpop <- collectDenominatorPops(
   cdm = cdm,
-  study_start_date = as.Date("2008-01-01"),
-  study_end_date = as.Date("2018-01-01")
+  startDate = as.Date("2008-01-01"),
+  endDate = as.Date("2018-01-01")
 )
 # this is what the data looks like
 head(dpop$denominator_population)
 #> # Source:   SQL [6 x 4]
-#> # Database: DuckDB 0.5.1 [martics@Windows 10 x64:R 4.2.1/:memory:]
+#> # Database: DuckDB 0.5.0 [unknown@Linux 5.4.0-126-generic:R 4.1.2/:memory:]
 #>   cohort_definition_id subject_id cohort_start_date cohort_end_date
 #>   <chr>                <chr>      <date>            <date>         
 #> 1 1                    1          2013-12-18        2014-12-30     
@@ -141,26 +135,21 @@ Now we´ve added the denominator cohort to our cdm reference, we can go
 on and estimate incidence and prevalence.
 
 ``` r
-# where the table with the outcome cohort is 
-# in a table called ´outcome´
-# schema called ´results´
-inc <- collect_pop_incidence(
+inc <- collectPopIncidence(
   cdm = cdm,
-  table_name_denominator = "denominator",
-  table_name_outcomes = "outcome",
-  cohort_ids_outcomes = "1",
-  cohort_ids_denominator_pops="1"
+  denominatorTable = "denominator",
+  outcomesTable = "outcome"
 )
 head(inc$incidence_estimates)
 #> # A tibble: 6 × 13
 #>   incidence_anal…¹ n_per…² perso…³ n_eve…⁴ perso…⁵ ir_10…⁶ ir_10…⁷ ir_10…⁸ time 
 #>   <chr>              <int>   <dbl>   <int>   <dbl>   <dbl>   <dbl>   <dbl> <chr>
-#> 1 1                    511   14385      33    39.4  83790.  55576. 114703. 2008…
-#> 2 1                    478   12834      30    35.1  85379.  55273. 118531. 2008…
-#> 3 1                    463   12950      22    35.5  62050.  36664.  90539. 2008…
-#> 4 1                    439   12292      28    33.7  83200.  52871. 116729. 2008…
-#> 5 1                    421   11720      34    32.1 105960.  70793. 144430. 2008…
-#> 6 1                    393   10504      29    28.8 100840.  64697. 140717. 2008…
+#> 1 1                    259    7062      33    19.3 170678. 113206. 233644. 2008…
+#> 2 1                    256    6625      30    18.1 165396. 107076. 229619. 2008…
+#> 3 1                    263    7176      22    19.6 111977.  66165. 163389. 2008…
+#> 4 1                    262    7187      28    19.7 142299.  90427. 199643. 2008…
+#> 5 1                    263    7206      34    19.7 172336. 115139. 234905. 2008…
+#> 6 1                    260    6835      29    18.7 154971.  99426. 216253. 2008…
 #> # … with 4 more variables: start_time <date>, end_time <date>,
 #> #   cohort_obscured <chr>, result_obscured <chr>, and abbreviated variable
 #> #   names ¹​incidence_analysis_id, ²​n_persons, ³​person_days, ⁴​n_events,
@@ -168,13 +157,11 @@ head(inc$incidence_estimates)
 ```
 
 ``` r
-prev_point <- collect_pop_prevalence(
+prev_point <- collectPopPrevalence(
   cdm = cdm,
-  table_name_denominator = "denominator",
-  cohort_ids_denominator_pops="1",
-  table_name_outcomes = "outcome",
-  cohort_ids_outcomes = "1",
-  time_intervals = "months",
+  denominatorTable = "denominator",
+  outcomesTable = "outcome",
+  interval = "months",
   type = "point"
 )
 head(prev_point$prevalence_estimates)
@@ -193,13 +180,11 @@ head(prev_point$prevalence_estimates)
 ```
 
 ``` r
-prev_period <- collect_pop_prevalence(
+prev_period <- collectPopPrevalence(
   cdm = cdm,
-  table_name_denominator = "denominator",
-  table_name_outcomes = "outcome",
-  cohort_ids_outcomes = "1",
-  cohort_ids_denominator_pops="1",
-  time_intervals = "months",
+  denominatorTable = "denominator",
+  outcomesTable = "outcome",
+  interval = "months",
   type = "period"
 )
 head(prev_period$prevalence_estimates)
