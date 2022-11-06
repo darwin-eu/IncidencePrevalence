@@ -16,6 +16,19 @@ License: Apache License (>= 2)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1
+Imports: 
+    checkmate,
+    DBI,
+    dbplyr,
+    dplyr,
+    lubridate,
+    glue,
+    magrittr,
+    rlang,
+    purrr,
+    tidyr,
+    CDMConnector,
+    SqlRender
 Suggests: 
     knitr,
     rmarkdown,
@@ -28,19 +41,4 @@ Suggests:
     here,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
-Imports: 
-    checkmate,
-    DBI,
-    dbplyr,
-    dplyr,
-    glue,
-    magrittr,
-    rlang,
-    purrr,
-    tidyr,
-    CDMConnector,
-    SqlRender
-Remotes:  OdyOSG/CDMConnector
-Depends:
-    lubridate
 VignetteBuilder: knitr

@@ -18,22 +18,22 @@
 #' Obscure the small number of counts
 #'
 #' @param x x
-#' @param minimum_cell_count minimum_cell_count
+#' @param minCellCount minCellCount
 #' @param substitute substitute
 #'
 #' @return
 #' @export
 #'
 #' @examples
-obscure_counts <- function(x,
-                           minimum_cell_count = 5,
+obscureCounts <- function(x,
+                           minCellCount = 5,
                            substitute = NA) {
 
   ## check for standard types of user error
-  error_message <- checkmate::makeAssertCollection()
+  errorMessage <- checkmate::makeAssertCollection()
 
   checkmate::assert_tibble(x,
-    add = error_message
+    add = errorMessage
   )
   checkmate::assertTRUE(
     all(c("n_events", "ir_100000_pys", "ir_100000_pys_low",
@@ -45,14 +45,14 @@ obscure_counts <- function(x,
       all(c("numerator", "denominator", "prev") %in% names(x))
   )
 
-  checkmate::assert_numeric(minimum_cell_count,
-    add = error_message
+  checkmate::assert_numeric(minCellCount,
+    add = errorMessage
   )
 
   checkmate::assertTRUE(is.numeric(substitute) || is.na(substitute))
 
   # report initial assertions
-  checkmate::reportAssertions(collection = error_message)
+  checkmate::reportAssertions(collection = errorMessage)
 
   # initialise result_obscurred as FALSE
   # will replace with true below if obscured
@@ -60,20 +60,20 @@ obscure_counts <- function(x,
   x$result_obscured <- "FALSE"
 
   if (c("n_events") %in% names(x)) {
-    x[x$n_persons < minimum_cell_count, c("cohort_obscured")] <- "TRUE"
-    x[x$n_events < minimum_cell_count, c("n_persons",
+    x[x$n_persons < minCellCount, c("cohort_obscured")] <- "TRUE"
+    x[x$n_events < minCellCount, c("n_persons",
                                          "person_days",
                                          "person_years")] <- substitute
-    x[x$n_events < minimum_cell_count, c("result_obscured")] <- "TRUE"
-    x[x$n_events < minimum_cell_count, c("n_events", "ir_100000_pys",
+    x[x$n_events < minCellCount, c("result_obscured")] <- "TRUE"
+    x[x$n_events < minCellCount, c("n_events", "ir_100000_pys",
                                      "ir_100000_pys_low",
                                      "ir_100000_pys_high")] <- substitute
   }
   if (c("numerator") %in% names(x)) {
-    x[x$denominator < minimum_cell_count, c("cohort_obscured")] <- "TRUE"
-    x[x$denominator < minimum_cell_count, c("denominator")] <- substitute
-    x[x$numerator < minimum_cell_count, c("result_obscured")] <- "TRUE"
-    x[x$numerator < minimum_cell_count, c("numerator",
+    x[x$denominator < minCellCount, c("cohort_obscured")] <- "TRUE"
+    x[x$denominator < minCellCount, c("denominator")] <- substitute
+    x[x$numerator < minCellCount, c("result_obscured")] <- "TRUE"
+    x[x$numerator < minCellCount, c("numerator",
                                       "prev",
                                       "prev_low", "prev_high")] <- substitute
   }
