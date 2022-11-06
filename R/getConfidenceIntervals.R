@@ -18,7 +18,7 @@
 #' Get confidence intervals for incidence estimates
 #'
 #' @noRd
-get_ci_incidence <- function(ir,
+getCiIncidence <- function(ir,
                              mode) {
   if (mode == "poisson") {
     ir <- ir %>%
@@ -39,7 +39,7 @@ get_ci_incidence <- function(ir,
           ),
         by = names(ir)
       )
-  } else if (mode == "none"){
+  } else if (mode == "none") {
     ir <- ir %>%
       dplyr::mutate(ir_100000_pys_low = NA) %>%
       dplyr::mutate(ir_100000_pys_high = NA)
@@ -51,7 +51,7 @@ get_ci_incidence <- function(ir,
 #' Get confidence intervals for prevalence estimates
 #'
 #' @noRd
-get_ci_prevalence <- function(pr,
+getCiPrevalence <- function(pr,
                               mode) {
   if (mode == "binomial") {
     pr <- pr %>%
@@ -74,12 +74,11 @@ get_ci_prevalence <- function(pr,
           )),
         by = names(pr)
       )
-  } else if (mode == "none"){
+  } else if (mode == "none") {
     pr <- pr %>%
       dplyr::mutate(prev_low = NA) %>%
       dplyr::mutate(prev_high = NA)
   }
 
   return(pr)
-
 }

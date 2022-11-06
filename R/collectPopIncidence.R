@@ -61,7 +61,7 @@ collectPopIncidence <- function(cdm,
     interval <- tolower(interval)
   }
   if (is.character(confidenceInterval)) {
-    confidenceIntervals <- tolower(confidenceInterval)
+    confidenceInterval <- tolower(confidenceInterval)
   }
 
 
@@ -96,11 +96,11 @@ collectPopIncidence <- function(cdm,
     add = errorMessage,
     null.ok = TRUE
   )
-  outcome_check <- outcomesTable %in% names(cdm)
-  checkmate::assertTRUE(outcome_check,
+  outcomeCheck <- outcomesTable %in% names(cdm)
+  checkmate::assertTRUE(outcomeCheck,
     add = errorMessage
   )
-  if (!isTRUE(outcome_check)) {
+  if (!isTRUE(outcomeCheck)) {
     errorMessage$push(
       "- `outcomesTable` is not found in cdm"
     )
@@ -173,7 +173,7 @@ collectPopIncidence <- function(cdm,
   )
   if (!isTRUE(denomCountCheck)) {
     errorMessage$push(
-      "- nobody found in `denominatorTable` with one of the `denominatorCohortIds`"
+  "- nobody found in `denominatorTable` with one of the `denominatorCohortIds`"
     )
   }
   outcomeCountCheck <- cdm[[outcomesTable]] %>%
@@ -209,7 +209,8 @@ collectPopIncidence <- function(cdm,
     dplyr::rename("outcome_end_date" = "cohort_end_date") %>%
     dplyr::inner_join(
       cdm[[denominatorTable]] %>%
-        dplyr::filter(.data$cohort_definition_id %in% .env$denominatorCohortIds) %>%
+        dplyr::filter(.data$cohort_definition_id %in%
+                        .env$denominatorCohortIds) %>%
         dplyr::select(-"cohort_definition_id") %>%
         dplyr::distinct(),
       by = "subject_id"
@@ -220,8 +221,11 @@ collectPopIncidence <- function(cdm,
   outcome <- outcome %>%
     # most recent outcome starting before cohort start per person
     dplyr::filter(.data$outcome_start_date < .data$cohort_start_date) %>%
-    dplyr::group_by(.data$subject_id, .data$cohort_start_date, .data$outcome_id) %>%
-    dplyr::filter(.data$outcome_start_date == max(.data$outcome_start_date, na.rm = TRUE)) %>%
+    dplyr::group_by(.data$subject_id,
+                    .data$cohort_start_date,
+                    .data$outcome_id) %>%
+    dplyr::filter(.data$outcome_start_date ==
+                    max(.data$outcome_start_date, na.rm = TRUE)) %>%
     dplyr::union_all(
       # all starting during cohort period
       outcome %>%
@@ -248,8 +252,8 @@ collectPopIncidence <- function(cdm,
         dplyr::mutate(index = .data$index + 1) %>%
         dplyr::rename("outcome_prev_end_date" = "outcome_end_date") %>%
         dplyr::select(-"outcome_start_date"),
-      by = c("subject_id", "cohort_start_date", "cohort_end_date", "outcome_id", "index")
-    ) %>%
+      by = c("subject_id", "cohort_start_date",
+             "cohort_end_date", "outcome_id", "index")) %>%
     dplyr::select(-"index") %>%
     dplyr::compute()
 
@@ -278,7 +282,7 @@ collectPopIncidence <- function(cdm,
 
   # get irs
   irsList <- lapply(studySpecs, function(x) {
-    workingInc <- get_pop_incidence(
+    workingInc <- getPopIncidence(
       cdm = cdm,
       denominatorTable = denominatorTable,
       denominatorCohortIds = x$denominator_cohort_ids,
@@ -293,11 +297,11 @@ collectPopIncidence <- function(cdm,
 
     workingIncIr <- workingInc[["ir"]] %>%
       dplyr::mutate(incidence_analysis_id = x$incidence_analysis_id) %>%
-      dplyr::relocate(.data$incidence_analysis_id)
+      dplyr::relocate("incidence_analysis_id")
 
     workingIncPersonTable <- workingInc[["person_table"]] %>%
       dplyr::mutate(incidence_analysis_id = x$incidence_analysis_id) %>%
-      dplyr::relocate(.data$incidence_analysis_id)
+      dplyr::relocate("incidence_analysis_id")
 
     workingIncAnalysisSettings <- workingInc[["analysis_settings"]] %>%
       dplyr::mutate(
@@ -310,12 +314,12 @@ collectPopIncidence <- function(cdm,
         min_cell_count = .env$minCellCount,
         incidence_analysis_id = x$incidence_analysis_id
       ) %>%
-      dplyr::relocate(.data$incidence_analysis_id)
+      dplyr::relocate("incidence_analysis_id")
 
 
     workingIncAttrition <- workingInc[["attrition"]] %>%
       dplyr::mutate(incidence_analysis_id = x$incidence_analysis_id) %>%
-      dplyr::relocate(.data$incidence_analysis_id)
+      dplyr::relocate("incidence_analysis_id")
 
     result <- list()
     result[["ir"]] <- workingIncIr
@@ -344,13 +348,13 @@ collectPopIncidence <- function(cdm,
   )
 
   # get confidence intervals
-  irs <- get_ci_incidence(irs, confidenceInterval) %>%
-    dplyr::relocate(.data$ir_100000_pys_low, .after = .data$ir_100000_pys) %>%
-    dplyr::relocate(.data$ir_100000_pys_high, .after = .data$ir_100000_pys_low)
+  irs <- getCiIncidence(irs, confidenceInterval) %>%
+    dplyr::relocate("ir_100000_pys_low", .after = "ir_100000_pys") %>%
+    dplyr::relocate("ir_100000_pys_high", .after = "ir_100000_pys_low")
 
   # obscure counts
   if (!is.null(minCellCount)) {
-    irs <- obscure_counts(irs, minCellCount = minCellCount, substitute = NA)
+    irs <- obscureCounts(irs, minCellCount = minCellCount, substitute = NA)
   } else {
     # no results obscured due to a low count
     irs <- irs %>%
@@ -359,9 +363,9 @@ collectPopIncidence <- function(cdm,
   }
 
   # person_table summary
-  person_table <- irsList[names(irsList) == "person_table"]
+  personTable <- irsList[names(irsList) == "person_table"]
   # to tibble
-  person_table <- dplyr::bind_rows(person_table,
+  personTable <- dplyr::bind_rows(personTable,
     .id = NULL
   )
 
@@ -376,7 +380,7 @@ collectPopIncidence <- function(cdm,
   results <- list()
   results[["incidence_estimates"]] <- irs
   results[["analysis_settings"]] <- analysisSettings
-  results[["person_table"]] <- person_table
+  results[["person_table"]] <- personTable
   results[["attrition"]] <- attrition
 
   return(results)

@@ -5,30 +5,38 @@ test_that("test methods against test server", {
   skip_if(Sys.getenv("TESTDB_USER") == "")
 
   con <- DBI::dbConnect(odbc::odbc(),
-                        Driver   = Sys.getenv("TESTDB_DRIVER"),
-                        Server   = Sys.getenv("TESTDB_SERVER"),
-                        Database = Sys.getenv("TESTDB_NAME"),
-                        UID      = Sys.getenv("TESTDB_USER"),
-                        PWD      = Sys.getenv("TESTDB_PWD"),
-                        Port     = Sys.getenv("TESTDB_PORT"))
+    Driver   = Sys.getenv("TESTDB_DRIVER"),
+    Server   = Sys.getenv("TESTDB_SERVER"),
+    Database = Sys.getenv("TESTDB_NAME"),
+    UID      = Sys.getenv("TESTDB_USER"),
+    PWD      = Sys.getenv("TESTDB_PWD"),
+    Port     = Sys.getenv("TESTDB_PORT")
+  )
 
   # Write cohort to db
-  # sql <- SqlRender::readSql(system.file("sql/sql_server/", "cohortsTestDb.sql", package = "IncidencePrevalence"))
-  # sql <- SqlRender::render(sql = sql, cdmDatabaseSchema = Sys.getenv("TESTDB_CDM_SCHEMA"), resultsDatabaseSchema = Sys.getenv("TESTDB_WRITE_SCHEMA"))
-  # sql <- SqlRender::translate(sql = sql, targetDialect = Sys.getenv("TESTDB_DBMS"))
+  # sql <- SqlRender::readSql(system.file("sql/sql_server/",
+  #  "cohortsTestDb.sql", package = "IncidencePrevalence"))
+  # sql <- SqlRender::render(sql = sql,
+  # cdmDatabaseSchema = Sys.getenv("TESTDB_CDM_SCHEMA"),
+  #  resultsDatabaseSchema = Sys.getenv("TESTDB_WRITE_SCHEMA"))
+  # sql <- SqlRender::translate(sql = sql,
+  #  targetDialect = Sys.getenv("TESTDB_DBMS"))
   # DBI::dbSendQuery(con, sql)
 
   cdm <- CDMConnector::cdm_from_con(con,
-                                    cdm_schema = Sys.getenv("TESTDB_CDM_SCHEMA"),
-                                    write_schema = Sys.getenv("TESTDB_WRITE_SCHEMA"),
-                                    cohort_tables = c("cohort"))
+    cdm_schema = Sys.getenv("TESTDB_CDM_SCHEMA"),
+    write_schema = Sys.getenv("TESTDB_WRITE_SCHEMA"),
+    cohort_tables = c("cohort")
+  )
 
-  dpop <- collectDenominatorPops(cdm = cdm,
-                                   sample = 100)
+  dpop <- collectDenominatorPops(
+    cdm = cdm,
+    sample = 100
+  )
   cdm$denominator <- dpop$denominator_populations
 
   expect_true(all(c(
-    "age_strata","min_age","max_age",
+    "age_strata", "min_age", "max_age",
     "sex_strata",
     "study_start_date",
     "study_end_date",
@@ -56,14 +64,18 @@ test_that("test methods against test server", {
     names(dpop)))
 
   # types
-  expect_true(class(dpop %>% dplyr::select(cohort_definition_id) %>%
-                      dplyr::pull()) == "character")
-  expect_true(class(dpop %>% dplyr::select(subject_id) %>%
-                      dplyr::pull()) == "integer")
-  expect_true(class(dpop %>% dplyr::select(cohort_start_date) %>%
-                      dplyr::pull())== "Date")
-  expect_true(class(dpop %>% dplyr::select(cohort_end_date) %>%
-                      dplyr::pull())== "Date")
+  expect_true(class(dpop %>%
+                      dplyr::select(cohort_definition_id) %>%
+    dplyr::pull()) == "character")
+  expect_true(class(dpop %>%
+                      dplyr::select(subject_id) %>%
+    dplyr::pull()) == "integer")
+  expect_true(class(dpop %>%
+                      dplyr::select(cohort_start_date) %>%
+    dplyr::pull()) == "Date")
+  expect_true(class(dpop %>%
+                      dplyr::select(cohort_end_date) %>%
+    dplyr::pull()) == "Date")
 
   ## Pop incidence
   inc <- collectPopIncidence(
@@ -81,10 +93,12 @@ test_that("test methods against test server", {
 
   expect_true(class(inc) == "list")
   expect_true(all(names(inc) %in%
-                    c("incidence_estimates",
-                      "analysis_settings",
-                      "person_table",
-                      "attrition" )))
+    c(
+      "incidence_estimates",
+      "analysis_settings",
+      "person_table",
+      "attrition"
+    )))
 
   # check analysis settings tibble
   expect_true(all(c(
@@ -109,7 +123,7 @@ test_that("test methods against test server", {
     "ir_100000_pys",
     "ir_100000_pys_low",
     "ir_100000_pys_high",
-    "time", "start_time","end_time",
+    "time", "start_time", "end_time",
     "cohort_obscured",
     "result_obscured"
   ) %in%
@@ -127,10 +141,12 @@ test_that("test methods against test server", {
 
   expect_true(class(prev) == "list")
   expect_true(all(names(prev) %in%
-                    c("prevalence_estimates",
-                      "analysis_settings",
-                      "person_table",
-                      "attrition" )))
+    c(
+      "prevalence_estimates",
+      "analysis_settings",
+      "person_table",
+      "attrition"
+    )))
 
   # check analysis settings tibble::tibble
   expect_true(all(c(

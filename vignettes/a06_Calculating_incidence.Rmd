@@ -11,7 +11,7 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.width = 7, 
+  fig.width = 7,
   fig.height = 5
 )
 ```
@@ -68,7 +68,7 @@ knitr::include_graphics(here("vignettes/inc_rep_some_washout.png"))
 
 
 # Using collectPopIncidence()
-`collectPopIncidence()` is the function we use to estimate incidence rates To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `generate_mock_incidence_prevalence_db()` function, from whom we´ll create a denominator population without adding any restrictions other than a study period.
+`collectPopIncidence()` is the function we use to estimate incidence rates To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `mockIncidencePrevalenceRef()` function, from whom we´ll create a denominator population without adding any restrictions other than a study period.
 
 ```{r setup}
 library(IncidencePrevalence)
@@ -76,19 +76,23 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 
-cdm <- generate_mock_incidence_prevalence_db(sample_size=50000,
-                                          out_pre=0.5)
+cdm <- mockIncidencePrevalenceRef(
+  sampleSize = 50000,
+  outPre = 0.5
+)
 
-dpop <- collectDenominatorPops(cdm = cdm,
-                                 startDate = as.Date("2008-01-01"),
-                                 endDate = as.Date("2012-01-01"),
-                                 ageStrata = list(c(0,150)),
-                                 sexStrata = "Both",
-                                 daysPriorHistory = 0)
+dpop <- collectDenominatorPops(
+  cdm = cdm,
+  startDate = as.Date("2008-01-01"),
+  endDate = as.Date("2012-01-01"),
+  ageStrata = list(c(0, 150)),
+  sexStrata = "Both",
+  daysPriorHistory = 0
+)
 
 cdm$denominator <- dpop$denominator_population
 
-cdm$denominator %>%  
+cdm$denominator %>%
   glimpse()
 ```
 
@@ -104,13 +108,13 @@ inc <- collectPopIncidence(
   repeatedEvents = FALSE
 )
 
-inc$incidence_estimates %>%  
+inc$incidence_estimates %>%
   glimpse()
 
-inc$incidence_estimates %>% 
-  ggplot(aes(start_time, ir_100000_pys))+
-  geom_point()+
-  scale_y_continuous(limits = c(0,NA))+
+inc$incidence_estimates %>%
+  ggplot(aes(start_time, ir_100000_pys)) +
+  geom_point() +
+  scale_y_continuous(limits = c(0, NA)) +
   theme_minimal()
 ```
 
@@ -125,13 +129,13 @@ inc <- collectPopIncidence(
   repeatedEvents = FALSE
 )
 
-inc$incidence_estimates %>%  
+inc$incidence_estimates %>%
   glimpse()
 
-inc$incidence_estimates %>% 
-  ggplot(aes(start_time, ir_100000_pys))+
-  geom_point()+
-  scale_y_continuous(limits = c(0,NA))+
+inc$incidence_estimates %>%
+  ggplot(aes(start_time, ir_100000_pys)) +
+  geom_point() +
+  scale_y_continuous(limits = c(0, NA)) +
   theme_minimal()
 ```
 
@@ -146,13 +150,13 @@ inc <- collectPopIncidence(
   repeatedEvents = FALSE
 )
 
-inc$incidence_estimates %>%  
+inc$incidence_estimates %>%
   glimpse()
 
-inc$incidence_estimates %>% 
-  ggplot(aes(start_time, ir_100000_pys))+
-  geom_point()+
-  scale_y_continuous(limits = c(0,NA))+
+inc$incidence_estimates %>%
+  ggplot(aes(start_time, ir_100000_pys)) +
+  geom_point() +
+  scale_y_continuous(limits = c(0, NA)) +
   theme_minimal()
 ```
 
@@ -167,12 +171,12 @@ inc <- collectPopIncidence(
   repeatedEvents = TRUE
 )
 
-inc$incidence_estimates %>%  
+inc$incidence_estimates %>%
   glimpse()
 
-inc$incidence_estimates %>% 
-  ggplot(aes(start_time, ir_100000_pys))+
-  geom_point()+
-  scale_y_continuous(limits = c(0,NA))+
+inc$incidence_estimates %>%
+  ggplot(aes(start_time, ir_100000_pys)) +
+  geom_point() +
+  scale_y_continuous(limits = c(0, NA)) +
   theme_minimal()
 ```

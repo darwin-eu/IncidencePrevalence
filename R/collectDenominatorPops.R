@@ -55,6 +55,7 @@
 #'   endDate = as.Date("2018-01-01")
 #' )
 #' }
+
 collectDenominatorPops <- function(cdm,
                                    startDate = NULL,
                                    endDate = NULL,
@@ -185,7 +186,7 @@ collectDenominatorPops <- function(cdm,
     message("Progress: All input checks passed")
     duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
-      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+  "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
 
@@ -239,7 +240,7 @@ collectDenominatorPops <- function(cdm,
     message("Progress: Inputs prepared for creating denominator populations")
     duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
     message(glue::glue(
-      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+  "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
 
@@ -264,7 +265,7 @@ collectDenominatorPops <- function(cdm,
     message("Progress: Overall denominator population identified")
     duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
-      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+  "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
 
@@ -282,21 +283,21 @@ collectDenominatorPops <- function(cdm,
   if (dpop$denominator_population %>% dplyr::count() %>% dplyr::pull() > 0) {
     # first, if all cohorts are Male or Female get number that will be excluded
     if (all(popSpecs$sex_strata == "Female")) {
-      dpop$attrition <- record_attrition(
+      dpop$attrition <- recordAttrition(
         table = dpop$denominator_population %>%
           dplyr::filter(.data$sex == "Female"),
         id = "person_id",
         reason = "Not Female",
-        existing_attrition = dpop$attrition
+        existingAttrition = dpop$attrition
       )
     }
     if (all(popSpecs$sex_strata == "Male")) {
-      dpop$attrition <- record_attrition(
+      dpop$attrition <- recordAttrition(
         table = dpop$denominator_population %>%
           dplyr::filter(.data$sex == "Male"),
         id = "person_id",
         reason = "Not Male",
-        existing_attrition = dpop$attrition
+        existingAttrition = dpop$attrition
       )
     }
 
@@ -306,23 +307,23 @@ collectDenominatorPops <- function(cdm,
       workingDpop <- dpop$denominator_population
 
       if (popSpecs$sex_strata[[i]] %in% c("Male", "Female")) {
-        workingSex <- popSpecs$sex_strata[[i]]
+
         workingDpop <- workingDpop %>%
-          dplyr::filter(.data$sex == .env$workingSex)
+          dplyr::filter(.data$sex == local(popSpecs$sex_strata[[i]]))
       }
 
       # cohort start
       workingDpop <- workingDpop %>%
         dplyr::rename(
           "cohort_start_date" =
-            glue::glue("cohort_start_date_min_age_{popSpecs$min_age[[i]]}_prior_history_{popSpecs$days_prior_history[[i]]}")
+            glue::glue("dateMinAge{popSpecs$min_age[[i]]}PriorHistory{popSpecs$days_prior_history[[i]]}")
         )
       # cohort end
       workingDpop <- workingDpop %>%
         dplyr::rename(
           cohort_end_date =
             glue::glue(
-              "cohort_end_date_max_age_{popSpecs$max_age[[i]]}"
+              "dateMaxAge{popSpecs$max_age[[i]]}"
             )
         )
 
@@ -332,8 +333,9 @@ collectDenominatorPops <- function(cdm,
         dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
 
       studyPops[[i]] <- workingDpop %>%
-        dplyr::mutate(cohort_definition_id = local(popSpecs$cohort_definition_id[[i]])) %>%
-        dplyr::relocate(.data$cohort_definition_id)
+        dplyr::mutate(cohort_definition_id =
+                        local(popSpecs$cohort_definition_id[[i]])) %>%
+        dplyr::relocate("cohort_definition_id")
     }
 
 
@@ -346,7 +348,8 @@ collectDenominatorPops <- function(cdm,
       )
       for (i in seq_along(studyPopsBatches)) {
         studyPopsBatches[[i]] <- Reduce(dplyr::union_all, studyPopsBatches[[i]])
-        sqlQueries[[paste0("combine_cohorts_batch_", i)]] <- studyPopsBatches[[i]] %>%
+        sqlQueries[[paste0("combine_cohorts_batch_", i)]] <-
+          studyPopsBatches[[i]] %>%
           extractQuery(description = paste0("combine_cohorts_batch_", i))
         studyPopsBatches[[i]] <- studyPopsBatches[[i]] %>%
           dplyr::compute()
@@ -367,14 +370,14 @@ collectDenominatorPops <- function(cdm,
     message("Progress: Each denominator population of interest created")
     duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
     message(glue::glue(
-      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+  "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
 
   if (verbose == TRUE) {
     duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
-      "Overall time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+"Overall time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
 

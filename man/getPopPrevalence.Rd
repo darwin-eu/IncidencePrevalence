@@ -41,9 +41,6 @@ getPopPrevalence(
 
 \item{verbose}{verbose}
 }
-\value{
-
-}
 \description{
 Get population prevalence estimates
 }

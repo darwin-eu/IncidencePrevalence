@@ -46,9 +46,6 @@ the study cohort.}
 \item{verbose}{Either TRUE or FALSE.
 If TRUE, progress will be reported.}
 }
-\value{
-
-}
 \description{
 \code{collectDenominatorPops()} creates a set of denominator cohorts
 }

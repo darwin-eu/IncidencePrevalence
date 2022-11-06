@@ -32,87 +32,94 @@ When setting the `collectDenominatorPops()` arguments, we'll need to specify the
 To note, it's important to consider that some of these characteristics used to define our subset might remain constant during the whole observation period (e.g., ethnicity) and some might change (e.g., suffering from a particular condition or taking a particular medication).
 
 ## Using collectDenominatorPops() against a population subgroup
-To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 10 example patients using the `generate_mock_incidence_prevalence_db()` function.
+To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 10 example patients using the `mockIncidencePrevalenceRef()` function.
 
 ```{r, message=FALSE, warning=FALSE}
 library(IncidencePrevalence)
 library(ggplot2)
 library(tidyr)
-person <- tibble(
-    person_id = c("1","2","3", "4","5"),
-    gender_concept_id = c(rep("8507",2), rep("8532", 3)),
-    year_of_birth = 2000,
-    month_of_birth = 06,
-    day_of_birth = 01
+personTable <- tibble(
+  person_id = c("1", "2", "3", "4", "5"),
+  gender_concept_id = c(rep("8507", 2), rep("8532", 3)),
+  year_of_birth = 2000,
+  month_of_birth = 06,
+  day_of_birth = 01
+)
+observationPeriodTable <- tibble(
+  observation_period_id = "1",
+  person_id = c("1", "2", "3", "4", "5"),
+  observation_period_start_date = c(
+    as.Date("2010-12-19"),
+    as.Date("2005-04-01"),
+    as.Date("2009-04-10"),
+    as.Date("2010-08-20"),
+    as.Date("2010-01-01")
+  ),
+  observation_period_end_date = c(
+    as.Date("2011-06-19"),
+    as.Date("2005-11-29"),
+    as.Date("2016-01-02"),
+    as.Date("2011-12-11"),
+    as.Date("2015-06-01")
   )
-  observation_period <- tibble(
-    observation_period_id = "1",
-    person_id = c("1","2","3", "4","5"),
-    observation_period_start_date = c(as.Date("2010-12-19"),
-                                      as.Date("2005-04-01"),
-                                      as.Date("2009-04-10"),
-                                      as.Date("2010-08-20"),
-                                      as.Date("2010-01-01")),
-    observation_period_end_date = c(as.Date("2011-06-19"),
-                        as.Date("2005-11-29"),
-                        as.Date("2016-01-02"),
-                        as.Date("2011-12-11"),
-                        as.Date("2015-06-01"))
-  )
-  
+)
 ```
 
 Here we generate a simulated strata table with 5 individuals and 3 different cohort stratas to illustrate the following examples.
 
 ```{r, message=FALSE, warning=FALSE, results='hide'}
- strata_cohort <- tibble(
-    cohort_definition_id = c(rep("1",3), rep("2", 3), rep("3",5)),
-      subject_id = c("1","2","4", "3", "5", "2", "3", "3","5", "5" ,"2"),
-    cohort_start_date = c(as.Date("2010-12-19"),
-                          as.Date("2005-04-01"),
-                          as.Date("2010-08-20"),
-                          as.Date("2012-01-01"),
-                          as.Date("2010-06-01"),
-                          as.Date("2005-08-20"),
-                          as.Date("2012-01-01"),
-                          as.Date("2015-06-01"),
-                          as.Date("2014-10-01"),
-                          as.Date("2010-06-01"),
-                          as.Date("2005-08-20")),
-    cohort_end_date = c(as.Date("2011-06-19"),
-                        as.Date("2005-11-29"),
-                        as.Date("2011-12-11"),
-                        as.Date("2013-01-01"),
-                        as.Date("2012-03-01"),
-                        as.Date("2005-11-29"),
-                        as.Date("2013-01-01"),
-                        as.Date("2015-12-31"),
-                        as.Date("2015-04-01"),
-                        as.Date("2010-06-01"),
-                        as.Date("2005-08-20"))
+conditionX <- tibble(
+  cohort_definition_id = c(rep("1", 3), rep("2", 3), rep("3", 5)),
+  subject_id = c("1", "2", "4", "3", "5", "2", "3", "3", "5", "5", "2"),
+  cohort_start_date = c(
+    as.Date("2010-12-19"),
+    as.Date("2005-04-01"),
+    as.Date("2010-08-20"),
+    as.Date("2012-01-01"),
+    as.Date("2010-06-01"),
+    as.Date("2005-08-20"),
+    as.Date("2012-01-01"),
+    as.Date("2015-06-01"),
+    as.Date("2014-10-01"),
+    as.Date("2010-06-01"),
+    as.Date("2005-08-20")
+  ),
+  cohort_end_date = c(
+    as.Date("2011-06-19"),
+    as.Date("2005-11-29"),
+    as.Date("2011-12-11"),
+    as.Date("2013-01-01"),
+    as.Date("2012-03-01"),
+    as.Date("2005-11-29"),
+    as.Date("2013-01-01"),
+    as.Date("2015-12-31"),
+    as.Date("2015-04-01"),
+    as.Date("2010-06-01"),
+    as.Date("2005-08-20")
   )
+)
 
 # mock database
-cdm <- generate_mock_incidence_prevalence_db(person = person,
-                            observation_period = observation_period,
-                            strata=strata_cohort)
-
-  
+cdm <- mockIncidencePrevalenceRef(
+  personTable = personTable,
+  observationPeriodTable = observationPeriodTable,
+  strataTable = conditionX
+)
 ```
 ### Not applying any subset
 We can get a denominator population without including any particular subset like so
 ```{r, message=FALSE, warning=FALSE}
 dpop <- collectDenominatorPops(
-    cdm = cdm
-  )
-  
-dpop <- dpop$denominator_pop 
+  cdm = cdm
+)
+
+dpop <- dpop$denominator_pop
 dpop
 ```
 As we did not specify any study start and end date, the cohort start and end date of our 5 patients correspond to the same registered as observation period. 
 
 ```{r, message=FALSE, warning=FALSE}
-observation_period
+observationPeriodTable
 ```
 
 ### Subset based on non-time-varying characteristics
@@ -120,12 +127,12 @@ Let's suppose we want to subset our population based on a non-time varying chara
 
 ```{r, message=FALSE, warning=FALSE}
 dpop <- collectDenominatorPops(
-    cdm = cdm,
-    strataTable = "strata",
-    strataCohortId = "1",
-  )
-  
-dpop <- dpop$denominator_pop 
+  cdm = cdm,
+  strataTable = "strata",
+  strataCohortId = "1",
+)
+
+dpop <- dpop$denominator_pop
 dpop
 ```
 
@@ -133,7 +140,7 @@ We have obtained the 3 patients with the particular ethnicity we were interested
 
 ```{r, message=FALSE, warning=FALSE}
 library(dplyr)
-observation_period %>%
+observationPeriodTable %>%
   filter(person_id %in% c("1", "2", "4"))
 ```
 
@@ -142,19 +149,19 @@ Now we want to subset our population based on a time varying characteristic such
 
 ```{r, message=FALSE, warning=FALSE}
 dpop <- collectDenominatorPops(
-    cdm = cdm,
-    strataTable = "strata",
-    strataCohortId = "2",
-  )
-  
-dpop <- dpop$denominator_pop 
+  cdm = cdm,
+  strataTable = "strata",
+  strataCohortId = "2",
+)
+
+dpop <- dpop$denominator_pop
 dpop
 ```
 
 We have obtained a denominator population with 3 individuals who have experienced this event during their observation period. In this case, the cohort start and end dates correspond to the cohort start and end date of our strata table, and not to their observation period. Therefore, individuals only contribute time while they are experiencing this particular condition. 
 
 ```{r, message=FALSE, warning=FALSE}
-strata_cohort %>%
+conditionX %>%
   filter(cohort_definition_id == "2") %>%
   filter(subject_id %in% c("2", "3", "5"))
 ```
@@ -163,19 +170,19 @@ Depending in which condition we're interested in, people might experience the sa
 
 ```{r, message=FALSE, warning=FALSE}
 dpop <- collectDenominatorPops(
-    cdm = cdm,
-    strataTable = "strata",
-    strataCohortId = "3",
-  )
-  
-dpop <- dpop$denominator_pop 
+  cdm = cdm,
+  strataTable = "strata",
+  strataCohortId = "3",
+)
+
+dpop <- dpop$denominator_pop
 dpop
 ```
 
 We can see that person "3" and "5" experienced this condition in two different occasions. Therefore, they only contribute time to the denominator population during the time periods they had this condition. As before, cohort start and end date correspond to the start and end date of this condition.
 
 ```{r, message=FALSE, warning=FALSE}
-strata_cohort %>%
+conditionX %>%
   filter(cohort_definition_id == "3") %>%
   filter(subject_id %in% c("2", "3", "5"))
 ```
@@ -185,17 +192,18 @@ In both examples, the study period can be restricted to a particular period of i
 
 ```{r, message=FALSE, warning=FALSE}
 dpop <- collectDenominatorPops(
-    cdm = cdm,
-    strataTable = "strata",
-    strataCohortId = "3",
-    startDate = as.Date("2014-01-01"),
-    endDate = as.Date("2016-01-01"),
-    ageStrata = list(c(0,150)),
-    sexStrata = "Female",
-    daysPriorHistory = 0)
-  
-  
-dpop <- dpop$denominator_pop 
+  cdm = cdm,
+  strataTable = "strata",
+  strataCohortId = "3",
+  startDate = as.Date("2014-01-01"),
+  endDate = as.Date("2016-01-01"),
+  ageStrata = list(c(0, 150)),
+  sexStrata = "Female",
+  daysPriorHistory = 0
+)
+
+
+dpop <- dpop$denominator_pop
 dpop
 ```
 
@@ -203,4 +211,3 @@ In this case we have used the same strata than before, but we have restricted ou
 
 
 !!To do: Add what happens if there are multiple observation periods per person + multiple outcomes.
-

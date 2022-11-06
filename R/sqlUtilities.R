@@ -1,42 +1,46 @@
 
-sqlAddYears<-function(dialect, years_to_add, variable){
-
-  error_message <- checkmate::makeAssertCollection()
-  year_check<-(years_to_add%%1==0)
-  checkmate::assertTRUE(year_check,
-                         add = error_message
+sqlAddYears <- function(dialect, yearsToAdd, variable) {
+  errorMessage <- checkmate::makeAssertCollection()
+  yearCheck <- (yearsToAdd %% 1 == 0)
+  checkmate::assertTRUE(yearCheck,
+    add = errorMessage
   )
-  checkmate::reportAssertions(collection = error_message)
+  checkmate::reportAssertions(collection = errorMessage)
 
-  rendered_translated_sql <- SqlRender::translate(
-    SqlRender::render("DATEADD(year, @years_to_add, @variable)",
-           years_to_add=years_to_add,
-           variable=variable),
-    targetDialect = dialect)
-  return(rendered_translated_sql)
+  renderedTranslatedSql <- SqlRender::translate(
+    SqlRender::render("DATEADD(year, @yearsToAdd, @variable)",
+      yearsToAdd = yearsToAdd,
+      variable = variable
+    ),
+    targetDialect = dialect
+  )
+  return(renderedTranslatedSql)
 }
 
-sqlAddDays<-function(dialect, days_to_add, variable){
-
-  error_message <- checkmate::makeAssertCollection()
-  days_check<-(days_to_add%%1==0)
-  checkmate::assertTRUE(days_check,
-                        add = error_message
+sqlAddDays <- function(dialect, daysToAdd, variable) {
+  errorMessage <- checkmate::makeAssertCollection()
+  daysCheck <- (daysToAdd %% 1 == 0)
+  checkmate::assertTRUE(daysCheck,
+    add = errorMessage
   )
-  checkmate::reportAssertions(collection = error_message)
+  checkmate::reportAssertions(collection = errorMessage)
 
-  rendered_translated_sql <- SqlRender::translate(
-    SqlRender::render("DATEADD(day, @days_to_add, @variable)",
-                      days_to_add=days_to_add,
-                      variable=variable),
-    targetDialect = dialect)
-  return(rendered_translated_sql)
+  renderedTranslatedSql <- SqlRender::translate(
+    SqlRender::render("DATEADD(day, @daysToAdd, @variable)",
+      daysToAdd = daysToAdd,
+      variable = variable
+    ),
+    targetDialect = dialect
+  )
+  return(renderedTranslatedSql)
 }
 
-extractQuery<-function(query, description=""){
- sql <- dbplyr::sql_render(query)
- sql <- gsub("\"", "", sql)
- sql<- rbind(paste0("< SQL ",description ,">"),
-                    sql, " ")
- return(sql)
+extractQuery <- function(query, description = "") {
+  sql <- dbplyr::sql_render(query)
+  sql <- gsub("\"", "", sql)
+  sql <- rbind(
+    paste0("< SQL ", description, ">"),
+    sql, " "
+  )
+  return(sql)
 }

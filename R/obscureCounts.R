@@ -25,15 +25,15 @@
 #' @export
 #'
 #' @examples
-obscure_counts <- function(x,
+obscureCounts <- function(x,
                            minCellCount = 5,
                            substitute = NA) {
 
   ## check for standard types of user error
-  error_message <- checkmate::makeAssertCollection()
+  errorMessage <- checkmate::makeAssertCollection()
 
   checkmate::assert_tibble(x,
-    add = error_message
+    add = errorMessage
   )
   checkmate::assertTRUE(
     all(c("n_events", "ir_100000_pys", "ir_100000_pys_low",
@@ -46,13 +46,13 @@ obscure_counts <- function(x,
   )
 
   checkmate::assert_numeric(minCellCount,
-    add = error_message
+    add = errorMessage
   )
 
   checkmate::assertTRUE(is.numeric(substitute) || is.na(substitute))
 
   # report initial assertions
-  checkmate::reportAssertions(collection = error_message)
+  checkmate::reportAssertions(collection = errorMessage)
 
   # initialise result_obscurred as FALSE
   # will replace with true below if obscured

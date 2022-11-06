@@ -1,0 +1,65 @@
+test_that("sqlAddYears", {
+  cdm <- mockIncidencePrevalenceRef()
+  dialect <- "postgresql"
+
+  # add 10
+  sqlDuckdb <- sqlAddYears(
+    dialect = dialect,
+    yearsToAdd = 10,
+    variable = "observation_period_start_date"
+  )
+  obs <- cdm$observation_period %>%
+    dplyr::mutate(observation_period_start_date1 = as.Date(
+      sql(sqlDuckdb)
+    )) %>%
+    dplyr::select(
+      "observation_period_start_date",
+      "observation_period_start_date1"
+    )
+  expect_true(obs %>%
+    dplyr::collect() %>%
+    dplyr::mutate(
+      observation_period_start_date2 =
+        observation_period_start_date + lubridate::years(10)
+    ) %>%
+    dplyr::mutate(check = dplyr::if_else(
+      observation_period_start_date1 ==
+        observation_period_start_date2,
+      TRUE, FALSE
+    )) %>%
+    dplyr::select("check") %>%
+    dplyr::pull())
+
+  # add 0
+  sqlDuckdb <- sqlAddYears(
+    dialect = dialect,
+    yearsToAdd = 0,
+    variable = "observation_period_start_date"
+  )
+  obs <- cdm$observation_period %>%
+    dplyr::mutate(observation_period_start_date1 = as.Date(
+      sql(sqlDuckdb)
+    )) %>%
+    dplyr::select(
+      "observation_period_start_date",
+      "observation_period_start_date1"
+    )
+  expect_true(obs %>%
+    dplyr::collect() %>%
+    dplyr::mutate(check = dplyr::if_else(
+      observation_period_start_date ==
+        observation_period_start_date1,
+      TRUE, FALSE
+    )) %>%
+    dplyr::select("check") %>%
+    dplyr::pull())
+
+  # expect error if dialect is not supported
+
+  # expect error with decimal
+  expect_error(sqlAddYears(
+    dialect = dialect,
+    yearsToAdd = 10.5,
+    variable = "observation_period_start_date"
+  ))
+})
