@@ -83,13 +83,13 @@ head(cdm$outcome)
 ```
 
 To identify our denominator population we can use the
-`collectDenominatorPops` function. Here for example, we want to identify
-a denominator population for a study period between 2008 and 2018. To
+`collectDenominator` function. Here for example, we want to identify a
+denominator population for a study period between 2008 and 2018. To
 note, other options ave available when defining this population which
 are summarised in the package vignettes.
 
 ``` r
-dpop <- collectDenominatorPops(
+dpop <- collectDenominator(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2018-01-01")
@@ -135,10 +135,10 @@ Now we´ve added the denominator cohort to our cdm reference, we can go
 on and estimate incidence and prevalence.
 
 ``` r
-inc <- collectPopIncidence(
+inc <- computeIncidence(
   cdm = cdm,
   denominatorTable = "denominator",
-  outcomesTable = "outcome"
+  outcomeTable = "outcome"
 )
 head(inc$incidence_estimates)
 #> # A tibble: 6 × 13
@@ -157,10 +157,10 @@ head(inc$incidence_estimates)
 ```
 
 ``` r
-prev_point <- collectPopPrevalence(
+prev_point <- computePrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
-  outcomesTable = "outcome",
+  outcomeTable = "outcome",
   interval = "months",
   type = "point"
 )
@@ -180,10 +180,10 @@ head(prev_point$prevalence_estimates)
 ```
 
 ``` r
-prev_period <- collectPopPrevalence(
+prev_period <- computePrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
-  outcomesTable = "outcome",
+  outcomeTable = "outcome",
   interval = "months",
   type = "period"
 )

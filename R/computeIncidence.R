@@ -19,12 +19,12 @@
 #'
 #' @param cdm CDMConnector CDM reference
 #' @param denominatorTable Name of the table with the denominator cohorts
-#' @param outcomesTable Name of the table with the outcome cohorts.
+#' @param outcomeTable Name of the table with the outcome cohorts.
 #' Can be "days", "weeks", "months", "quarters", or "years".
-#' @param denominatorCohortIds Cohort ids of denominator populations
-#' @param outcomeCohortIds Outcome cohort ids
+#' @param denominatorId Cohort ids of denominator populations
+#' @param outcomeId Outcome cohort ids
 #' @param interval Time intervals for incidence estimates
-#' @param fullPeriodsRequired If full period is required
+#' @param fullPeriods If full period is required
 #' @param outcomeWashout Clean windows
 #' @param repeatedEvents Repeated events
 #' @param confidenceInterval Method for confidence intervals
@@ -36,26 +36,26 @@
 #' @export
 #'
 #' @examples
-collectPopIncidence <- function(cdm,
-                                denominatorTable,
-                                outcomesTable,
-                                denominatorCohortIds = NULL,
-                                outcomeCohortIds = NULL,
-                                interval = "months",
-                                fullPeriodsRequired = TRUE,
-                                outcomeWashout = 0,
-                                repeatedEvents = FALSE,
-                                confidenceInterval = "poisson",
-                                minCellCount = 5,
-                                verbose = FALSE) {
+computeIncidence <- function(cdm,
+                             denominatorTable,
+                             outcomeTable,
+                             denominatorId = NULL,
+                             outcomeId = NULL,
+                             interval = "months",
+                             fullPeriods = TRUE,
+                             outcomeWashout = 0,
+                             repeatedEvents = FALSE,
+                             confidenceInterval = "poisson",
+                             minCellCount = 5,
+                             verbose = FALSE) {
   # help to avoid formatting errors
-  if (!is.null(denominatorCohortIds) &&
-    is.numeric(denominatorCohortIds)) {
-    denominatorCohortIds <- as.character(denominatorCohortIds)
+  if (!is.null(denominatorId) &&
+    is.numeric(denominatorId)) {
+    denominatorId <- as.character(denominatorId)
   }
-  if (!is.null(outcomeCohortIds) &&
-    is.numeric(outcomeCohortIds)) {
-    outcomeCohortIds <- as.character(outcomeCohortIds)
+  if (!is.null(outcomeId) &&
+    is.numeric(outcomeId)) {
+    outcomeId <- as.character(outcomeId)
   }
   if (is.character(interval)) {
     interval <- tolower(interval)
@@ -92,20 +92,20 @@ collectPopIncidence <- function(cdm,
     names(cdm[[denominatorTable]] %>%
       utils::head(1) %>%
       dplyr::collect())))
-  checkmate::assert_character(denominatorCohortIds,
+  checkmate::assert_character(denominatorId,
     add = errorMessage,
     null.ok = TRUE
   )
-  outcomeCheck <- outcomesTable %in% names(cdm)
+  outcomeCheck <- outcomeTable %in% names(cdm)
   checkmate::assertTRUE(outcomeCheck,
     add = errorMessage
   )
   if (!isTRUE(outcomeCheck)) {
     errorMessage$push(
-      "- `outcomesTable` is not found in cdm"
+      "- `outcomeTable` is not found in cdm"
     )
   }
-  checkmate::assert_character(outcomeCohortIds,
+  checkmate::assert_character(outcomeId,
     add = errorMessage,
     null.ok = TRUE
   )
@@ -113,7 +113,7 @@ collectPopIncidence <- function(cdm,
     choices = c("days", "weeks", "months", "quarters", "years"),
     add = errorMessage
   )
-  checkmate::assert_logical(fullPeriodsRequired,
+  checkmate::assert_logical(fullPeriods,
     add = errorMessage
   )
   checkmate::assert_numeric(outcomeWashout,
@@ -136,15 +136,15 @@ collectPopIncidence <- function(cdm,
 
 
   # if not given, use all denominator and outcome cohorts
-  if (is.null(denominatorCohortIds)) {
-    denominatorCohortIds <- cdm[[denominatorTable]] %>%
+  if (is.null(denominatorId)) {
+    denominatorId <- cdm[[denominatorTable]] %>%
       dplyr::select("cohort_definition_id") %>%
       dplyr::distinct() %>%
       dplyr::collect() %>%
       dplyr::pull()
   }
-  if (is.null(outcomeCohortIds)) {
-    outcomeCohortIds <- cdm[[outcomesTable]] %>%
+  if (is.null(outcomeId)) {
+    outcomeId <- cdm[[outcomeTable]] %>%
       dplyr::select("cohort_definition_id") %>%
       dplyr::distinct() %>%
       dplyr::collect() %>%
@@ -165,7 +165,7 @@ collectPopIncidence <- function(cdm,
   }
   denomCountCheck <- cdm[[denominatorTable]] %>%
     dplyr::filter(.data$cohort_definition_id %in%
-      .env$denominatorCohortIds) %>%
+      .env$denominatorId) %>%
     dplyr::count() %>%
     dplyr::pull() > 0
   checkmate::assertTRUE(denomCountCheck,
@@ -173,11 +173,11 @@ collectPopIncidence <- function(cdm,
   )
   if (!isTRUE(denomCountCheck)) {
     errorMessage$push(
-  "- nobody found in `denominatorTable` with one of the `denominatorCohortIds`"
+ "- nobody found in `denominatorTable` with one of the `denominatorId`"
     )
   }
-  outcomeCountCheck <- cdm[[outcomesTable]] %>%
-    dplyr::filter(.data$cohort_definition_id %in% .env$outcomeCohortIds) %>%
+  outcomeCountCheck <- cdm[[outcomeTable]] %>%
+    dplyr::filter(.data$cohort_definition_id %in% .env$outcomeId) %>%
     dplyr::count() %>%
     dplyr::pull() > 0
   checkmate::assertTRUE(outcomeCountCheck,
@@ -185,7 +185,7 @@ collectPopIncidence <- function(cdm,
   )
   if (!isTRUE(outcomeCountCheck)) {
     errorMessage$push(
-      "- nobody found in `outcomesTable` with one of the `outcomeCohortIds`"
+      "- nobody found in `outcomeTable` with one of the `outcomeId`"
     )
   }
 
@@ -202,15 +202,15 @@ collectPopIncidence <- function(cdm,
 
 
   # get outcomes + cohort_start_date & cohort_end_date
-  outcome <- cdm[[outcomesTable]] %>%
-    dplyr::filter(.data$cohort_definition_id %in% .env$outcomeCohortIds) %>%
+  outcome <- cdm[[outcomeTable]] %>%
+    dplyr::filter(.data$cohort_definition_id %in% .env$outcomeId) %>%
     dplyr::rename("outcome_id" = "cohort_definition_id") %>%
     dplyr::rename("outcome_start_date" = "cohort_start_date") %>%
     dplyr::rename("outcome_end_date" = "cohort_end_date") %>%
     dplyr::inner_join(
       cdm[[denominatorTable]] %>%
         dplyr::filter(.data$cohort_definition_id %in%
-                        .env$denominatorCohortIds) %>%
+          .env$denominatorId) %>%
         dplyr::select(-"cohort_definition_id") %>%
         dplyr::distinct(),
       by = "subject_id"
@@ -221,11 +221,13 @@ collectPopIncidence <- function(cdm,
   outcome <- outcome %>%
     # most recent outcome starting before cohort start per person
     dplyr::filter(.data$outcome_start_date < .data$cohort_start_date) %>%
-    dplyr::group_by(.data$subject_id,
-                    .data$cohort_start_date,
-                    .data$outcome_id) %>%
+    dplyr::group_by(
+      .data$subject_id,
+      .data$cohort_start_date,
+      .data$outcome_id
+    ) %>%
     dplyr::filter(.data$outcome_start_date ==
-                    max(.data$outcome_start_date, na.rm = TRUE)) %>%
+      max(.data$outcome_start_date, na.rm = TRUE)) %>%
     dplyr::union_all(
       # all starting during cohort period
       outcome %>%
@@ -245,23 +247,26 @@ collectPopIncidence <- function(cdm,
     dplyr::ungroup() %>%
     dplyr::compute()
 
-  cdm[[outcomesTable]] <- outcome %>%
+  cdm[[outcomeTable]] <- outcome %>%
     dplyr::select(-"outcome_end_date") %>%
     dplyr::full_join(
       outcome %>%
         dplyr::mutate(index = .data$index + 1) %>%
         dplyr::rename("outcome_prev_end_date" = "outcome_end_date") %>%
         dplyr::select(-"outcome_start_date"),
-      by = c("subject_id", "cohort_start_date",
-             "cohort_end_date", "outcome_id", "index")) %>%
+      by = c(
+        "subject_id", "cohort_start_date",
+        "cohort_end_date", "outcome_id", "index"
+      )
+    ) %>%
     dplyr::select(-"index") %>%
     dplyr::compute()
 
   studySpecs <- tidyr::expand_grid(
-    outcome_cohort_ids = outcomeCohortIds,
-    denominator_cohort_ids = denominatorCohortIds,
+    outcome_id = outcomeId,
+    denominator_id = denominatorId,
     interval = interval,
-    full_periods_required = fullPeriodsRequired,
+    full_periods = fullPeriods,
     outcome_washout = outcomeWashout,
     repeated_events = repeatedEvents,
     confidence_interval = confidenceInterval,
@@ -285,11 +290,11 @@ collectPopIncidence <- function(cdm,
     workingInc <- getPopIncidence(
       cdm = cdm,
       denominatorTable = denominatorTable,
-      denominatorCohortIds = x$denominator_cohort_ids,
-      outcomesTable = outcomesTable,
-      outcomeCohortIds = x$outcome_cohort_ids,
+      denominatorId = x$denominator_id,
+      outcomeTable = outcomeTable,
+      outcomeId = x$outcome_id,
       interval = x$interval,
-      fullPeriodsRequired = x$full_periods_required,
+      fullPeriods = x$full_periods,
       outcomeWashout = x$outcome_washout,
       repeatedEvents = x$repeated_events,
       verbose = x$verbose
@@ -305,8 +310,8 @@ collectPopIncidence <- function(cdm,
 
     workingIncAnalysisSettings <- workingInc[["analysis_settings"]] %>%
       dplyr::mutate(
-        outcome_cohort_ids = x$outcome_cohort_ids,
-        denominator_cohort_ids = x$denominator_cohort_ids,
+        outcome_id = x$outcome_id,
+        denominator_id = x$denominator_id,
         interval = x$interval,
         outcome_washout = x$outcome_washout,
         repeated_events = x$repeated_events,

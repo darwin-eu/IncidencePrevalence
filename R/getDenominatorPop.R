@@ -25,7 +25,7 @@
 #' @param daysPriorHistory Days of prior history required to enter
 #' the study cohort.
 #' @param strataTable strataTable
-#' @param strataCohortId strataCohortId
+#' @param strataId strataId
 #' @param sample sample n
 #'
 #' @return
@@ -41,7 +41,7 @@ getDenominatorPop <- function(cdm,
                               maxAge,
                               daysPriorHistory,
                               strataTable,
-                              strataCohortId,
+                              strataId,
                               sample) {
   sqlQueries <- list()
 
@@ -73,7 +73,7 @@ getDenominatorPop <- function(cdm,
   # stratify population on cohort
   if (!is.null(strataTable)) {
     strataDb <- cdm[[strataTable]] %>%
-      dplyr::filter(.data$cohort_definition_id == .env$strataCohortId)
+      dplyr::filter(.data$cohort_definition_id == .env$strataId)
 
     # drop anyone not in the strata cohort
     personDb <- personDb %>%

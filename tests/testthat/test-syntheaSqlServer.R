@@ -29,7 +29,7 @@ test_that("test methods against test server", {
     cohort_tables = c("cohort")
   )
 
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     sample = 100
   )
@@ -78,16 +78,14 @@ test_that("test methods against test server", {
     dplyr::pull()) == "Date")
 
   ## Pop incidence
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
-    table_name_denominator = "denominator",
-    cohort_ids_denominator_pops = "1",
-    table_name_outcomes = "cohort",
-    cohort_ids_outcomes = "1",
-    outcome_washout_windows = 0,
-    repetitive_events = FALSE,
-    time_interval = c("months"),
-    confidence_interval = "none",
+    denominatorTable = "denominator",
+    outcomeTable = "cohort",
+    outcomeWashout = 0,
+    repetitiveEvents = FALSE,
+    interval = c("months"),
+    confidenceInterval = "none",
     verbose = TRUE
   )
 
@@ -130,13 +128,11 @@ test_that("test methods against test server", {
     names(inc[["incidence_estimates"]])))
 
   ## Pop prevalence
-  prev <- collectPopPrevalence(
+  prev <- computePrevalence(
     cdm = cdm,
-    table_name_denominator = "denominator",
-    cohort_ids_denominator_pops = "1",
-    table_name_outcomes = "cohort",
-    cohort_ids_outcomes = "1",
-    confidence_interval = "binomial"
+    denominatorTable = "denominator",
+    outcomeTable = "cohort",
+    confidenceInterval = "binomial"
   )
 
   expect_true(class(prev) == "list")

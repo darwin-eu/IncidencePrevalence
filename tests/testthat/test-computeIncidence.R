@@ -2,14 +2,14 @@
 test_that("mock db: check output format", {
   cdm <- mockIncidencePrevalenceRef()
 
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
 
   cdm$denominator <- dpop$denominator_populations
 
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     outcomeWashout = 0,
     repeatedEvents = FALSE,
     interval = c("months"),
@@ -32,9 +32,9 @@ test_that("mock db: check output format", {
     "outcome_washout",
     "repeated_events",
     "interval",
-    "full_periods_required",
-    "outcome_cohort_ids",
-    "denominator_cohort_ids",
+    "full_periods",
+    "outcome_id",
+    "denominator_id",
     "confidence_interval",
     "min_cell_count"
   ) %in%
@@ -94,14 +94,14 @@ test_that("mock db: checks on working example", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
 
   cdm$denominator <- dpop$denominator_populations
 
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     outcomeWashout = 0,
     repeatedEvents = FALSE,
     interval = c("months"),
@@ -147,71 +147,71 @@ test_that("mock db: check working example 2", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
   cdm$denominator <- dpop$denominator_populations
 
-  inc <- collectPopIncidence(cdm,
+  inc <- computeIncidence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     repeatedEvents = FALSE,
     outcomeWashout = 0,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
   expect_true(sum(inc[["incidence_estimates"]]$n_events) == 1)
 
-  inc <- collectPopIncidence(cdm,
+  inc <- computeIncidence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = 2,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
   expect_true(sum(inc[["incidence_estimates"]]$n_events) == 3)
 
-  inc <- collectPopIncidence(cdm,
+  inc <- computeIncidence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = 10,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
   expect_true(sum(inc[["incidence_estimates"]]$n_events) == 2)
 
   # even if repeatedEvents = TRUE,
   # if outcomeWashout=NULL (all of history)
   # then it won´t be possible to have any recurrent events
-  inc <- collectPopIncidence(cdm,
+  inc <- computeIncidence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = NULL,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
   expect_true(sum(inc[["incidence_estimates"]]$n_events) == 1)
 
-  inc <- collectPopIncidence(cdm,
+  inc <- computeIncidence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = NULL,
     minCellCount = 0,
     interval = "weeks",
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
   expect_true(sum(inc[["incidence_estimates"]]$n_events) == 1)
 
-  inc <- collectPopIncidence(cdm,
+  inc <- computeIncidence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = NULL,
     minCellCount = 0,
     interval = "days",
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
   expect_true(sum(inc[["incidence_estimates"]]$n_events) == 1)
 
@@ -253,16 +253,16 @@ test_that("mock db: check study periods", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
   cdm$denominator <- dpop$denominator_populations
 
-  inc <- collectPopIncidence(cdm,
+  inc <- computeIncidence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = "months",
     repeatedEvents = TRUE,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
 
   # we expect 12 months of which the last in december
@@ -271,16 +271,16 @@ test_that("mock db: check study periods", {
   expect_true(length(inc[["incidence_estimates"]]$time) == 12)
 
 
-  inc <- collectPopIncidence(cdm,
+  inc <- computeIncidence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = "months",
     repeatedEvents = TRUE,
     minCellCount = 0,
-    fullPeriodsRequired = TRUE
+    fullPeriods = TRUE
   )
 
-  # now with fullPeriodsRequired is TRUE
+  # now with fullPeriods is TRUE
   # we expect 10 months of which the last in november
   expect_true(length(inc[["incidence_estimates"]]$time) == 10)
 
@@ -317,21 +317,21 @@ test_that("mock db: check person days", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     ageStrata = list(c(20, 30))
   )
   cdm$denominator <- dpop$denominator_populations
 
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     repeatedEvents = FALSE,
     interval = c("Years"),
     verbose = TRUE,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
 
   # in 2019 we expect person 2 to contribute from 1st july to end of December
@@ -416,44 +416,44 @@ test_that("mock db: check periods follow calendar dates", {
   )
 
   # startDate during a year (with year as interval)
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     startDate = as.Date("2010-02-01")
   )
   cdm$denominator <- dpop$denominator_populations
 
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = 0,
     interval = c("Years"),
     verbose = TRUE,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
   expect_true(inc[["incidence_estimates"]]$n_events[1] == 1)
   expect_true(inc[["incidence_estimates"]]$n_events[2] == 3)
 
 
   # startDate during a month (with month as interval)
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     startDate = as.Date("2011-01-15")
   )
   cdm$denominator <- dpop$denominator_populations
 
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = 0,
     interval = c("months"),
     verbose = TRUE,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
   expect_true(inc[["incidence_estimates"]]$n_events[1] == 1)
   expect_true(inc[["incidence_estimates"]]$n_events[2] == 1)
@@ -502,12 +502,12 @@ test_that("mock db: check washout windows", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
   cdm$denominator <- dpop$denominator_populations
 
-  incW0 <- collectPopIncidence(cdm,
+  incW0 <- computeIncidence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = 0,
     minCellCount = 0
@@ -515,9 +515,9 @@ test_that("mock db: check washout windows", {
   # expect all events if we have zero days washout
   expect_true(sum(incW0[["incidence_estimates"]]$n_events) == 4)
 
-  incW1 <- collectPopIncidence(cdm,
+  incW1 <- computeIncidence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = 1,
     minCellCount = 0
@@ -525,9 +525,9 @@ test_that("mock db: check washout windows", {
   # expect three events if we have one days washout
   expect_true(sum(incW1[["incidence_estimates"]]$n_events) == 3)
 
-  incW2 <- collectPopIncidence(cdm,
+  incW2 <- computeIncidence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = 2,
     minCellCount = 0
@@ -535,9 +535,9 @@ test_that("mock db: check washout windows", {
   # expect two events if we have two days washout
   expect_true(sum(incW2[["incidence_estimates"]]$n_events) == 2)
 
-  incW365 <- collectPopIncidence(cdm,
+  incW365 <- computeIncidence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = 365,
     minCellCount = 0
@@ -545,9 +545,9 @@ test_that("mock db: check washout windows", {
   # expect one event if we have 365 days washout
   expect_true(sum(incW365[["incidence_estimates"]]$n_events) == 1)
 
-  incNull <- collectPopIncidence(cdm,
+  incNull <- computeIncidence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = NULL,
     minCellCount = 0
@@ -593,16 +593,16 @@ test_that("mock db: check events overlapping with start of a period", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     ageStrata = list(c(20, 30))
   )
   cdm$denominator <- dpop$denominator_populations
 
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     outcomeWashout = NULL,
     repeatedEvents = TRUE,
     interval = c("Years"),
@@ -641,16 +641,16 @@ test_that("mock db: check events overlapping with start of a period", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     ageStrata = list(c(20, 30))
   )
   cdm$denominator <- dpop$denominator_populations
 
-  inc2 <- collectPopIncidence(
+  inc2 <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     outcomeWashout = NULL,
     repeatedEvents = TRUE,
     interval = c("Years"),
@@ -697,24 +697,24 @@ test_that("mock db: compare results from months and years", {
     observationPeriodTable = observationPeriodTable,
     outcomeTable = outcomeTable
   )
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     startDate = as.Date("2010-01-01"),
     endDate = as.Date("2011-12-31")
   )
   cdm$denominator <- dpop$denominator_populations
 
-  incMonths <- collectPopIncidence(
+  incMonths <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = c("months"),
     minCellCount = 0
   )
-  incYears <- collectPopIncidence(
+  incYears <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = c("years"),
     minCellCount = 0
   )
@@ -765,30 +765,30 @@ test_that("mock db: check entry and event on same day", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
   cdm$denominator <- dpop$denominator_populations
 
-  incWithoutRep <- collectPopIncidence(
+  incWithoutRep <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     repeatedEvents = FALSE,
     outcomeWashout = NULL,
     interval = "years",
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
   expect_true(sum(incWithoutRep[["incidence_estimates"]]$n_events) == 1)
 
-  incWithRep <- collectPopIncidence(
+  incWithRep <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = NULL,
     interval = "years",
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
   expect_true(sum(incWithRep[["incidence_estimates"]]$n_events) == 1)
 
@@ -824,17 +824,17 @@ test_that("mock db: cohort start overlaps with the outcome", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     ageStrata = list(c(20, 30))
   )
   cdm$denominator <- dpop$denominator_populations
 
 
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     outcomeWashout = 180,
     repeatedEvents = TRUE,
     interval = c("Years"),
@@ -877,7 +877,7 @@ test_that("mock db: check outcome before observation period start", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     startDate = as.Date("2000-01-01"),
     endDate = as.Date("2004-01-01")
@@ -885,19 +885,19 @@ test_that("mock db: check outcome before observation period start", {
   cdm$denominator <- dpop$denominator_populations
 
   # with rep events - should have both people
-  incRep <- collectPopIncidence(
+  incRep <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     outcomeWashout = 0,
     repeatedEvents = TRUE,
     interval = c("Years"),
     minCellCount = 0
   )
-  incNoRep <- collectPopIncidence(
+  incNoRep <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     outcomeWashout = NULL,
     repeatedEvents = TRUE,
     interval = c("Years"),
@@ -937,7 +937,7 @@ test_that("mock db: check outcome before observation period start", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     startDate = as.Date("2000-01-01"),
     endDate = as.Date("2004-01-01")
@@ -945,19 +945,19 @@ test_that("mock db: check outcome before observation period start", {
   cdm$denominator <- dpop$denominator_populations
 
   # with rep events - should have one person for rep, both people in second
-  incRep <- collectPopIncidence(
+  incRep <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     outcomeWashout = 0,
     repeatedEvents = TRUE,
     interval = c("Years"),
     minCellCount = 0
   )
-  incNoRep <- collectPopIncidence(
+  incNoRep <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     outcomeWashout = NULL,
     repeatedEvents = TRUE,
     interval = c("Years"),
@@ -997,7 +997,7 @@ test_that("mock db: check outcome before observation period start", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     startDate = as.Date("2000-01-01"),
     endDate = as.Date("2004-01-01")
@@ -1005,19 +1005,19 @@ test_that("mock db: check outcome before observation period start", {
   cdm$denominator <- dpop$denominator_populations
 
   # with rep events - should have both people
-  incRep <- collectPopIncidence(
+  incRep <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     outcomeWashout = 0,
     repeatedEvents = TRUE,
     interval = c("Years"),
     minCellCount = 0
   )
-  incNoRep <- collectPopIncidence(
+  incNoRep <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     outcomeWashout = NULL,
     repeatedEvents = TRUE,
     interval = c("Years"),
@@ -1076,17 +1076,17 @@ test_that("mock db: check minimum counts", {
     observationPeriodTable = observationPeriodTable,
     outcomeTable = outcomeTable
   )
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
 
   cdm$denominator <- dpop$denominator_populations
 
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     repeatedEvents = FALSE,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
   expect_true(inc[["incidence_estimates"]]$n_persons[1] == 20)
   expect_true(inc[["incidence_estimates"]]$n_persons[2] == 3)
@@ -1103,13 +1103,13 @@ test_that("mock db: check minimum counts", {
   expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys_high[1]))
   expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys_high[2]))
 
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     repeatedEvents = FALSE,
     minCellCount = 5,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
   expect_true(inc[["incidence_estimates"]]$n_persons[1] == 20)
   expect_true(is.na(inc[["incidence_estimates"]]$n_persons[2]))
@@ -1159,13 +1159,13 @@ test_that("mock db: multiple overlapping outcomes", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
   cdm$denominator <- dpop$denominator_populations
 
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     outcomeWashout = 180,
     repeatedEvents = TRUE,
     interval = c("Years"),
@@ -1211,13 +1211,13 @@ test_that("mock db: multiple overlapping outcomes", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
   cdm$denominator <- dpop$denominator_populations
 
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     outcomeWashout = 180,
     repeatedEvents = TRUE,
     interval = c("Years"),
@@ -1259,7 +1259,7 @@ test_that("mock db: cohort before period start ending after period", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     startDate = as.Date(as.Date("2001-01-01")),
     endDate = as.Date(as.Date("2001-12-31"))
@@ -1271,10 +1271,10 @@ test_that("mock db: cohort before period start ending after period", {
   # person 1s outcome starts before period and ends after
 
   # no washout
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     outcomeWashout = 0,
     repeatedEvents = FALSE,
     interval = c("Years"),
@@ -1284,10 +1284,10 @@ test_that("mock db: cohort before period start ending after period", {
   expect_true(all(inc$incidence_estimates$n_events == c(1)))
 
   # washout
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     outcomeWashout = NULL,
     repeatedEvents = FALSE,
     interval = c("Years"),
@@ -1328,17 +1328,17 @@ test_that("mock db: check full period requirement - year", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     ageStrata = list(c(20, 30))
   )
   cdm$denominator <- dpop$denominator_populations
 
 
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     outcomeWashout = NULL,
     repeatedEvents = TRUE,
     interval = c("Years"),
@@ -1377,17 +1377,17 @@ test_that("mock db: check full period requirement - year", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     ageStrata = list(c(20, 30))
   )
   cdm$denominator <- dpop$denominator_populations
 
 
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     outcomeWashout = NULL,
     repeatedEvents = TRUE,
     interval = c("Years"),
@@ -1429,17 +1429,17 @@ test_that("mock db: check full period requirement - month", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     ageStrata = list(c(20, 30))
   )
   cdm$denominator <- dpop$denominator_populations
 
 
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     outcomeWashout = NULL,
     repeatedEvents = TRUE,
     interval = c("Months"),
@@ -1479,17 +1479,17 @@ test_that("mock db: check full period requirement - month", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     ageStrata = list(c(20, 30))
   )
   cdm$denominator <- dpop$denominator_populations
 
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
-    outcomeCohortIds = "1",
+    outcomeTable = "outcome",
+    outcomeId = "1",
     outcomeWashout = NULL,
     repeatedEvents = TRUE,
     interval = c("Months"),
@@ -1502,7 +1502,7 @@ test_that("mock db: check full period requirement - month", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
-test_that("mock db: check fullPeriodsRequired", {
+test_that("mock db: check fullPeriods", {
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
@@ -1531,7 +1531,7 @@ test_that("mock db: check fullPeriodsRequired", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm
   )
   cdm$denominator <- dpop$denominator_populations
@@ -1540,13 +1540,13 @@ test_that("mock db: check fullPeriodsRequired", {
   # repetitive events TRUE
   # - we expect to start in 2020 (both start during 2019)
   # - we expect to go up to 2021 (id 2 end date is in 2022)
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = c("Years"),
     repeatedEvents = TRUE,
-    fullPeriodsRequired = TRUE,
+    fullPeriods = TRUE,
     minCellCount = 0
   )
   expect_true(nrow(inc$incidence_estimates) == 2)
@@ -1554,13 +1554,13 @@ test_that("mock db: check fullPeriodsRequired", {
   expect_true(inc$incidence_estimates$time[2] == "2021")
   # repetitive events FALSE
   # - now we expect only to use 2020 (id 2 obs end is in 20)
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = c("Years"),
     repeatedEvents = FALSE,
-    fullPeriodsRequired = TRUE,
+    fullPeriods = TRUE,
     minCellCount = 0
   )
   expect_true(nrow(inc$incidence_estimates) == 1)
@@ -1570,13 +1570,13 @@ test_that("mock db: check fullPeriodsRequired", {
   # repetitive events TRUE
   # - we expect to start in 2019
   # - we expect to go up to 2022
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = c("Years"),
     repeatedEvents = TRUE,
-    fullPeriodsRequired = FALSE,
+    fullPeriods = FALSE,
     minCellCount = 0
   )
   expect_true(nrow(inc$incidence_estimates) == 4)
@@ -1585,13 +1585,13 @@ test_that("mock db: check fullPeriodsRequired", {
   expect_true(inc$incidence_estimates$time[3] == "2021")
   expect_true(inc$incidence_estimates$time[4] == "2022")
   # repetitive events FALSE
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = c("Years"),
     repeatedEvents = FALSE,
-    fullPeriodsRequired = FALSE,
+    fullPeriods = FALSE,
     minCellCount = 0
   )
   expect_true(nrow(inc$incidence_estimates) == 2)
@@ -1604,15 +1604,15 @@ test_that("mock db: check fullPeriodsRequired", {
 test_that("mock db: check conversion of user inputs", {
   cdm <- mockIncidencePrevalenceRef()
 
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
   cdm$denominator <- dpop$denominator_populations
 
-  inc <- collectPopIncidence(
+  inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    denominatorCohortIds = 1,
-    outcomesTable = "outcome",
-    outcomeCohortIds = 1,
+    denominatorId = 1,
+    outcomeTable = "outcome",
+    outcomeId = 1,
     outcomeWashout = NA
   )
   expect_true(nrow(inc[["incidence_estimates"]]) >= 1)
@@ -1698,10 +1698,10 @@ test_that("mock db: check with and without study start and end date", {
   )
 
   # no study period required
-  dpop1 <- collectDenominatorPops(cdm = cdm)
+  dpop1 <- collectDenominator(cdm = cdm)
   cdm$denominator1 <- dpop1$denominator_populations
   # study period
-  dpop2 <- collectDenominatorPops(
+  dpop2 <- collectDenominator(
     cdm = cdm,
     startDate = as.Date("2009-01-01"),
     endDate = as.Date("2011-01-01")
@@ -1709,23 +1709,23 @@ test_that("mock db: check with and without study start and end date", {
   cdm$denominator2 <- dpop2$denominator_populations
 
   # no washout, repetitive events
-  inc1A <- collectPopIncidence(cdm,
+  inc1A <- computeIncidence(cdm,
     denominatorTable = "denominator1",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = "years",
     repeatedEvents = TRUE,
     outcomeWashout = 0,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
-  inc2A <- collectPopIncidence(cdm,
+  inc2A <- computeIncidence(cdm,
     denominatorTable = "denominator2",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = "years",
     repeatedEvents = TRUE,
     outcomeWashout = 0,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
 
   # given the settings above we would expect the same results for 2010
@@ -1755,23 +1755,23 @@ test_that("mock db: check with and without study start and end date", {
       dplyr::pull())
 
   # 365 washout, repetitive events
-  inc1B <- collectPopIncidence(cdm,
+  inc1B <- computeIncidence(cdm,
     denominatorTable = "denominator1",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = "years",
     repeatedEvents = TRUE,
     outcomeWashout = 365,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
-  inc2B <- collectPopIncidence(cdm,
+  inc2B <- computeIncidence(cdm,
     denominatorTable = "denominator2",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = "years",
     repeatedEvents = TRUE,
     outcomeWashout = 365,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
   # given the settings above we would expect the same results for 2010
   expect_true(inc1B$incidence_estimates %>%
@@ -1815,10 +1815,10 @@ test_that("mock db: check study start and end date 10000", {
   )
 
   # no study period required
-  dpop1 <- collectDenominatorPops(cdm = cdm)
+  dpop1 <- collectDenominator(cdm = cdm)
   cdm$denominator1 <- dpop1$denominator_populations
   # study period
-  dpop2 <- collectDenominatorPops(
+  dpop2 <- collectDenominator(
     cdm = cdm,
     startDate = as.Date("2009-01-01"),
     endDate = as.Date("2011-01-01")
@@ -1826,23 +1826,23 @@ test_that("mock db: check study start and end date 10000", {
   cdm$denominator2 <- dpop2$denominator_populations
 
   # no washout, repetitive events
-  inc1A <- collectPopIncidence(cdm,
+  inc1A <- computeIncidence(cdm,
     denominatorTable = "denominator1",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = "years",
     repeatedEvents = TRUE,
     outcomeWashout = 0,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
-  inc2A <- collectPopIncidence(cdm,
+  inc2A <- computeIncidence(cdm,
     denominatorTable = "denominator2",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = "years",
     repeatedEvents = TRUE,
     outcomeWashout = 0,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
 
   expect_true(inc1A$incidence_estimates %>%
@@ -1879,23 +1879,23 @@ test_that("mock db: check study start and end date 10000", {
       dplyr::pull())
 
   # 365 washout, repetitive events
-  inc1B <- collectPopIncidence(cdm,
+  inc1B <- computeIncidence(cdm,
     denominatorTable = "denominator1",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = "years",
     repeatedEvents = TRUE,
     outcomeWashout = 365,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
-  inc2B <- collectPopIncidence(cdm,
+  inc2B <- computeIncidence(cdm,
     denominatorTable = "denominator2",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = "years",
     repeatedEvents = TRUE,
     outcomeWashout = 365,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
 
   expect_true(inc1B$incidence_estimates %>%
@@ -1945,10 +1945,10 @@ test_that("mock db: check study start and end date 10000", {
   )
 
   # no study period required
-  dpop1 <- collectDenominatorPops(cdm = cdm)
+  dpop1 <- collectDenominator(cdm = cdm)
   cdm$denominator1 <- dpop1$denominator_populations
   # study period
-  dpop2 <- collectDenominatorPops(
+  dpop2 <- collectDenominator(
     cdm = cdm,
     startDate = as.Date("2009-01-01"),
     endDate = as.Date("2011-01-01")
@@ -1956,23 +1956,23 @@ test_that("mock db: check study start and end date 10000", {
   cdm$denominator2 <- dpop2$denominator_populations
 
   # no washout, repetitive events
-  inc1A <- collectPopIncidence(cdm,
+  inc1A <- computeIncidence(cdm,
     denominatorTable = "denominator1",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = "years",
     repeatedEvents = TRUE,
     outcomeWashout = 0,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
-  inc2A <- collectPopIncidence(cdm,
+  inc2A <- computeIncidence(cdm,
     denominatorTable = "denominator2",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = "years",
     repeatedEvents = TRUE,
     outcomeWashout = 0,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
 
   expect_true(inc1A$incidence_estimates %>%
@@ -2009,23 +2009,23 @@ test_that("mock db: check study start and end date 10000", {
       dplyr::pull())
 
   # 365 washout, repetitive events
-  inc1B <- collectPopIncidence(cdm,
+  inc1B <- computeIncidence(cdm,
     denominatorTable = "denominator1",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = "years",
     repeatedEvents = TRUE,
     outcomeWashout = 365,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
-  inc2B <- collectPopIncidence(cdm,
+  inc2B <- computeIncidence(cdm,
     denominatorTable = "denominator2",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = "years",
     repeatedEvents = TRUE,
     outcomeWashout = 365,
     minCellCount = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
 
   expect_true(inc1B$incidence_estimates %>%
@@ -2095,14 +2095,14 @@ test_that("mock db: check messages when vebose is true", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
   cdm$denominator <- dpop$denominator_populations
 
-  expect_message(collectPopIncidence(cdm,
+  expect_message(computeIncidence(cdm,
     denominatorTable = "denominator",
-    denominatorCohortIds = "1",
-    outcomesTable = "outcome",
-    outcomeCohortIds = "1",
+    denominatorId = "1",
+    outcomeTable = "outcome",
+    outcomeId = "1",
     verbose = TRUE
   ))
 
@@ -2143,20 +2143,20 @@ test_that("expected errors with mock", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
   cdm$denominator <- dpop$denominator_populations
 
   # not a cdm reference
-  expect_error(collectPopIncidence(
+  expect_error(computeIncidence(
     cdm = "a",
     denominatorTable = "denominator",
-    denominatorCohortIds = "1",
-    outcomesTable = "outcome",
-    outcomeCohortIds = "1",
+    denominatorId = "1",
+    outcomeTable = "outcome",
+    outcomeId = "1",
   ))
 
   # no study pop
-  expect_error(collectPopIncidence(cdm,
+  expect_error(computeIncidence(cdm,
     table_name_outcome = "outcome",
     interval = c("months"),
     study_denominator_pop = dpop,
@@ -2164,33 +2164,33 @@ test_that("expected errors with mock", {
   ))
 
   # no denominator
-  expect_error(collectPopIncidence(cdm,
+  expect_error(computeIncidence(cdm,
     denominatorTable = "denominator",
-    denominatorCohortIds = "11",
-    outcomesTable = "outcome",
-    outcomeCohortIds = "1"
+    denominatorId = "11",
+    outcomeTable = "outcome",
+    outcomeId = "1"
   ))
 
   # no outcomes
-  expect_error(collectPopIncidence(cdm,
+  expect_error(computeIncidence(cdm,
     denominatorTable = "denominator",
-    denominatorCohortIds = "1",
-    outcomesTable = "outcome",
-    outcomeCohortIds = "11"
+    denominatorId = "1",
+    outcomeTable = "outcome",
+    outcomeId = "11"
   ))
 
 
 
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     startDate = as.Date("2019-06-01"),
     endDate = as.Date("2019-08-01")
   )
   cdm$denominator <- dpop$denominator_populations
 
-  expect_error(collectPopIncidence(cdm,
+  expect_error(computeIncidence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     interval = "Years"
   ))
 

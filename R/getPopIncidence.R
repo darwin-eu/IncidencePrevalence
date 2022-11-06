@@ -18,11 +18,11 @@
 #'
 #' @param cdm CDMConnector CDM reference object
 #' @param denominatorTable denominatorTable
-#' @param outcomesTable outcomesTable
-#' @param denominatorCohortIds denominatorCohortIds
-#' @param outcomeCohortIds outcomeCohortIds
+#' @param outcomeTable outcomeTable
+#' @param denominatorId denominatorId
+#' @param outcomeId outcomeId
 #' @param interval interval
-#' @param fullPeriodsRequired fullPeriodsRequired
+#' @param fullPeriods fullPeriods
 #' @param outcomeWashout outcomeWashout
 #' @param repeatedEvents repeatedEvents
 #' @param verbose verbose
@@ -33,11 +33,11 @@
 #' @examples
 getPopIncidence <- function(cdm,
                             denominatorTable,
-                            outcomesTable,
-                            denominatorCohortIds,
-                            outcomeCohortIds,
+                            outcomeTable,
+                            denominatorId,
+                            outcomeId,
                             interval,
-                            fullPeriodsRequired,
+                            fullPeriods,
                             outcomeWashout,
                             repeatedEvents,
                             verbose) {
@@ -51,13 +51,13 @@ getPopIncidence <- function(cdm,
   # bring in study population
   studyPop <- cdm[[denominatorTable]] %>%
     dplyr::filter(.data$cohort_definition_id ==
-      .env$denominatorCohortIds) %>%
+      .env$denominatorId) %>%
     dplyr::select(-"cohort_definition_id") %>%
     dplyr::compute()
 
   # keep outcomes of people in the denominator
-  outcome <- cdm[[outcomesTable]] %>%
-    dplyr::filter(.data$outcome_id == .env$outcomeCohortIds) %>%
+  outcome <- cdm[[outcomeTable]] %>%
+    dplyr::filter(.data$outcome_id == .env$outcomeId) %>%
     dplyr::select(-"outcome_id") %>%
     dplyr::inner_join(studyPop,
       by = c("subject_id", "cohort_start_date", "cohort_end_date")
@@ -75,11 +75,11 @@ getPopIncidence <- function(cdm,
   end <- max(dplyr::pull(studyPop, "cohort_end_date"), na.rm = TRUE)
 
   # study dates
-  studyDays <- computeStudyDays(
+  studyDays <- getStudyDays(
     startDate = start,
     endDate = end,
     timeInterval = interval,
-    fullPeriodsRequired = fullPeriodsRequired
+    fullPeriods = fullPeriods
   )
 
   if (nrow(studyDays) == 0) {
@@ -237,7 +237,7 @@ getPopIncidence <- function(cdm,
     outcome_washout = .env$outcomeWashout,
     repeated_events = .env$repeatedEvents,
     interval = .env$interval,
-    full_periods_required = .env$fullPeriodsRequired
+    full_periods = .env$fullPeriods
   )
 
   studyPop <- studyPop %>%

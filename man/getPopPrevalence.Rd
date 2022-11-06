@@ -7,12 +7,12 @@
 getPopPrevalence(
   cdm,
   denominatorTable,
-  denominatorCohortIds = NULL,
-  outcomesTable,
-  outcomeCohortIds = NULL,
+  denominatorId = NULL,
+  outcomeTable,
+  outcomeId = NULL,
   type = "point",
   interval = "months",
-  fullPeriodsRequired = TRUE,
+  fullPeriods = TRUE,
   point = "start",
   minContribution = 0.5,
   verbose = FALSE
@@ -23,17 +23,17 @@ getPopPrevalence(
 
 \item{denominatorTable}{denominatorTable}
 
-\item{denominatorCohortIds}{denominatorCohortIds}
+\item{denominatorId}{denominatorId}
 
-\item{outcomesTable}{outcomesTable}
+\item{outcomeTable}{outcomeTable}
 
-\item{outcomeCohortIds}{outcomeCohortIds}
+\item{outcomeId}{outcomeId}
 
 \item{type}{type}
 
 \item{interval}{interval}
 
-\item{fullPeriodsRequired}{full period requirement}
+\item{fullPeriods}{full period requirement}
 
 \item{point}{point where to compute prevalence inside interval}
 

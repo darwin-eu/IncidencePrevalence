@@ -2,15 +2,15 @@
 test_that("mock db: check output format", {
   cdm <- mockIncidencePrevalenceRef()
 
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
   cdm$denominator <- dpop$denominator_populations
 
-  prev <- collectPopPrevalence(
+  prev <- computePrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
-    denominatorCohortIds = "1",
-    outcomesTable = "outcome",
-    outcomeCohortIds = "1",
+    denominatorId = "1",
+    outcomeTable = "outcome",
+    outcomeId = "1",
     confidenceInterval = "binomial"
   )
 
@@ -30,9 +30,9 @@ test_that("mock db: check output format", {
     "point",
     "interval",
     "min_contribution",
-    "full_periods_required",
-    "outcome_cohort_ids",
-    "denominator_cohort_id",
+    "full_periods",
+    "outcome_id",
+    "denominator_id",
     "confidence_interval",
     "min_cell_count"
   ) %in%
@@ -90,15 +90,15 @@ test_that("mock db: checks on working example", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
   cdm$denominator <- dpop$denominator_populations
 
-  prev <- collectPopPrevalence(
+  prev <- computePrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
-    outcomeCohortIds = "1",
-    denominatorCohortIds = "1",
+    outcomeTable = "outcome",
+    outcomeId = "1",
+    denominatorId = "1",
     minCellCount = 0
   )
   expect_true(nrow(prev[["prevalence_estimates"]]) >= 1)
@@ -139,15 +139,15 @@ test_that("mock db: working examples 2", {
     observationPeriodTable = observationPeriodTable,
     outcomeTable = outcomeTable
   )
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     ageStrata = list(c(0, 100), c(0, 100))
   )
   cdm$denominator <- dpop$denominator_populations
 
-  prev <- collectPopPrevalence(cdm,
+  prev <- computePrevalence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
+    outcomeTable = "outcome",
     type = "point",
     interval = "months",
   )
@@ -212,15 +212,15 @@ test_that("mock db: check minimum counts", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
   cdm$denominator <- dpop$denominator_populations
 
-  prev <- collectPopPrevalence(
+  prev <- computePrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
-    outcomeCohortIds = "1",
-    denominatorCohortIds = "1",
+    outcomeTable = "outcome",
+    outcomeId = "1",
+    denominatorId = "1",
     minCellCount = 0,
     type = "period",
     interval = "months",
@@ -238,12 +238,12 @@ test_that("mock db: check minimum counts", {
   expect_true(!is.na(prev[["prevalence_estimates"]]$prev_low[1]))
   expect_true(!is.na(prev[["prevalence_estimates"]]$prev_high[1]))
 
-  prev <- collectPopPrevalence(
+  prev <- computePrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
-    outcomeCohortIds = "1",
-    denominatorCohortIds = "1",
+    outcomeTable = "outcome",
+    outcomeId = "1",
+    denominatorId = "1",
     minCellCount = 5,
     type = "period",
     interval = "months",
@@ -303,14 +303,14 @@ test_that("mock db: check study time periods", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
   cdm$denominator <- dpop$denominator_populations
 
-  prev <- collectPopPrevalence(cdm,
+  prev <- computePrevalence(cdm,
     denominatorTable = "denominator",
-    denominatorCohortIds = "1",
-    outcomesTable = "outcome",
-    outcomeCohortIds = "1",
+    denominatorId = "1",
+    outcomeTable = "outcome",
+    outcomeId = "1",
     type = "point",
     interval = "months",
     minContribution = 0.5,
@@ -364,74 +364,74 @@ test_that("mock db: check periods follow calendar dates", {
     outcomeTable = outcomeTable
   )
 
-  # if fullPeriodsRequired is TRUE we should go from 2010 to 2013
+  # if fullPeriods is TRUE we should go from 2010 to 2013
   # but if FALSE we should go from 2011 to 2012
   # for yearly incidence
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm
   )
   cdm$denominator <- dpop$denominator_populations
-  prev1 <- collectPopPrevalence(cdm,
+  prev1 <- computePrevalence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
-    outcomeCohortIds = "1",
-    denominatorCohortIds = "1",
+    outcomeTable = "outcome",
+    outcomeId = "1",
+    denominatorId = "1",
     type = "period",
     interval = "years",
     minCellCount = 0,
     minContribution = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
   expect_true(nrow(prev1$prevalence_estimates) == 4)
   expect_true(all(prev1$prevalence_estimates$time ==
                     c("2010", "2011", "2012", "2013")))
 
-  prev2 <- collectPopPrevalence(cdm,
+  prev2 <- computePrevalence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
-    outcomeCohortIds = "1",
-    denominatorCohortIds = "1",
+    outcomeTable = "outcome",
+    outcomeId = "1",
+    denominatorId = "1",
     type = "period",
     interval = "years",
     minCellCount = 0,
     minContribution = 0,
-    fullPeriodsRequired = TRUE
+    fullPeriods = TRUE
   )
   expect_true(nrow(prev2$prevalence_estimates) == 2)
   expect_true(all(prev2$time == c("2011", "2012")))
 
   # for months
-  dpop <- collectDenominatorPops(
+  dpop <- collectDenominator(
     cdm = cdm,
     startDate = as.Date("2011-01-15")
   )
   cdm$denominator <- dpop$denominator_populations
 
   # where we expect the study to start on 2011-01-15
-  prev <- collectPopPrevalence(cdm,
+  prev <- computePrevalence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
-    outcomeCohortIds = "1",
-    denominatorCohortIds = "1",
+    outcomeTable = "outcome",
+    outcomeId = "1",
+    denominatorId = "1",
     type = "period",
     interval = "months",
     minCellCount = 0,
     minContribution = 0,
-    fullPeriodsRequired = FALSE
+    fullPeriods = FALSE
   )
   expect_true(prev[["prevalence_estimates"]]$start_time[1] ==
                 as.Date("2011-01-15"))
   # where we expect the study to start the next month
-  prev <- collectPopPrevalence(cdm,
+  prev <- computePrevalence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
-    outcomeCohortIds = "1",
-    denominatorCohortIds = "1",
+    outcomeTable = "outcome",
+    outcomeId = "1",
+    denominatorId = "1",
     type = "period",
     interval = "months",
     minCellCount = 0,
     minContribution = 0,
-    fullPeriodsRequired = TRUE
+    fullPeriods = TRUE
   )
   expect_true(prev[["prevalence_estimates"]]$start_time[1] ==
     as.Date("2011-02-01"))
@@ -442,15 +442,15 @@ test_that("mock db: check periods follow calendar dates", {
 test_that("mock db: check conversion of user inputs", {
   cdm <- mockIncidencePrevalenceRef()
 
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
   cdm$denominator <- dpop$denominator_populations
 
-  prev <- collectPopPrevalence(
+  prev <- computePrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
-    outcomeCohortIds = 1,
-    denominatorCohortIds = 1,
+    outcomeTable = "outcome",
+    outcomeId = 1,
+    denominatorId = 1,
   )
   expect_true(nrow(prev[["prevalence_estimates"]]) >= 1)
 
@@ -472,23 +472,23 @@ test_that("mock db: check messages when vebose is true", {
 
   cdm <- mockIncidencePrevalenceRef(outcomeTable = outcomeTable)
 
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
   cdm$denominator <- dpop$denominator_populations
 
-  expect_message(collectPopPrevalence(cdm,
+  expect_message(computePrevalence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
-    outcomeCohortIds = "1",
-    denominatorCohortIds = "1",
+    outcomeTable = "outcome",
+    outcomeId = "1",
+    denominatorId = "1",
     type = "point",
     verbose = TRUE
   ))
 
-  expect_message(collectPopPrevalence(cdm,
+  expect_message(computePrevalence(cdm,
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
-    outcomeCohortIds = "1",
-    denominatorCohortIds = "1",
+    outcomeTable = "outcome",
+    outcomeId = "1",
+    denominatorId = "1",
     type = "period",
     verbose = TRUE
   ))
@@ -530,15 +530,15 @@ test_that("mock db: check expected errors", {
     outcomeTable = outcomeTable
   )
 
-  dpop <- collectDenominatorPops(cdm = cdm)
+  dpop <- collectDenominator(cdm = cdm)
   cdm$denominator <- dpop$denominator_populations
 
-  expect_error(collectPopPrevalence(
+  expect_error(computePrevalence(
     cdm = "a",
     denominatorTable = "denominator",
-    outcomesTable = "outcome",
-    outcomeCohortIds = 1,
-    denominatorCohortIds = 1
+    outcomeTable = "outcome",
+    outcomeId = 1,
+    denominatorId = 1
   ))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)

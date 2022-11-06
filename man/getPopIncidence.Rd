@@ -7,11 +7,11 @@
 getPopIncidence(
   cdm,
   denominatorTable,
-  outcomesTable,
-  denominatorCohortIds,
-  outcomeCohortIds,
+  outcomeTable,
+  denominatorId,
+  outcomeId,
   interval,
-  fullPeriodsRequired,
+  fullPeriods,
   outcomeWashout,
   repeatedEvents,
   verbose
@@ -22,15 +22,15 @@ getPopIncidence(
 
 \item{denominatorTable}{denominatorTable}
 
-\item{outcomesTable}{outcomesTable}
+\item{outcomeTable}{outcomeTable}
 
-\item{denominatorCohortIds}{denominatorCohortIds}
+\item{denominatorId}{denominatorId}
 
-\item{outcomeCohortIds}{outcomeCohortIds}
+\item{outcomeId}{outcomeId}
 
 \item{interval}{interval}
 
-\item{fullPeriodsRequired}{fullPeriodsRequired}
+\item{fullPeriods}{fullPeriods}
 
 \item{outcomeWashout}{outcomeWashout}
 

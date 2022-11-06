@@ -12,7 +12,7 @@ getDenominatorPop(
   maxAge,
   daysPriorHistory,
   strataTable,
-  strataCohortId,
+  strataId,
   sample
 )
 }
@@ -32,7 +32,7 @@ the study cohort.}
 
 \item{strataTable}{strataTable}
 
-\item{strataCohortId}{strataCohortId}
+\item{strataId}{strataId}
 
 \item{sample}{sample n}
 }

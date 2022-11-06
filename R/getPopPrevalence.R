@@ -18,12 +18,12 @@
 #'
 #' @param cdm CDMConnector CDM reference object
 #' @param denominatorTable denominatorTable
-#' @param denominatorCohortIds denominatorCohortIds
-#' @param outcomesTable outcomesTable
-#' @param outcomeCohortIds outcomeCohortIds
+#' @param denominatorId denominatorId
+#' @param outcomeTable outcomeTable
+#' @param outcomeId outcomeId
 #' @param type type
 #' @param interval interval
-#' @param fullPeriodsRequired full period requirement
+#' @param fullPeriods full period requirement
 #' @param point point where to compute prevalence inside interval
 #' @param minContribution minContribution
 #' @param verbose verbose
@@ -34,28 +34,28 @@
 #' @examples
 getPopPrevalence <- function(cdm,
                              denominatorTable,
-                             denominatorCohortIds = NULL,
-                             outcomesTable,
-                             outcomeCohortIds = NULL,
+                             denominatorId = NULL,
+                             outcomeTable,
+                             outcomeId = NULL,
                              type = "point",
                              interval = "months",
-                             fullPeriodsRequired = TRUE,
+                             fullPeriods = TRUE,
                              point = "start",
                              minContribution = 0.5,
                              verbose = FALSE) {
   ## Analysis code
   # bring in study population
   studyPopDb <- cdm[[denominatorTable]]
-  if (!is.null(denominatorCohortIds)) {
+  if (!is.null(denominatorId)) {
     studyPopDb <- studyPopDb %>%
       dplyr::filter(.data$cohort_definition_id ==
-        .env$denominatorCohortIds)
+        .env$denominatorId)
   }
 
-  outcomeDb <- cdm[[outcomesTable]]
-  if (!is.null(outcomeCohortIds)) {
+  outcomeDb <- cdm[[outcomeTable]]
+  if (!is.null(outcomeId)) {
     outcomeDb <- outcomeDb %>%
-      dplyr::filter(.data$cohort_definition_id == .env$outcomeCohortIds) %>%
+      dplyr::filter(.data$cohort_definition_id == .env$outcomeId) %>%
       dplyr::compute()
   }
 
@@ -90,11 +90,11 @@ getPopPrevalence <- function(cdm,
   # end date
   end <- max(studyPop$cohort_end_date)
   # compute studyDays as a function of inputs
-  studyDays <- computeStudyDays(
+  studyDays <- getStudyDays(
     startDate = start,
     endDate = end,
     timeInterval = interval,
-    fullPeriodsRequired = fullPeriodsRequired,
+    fullPeriods = fullPeriods,
     type = type,
     point = point
   )
@@ -196,7 +196,7 @@ getPopPrevalence <- function(cdm,
     point = .env$point,
     interval = .env$interval,
     min_contribution = .env$minContribution,
-    full_periods_required = .env$fullPeriodsRequired
+    full_periods_required = .env$fullPeriods
   )
 
   studyPop <- studyPop %>%

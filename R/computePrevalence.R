@@ -19,13 +19,13 @@
 #'
 #' @param cdm CDMConnector CDM reference object
 #' @param denominatorTable denominatorTable
-#' @param outcomesTable Name of the table with the outcome cohorts
-#' @param denominatorCohortIds Cohort ids of denominator populations
-#' @param outcomeCohortIds Outcome cohort ids
+#' @param outcomeTable Name of the table with the outcome cohorts
+#' @param denominatorId Cohort ids of denominator populations
+#' @param outcomeId Outcome cohort ids
 #' @param type type of prevalence, point or period
 #' @param points where to compute the point prevalence
 #' @param interval Time intervals for prevalence estimates
-#' @param fullPeriodsRequired If full period is required
+#' @param fullPeriods If full period is required
 #' @param minContribution Minimum proportions that
 #' individuals must have to contribute
 #' @param confidenceInterval Method for confidence intervals
@@ -37,27 +37,27 @@
 #' @export
 #'
 #' @examples
-collectPopPrevalence <- function(cdm,
+computePrevalence <- function(cdm,
                                  denominatorTable,
-                                 outcomesTable,
-                                 denominatorCohortIds = NULL,
-                                 outcomeCohortIds = NULL,
+                                 outcomeTable,
+                                 denominatorId = NULL,
+                                 outcomeId = NULL,
                                  type = "point",
                                  interval = "months",
-                                 fullPeriodsRequired = TRUE,
+                                 fullPeriods = TRUE,
                                  points = "start",
                                  minContribution = 0.5,
                                  confidenceInterval = "binomial",
                                  minCellCount = 5,
                                  verbose = FALSE) {
   # help to avoid formatting errors
-  if (!is.null(denominatorCohortIds) &&
-    is.numeric(denominatorCohortIds)) {
-    denominatorCohortIds <- as.character(denominatorCohortIds)
+  if (!is.null(denominatorId) &&
+    is.numeric(denominatorId)) {
+    denominatorId <- as.character(denominatorId)
   }
-  if (!is.null(outcomeCohortIds) &&
-    is.numeric(outcomeCohortIds)) {
-    outcomeCohortIds <- as.character(outcomeCohortIds)
+  if (!is.null(outcomeId) &&
+    is.numeric(outcomeId)) {
+    outcomeId <- as.character(outcomeId)
   }
   if (is.character(type)) {
     type <- tolower(type)
@@ -83,7 +83,7 @@ collectPopPrevalence <- function(cdm,
       "- cdm must be a CDMConnector CDM reference object"
     )
   }
-  checkmate::assert_character(outcomeCohortIds,
+  checkmate::assert_character(outcomeId,
     add = errorMessage,
     null.ok = TRUE
   )
@@ -96,20 +96,20 @@ collectPopPrevalence <- function(cdm,
       "- `denominatorTable` is not found in cdm"
     )
   }
-  checkmate::assert_character(denominatorCohortIds,
+  checkmate::assert_character(denominatorId,
     add = errorMessage,
     null.ok = TRUE
   )
-  outcomeCheck <- outcomesTable %in% names(cdm)
+  outcomeCheck <- outcomeTable %in% names(cdm)
   checkmate::assertTRUE(outcomeCheck,
     add = errorMessage
   )
   if (!isTRUE(outcomeCheck)) {
     errorMessage$push(
-      "- `outcomesTable` is not found in cdm"
+      "- `outcomeTable` is not found in cdm"
     )
   }
-  checkmate::assert_character(outcomeCohortIds,
+  checkmate::assert_character(outcomeId,
     add = errorMessage,
     null.ok = TRUE
   )
@@ -137,7 +137,7 @@ collectPopPrevalence <- function(cdm,
   checkmate::assert_logical(verbose,
     add = errorMessage
   )
-  checkmate::assert_logical(fullPeriodsRequired,
+  checkmate::assert_logical(fullPeriods,
     add = errorMessage
   )
   checkmate::assert_choice(confidenceInterval,
@@ -150,15 +150,15 @@ collectPopPrevalence <- function(cdm,
 
 
   # if not given, use all denominator and outcome cohorts
-  if (is.null(denominatorCohortIds)) {
-    denominatorCohortIds <- cdm[[denominatorTable]] %>%
+  if (is.null(denominatorId)) {
+    denominatorId <- cdm[[denominatorTable]] %>%
       dplyr::select("cohort_definition_id") %>%
       dplyr::distinct() %>%
       dplyr::collect() %>%
       dplyr::pull()
   }
-  if (is.null(outcomeCohortIds)) {
-    outcomeCohortIds <- cdm[[outcomesTable]] %>%
+  if (is.null(outcomeId)) {
+    outcomeId <- cdm[[outcomeTable]] %>%
       dplyr::select("cohort_definition_id") %>%
       dplyr::distinct() %>%
       dplyr::collect() %>%
@@ -167,8 +167,8 @@ collectPopPrevalence <- function(cdm,
 
 
   studySpecs <- tidyr::expand_grid(
-    outcomeCohortIds = outcomeCohortIds,
-    denominatorCohortIds = denominatorCohortIds,
+    outcomeId = outcomeId,
+    denominatorId = denominatorId,
     interval = interval,
     point = points,
     minContribution = minContribution,
@@ -188,12 +188,12 @@ collectPopPrevalence <- function(cdm,
     workingPrev <- getPopPrevalence(
       cdm = cdm,
       denominatorTable = denominatorTable,
-      denominatorCohortIds = x$denominatorCohortIds,
-      outcomesTable = outcomesTable,
-      outcomeCohortIds = x$outcomeCohortIds,
+      denominatorId = x$denominatorId,
+      outcomeTable = outcomeTable,
+      outcomeId = x$outcomeId,
       type = type,
       interval = x$interval,
-      fullPeriodsRequired = fullPeriodsRequired,
+      fullPeriods = fullPeriods,
       point = x$point,
       minContribution = x$minContribution,
       verbose = x$verbose
@@ -205,11 +205,11 @@ collectPopPrevalence <- function(cdm,
 
     workingPrevAnalysisSettings <- workingPrev[["analysis_settings"]] %>%
       dplyr::mutate(
-        outcome_cohort_ids = x$outcomeCohortIds,
-        denominator_cohort_id = x$denominatorCohortIds,
+        outcome_id = x$outcomeId,
+        denominator_id = x$denominatorId,
         type = type,
         interval = x$interval,
-        full_periods_required = fullPeriodsRequired,
+        full_periods = fullPeriods,
         point = x$point,
         min_contribution = x$minContribution,
         confidence_interval = confidenceInterval,

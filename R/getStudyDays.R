@@ -19,15 +19,15 @@
 #' @param startDate start date of the study
 #' @param endDate end date of the study
 #' @param timeInterval interval to compute
-#' @param fullPeriodsRequired whether full periods are required
+#' @param fullPeriods whether full periods are required
 #' @param type point or period, default value is period
 #' @param point point of computation in case type = point
 #'
 #' @noRd
-computeStudyDays <- function(startDate,
+getStudyDays <- function(startDate,
                              endDate,
                              timeInterval,
-                             fullPeriodsRequired,
+                             fullPeriods,
                              type = "period",
                              point = NULL) {
   if (timeInterval == "weeks") {
@@ -138,7 +138,7 @@ computeStudyDays <- function(startDate,
         end_time = max(.data$dates, na.rm = TRUE)
       ) %>%
       dplyr::ungroup()
-    if (fullPeriodsRequired) {
+    if (fullPeriods) {
       studyDays <- studyDays %>%
         dplyr::filter(.data$start_time ==
                         lubridate::floor_date(.data$start_time,

@@ -17,7 +17,7 @@
 
 #' Identify a set of denominator populations
 #'
-#' `collectDenominatorPops()` creates a set of denominator cohorts
+#' `collectDenominator()` creates a set of denominator cohorts
 #'
 #' @param cdm CDMConnector CDM reference object
 #' @param startDate Date indicating the start of the study
@@ -33,7 +33,7 @@
 #' @param daysPriorHistory Days of prior history required to enter
 #' the study cohort.
 #' @param strataTable strataTable
-#' @param strataCohortId strataCohortId
+#' @param strataId strata cohort definition id
 #' @param sample sample n
 #' @param verbose Either TRUE or FALSE.
 #' If TRUE, progress will be reported.
@@ -49,23 +49,23 @@
 #'   con = db,
 #'   cdm_schema = "cdm schema name"
 #' )
-#' dpop <- collectDenominatorPops(
+#' dpop <- collectDenominator(
 #'   cdm = cdm,
 #'   startDate = as.Date("2008-01-01"),
 #'   endDate = as.Date("2018-01-01")
 #' )
 #' }
 
-collectDenominatorPops <- function(cdm,
-                                   startDate = NULL,
-                                   endDate = NULL,
-                                   ageStrata = list(c(0, 150)),
-                                   sexStrata = "Both",
-                                   daysPriorHistory = 0,
-                                   strataTable = NULL,
-                                   strataCohortId = NULL,
-                                   sample = NULL,
-                                   verbose = FALSE) {
+collectDenominator <- function(cdm,
+                               startDate = NULL,
+                               endDate = NULL,
+                               ageStrata = list(c(0, 150)),
+                               sexStrata = "Both",
+                               daysPriorHistory = 0,
+                               strataTable = NULL,
+                               strataId = NULL,
+                               sample = NULL,
+                               verbose = FALSE) {
   if (verbose == TRUE) {
     startCollect <- Sys.time()
     message("Progress: Checking inputs")
@@ -258,7 +258,7 @@ collectDenominatorPops <- function(cdm,
     maxAge = unique(popSpecs$max_age),
     daysPriorHistory = unique(popSpecs$days_prior_history),
     strataTable = strataTable,
-    strataCohortId = strataCohortId,
+    strataId = strataId,
     sample = sample
   )
   if (verbose == TRUE) {
