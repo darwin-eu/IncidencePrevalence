@@ -38,9 +38,9 @@ test_that("test methods against test server", {
   expect_true(all(c(
     "age_strata", "min_age", "max_age",
     "sex_strata",
-    "study_start_date",
-    "study_end_date",
-    "study_days_prior_history",
+    "start_date",
+    "end_date",
+    "days_prior_history",
     "cohort_definition_id"
   ) %in%
     names(dpop$denominator_settings)))
@@ -83,7 +83,7 @@ test_that("test methods against test server", {
     denominatorTable = "denominator",
     outcomeTable = "cohort",
     outcomeWashout = 0,
-    repetitiveEvents = FALSE,
+    repeatedEvents = FALSE,
     interval = c("months"),
     confidenceInterval = "none",
     verbose = TRUE
@@ -101,13 +101,13 @@ test_that("test methods against test server", {
   # check analysis settings tibble
   expect_true(all(c(
     "incidence_analysis_id",
-    "cohort_id_outcome",
-    "cohort_id_denominator_pop",
-    "outcome_washout_window",
-    "repetitive_events",
-    "time_interval",
+    "outcome_id",
+    "denominator_id",
+    "outcome_washout",
+    "repeated_events",
+    "interval",
     "confidence_interval",
-    "minimum_cell_count"
+    "min_cell_count"
   ) %in%
     names(inc[["analysis_settings"]])))
 
@@ -149,13 +149,13 @@ test_that("test methods against test server", {
     "prevalence_analysis_id",
     "type",
     "point",
-    "time_interval",
-    "minimum_representative_proportion",
+    "interval",
+    "min_contribution",
     "full_periods_required",
-    "cohort_id_outcome",
-    "cohort_id_denominator_pop",
+    "outcome_id",
+    "denominator_id",
     "confidence_interval",
-    "minimum_cell_count"
+    "min_cell_count"
   ) %in%
     names(prev[["analysis_settings"]])))
 
