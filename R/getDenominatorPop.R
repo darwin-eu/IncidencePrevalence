@@ -244,6 +244,11 @@ getDenominatorPop <- function(cdm,
     dplyr::filter(.data$lower_age_check <= .env$endDate) %>%
     dplyr::select(!c("lower_age_check", "upper_age_check"))
 
+  sqlQueries[["drop_on_age_and_obs_date"]] <- studyPopDb %>%
+    extractQuery(description = "drop_on_age_from_year_of_birth")
+  studyPopDb <- studyPopDb %>%
+    dplyr::compute()
+
   attrition <- recordAttrition(
     table = studyPopDb,
     id = "person_id",
@@ -258,7 +263,7 @@ getDenominatorPop <- function(cdm,
     dplyr::filter(.data$observation_period_end_date >= .env$startDate)
 
   sqlQueries[["drop_on_age_and_obs_date"]] <- studyPopDb %>%
-    extractQuery(description = "drop_on_age_and_obs_date")
+    extractQuery(description = "drop_on_obs_date")
   studyPopDb <- studyPopDb %>%
     dplyr::compute()
 
@@ -276,14 +281,14 @@ getDenominatorPop <- function(cdm,
     # for each min age, add the date at which they reach it
     for (i in seq_along(minAge)) {
       workingMin <- minAge[[i]]
-      variableName <- glue::glue("dateMinAge{workingMin}")
+      variableName <- glue::glue("date_min_age{workingMin}")
       sqlYearAdd <- sqlAddYears(
         dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
         yearsToAdd = workingMin,
         variable = "dob"
       )
       studyPopDb <- studyPopDb %>%
-        dplyr::mutate("dateMinAge{{workingMin}}" :=
+        dplyr::mutate("date_min_age{{workingMin}}" :=
           as.Date(dplyr::sql(sqlYearAdd)))
 
       if (i %% 10 == 0) {
@@ -304,7 +309,7 @@ getDenominatorPop <- function(cdm,
     for (i in seq_along(maxAge)) {
       workingMax <- maxAge[[i]]
       workingMaxPlusOne <- maxAge[[i]] + 1
-      variableName <- glue::glue("dateMaxAge{workingMax}")
+      variableName <- glue::glue("date_max_age{workingMax}")
       sqlYearAdd <- sqlAddYears(
         dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
         yearsToAdd = workingMaxPlusOne,
@@ -317,9 +322,9 @@ getDenominatorPop <- function(cdm,
       )
 
       studyPopDb <- studyPopDb %>%
-        dplyr::mutate("dateMaxAge{{workingMax}}" :=
-          dplyr::sql(sqlYearAdd)) %>%
-        dplyr::mutate("dateMaxAge{{workingMax}}" :=
+        dplyr::mutate("date_max_age{{workingMax}}" :=
+          as.Date(dplyr::sql(sqlYearAdd))) %>%
+        dplyr::mutate("date_max_age{{workingMax}}" :=
           as.Date(dbplyr::sql(sqlMinusDay)))
 
       if (i %% 10 == 0) {
@@ -338,7 +343,7 @@ getDenominatorPop <- function(cdm,
     for (i in seq_along(daysPriorHistory)) {
       workingDaysPriorHistory <- daysPriorHistory[[i]]
       variableName <-
-        glue::glue("dateWithPriorHistory{workingDaysPriorHistory}")
+        glue::glue("date_with_prior_history{workingDaysPriorHistory}")
       sqlAddDay <- sqlAddDays(
         dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
         daysToAdd = workingDaysPriorHistory,
@@ -347,7 +352,7 @@ getDenominatorPop <- function(cdm,
 
       studyPopDb <- studyPopDb %>%
         dplyr::mutate(
-          "dateWithPriorHistory{{workingDaysPriorHistory}}" :=
+          "date_with_prior_history{{workingDaysPriorHistory}}" :=
             as.Date(dplyr::sql(sqlAddDay))
         )
 
@@ -366,8 +371,8 @@ getDenominatorPop <- function(cdm,
 
     # keep people only if they satisfy
     # satisfy age criteria at some point in the study
-    varLowerAgeLimit <- glue::glue("dateMinAge{lowerAgeLimit}")
-    varUpperAgeLimit <- glue::glue("dateMaxAge{upperAgeLimit}")
+    varLowerAgeLimit <- glue::glue("date_min_age{lowerAgeLimit}")
+    varUpperAgeLimit <- glue::glue("date_max_age{upperAgeLimit}")
     studyPopDb <- studyPopDb %>%
       dplyr::filter(.data[[!!rlang::sym(varLowerAgeLimit)]] <=
         .env$endDate) %>%
@@ -383,7 +388,7 @@ getDenominatorPop <- function(cdm,
 
     # priory history criteria at some point in the study
     varLowerPriorHistory <-
-      glue::glue("dateWithPriorHistory{min(daysPriorHistory)}")
+      glue::glue("date_with_prior_history{min(daysPriorHistory)}")
     studyPopDb <- studyPopDb %>%
       dplyr::filter(.data[[!!rlang::sym(varLowerPriorHistory)]] <=
         .env$endDate) %>%
@@ -411,19 +416,19 @@ getDenominatorPop <- function(cdm,
         workingMin <- minAge[[i]]
         workingHistory <- daysPriorHistory[[j]]
         studyPopDb <- studyPopDb %>%
-        dplyr::mutate("lastOfMinAge{workingMin}PriorHistory{workingHistory}" :=
-            dplyr::if_else(!!rlang::sym(glue::glue("dateMinAge{workingMin}")) <
-              !!rlang::sym(glue::glue("dateWithPriorHistory{workingHistory}")),
-            !!rlang::sym(glue::glue("dateWithPriorHistory{workingHistory}")),
-            !!rlang::sym(glue::glue("dateMinAge{workingMin}"))
+        dplyr::mutate("last_of_min_age{workingMin}prior_history{workingHistory}" :=
+            dplyr::if_else(!!rlang::sym(glue::glue("date_min_age{workingMin}")) <
+              !!rlang::sym(glue::glue("date_with_prior_history{workingHistory}")),
+            !!rlang::sym(glue::glue("date_with_prior_history{workingHistory}")),
+            !!rlang::sym(glue::glue("date_min_age{workingMin}"))
             )) %>%
-          dplyr::mutate("dateMinAge{workingMin}PriorHistory{workingHistory}" :=
+          dplyr::mutate("date_min_age{workingMin}prior_history{workingHistory}" :=
             dplyr::if_else(!!rlang::sym(glue::glue(
-                "lastOfMinAge{workingMin}PriorHistory{workingHistory}")) <
+                "last_of_min_age{workingMin}prior_history{workingHistory}")) <
                              .env$startDate,
               .env$startDate,
               !!rlang::sym(
-            glue::glue("lastOfMinAge{workingMin}PriorHistory{workingHistory}"))
+            glue::glue("last_of_min_age{workingMin}prior_history{workingHistory}"))
             ))
         if (j %% 5 == 0) {
           sqlQueries[[paste0("getting_cohort_start_ph_", j)]] <- studyPopDb %>%
@@ -450,19 +455,19 @@ getDenominatorPop <- function(cdm,
     for (i in seq_along(maxAge)) {
       workingMax <- maxAge[[i]]
       studyPopDb <- studyPopDb %>%
-        dplyr::mutate("firstOfMaxAge{workingMax}ObsPeriod" :=
+        dplyr::mutate("first_of_max_age{workingMax}ObsPeriod" :=
           dplyr::if_else(!!rlang::sym(
-            glue::glue("dateMaxAge{workingMax}")) <
+            glue::glue("date_max_age{workingMax}")) <
             .data$observation_period_end_date,
-          !!rlang::sym(glue::glue("dateMaxAge{workingMax}")),
+          !!rlang::sym(glue::glue("date_max_age{workingMax}")),
           .data$observation_period_end_date
           )) %>%
-        dplyr::mutate("dateMaxAge{workingMax}" :=
+        dplyr::mutate("date_max_age{workingMax}" :=
           dplyr::if_else(!!rlang::sym(
-            glue::glue("firstOfMaxAge{workingMax}ObsPeriod"))
+            glue::glue("first_of_max_age{workingMax}ObsPeriod"))
                          < .env$endDate,
             !!rlang::sym(
-              glue::glue("firstOfMaxAge{workingMax}ObsPeriod")),
+              glue::glue("first_of_max_age{workingMax}ObsPeriod")),
             .env$endDate
           ))
       if (i %% 5 == 0) {

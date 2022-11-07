@@ -316,14 +316,14 @@ collectDenominator <- function(cdm,
       workingDpop <- workingDpop %>%
         dplyr::rename(
           "cohort_start_date" =
-            glue::glue("dateMinAge{popSpecs$min_age[[i]]}PriorHistory{popSpecs$days_prior_history[[i]]}")
+            glue::glue("date_min_age{popSpecs$min_age[[i]]}prior_history{popSpecs$days_prior_history[[i]]}")
         )
       # cohort end
       workingDpop <- workingDpop %>%
         dplyr::rename(
           cohort_end_date =
             glue::glue(
-              "dateMaxAge{popSpecs$max_age[[i]]}"
+              "date_max_age{popSpecs$max_age[[i]]}"
             )
         )
 
