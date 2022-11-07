@@ -41,6 +41,9 @@ getPopIncidence <- function(cdm,
                             outcomeWashout,
                             repeatedEvents,
                             verbose) {
+  if (verbose == TRUE) {
+    message("-- Getting incidence")
+  }
   if (!is.null(outcomeWashout)) {
     if (is.na(outcomeWashout)) {
       outcomeWashout <- NULL
@@ -64,17 +67,13 @@ getPopIncidence <- function(cdm,
     ) %>%
     dplyr::compute()
 
-  # bring outcomes into memory
-  if (verbose == TRUE) {
-    message("Bringing outcomes into memory")
-  }
-
-  # start date
-  start <- min(dplyr::pull(studyPop, "cohort_start_date"), na.rm = TRUE)
-  # end date to the last day of last available full period
-  end <- max(dplyr::pull(studyPop, "cohort_end_date"), na.rm = TRUE)
-
   # study dates
+  start <- studyPop %>%
+    dplyr::summarise(min=min(.data$cohort_start_date, na.rm=TRUE)) %>%
+    dplyr::pull()
+  end <- studyPop %>%
+    dplyr::summarise(max=max(.data$cohort_end_date, na.rm=TRUE)) %>%
+    dplyr::pull()
   studyDays <- getStudyDays(
     startDate = start,
     endDate = end,
@@ -125,6 +124,7 @@ getPopIncidence <- function(cdm,
         .data$outcome_prev_end_date
       )) %>%
       dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
+
     if (repeatedEvents == FALSE) {
       outcome <- outcome %>%
         dplyr::group_by(.data$subject_id) %>%
@@ -134,6 +134,7 @@ getPopIncidence <- function(cdm,
         dplyr::ungroup()
     }
   }
+  studyPop <- studyPop %>% dplyr::compute()
 
   studyPop <- studyPop %>%
     dplyr::union_all(outcome %>%
@@ -185,12 +186,6 @@ getPopIncidence <- function(cdm,
       # compute working days and
       # erase outcome_start_date if not
       # inside interval
-      sqlAddDdayToEnd <- sqlAddDays(
-        dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
-        daysToAdd = 1,
-        variable = "tEnd"
-      )
-
       workingPop <- workingPop %>%
         dplyr::mutate(workingDays = as.numeric(difftime(
           .data$tEnd +

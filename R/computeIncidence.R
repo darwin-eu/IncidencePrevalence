@@ -48,6 +48,11 @@ computeIncidence <- function(cdm,
                              confidenceInterval = "poisson",
                              minCellCount = 5,
                              verbose = FALSE) {
+
+  if (verbose == TRUE) {
+    startCollect <- Sys.time()
+    message("Progress: Checking inputs")
+  }
   # help to avoid formatting errors
   if (!is.null(denominatorId) &&
     is.numeric(denominatorId)) {
@@ -63,7 +68,6 @@ computeIncidence <- function(cdm,
   if (is.character(confidenceInterval)) {
     confidenceInterval <- tolower(confidenceInterval)
   }
-
 
   ## check for standard types of user error
   errorMessage <- checkmate::makeAssertCollection()
@@ -134,7 +138,6 @@ computeIncidence <- function(cdm,
   )
   checkmate::reportAssertions(collection = errorMessage)
 
-
   # if not given, use all denominator and outcome cohorts
   if (is.null(denominatorId)) {
     denominatorId <- cdm[[denominatorTable]] %>%
@@ -153,16 +156,6 @@ computeIncidence <- function(cdm,
 
   # further checks that there are the required data elements
   errorMessage <- checkmate::makeAssertCollection()
-  dateCheck <- nrow(cdm[[denominatorTable]] %>%
-    dplyr::select("cohort_start_date", "cohort_end_date") %>%
-    dplyr::filter(.data$cohort_start_date > .data$cohort_end_date) %>%
-    dplyr::collect()) == 0
-  checkmate::assertTRUE(dateCheck)
-  if (!isTRUE(dateCheck)) {
-    errorMessage$push(
-      "- some end dates before start dates in denominator"
-    )
-  }
   denomCountCheck <- cdm[[denominatorTable]] %>%
     dplyr::filter(.data$cohort_definition_id %in%
       .env$denominatorId) %>%
@@ -188,20 +181,20 @@ computeIncidence <- function(cdm,
       "- nobody found in `outcomeTable` with one of the `outcomeId`"
     )
   }
-
-  missingCheck <- nrow(cdm[[denominatorTable]] %>%
-    dplyr::filter(is.na(.data$cohort_definition_id) | is.na(.data$subject_id) |
-      is.na(.data$cohort_start_date) | is.na(.data$cohort_end_date)) %>%
-    dplyr::collect()) == 0
-  if (!isTRUE(missingCheck)) {
-    errorMessage$push(
-      "- there is missing data in `denominatorTable`"
-    )
-  }
   checkmate::reportAssertions(collection = errorMessage)
-
+  if (verbose == TRUE) {
+    message("Progress: All input checks passed")
+    duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
+    message(glue::glue(
+   "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+    ))
+  }
 
   # get outcomes + cohort_start_date & cohort_end_date
+  if (verbose == TRUE) {
+    message("Progress: limit to relevant outcomes")
+    start <- Sys.time()
+  }
   outcome <- cdm[[outcomeTable]] %>%
     dplyr::filter(.data$cohort_definition_id %in% .env$outcomeId) %>%
     dplyr::rename("outcome_id" = "cohort_definition_id") %>%
@@ -217,7 +210,6 @@ computeIncidence <- function(cdm,
     ) %>%
     dplyr::compute()
 
-  # get only the outcomes that will affect the incidence calculation
   outcome <- outcome %>%
     # most recent outcome starting before cohort start per person
     dplyr::filter(.data$outcome_start_date < .data$cohort_start_date) %>%
@@ -261,7 +253,18 @@ computeIncidence <- function(cdm,
     ) %>%
     dplyr::select(-"index") %>%
     dplyr::compute()
+  if (verbose == TRUE) {
+    message("Progress: Limited to relevant outcomes")
+    duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
+    message(glue::glue(
+   "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+    ))
+  }
 
+  if (verbose == TRUE) {
+    message("Progress: Get incidence for subgroups")
+    start <- Sys.time()
+  }
   studySpecs <- tidyr::expand_grid(
     outcome_id = outcomeId,
     denominator_id = denominatorId,
@@ -272,14 +275,11 @@ computeIncidence <- function(cdm,
     confidence_interval = confidenceInterval,
     verbose = verbose
   )
-
   if (is.null(outcomeWashout)) {
     studySpecs$outcome_washout <- NA
   }
-
   studySpecs <- studySpecs %>%
     dplyr::mutate(incidence_analysis_id = as.character(dplyr::row_number()))
-
   studySpecs <- split(
     studySpecs,
     studySpecs[, c("incidence_analysis_id")]
@@ -334,8 +334,18 @@ computeIncidence <- function(cdm,
 
     return(result)
   })
+  if (verbose == TRUE) {
+    message("Progress: Incidence fetched for subgroups")
+    duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
+    message(glue::glue(
+   "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+    ))
+  }
 
-
+  if (verbose == TRUE) {
+    message("Progress: Combining results")
+    start <- Sys.time()
+  }
   irsList <- purrr::flatten(irsList)
 
   # analysis settings
@@ -387,6 +397,20 @@ computeIncidence <- function(cdm,
   results[["analysis_settings"]] <- analysisSettings
   results[["person_table"]] <- personTable
   results[["attrition"]] <- attrition
+  if (verbose == TRUE) {
+    message("Progress: All incidence results computed")
+    duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
+    message(glue::glue(
+  "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+    ))
+  }
 
+
+  if (verbose == TRUE) {
+    duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
+    message(glue::glue(
+"Overall time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+    ))
+  }
   return(results)
 }
