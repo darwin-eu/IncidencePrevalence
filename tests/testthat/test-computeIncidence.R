@@ -510,6 +510,7 @@ test_that("mock db: check washout windows", {
     outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = 0,
+    fullPeriods = FALSE,
     minCellCount = 0
   )
   # expect all events if we have zero days washout
@@ -520,6 +521,7 @@ test_that("mock db: check washout windows", {
     outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = 1,
+    fullPeriods = FALSE,
     minCellCount = 0
   )
   # expect three events if we have one days washout
@@ -530,6 +532,7 @@ test_that("mock db: check washout windows", {
     outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = 2,
+    fullPeriods = FALSE,
     minCellCount = 0
   )
   # expect two events if we have two days washout
@@ -540,6 +543,7 @@ test_that("mock db: check washout windows", {
     outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = 365,
+    fullPeriods = FALSE,
     minCellCount = 0
   )
   # expect one event if we have 365 days washout
@@ -550,6 +554,7 @@ test_that("mock db: check washout windows", {
     outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = NULL,
+    fullPeriods = FALSE,
     minCellCount = 0
   )
   # expect one event if we have NULL (all history washout)
@@ -1279,6 +1284,7 @@ test_that("mock db: cohort before period start ending after period", {
     repeatedEvents = FALSE,
     interval = c("Years"),
     verbose = TRUE,
+    fullPeriods = FALSE,
     minCellCount = 0
   )
   expect_true(all(inc$incidence_estimates$n_events == c(1)))
@@ -1292,6 +1298,7 @@ test_that("mock db: cohort before period start ending after period", {
     repeatedEvents = FALSE,
     interval = c("Years"),
     verbose = TRUE,
+    fullPeriods = FALSE,
     minCellCount = 0
   )
   expect_true(all(inc$incidence_estimates$n_events == c(1)))
@@ -1516,7 +1523,7 @@ test_that("mock db: check fullPeriods", {
     observation_period_start_date = c(as.Date("2019-05-09"),
                                       as.Date("2019-02-02")),
     observation_period_end_date = c(as.Date("2022-06-01"),
-                                    as.Date("2020-06-06"))
+                                    as.Date("2021-06-06"))
   )
   outcomeTable <- tibble::tibble(
     cohort_definition_id = c("1"),
@@ -1553,7 +1560,7 @@ test_that("mock db: check fullPeriods", {
   expect_true(inc$incidence_estimates$time[1] == "2020")
   expect_true(inc$incidence_estimates$time[2] == "2021")
   # repetitive events FALSE
-  # - now we expect only to use 2020 (id 2 obs end is in 20)
+  # - now we expect only to use 2020 (id 2 obs end is in 21)
   inc <- computeIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
@@ -1594,9 +1601,62 @@ test_that("mock db: check fullPeriods", {
     fullPeriods = FALSE,
     minCellCount = 0
   )
-  expect_true(nrow(inc$incidence_estimates) == 2)
+  expect_true(nrow(inc$incidence_estimates) == 3)
   expect_true(inc$incidence_estimates$time[1] == "2019")
   expect_true(inc$incidence_estimates$time[2] == "2020")
+  expect_true(inc$incidence_estimates$time[3] == "2021")
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
+test_that("mock db: check insufficient study days", {
+  personTable <- tibble::tibble(
+    person_id = c("1", "2"),
+    gender_concept_id = c("8507", "8532"),
+    year_of_birth = c(1995, 1995),
+    month_of_birth = c(07, 07),
+    day_of_birth = c(01, 01)
+  )
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id = c("1", "2"),
+    person_id = c("1", "2"),
+    observation_period_start_date = c(as.Date("2019-05-09"),
+                                      as.Date("2019-02-02")),
+    observation_period_end_date = c(as.Date("2019-06-01"),
+                                    as.Date("2019-06-06"))
+  )
+  outcomeTable <- tibble::tibble(
+    cohort_definition_id = c("1"),
+    subject_id = c("1"),
+    cohort_start_date = c(as.Date("2019-06-06")),
+    cohort_end_date = c(as.Date("2019-06-06"))
+  )
+
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    outcomeTable = outcomeTable
+  )
+
+  dpop <- collectDenominator(
+    cdm = cdm
+  )
+  cdm$denominator <- dpop$denominator_populations
+
+  # we have less than a year of follow up
+  # so we should return an empty tibble if full periods are required
+  # and we´re looking for yearly incidence
+  inc <- computeIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = c("Years"),
+    repeatedEvents = TRUE,
+    fullPeriods = TRUE,
+    minCellCount = 0
+  )
+
+  expect_true(nrow(inc$incidence_estimates) == 0)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -2179,69 +2239,8 @@ test_that("expected errors with mock", {
     outcomeId = "11"
   ))
 
-
-
-  dpop <- collectDenominator(
-    cdm = cdm,
-    startDate = as.Date("2019-06-01"),
-    endDate = as.Date("2019-08-01")
-  )
-  cdm$denominator <- dpop$denominator_populations
-
-  expect_error(computeIncidence(cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "Years"
-  ))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
-
-  personTable <- tibble::tibble(
-    person_id = "1",
-    gender_concept_id = "8507",
-    year_of_birth = 2000,
-    month_of_birth = 01,
-    day_of_birth = 01
-  )
-  observationPeriodTable <- tibble::tibble(
-    observation_period_id = "1",
-    person_id = "1",
-    observation_period_start_date = as.Date("2012-01-01"),
-    observation_period_end_date = as.Date("2012-06-01")
-  )
-  outcomeTable <- tibble::tibble(
-    cohort_definition_id = "1",
-    subject_id = "1",
-    cohort_start_date = c(
-      as.Date("2012-06-01")
-    ),
-    cohort_end_date = c(
-      as.Date("2012-06-01")
-    )
-  )
-
-  cdm <- mockIncidencePrevalenceRef(
-    personTable = personTable,
-    observationPeriodTable = observationPeriodTable,
-    outcomeTable = outcomeTable
-  )
-
-  dpop <- collectDenominator(cdm = cdm)
-
-  cdm$denominator <- dpop$denominator_populations
-
-  expect_error(computeIncidence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    outcomeWashout = 0,
-    repeatedEvents = FALSE,
-    interval = c("years"),
-    verbose = TRUE
-  ))
-
-
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 

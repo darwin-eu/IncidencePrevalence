@@ -51,48 +51,37 @@ getPopIncidence <- function(cdm,
   }
 
   ## Analysis code
-  # bring in study population
+  # people in the relevant denominator
   studyPop <- cdm[[denominatorTable]] %>%
     dplyr::filter(.data$cohort_definition_id ==
       .env$denominatorId) %>%
-    dplyr::select(-"cohort_definition_id") %>%
-    dplyr::compute()
+    dplyr::select(-"cohort_definition_id")
 
-  # keep outcomes of people in the denominator
+  # outcomes of people in the denominator
   outcome <- cdm[[outcomeTable]] %>%
     dplyr::filter(.data$outcome_id == .env$outcomeId) %>%
     dplyr::select(-"outcome_id") %>%
     dplyr::inner_join(studyPop,
       by = c("subject_id", "cohort_start_date", "cohort_end_date")
-    ) %>%
-    dplyr::compute()
+    )
 
-  # study dates
-  start <- studyPop %>%
-    dplyr::summarise(min=min(.data$cohort_start_date, na.rm=TRUE)) %>%
-    dplyr::pull()
-  end <- studyPop %>%
-    dplyr::summarise(max=max(.data$cohort_end_date, na.rm=TRUE)) %>%
-    dplyr::pull()
-  studyDays <- getStudyDays(
-    startDate = start,
-    endDate = end,
-    timeInterval = interval,
-    fullPeriods = fullPeriods
-  )
-
-  if (nrow(studyDays) == 0) {
-    stop("Not enough time observed to compute the desired incidence")
-  }
-
+  # bring into memory
+  outcome <- outcome %>%
+    dplyr::collect()
   studyPop <- studyPop %>%
+    dplyr::collect()
+
+  # participants without an outcome
+  studyPopNoOutcome <- studyPop %>%
     dplyr::anti_join(
       outcome,
       by = c("subject_id", "cohort_start_date", "cohort_end_date")
     ) %>%
     dplyr::mutate(outcome_start_date = as.Date(NA))
 
-  outcome <- outcome %>%
+  # if outcome starts before cohort end date
+  # update cohort_end_date
+  studyPopOutcome <- outcome %>%
     dplyr::mutate(cohort_end_date = dplyr::if_else(
       !is.na(.data$outcome_start_date) &
         .data$outcome_start_date < .data$cohort_end_date,
@@ -101,21 +90,17 @@ getPopIncidence <- function(cdm,
     ))
 
   if (is.null(outcomeWashout)) {
-    outcome <- outcome %>%
+    # exclude anyone with a previous outcome
+    studyPopOutcome <- studyPopOutcome %>%
       dplyr::filter(is.na(.data$outcome_prev_end_date)) %>%
       dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
   } else {
-    sqlAddDaysWashout <- sqlAddDays(
-      dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
-      daysToAdd = 1 + outcomeWashout,
-      variable = "outcome_prev_end_date"
-    )
-
-    outcome <- outcome %>%
+    # otherwise add the washout to the previous outcome
+    studyPopOutcome <- studyPopOutcome %>%
       dplyr::mutate(outcome_prev_end_date = dplyr::if_else(
         is.na(.data$outcome_prev_end_date),
         .data$outcome_prev_end_date,
-        as.Date(dbplyr::sql(sqlAddDaysWashout))
+        .data$outcome_prev_end_date + lubridate::days(.env$outcomeWashout + 1)
       )) %>%
       dplyr::mutate(cohort_start_date = dplyr::if_else(
         is.na(.data$outcome_prev_end_date) |
@@ -124,9 +109,10 @@ getPopIncidence <- function(cdm,
         .data$outcome_prev_end_date
       )) %>%
       dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
-
     if (repeatedEvents == FALSE) {
-      outcome <- outcome %>%
+      # limit to first outcome in follow up if
+      # not allowing at repeated outcomes
+      studyPopOutcome <- studyPopOutcome %>%
         dplyr::group_by(.data$subject_id) %>%
         dplyr::filter(is.na(.data$outcome_prev_end_date) |
           .data$outcome_start_date ==
@@ -134,19 +120,45 @@ getPopIncidence <- function(cdm,
         dplyr::ungroup()
     }
   }
-  studyPop <- studyPop %>% dplyr::compute()
 
-  studyPop <- studyPop %>%
-    dplyr::union_all(outcome %>%
-      dplyr::select(-"outcome_prev_end_date") %>%
-      dplyr::mutate(cohort_end_date = dplyr::if_else(
-        !is.na(.data$outcome_start_date),
-        .data$outcome_start_date,
-        .data$cohort_end_date
-      ))) %>%
-    dplyr::collect()
+  # match format of studyPop
+  studyPopOutcome <- studyPopOutcome %>%
+    dplyr::select(-"outcome_prev_end_date") %>%
+    dplyr::mutate(cohort_end_date = dplyr::if_else(
+      !is.na(.data$outcome_start_date),
+      .data$outcome_start_date,
+      .data$cohort_end_date
+    ))
 
-  # fetch incidence rates
+  # combine those without an outcome back with those with an outcome
+  # this is now our study population to get the incidence rates for
+  studyPop <- studyPopNoOutcome %>%
+    dplyr::union_all(studyPopOutcome)
+
+
+  # study dates
+  # based on the earliest start and latest end of those
+  # in the relevant denominator
+  start_end <- studyPop %>%
+    dplyr::summarise(
+      min = min(.data$cohort_start_date, na.rm = TRUE),
+      max = max(.data$cohort_end_date, na.rm = TRUE)
+    )
+
+  studyDays <- getStudyDays(
+    startDate = start_end$min,
+    endDate = start_end$max,
+    timeInterval = interval,
+    fullPeriods = fullPeriods
+  )
+
+  if (nrow(studyDays) == 0) {
+    # if no study days we´ll return an empty tibble
+    ir <- tibble::tibble()
+  }
+
+  if (nrow(studyDays) > 0) {
+  # otherwise fetch incidence rates
   # looping through each time interval
   ir <- list()
   for (i in seq_len(nrow(studyDays))) {
@@ -154,8 +166,7 @@ getPopIncidence <- function(cdm,
     workingStartTime <- studyDays$start_time[i]
     workingEndTime <- studyDays$end_time[i]
 
-    # drop people with end_date prior to workingStartTime
-    # drop people with start_date after workingEndTime
+    # people who can contribute to the period
     workingPop <- studyPop %>%
       dplyr::filter(.data$cohort_end_date >= .env$workingStartTime) %>%
       dplyr::filter(.data$cohort_start_date <= .env$workingEndTime)
@@ -183,26 +194,20 @@ getPopIncidence <- function(cdm,
       workingPop <- workingPop %>%
         dplyr::select("subject_id", "tStart", "tEnd", "outcome_start_date")
 
-      # compute working days and
-      # erase outcome_start_date if not
-      # inside interval
+      # compute working days
       workingPop <- workingPop %>%
         dplyr::mutate(workingDays = as.numeric(difftime(
           .data$tEnd +
             lubridate::days(1),
           .data$tStart,
           units = "days"
-        ))) %>%
+        )))
+
+      # erase outcome_start_date if not during period
+      workingPop <- workingPop %>%
         dplyr::mutate(outcome_start_date = dplyr::if_else(
-          .data$outcome_start_date <=
-            .data$tEnd,
-          .data$outcome_start_date,
-          as.Date(NA),
-          .data$outcome_start_date
-        )) %>%
-        dplyr::mutate(outcome_start_date = dplyr::if_else(
-          .data$outcome_start_date >=
-            .data$tStart,
+          .data$outcome_start_date <= .data$tEnd &
+          .data$outcome_start_date >= .data$tStart,
           .data$outcome_start_date,
           as.Date(NA),
           .data$outcome_start_date
@@ -226,6 +231,8 @@ getPopIncidence <- function(cdm,
   }
 
   ir <- dplyr::bind_rows(ir)
+
+  }
 
   # study design related variables
   analysisSettings <- tibble::tibble(
