@@ -15,6 +15,9 @@ computeIncidence(
   outcomeWashout = 0,
   repeatedEvents = FALSE,
   confidenceInterval = "poisson",
+  returnAnalysisSettings = TRUE,
+  returnAttrition = TRUE,
+  returnPopulation = TRUE,
   minCellCount = 5,
   verbose = FALSE
 )
@@ -40,6 +43,12 @@ Can be "days", "weeks", "months", "quarters", or "years".}
 \item{repeatedEvents}{Repeated events}
 
 \item{confidenceInterval}{Method for confidence intervals}
+
+\item{returnAnalysisSettings}{Whether to return analysis settings}
+
+\item{returnAttrition}{Whether to return attrition}
+
+\item{returnPopulation}{Whether to return population}
 
 \item{minCellCount}{Minimum number of events to report- results
 lower than this will be obscured. If NULL all results will be reported.}
