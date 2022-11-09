@@ -239,6 +239,7 @@ computeIncidence <- function(cdm,
     dplyr::ungroup() %>%
     dplyr::compute()
 
+  # add to cdm_reference
   cdm[[outcomeTable]] <- outcome %>%
     dplyr::select(-"outcome_end_date") %>%
     dplyr::full_join(
@@ -272,8 +273,7 @@ computeIncidence <- function(cdm,
     full_periods = fullPeriods,
     outcome_washout = outcomeWashout,
     repeated_events = repeatedEvents,
-    confidence_interval = confidenceInterval,
-    verbose = verbose
+    confidence_interval = confidenceInterval
   )
   if (is.null(outcomeWashout)) {
     studySpecs$outcome_washout <- NA
@@ -297,7 +297,7 @@ computeIncidence <- function(cdm,
       fullPeriods = x$full_periods,
       outcomeWashout = x$outcome_washout,
       repeatedEvents = x$repeated_events,
-      verbose = x$verbose
+      verbose = verbose
     )
 
     workingIncIr <- workingInc[["ir"]] %>%
@@ -363,6 +363,7 @@ computeIncidence <- function(cdm,
   )
 
   # get confidence intervals
+  if (nrow(irs) > 0) {
   irs <- getCiIncidence(irs, confidenceInterval) %>%
     dplyr::relocate("ir_100000_pys_low", .after = "ir_100000_pys") %>%
     dplyr::relocate("ir_100000_pys_high", .after = "ir_100000_pys_low")
@@ -375,6 +376,7 @@ computeIncidence <- function(cdm,
     irs <- irs %>%
       dplyr::mutate(cohort_obscured = "FALSE") %>%
       dplyr::mutate(result_obscured = "FALSE")
+  }
   }
 
   # person_table summary
