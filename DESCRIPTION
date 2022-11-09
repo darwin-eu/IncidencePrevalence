@@ -28,7 +28,7 @@ Imports:
     purrr,
     tidyr,
     CDMConnector,
-    SqlRender
+    SqlRender (>= 1.10.0)
 Suggests: 
     knitr,
     rmarkdown,

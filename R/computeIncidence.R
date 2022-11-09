@@ -28,6 +28,9 @@
 #' @param outcomeWashout Clean windows
 #' @param repeatedEvents Repeated events
 #' @param confidenceInterval Method for confidence intervals
+#' @param returnAnalysisSettings Whether to return analysis settings
+#' @param returnAttrition Whether to return attrition
+#' @param returnPopulation Whether to return population
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
 #' @param verbose Whether to report progress
@@ -46,6 +49,9 @@ computeIncidence <- function(cdm,
                              outcomeWashout = 0,
                              repeatedEvents = FALSE,
                              confidenceInterval = "poisson",
+                             returnAnalysisSettings=TRUE,
+                             returnAttrition = TRUE,
+                             returnPopulation = TRUE,
                              minCellCount = 5,
                              verbose = FALSE) {
 
@@ -287,7 +293,7 @@ computeIncidence <- function(cdm,
 
   # get irs
   irsList <- lapply(studySpecs, function(x) {
-    workingInc <- getPopIncidence(
+    workingInc <- getIncidence(
       cdm = cdm,
       denominatorTable = denominatorTable,
       denominatorId = x$denominator_id,
@@ -297,17 +303,21 @@ computeIncidence <- function(cdm,
       fullPeriods = x$full_periods,
       outcomeWashout = x$outcome_washout,
       repeatedEvents = x$repeated_events,
+      returnAnalysisSettings = returnAnalysisSettings,
+      returnAttrition = returnAttrition,
+      returnPopulation = returnPopulation,
       verbose = verbose
     )
 
     workingIncIr <- workingInc[["ir"]] %>%
       dplyr::mutate(incidence_analysis_id = x$incidence_analysis_id) %>%
       dplyr::relocate("incidence_analysis_id")
-
+    if(returnPopulation==TRUE){
     workingIncPersonTable <- workingInc[["person_table"]] %>%
       dplyr::mutate(incidence_analysis_id = x$incidence_analysis_id) %>%
       dplyr::relocate("incidence_analysis_id")
-
+    }
+    if(returnAnalysisSettings==TRUE){
     workingIncAnalysisSettings <- workingInc[["analysis_settings"]] %>%
       dplyr::mutate(
         outcome_id = x$outcome_id,
@@ -320,17 +330,23 @@ computeIncidence <- function(cdm,
         incidence_analysis_id = x$incidence_analysis_id
       ) %>%
       dplyr::relocate("incidence_analysis_id")
-
-
+    }
+    if(returnAttrition==TRUE){
     workingIncAttrition <- workingInc[["attrition"]] %>%
       dplyr::mutate(incidence_analysis_id = x$incidence_analysis_id) %>%
       dplyr::relocate("incidence_analysis_id")
-
+    }
     result <- list()
     result[["ir"]] <- workingIncIr
+    if(returnAnalysisSettings==TRUE){
     result[["analysis_settings"]] <- workingIncAnalysisSettings
+    }
+    if(returnPopulation==TRUE){
     result[["person_table"]] <- workingIncPersonTable
+    }
+    if(returnAttrition==TRUE){
     result[["attrition"]] <- workingIncAttrition
+    }
 
     return(result)
   })
@@ -349,11 +365,13 @@ computeIncidence <- function(cdm,
   irsList <- purrr::flatten(irsList)
 
   # analysis settings
+  if(returnAnalysisSettings==TRUE){
   analysisSettings <- irsList[names(irsList) == "analysis_settings"]
   # to tibble
   analysisSettings <- dplyr::bind_rows(analysisSettings,
     .id = NULL
   )
+  }
 
   # incidence estimates
   irs <- irsList[names(irsList) == "ir"]
@@ -380,25 +398,35 @@ computeIncidence <- function(cdm,
   }
 
   # person_table summary
+  if(returnPopulation==TRUE){
   personTable <- irsList[names(irsList) == "person_table"]
   # to tibble
   personTable <- dplyr::bind_rows(personTable,
     .id = NULL
   )
+  }
 
   # attrition summary
+  if(returnAttrition==TRUE){
   attrition <- irsList[names(irsList) == "attrition"]
   # to tibble
   attrition <- dplyr::bind_rows(attrition,
     .id = NULL
   )
+  }
 
   # results to return as a list
   results <- list()
   results[["incidence_estimates"]] <- irs
+  if(returnAnalysisSettings==TRUE){
   results[["analysis_settings"]] <- analysisSettings
+  }
+  if(returnPopulation==TRUE){
   results[["person_table"]] <- personTable
+  }
+  if(returnAttrition==TRUE){
   results[["attrition"]] <- attrition
+  }
   if (verbose == TRUE) {
     message("Progress: All incidence results computed")
     duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
