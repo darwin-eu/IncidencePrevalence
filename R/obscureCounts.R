@@ -31,7 +31,6 @@ obscureCounts <- function(x,
 
   ## check for standard types of user error
   errorMessage <- checkmate::makeAssertCollection()
-
   checkmate::assert_tibble(x,
     add = errorMessage
   )
@@ -44,11 +43,9 @@ obscureCounts <- function(x,
     all(c("n_events", "person_months", "ir") %in% names(x)) &&
       all(c("numerator", "denominator", "prev") %in% names(x))
   )
-
   checkmate::assert_numeric(minCellCount,
     add = errorMessage
   )
-
   checkmate::assertTRUE(is.numeric(substitute) || is.na(substitute))
 
   # report initial assertions
@@ -61,7 +58,7 @@ obscureCounts <- function(x,
 
   if (c("n_events") %in% names(x)) {
     x[x$n_persons < minCellCount, c("cohort_obscured")] <- "TRUE"
-    x[x$n_events < minCellCount, c("n_persons",
+    x[x$n_persons < minCellCount, c("n_persons",
                                          "person_days",
                                          "person_years")] <- substitute
     x[x$n_events < minCellCount, c("result_obscured")] <- "TRUE"
