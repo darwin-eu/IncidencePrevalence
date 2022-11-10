@@ -287,6 +287,87 @@ test_that("mock db: check study periods", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
+test_that("mock db: check overall", {
+  personTable <- tibble::tibble(
+    person_id = c("1","2"),
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2005-01-15"),
+                                      as.Date("2005-01-15")),
+    observation_period_end_date = c(as.Date("2007-05-01"),
+                                    as.Date("2011-06-15"))
+  )
+  outcomeTable <- tibble::tibble(
+    cohort_definition_id = "1",
+    subject_id = c("1","2","2"),
+    cohort_start_date = c(
+      as.Date("2006-02-05"),
+      as.Date("2006-02-05"),
+      as.Date("2010-02-05")
+    ),
+    cohort_end_date = c(
+      as.Date("2006-02-05"),
+      as.Date("2006-02-05"),
+      as.Date("2010-02-05")
+    )
+  )
+
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    outcomeTable = outcomeTable
+  )
+
+  dpop <- collectDenominator( cdm = cdm,
+                              startDate = as.Date("2007-01-01"))
+  cdm$denominator <- dpop$denominator_populations
+
+  inc <- computeIncidence(cdm,
+                          denominatorTable = "denominator",
+                          outcomeTable = "outcome",
+                          interval = "overall",
+                          repeatedEvents = FALSE,
+                          outcomeWashout = 0,
+                          minCellCount = 0,
+                          fullPeriods = FALSE
+  )
+  # we expect one row with the overall results
+  # with two people
+  # one person had the event before the study period
+  # (but washout was 0 so was included)
+  # one person had the event during the study period
+  expect_true(nrow(inc[["incidence_estimates"]]) == 1)
+  expect_true(inc[["incidence_estimates"]]$n_persons == 2)
+  expect_true(inc[["incidence_estimates"]]$start_time ==
+                as.Date("2007-01-01"))
+  expect_true(inc[["incidence_estimates"]]$end_time ==
+                as.Date("2010-02-05")) # date of first event
+
+
+  inc <- computeIncidence(cdm,
+                          denominatorTable = "denominator",
+                          outcomeTable = "outcome",
+                          interval = "overall",
+                          repeatedEvents = TRUE,
+                          outcomeWashout = 0,
+                          minCellCount = 0,
+                          fullPeriods = FALSE
+  )
+  expect_true(nrow(inc[["incidence_estimates"]]) == 1)
+  expect_true(inc[["incidence_estimates"]]$start_time ==
+                as.Date("2007-01-01"))
+  expect_true(inc[["incidence_estimates"]]$end_time ==
+                as.Date("2011-06-15")) # date of end of obs
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
 test_that("mock db: check person days", {
   personTable <- tibble::tibble(
     person_id = c("1", "2"),

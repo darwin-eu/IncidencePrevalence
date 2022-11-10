@@ -120,7 +120,8 @@ computeIncidence <- function(cdm,
     null.ok = TRUE
   )
   checkmate::assert_choice(interval,
-    choices = c("days", "weeks", "months", "quarters", "years"),
+    choices = c("days", "weeks", "months", "quarters", "years",
+                "overall"),
     add = errorMessage
   )
   checkmate::assert_logical(fullPeriods,

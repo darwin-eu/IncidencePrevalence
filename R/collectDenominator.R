@@ -162,7 +162,7 @@ collectDenominator <- function(cdm,
     }
     strataNamesCheck <- all(names(cdm[[strataTable]] %>%
       utils::head(1) %>%
-        dplyr::collect()) ==
+        dplyr::collect()) %in%
       c(
         "cohort_definition_id", "subject_id",
         "cohort_start_date", "cohort_end_date"

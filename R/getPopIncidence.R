@@ -110,14 +110,22 @@ getIncidence <- function(cdm,
       )) %>%
       dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
     if (repeatedEvents == FALSE) {
-      # limit to first outcome in follow up if
-      # not allowing at repeated outcomes
       studyPopOutcome <- studyPopOutcome %>%
         dplyr::group_by(.data$subject_id) %>%
-        dplyr::filter(is.na(.data$outcome_prev_end_date) |
-          .data$outcome_start_date ==
-            min(.data$outcome_start_date, na.rm = TRUE)) %>%
-        dplyr::ungroup()
+        dplyr::mutate(events_post=sum(!is.na(.data$outcome_start_date)))
+      studyPopOutcome <- dplyr::bind_rows(
+        # with history of outcome, without outcome in follow up
+        studyPopOutcome %>%
+          dplyr::group_by(.data$subject_id) %>%
+          dplyr::filter(.data$events_post==0),
+        # with outcome in follow up - limit to first
+        studyPopOutcome %>%
+          dplyr::filter(.data$events_post>=1) %>%
+          dplyr::group_by(.data$subject_id) %>%
+          dplyr::filter(.data$cohort_start_date ==
+                          min(.data$cohort_start_date)) %>%
+          dplyr::ungroup()) %>%
+          dplyr::select(!"events_post")
     }
   }
 
@@ -143,12 +151,22 @@ getIncidence <- function(cdm,
       max = max(.data$cohort_end_date, na.rm = TRUE)
     )
 
+  if(interval=="overall"){
+    # note, full periods argument does not apply
+    # for overall we just go from start to end
+    studyDays <- tibble::tibble(
+      time="overall",
+      start_time=start_end$min,
+      end_time=start_end$max
+    )
+  } else {
   studyDays <- getStudyDays(
     startDate = start_end$min,
     endDate = start_end$max,
     timeInterval = interval,
     fullPeriods = fullPeriods
   )
+  }
 
   if (nrow(studyDays) == 0) {
     # if no study days we´ll return an empty tibble
