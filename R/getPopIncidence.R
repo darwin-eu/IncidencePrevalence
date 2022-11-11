@@ -109,7 +109,8 @@ getIncidence <- function(cdm,
         .data$outcome_prev_end_date
       )) %>%
       dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
-    if (repeatedEvents == FALSE) {
+    if (repeatedEvents == FALSE &
+        sum(!is.na(studyPopOutcome$outcome_start_date)) > 0) {
       studyPopOutcome <- studyPopOutcome %>%
         dplyr::group_by(.data$subject_id) %>%
         dplyr::mutate(events_post=sum(!is.na(.data$outcome_start_date)))
