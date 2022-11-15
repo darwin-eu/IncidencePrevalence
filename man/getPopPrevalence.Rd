@@ -7,15 +7,15 @@
 getPopPrevalence(
   cdm,
   denominatorTable,
-  denominatorId = NULL,
+  denominatorId,
   outcomeTable,
-  outcomeId = NULL,
-  type = "point",
-  interval = "months",
-  fullPeriods = TRUE,
-  point = "start",
-  minContribution = 0.5,
-  verbose = FALSE
+  outcomeId,
+  type,
+  interval,
+  fullPeriods,
+  point,
+  fullContribution,
+  verbose
 )
 }
 \arguments{
@@ -37,7 +37,7 @@ getPopPrevalence(
 
 \item{point}{point where to compute prevalence inside interval}
 
-\item{minContribution}{minContribution}
+\item{fullContribution}{fullContribution}
 
 \item{verbose}{verbose}
 }

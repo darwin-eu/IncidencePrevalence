@@ -11,7 +11,7 @@ test_that("mock db: check output format", {
     denominatorId = "1",
     outcomeTable = "outcome",
     outcomeId = "1",
-    confidenceInterval = "binomial"
+    confidenceInterval = "none"
   )
 
   expect_true(class(prev) == "list")
@@ -29,7 +29,7 @@ test_that("mock db: check output format", {
     "type",
     "point",
     "interval",
-    "min_contribution",
+    "full_contribution",
     "full_periods",
     "outcome_id",
     "denominator_id",
@@ -141,7 +141,7 @@ test_that("mock db: working examples 2", {
   )
   dpop <- collectDenominator(
     cdm = cdm,
-    ageStrata = list(c(0, 100), c(0, 100))
+    ageStrata = list(c(0, 100))
   )
   cdm$denominator <- dpop$denominator_populations
 
@@ -149,7 +149,15 @@ test_that("mock db: working examples 2", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     type = "point",
-    interval = "months",
+    interval = "months"
+  )
+  expect_true(nrow(prev[["prevalence_estimates"]]) >= 1)
+
+  prev <- computePrevalence(cdm,
+                            denominatorTable = "denominator",
+                            outcomeTable = "outcome",
+                            type = "point",
+                            interval = "days"
   )
   expect_true(nrow(prev[["prevalence_estimates"]]) >= 1)
 
@@ -308,12 +316,9 @@ test_that("mock db: check study time periods", {
 
   prev <- computePrevalence(cdm,
     denominatorTable = "denominator",
-    denominatorId = "1",
     outcomeTable = "outcome",
-    outcomeId = "1",
     type = "point",
     interval = "months",
-    minContribution = 0.5,
     verbose = FALSE
   )
 
@@ -321,6 +326,69 @@ test_that("mock db: check study time periods", {
   # the last month should also be included
   # as the person goes up to the last day of the month
   expect_true(nrow(prev[["prevalence_estimates"]]) == 12)
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
+test_that("mock db: check fullContribution requirement", {
+  personTable <- tibble::tibble(
+    person_id = c("1","2"),
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id =  c("1","2"),
+    person_id =  c("1","2"),
+    observation_period_start_date = as.Date("2010-01-01"),
+    observation_period_end_date = c(as.Date("2011-06-01"),
+                                    as.Date("2012-06-01"))
+  )
+  outcomeTable <- tibble::tibble(
+    cohort_definition_id = "1",
+    subject_id = "1",
+    cohort_start_date = c(
+      as.Date("2010-02-05"),
+      as.Date("2010-02-08"),
+      as.Date("2010-02-20")
+    ),
+    cohort_end_date = c(
+      as.Date("2010-02-05"),
+      as.Date("2010-02-08"),
+      as.Date("2010-02-20")
+    )
+  )
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    outcomeTable = outcomeTable
+  )
+  dpop <- collectDenominator(
+    cdm = cdm
+  )
+  cdm$denominator <- dpop$denominator_populations
+
+  prev <- computePrevalence(cdm,
+                            denominatorTable = "denominator",
+                            outcomeTable = "outcome",
+                            type = "period",
+                            interval = "years",
+                            fullContribution = FALSE,
+                            minCellCount = 0
+  )
+  expect_true(all(prev$prevalence_estimates[["denominator"]] == 2))
+
+  prev <- computePrevalence(cdm,
+                            denominatorTable = "denominator",
+                            outcomeTable = "outcome",
+                            type = "period",
+                            interval = "years",
+                            fullContribution = TRUE,
+                            minCellCount = 0
+  )
+  expect_true(all(prev$prevalence_estimates[["denominator"]] == c(2,1)))
+
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -379,7 +447,7 @@ test_that("mock db: check periods follow calendar dates", {
     type = "period",
     interval = "years",
     minCellCount = 0,
-    minContribution = 0,
+    fullContribution = FALSE,
     fullPeriods = FALSE
   )
   expect_true(nrow(prev1$prevalence_estimates) == 4)
@@ -394,7 +462,7 @@ test_that("mock db: check periods follow calendar dates", {
     type = "period",
     interval = "years",
     minCellCount = 0,
-    minContribution = 0,
+    fullContribution = FALSE,
     fullPeriods = TRUE
   )
   expect_true(nrow(prev2$prevalence_estimates) == 2)
@@ -416,7 +484,7 @@ test_that("mock db: check periods follow calendar dates", {
     type = "period",
     interval = "months",
     minCellCount = 0,
-    minContribution = 0,
+    fullContribution = FALSE,
     fullPeriods = FALSE
   )
   expect_true(prev[["prevalence_estimates"]]$start_time[1] ==
@@ -430,11 +498,112 @@ test_that("mock db: check periods follow calendar dates", {
     type = "period",
     interval = "months",
     minCellCount = 0,
-    minContribution = 0,
+    fullContribution = FALSE,
     fullPeriods = TRUE
   )
   expect_true(prev[["prevalence_estimates"]]$start_time[1] ==
     as.Date("2011-02-01"))
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
+test_that("mock db: check multiple outcome ids", {
+  personTable <- tibble::tibble(
+    person_id = c("1","2"),
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = as.Date("2011-01-01"),
+    observation_period_end_date = as.Date("2012-06-01")
+  )
+  outcomeTable <- tibble::tibble(
+    cohort_definition_id = c("1","2"), # two different outcome ids
+    subject_id = c("1","2"),
+    cohort_start_date = c(
+      as.Date("2011-02-05")
+    ),
+    cohort_end_date = c(
+      as.Date("2011-02-05")
+    )
+  )
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    outcomeTable = outcomeTable
+  )
+  dpop <- collectDenominator(
+    cdm = cdm
+  )
+  cdm$denominator <- dpop$denominator_populations
+
+  prev <- computePrevalence(cdm,
+                            denominatorTable = "denominator",
+                            outcomeTable = "outcome",
+                            type = "period",
+                            interval = "years",
+                            minCellCount = 0
+  )
+  expect_true(all(prev$prevalence_estimates[["numerator"]] == 1))
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
+test_that("mock db: some empty result sets", {
+  personTable <- tibble::tibble(
+    person_id = c("1","2"),
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id = c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = as.Date("2012-01-01"),
+    observation_period_end_date = as.Date("2012-06-01")
+  )
+  outcomeTable <- tibble::tibble(
+    cohort_definition_id = c("1","2"), # two different outcome ids
+    subject_id = c("1","2"),
+    cohort_start_date = c(
+      as.Date("2011-02-05")
+    ),
+    cohort_end_date = c(
+      as.Date("2011-02-05")
+    )
+  )
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    outcomeTable = outcomeTable
+  )
+  dpop <- collectDenominator(
+    cdm = cdm
+  )
+  cdm$denominator <- dpop$denominator_populations
+
+  prev <- computePrevalence(cdm,
+                            denominatorTable = "denominator",
+                            outcomeTable = "outcome",
+                            type = "period",
+                            interval = "years",
+                            minCellCount = 0
+  )
+  expect_true(nrow(prev$prevalence_estimates) == 0)
+
+  prev <- computePrevalence(cdm,
+                            denominatorTable = "denominator",
+                            outcomeTable = "outcome",
+                            type = "period",
+                            interval = c("months","years"),
+                            minCellCount = 0
+  )
+  expect_true(nrow(prev$prevalence_estimates) > 0)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
