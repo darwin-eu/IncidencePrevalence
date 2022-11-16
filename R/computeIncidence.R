@@ -388,14 +388,8 @@ computeIncidence <- function(cdm,
     dplyr::relocate("ir_100000_pys_high", .after = "ir_100000_pys_low")
 
   # obscure counts
-  if (!is.null(minCellCount)) {
     irs <- obscureCounts(irs, minCellCount = minCellCount, substitute = NA)
-  } else {
-    # no results obscured due to a low count
-    irs <- irs %>%
-      dplyr::mutate(cohort_obscured = "FALSE") %>%
-      dplyr::mutate(result_obscured = "FALSE")
-  }
+
   }
 
   # person_table summary

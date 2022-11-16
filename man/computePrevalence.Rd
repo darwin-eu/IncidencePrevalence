@@ -13,8 +13,8 @@ computePrevalence(
   type = "point",
   interval = "months",
   fullPeriods = TRUE,
+  fullContribution = FALSE,
   points = "start",
-  minContribution = 0.5,
   confidenceInterval = "binomial",
   minCellCount = 5,
   verbose = FALSE
@@ -37,10 +37,10 @@ computePrevalence(
 
 \item{fullPeriods}{If full period is required}
 
-\item{points}{where to compute the point prevalence}
+\item{fullContribution}{If complete periods are required for
+individuals to contribute}
 
-\item{minContribution}{Minimum proportions that
-individuals must have to contribute}
+\item{points}{where to compute the point prevalence}
 
 \item{confidenceInterval}{Method for confidence intervals}
 

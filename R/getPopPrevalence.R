@@ -25,7 +25,7 @@
 #' @param interval interval
 #' @param fullPeriods full period requirement
 #' @param point point where to compute prevalence inside interval
-#' @param minContribution minContribution
+#' @param fullContribution fullContribution
 #' @param verbose verbose
 #'
 #' @return
@@ -34,51 +34,30 @@
 #' @examples
 getPopPrevalence <- function(cdm,
                              denominatorTable,
-                             denominatorId = NULL,
+                             denominatorId,
                              outcomeTable,
-                             outcomeId = NULL,
-                             type = "point",
-                             interval = "months",
-                             fullPeriods = TRUE,
-                             point = "start",
-                             minContribution = 0.5,
-                             verbose = FALSE) {
+                             outcomeId,
+                             type,
+                             interval,
+                             fullPeriods,
+                             point,
+                             fullContribution,
+                             verbose) {
   ## Analysis code
   # bring in study population
-  studyPopDb <- cdm[[denominatorTable]]
-  if (!is.null(denominatorId)) {
-    studyPopDb <- studyPopDb %>%
-      dplyr::filter(.data$cohort_definition_id ==
-        .env$denominatorId)
-  }
-
-  outcomeDb <- cdm[[outcomeTable]]
-  if (!is.null(outcomeId)) {
-    outcomeDb <- outcomeDb %>%
-      dplyr::filter(.data$cohort_definition_id == .env$outcomeId) %>%
-      dplyr::compute()
-  }
-
-  # keep outcomes of people in the denominator
-  outcomeDb <- outcomeDb %>%
-    dplyr::inner_join(
-      studyPopDb %>%
-        dplyr::select("subject_id"),
-      by = "subject_id"
-    )
-
-  # bring outcomes into memory
   if (verbose == TRUE) {
-    message("Bringing outcomes into memory")
+    message("Bringing population into memory")
   }
-
-  studyPop <- studyPopDb %>% dplyr::collect()
-
-  outcome <- outcomeDb %>%
-    dplyr::rename("subject_id" = "subject_id") %>%
+  # keeping outcomes of people in the denominator
+  studyPop <- cdm[[denominatorTable]] %>%
+    dplyr::left_join(
+    cdm[[outcomeTable]] %>%
+    dplyr::filter(.data$cohort_definition_id == .env$outcomeId) %>%
     dplyr::rename("outcome_start_date" = "cohort_start_date") %>%
     dplyr::rename("outcome_end_date" = "cohort_end_date") %>%
-    dplyr::select("subject_id", "outcome_start_date", "outcome_end_date") %>%
+    dplyr::select("subject_id", "outcome_start_date",
+                  "outcome_end_date"),
+    by="subject_id") %>%
     dplyr::collect()
 
   if (interval == "days") {
@@ -100,9 +79,9 @@ getPopPrevalence <- function(cdm,
   )
 
   if (nrow(studyDays) == 0) {
-    stop("Not enough following to compute the desired prevalence.")
-  }
-
+    # if no study days we´ll return an empty tibble
+    pr <- tibble::tibble()
+  } else {
   # fetch prevalence
   # looping through each time interval
   pr <- list()
@@ -116,11 +95,21 @@ getPopPrevalence <- function(cdm,
       workingPeriod <- 1
     }
 
-    # drop people with end_date prior to workingStart
-    # drop people with start_date after workingEnd
-    workingPop <- studyPop %>%
-      dplyr::filter(.data$cohort_end_date >= .env$workingStart) %>%
-      dplyr::filter(.data$cohort_start_date <= .env$workingEnd)
+    if(fullContribution==TRUE){
+      # require presence for all of period
+      # drop people with end_date not after workingEnd
+      # and start_date not before workingStart
+      workingPop <- studyPop %>%
+        dplyr::filter(.data$cohort_end_date >= .env$workingEnd &
+                      .data$cohort_start_date <= .env$workingStart)
+    } else {
+      # otherwise include people if they can contribute a day
+      # drop people with end_date prior to workingStart
+      # and start_date after workingEnd
+      workingPop <- studyPop %>%
+        dplyr::filter(.data$cohort_end_date >= .env$workingStart &
+                      .data$cohort_start_date <= .env$workingEnd)
+    }
 
     # individuals start date for this period
     # which could be start of the period or later
@@ -133,7 +122,6 @@ getPopPrevalence <- function(cdm,
           )
       )
 
-
     # individuals end date for this period
     # end of the period or earlier
     workingPop <- workingPop %>%
@@ -144,28 +132,6 @@ getPopPrevalence <- function(cdm,
             .data$cohort_end_date
           )
       )
-
-    workingPop <- workingPop %>%
-      dplyr::left_join(outcome,
-        by = "subject_id"
-      )
-
-    workingPop <- workingPop %>%
-      dplyr::select(
-        "subject_id", "t_start_date",
-        "t_end_date", "outcome_start_date", "outcome_end_date"
-      )
-
-    workingPop <- workingPop %>%
-      dplyr::mutate(contribution = (as.numeric(difftime(.data$t_end_date,
-        .data$t_start_date,
-        units = "days"
-      )) + 1) /
-        workingPeriod) %>%
-      dplyr::group_by(.data$subject_id) %>%
-      dplyr::mutate(contribution = sum(.data$contribution)) %>%
-      dplyr::ungroup() %>%
-      dplyr::filter(.data$contribution >= .env$minContribution)
 
     denominator <- workingPop %>%
       dplyr::select("subject_id") %>%
@@ -180,22 +146,22 @@ getPopPrevalence <- function(cdm,
       nrow()
 
     pr[[paste0(i)]] <- studyDays[i, ] %>%
-      dplyr::mutate(numerator = numerator) %>%
-      dplyr::mutate(denominator = denominator) %>%
-      dplyr::mutate(prev = numerator / denominator) %>%
+      dplyr::mutate(numerator = .env$numerator) %>%
+      dplyr::mutate(denominator = .env$denominator) %>%
+      dplyr::mutate(prev = .env$numerator / .env$denominator) %>%
       dplyr::select("time", "numerator", "denominator",
                     "prev", "start_time", "end_time")
   }
 
   pr <- dplyr::bind_rows(pr)
+  }
 
   # study design related variables
-  # add study design related variables
   analysisSettings <- tibble::tibble(
     type = .env$type,
     point = .env$point,
     interval = .env$interval,
-    min_contribution = .env$minContribution,
+    full_contribution = .env$fullContribution,
     full_periods_required = .env$fullPeriods
   )
 

@@ -26,8 +26,8 @@
 #' @param points where to compute the point prevalence
 #' @param interval Time intervals for prevalence estimates
 #' @param fullPeriods If full period is required
-#' @param minContribution Minimum proportions that
-#' individuals must have to contribute
+#' @param fullContribution If complete periods are required for
+#' individuals to contribute
 #' @param confidenceInterval Method for confidence intervals
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
@@ -45,11 +45,16 @@ computePrevalence <- function(cdm,
                                  type = "point",
                                  interval = "months",
                                  fullPeriods = TRUE,
+                                 fullContribution = FALSE,
                                  points = "start",
-                                 minContribution = 0.5,
                                  confidenceInterval = "binomial",
                                  minCellCount = 5,
                                  verbose = FALSE) {
+
+  if (verbose == TRUE) {
+    startCollect <- Sys.time()
+    message("Progress: Checking inputs")
+  }
   # help to avoid formatting errors
   if (!is.null(denominatorId) &&
     is.numeric(denominatorId)) {
@@ -129,10 +134,8 @@ computePrevalence <- function(cdm,
     add = errorMessage
   )
   checkmate::assert_number(minCellCount)
-  checkmate::assert_numeric(minContribution,
-    add = errorMessage,
-    lower = 0,
-    upper = 1
+  checkmate::assert_logical(fullContribution,
+                            add = errorMessage
   )
   checkmate::assert_logical(verbose,
     add = errorMessage
@@ -171,8 +174,7 @@ computePrevalence <- function(cdm,
     denominatorId = denominatorId,
     interval = interval,
     point = points,
-    minContribution = minContribution,
-    verbose = verbose
+    fullContribution = fullContribution
   )
 
   studySpecs <- studySpecs %>%
@@ -195,13 +197,17 @@ computePrevalence <- function(cdm,
       interval = x$interval,
       fullPeriods = fullPeriods,
       point = x$point,
-      minContribution = x$minContribution,
-      verbose = x$verbose
+      fullContribution = x$fullContribution,
+      verbose = verbose
     )
 
+    if (nrow(workingPrev[["pr"]]) == 0) {
+      workingPrevPr <- tibble::tibble()
+    } else {
     workingPrevPr <- workingPrev[["pr"]] %>%
       dplyr::mutate(prevalence_analysis_id = x$prevalence_analysis_id) %>%
       dplyr::relocate("prevalence_analysis_id")
+    }
 
     workingPrevAnalysisSettings <- workingPrev[["analysis_settings"]] %>%
       dplyr::mutate(
@@ -211,7 +217,7 @@ computePrevalence <- function(cdm,
         interval = x$interval,
         full_periods = fullPeriods,
         point = x$point,
-        min_contribution = x$minContribution,
+        fullContribution = x$fullContribution,
         confidence_interval = confidenceInterval,
         min_cell_count = minCellCount,
         prevalence_analysis_id = x$prevalence_analysis_id
@@ -259,21 +265,16 @@ computePrevalence <- function(cdm,
   )
 
   # get confidence intervals
+  if (nrow(prs) > 0) {
   prs <- getCiPrevalence(prs, confidenceInterval) %>%
     dplyr::relocate("prev_low", .after = "prev") %>%
     dplyr::relocate("prev_high", .after = "prev_low")
 
   # obscure counts
-  if (!is.null(minCellCount)) {
-    prs <- obscureCounts(prs,
+  prs <- obscureCounts(prs,
       minCellCount = minCellCount,
       substitute = NA
     )
-  } else {
-    # no results obscured due to a low count
-    prs <- prs %>%
-      dplyr::mutate(cohort_obscured = "FALSE") %>%
-      dplyr::mutate(result_obscured = "FALSE")
   }
 
   # attrition summary
@@ -290,5 +291,12 @@ computePrevalence <- function(cdm,
   results[["person_table"]] <- personTable
   results[["attrition"]] <- attrition
 
+
+  if (verbose == TRUE) {
+    duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
+    message(glue::glue(
+      "Overall time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+    ))
+  }
   return(results)
 }
