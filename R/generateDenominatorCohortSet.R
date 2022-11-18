@@ -17,7 +17,7 @@
 
 #' Identify a set of denominator populations
 #'
-#' `collectDenominator()` creates a set of denominator cohorts
+#' `generateDenominatorCohortSet()` creates a set of denominator cohorts
 #'
 #' @param cdm CDMConnector CDM reference object
 #' @param startDate Date indicating the start of the study
@@ -28,12 +28,12 @@
 #' period. If NULL,
 #'  the latest observation_end_date in the observation_period table
 #'  will be used.
-#' @param ageStrata List of age groups
-#' @param sexStrata Sex of the cohorts
+#' @param ageGroups List of age groups
+#' @param sex Sex of the cohorts
 #' @param daysPriorHistory Days of prior history required to enter
 #' the study cohort.
 #' @param strataTable strataTable
-#' @param strataId strata cohort definition id
+#' @param strataCohortId strata cohort definition id
 #' @param sample sample n
 #' @param verbose Either TRUE or FALSE.
 #' If TRUE, progress will be reported.
@@ -49,21 +49,21 @@
 #'   con = db,
 #'   cdm_schema = "cdm schema name"
 #' )
-#' dpop <- collectDenominator(
+#' dpop <- generateDenominatorCohortSet(
 #'   cdm = cdm,
 #'   startDate = as.Date("2008-01-01"),
 #'   endDate = as.Date("2018-01-01")
 #' )
 #' }
 
-collectDenominator <- function(cdm,
+generateDenominatorCohortSet <- function(cdm,
                                startDate = NULL,
                                endDate = NULL,
-                               ageStrata = list(c(0, 150)),
-                               sexStrata = "Both",
+                               ageGroups = list(c(0, 150)),
+                               sex = "Both",
                                daysPriorHistory = 0,
                                strataTable = NULL,
-                               strataId = NULL,
+                               strataCohortId = NULL,
                                sample = NULL,
                                verbose = FALSE) {
   if (verbose == TRUE) {
@@ -104,20 +104,20 @@ collectDenominator <- function(cdm,
     add = errorMessage,
     null.ok = TRUE
   )
-  checkmate::assert_list(ageStrata,
+  checkmate::assert_list(ageGroups,
     add = errorMessage
   )
-  if (!is.null(ageStrata)) {
-    for (i in seq_along(ageStrata)) {
-      checkmate::assertTRUE(length(ageStrata[[i]]) == 2)
-      checkmate::assert_numeric(ageStrata[[i]][1],
+  if (!is.null(ageGroups)) {
+    for (i in seq_along(ageGroups)) {
+      checkmate::assertTRUE(length(ageGroups[[i]]) == 2)
+      checkmate::assert_numeric(ageGroups[[i]][1],
         add = errorMessage
       )
-      checkmate::assert_numeric(ageStrata[[i]][2],
+      checkmate::assert_numeric(ageGroups[[i]][2],
         add = errorMessage
       )
-      ageCheck <- ageStrata[[i]][1] <
-        ageStrata[[i]][2]
+      ageCheck <- ageGroups[[i]][1] <
+        ageGroups[[i]][2]
       checkmate::assertTRUE(ageCheck,
         add = errorMessage
       )
@@ -126,18 +126,18 @@ collectDenominator <- function(cdm,
           "- upper age value must be higher than lower age value"
         )
       }
-      checkmate::assertTRUE(ageStrata[[i]][1] >= 0,
+      checkmate::assertTRUE(ageGroups[[i]][1] >= 0,
         add = errorMessage
       )
-      checkmate::assertTRUE(ageStrata[[i]][2] >= 0,
+      checkmate::assertTRUE(ageGroups[[i]][2] >= 0,
         add = errorMessage
       )
     }
   }
-  checkmate::assert_vector(sexStrata,
+  checkmate::assert_vector(sex,
     add = errorMessage
   )
-  sexCheck <- all(sexStrata %in% c("Male", "Female", "Both"))
+  sexCheck <- all(sex %in% c("Male", "Female", "Both"))
   if (!isTRUE(sexCheck)) {
     errorMessage$push(
       "- sex stratas must be from: Male, Female, and Both"
@@ -217,17 +217,17 @@ collectDenominator <- function(cdm,
   }
 
   # summarise combinations of inputs
-  ageGrDf <- data.frame(do.call(rbind, ageStrata)) %>%
-    dplyr::mutate(age_strata = paste0(.data$X1, ";", .data$X2))
+  ageGrDf <- data.frame(do.call(rbind, ageGroups)) %>%
+    dplyr::mutate(age_group = paste0(.data$X1, ";", .data$X2))
   popSpecs <- tidyr::expand_grid(
-    age_strata = ageGrDf$age_strata,
-    sex_strata = .env$sexStrata,
+    age_group = ageGrDf$age_group,
+    sex = .env$sex,
     days_prior_history = .env$daysPriorHistory,
     start_date = .env$startDate,
     end_date = .env$endDate
   )
   popSpecs <- popSpecs %>%
-    tidyr::separate(.data$age_strata,
+    tidyr::separate(.data$age_group,
       c("min_age", "max_age"),
       remove = FALSE
     ) %>%
@@ -250,7 +250,7 @@ collectDenominator <- function(cdm,
     message("Progress: Run get_denominator_pop to get overall population")
     start <- Sys.time()
   }
-  dpop <- getDenominatorPop(
+  dpop <- getDenominatorCohorts(
     cdm = cdm,
     startDate = unique(popSpecs$start_date),
     endDate = unique(popSpecs$end_date),
@@ -258,7 +258,7 @@ collectDenominator <- function(cdm,
     maxAge = unique(popSpecs$max_age),
     daysPriorHistory = unique(popSpecs$days_prior_history),
     strataTable = strataTable,
-    strataId = strataId,
+    strataCohortId = strataCohortId,
     sample = sample
   )
   if (verbose == TRUE) {
@@ -282,7 +282,7 @@ collectDenominator <- function(cdm,
 
   if (dpop$denominator_population %>% dplyr::count() %>% dplyr::pull() > 0) {
     # first, if all cohorts are Male or Female get number that will be excluded
-    if (all(popSpecs$sex_strata == "Female")) {
+    if (all(popSpecs$sex == "Female")) {
       dpop$attrition <- recordAttrition(
         table = dpop$denominator_population %>%
           dplyr::filter(.data$sex == "Female"),
@@ -291,7 +291,7 @@ collectDenominator <- function(cdm,
         existingAttrition = dpop$attrition
       )
     }
-    if (all(popSpecs$sex_strata == "Male")) {
+    if (all(popSpecs$sex == "Male")) {
       dpop$attrition <- recordAttrition(
         table = dpop$denominator_population %>%
           dplyr::filter(.data$sex == "Male"),
@@ -306,10 +306,10 @@ collectDenominator <- function(cdm,
     for (i in seq_along(popSpecs$cohort_definition_id)) {
       workingDpop <- dpop$denominator_population
 
-      if (popSpecs$sex_strata[[i]] %in% c("Male", "Female")) {
+      if (popSpecs$sex[[i]] %in% c("Male", "Female")) {
 
         workingDpop <- workingDpop %>%
-          dplyr::filter(.data$sex == local(popSpecs$sex_strata[[i]]))
+          dplyr::filter(.data$sex == local(popSpecs$sex[[i]]))
       }
 
       # cohort start

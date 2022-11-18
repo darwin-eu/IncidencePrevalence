@@ -14,29 +14,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#' Get population prevalence estimates
-#'
-#' @param cdm CDMConnector CDM reference object
-#' @param denominatorTable denominatorTable
-#' @param denominatorId denominatorId
-#' @param outcomeTable outcomeTable
-#' @param outcomeId outcomeId
-#' @param type type
-#' @param interval interval
-#' @param fullPeriods full period requirement
-#' @param point point where to compute prevalence inside interval
-#' @param fullContribution fullContribution
-#' @param verbose verbose
-#'
-#' @return
-#' @export
-#'
-#' @examples
-getPopPrevalence <- function(cdm,
+getPrevalence <- function(cdm,
                              denominatorTable,
-                             denominatorId,
+                             denominatorCohortId,
                              outcomeTable,
-                             outcomeId,
+                             outcomeCohortId,
                              type,
                              interval,
                              fullPeriods,
@@ -52,7 +34,7 @@ getPopPrevalence <- function(cdm,
   studyPop <- cdm[[denominatorTable]] %>%
     dplyr::left_join(
     cdm[[outcomeTable]] %>%
-    dplyr::filter(.data$cohort_definition_id == .env$outcomeId) %>%
+    dplyr::filter(.data$cohort_definition_id == .env$outcomeCohortId) %>%
     dplyr::rename("outcome_start_date" = "cohort_start_date") %>%
     dplyr::rename("outcome_end_date" = "cohort_end_date") %>%
     dplyr::select("subject_id", "outcome_start_date",

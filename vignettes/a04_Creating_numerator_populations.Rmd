@@ -31,7 +31,7 @@ The definition of cohorts used in this package correspond to the one applied in 
 knitr::include_graphics(here("vignettes/numerator_pop_fig1.png"))
 ```
 
-To use this package the user will need to define cohorts containg the set of patients that experience our outcome of interest (from now on we will refer to this cohort as the outcome cohort). This cohort will need to have the following columns: 
+To use this package the user will need to define cohorts containing the set of patients that experience our outcome of interest (from now on we will refer to this cohort as the outcome cohort). This cohort will need to have the following columns: 
 
 ```{r, fig.show='hold', echo=FALSE, warning=FALSE}
 table <- data.frame("Unique subject ID", "Cohort ID",

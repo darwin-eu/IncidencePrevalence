@@ -14,38 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#' Get population incidence estimates
-#'
-#' @param cdm CDMConnector CDM reference object
-#' @param denominatorTable denominatorTable
-#' @param outcomeTable outcomeTable
-#' @param denominatorId denominatorId
-#' @param outcomeId outcomeId
-#' @param interval interval
-#' @param fullPeriods fullPeriods
-#' @param outcomeWashout outcomeWashout
-#' @param repeatedEvents repeatedEvents
-#' @param returnAnalysisSettings Whether to return analysis settings
-#' @param returnAttrition Whether to return attrition
-#' @param returnPopulation Whether to return population
-#' @param verbose verbose
-#'
-#' @return
-#' @export
-#'
-#' @examples
 getIncidence <- function(cdm,
                             denominatorTable,
                             outcomeTable,
-                            denominatorId,
-                            outcomeId,
+                            denominatorCohortId,
+                            outcomeCohortId,
                             interval,
                             fullPeriods,
                             outcomeWashout,
                             repeatedEvents,
-                            returnAnalysisSettings,
-                            returnAttrition,
-                            returnPopulation,
+                            returnAnalysisCohort,
                             verbose) {
   if (verbose == TRUE) {
     message("-- Getting incidence")
@@ -61,11 +39,11 @@ getIncidence <- function(cdm,
   # along with their outcomes
   studyPop <- cdm[[denominatorTable]] %>%
     dplyr::filter(.data$cohort_definition_id ==
-                    .env$denominatorId) %>%
+                    .env$denominatorCohortId) %>%
     dplyr::select(-"cohort_definition_id") %>%
     dplyr::left_join(cdm[[outcomeTable]] %>%
-                       dplyr::filter(.data$outcome_id == .env$outcomeId) %>%
-                       dplyr::select(-"outcome_id"),
+                       dplyr::filter(.data$outcome_cohort_id == .env$outcomeCohortId) %>%
+                       dplyr::select(-"outcome_cohort_id"),
                      by = c("subject_id",
                             "cohort_start_date",
                             "cohort_end_date")) %>%
@@ -244,15 +222,13 @@ getIncidence <- function(cdm,
   }
 
   # study design related variables
-  if(returnAnalysisSettings==TRUE){
   analysisSettings <- tibble::tibble(
     outcome_washout = .env$outcomeWashout,
     repeated_events = .env$repeatedEvents,
     interval = .env$interval,
     full_periods = .env$fullPeriods
   )
-  }
-  if(returnPopulation==TRUE){
+  if(returnAnalysisCohort==TRUE){
   studyPop <- studyPop %>%
     dplyr::select("subject_id", "cohort_start_date",
                   "cohort_end_date", "outcome_start_date")}
@@ -260,15 +236,11 @@ getIncidence <- function(cdm,
   # return list
   results <- list()
   results[["ir"]] <- ir
-  if(returnAnalysisSettings==TRUE){
   results[["analysis_settings"]] <- analysisSettings
-  }
-  if(returnPopulation==TRUE){
+  if(returnAnalysisCohort==TRUE){
   results[["person_table"]] <- studyPop
   }
-  if(returnAttrition==TRUE){
   results[["attrition"]] <- tibble::tibble(attrition = "attrition")
-  }
 
   return(results)
 }

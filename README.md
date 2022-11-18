@@ -83,13 +83,13 @@ head(cdm$outcome)
 ```
 
 To identify our denominator population we can use the
-`collectDenominator` function. Here for example, we want to identify a
-denominator population for a study period between 2008 and 2018. To
-note, other options ave available when defining this population which
-are summarised in the package vignettes.
+`generateDenominatorCohortSet` function. Here for example, we want to
+identify a denominator population for a study period between 2008 and
+2018. To note, other options ave available when defining this population
+which are summarised in the package vignettes.
 
 ``` r
-dpop <- collectDenominator(
+dpop <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2018-01-01")
@@ -135,29 +135,29 @@ Now we´ve added the denominator cohort to our cdm reference, we can go
 on and estimate incidence and prevalence.
 
 ``` r
-inc <- computeIncidence(
+inc <- estimateIncidence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome"
 )
 head(inc$incidence_estimates)
 #> # A tibble: 6 × 13
-#>   incidence_anal…¹ n_per…² perso…³ n_eve…⁴ perso…⁵ ir_10…⁶ ir_10…⁷ ir_10…⁸ time 
-#>   <chr>              <int>   <dbl>   <int>   <dbl>   <dbl>   <dbl>   <dbl> <chr>
-#> 1 1                    259    7062      33    19.3 170678. 113206. 233644. 2008…
-#> 2 1                    256    6625      30    18.1 165396. 107076. 229619. 2008…
-#> 3 1                    263    7176      22    19.6 111977.  66165. 163389. 2008…
-#> 4 1                    262    7187      28    19.7 142299.  90427. 199643. 2008…
-#> 5 1                    263    7206      34    19.7 172336. 115139. 234905. 2008…
-#> 6 1                    260    6835      29    18.7 154971.  99426. 216253. 2008…
-#> # … with 4 more variables: start_time <date>, end_time <date>,
+#>   incidenc…¹ n_per…² perso…³ n_eve…⁴ time  start_time end_time   perso…⁵ ir_10…⁶
+#>   <chr>        <int>   <dbl>   <int> <chr> <date>     <date>       <dbl>   <dbl>
+#> 1 1              513   14427      33 2008… 2008-01-01 2008-01-31    39.5  83546.
+#> 2 1              480   12892      30 2008… 2008-02-01 2008-02-29    35.3  84995.
+#> 3 1              465   13012      22 2008… 2008-03-01 2008-03-31    35.6  61755.
+#> 4 1              441   12352      28 2008… 2008-04-01 2008-04-30    33.8  82796.
+#> 5 1              423   11782      34 2008… 2008-05-01 2008-05-31    32.3 105402.
+#> 6 1              395   10564      29 2008… 2008-06-01 2008-06-30    28.9 100267.
+#> # … with 4 more variables: ir_100000_pys_low <dbl>, ir_100000_pys_high <dbl>,
 #> #   cohort_obscured <chr>, result_obscured <chr>, and abbreviated variable
 #> #   names ¹​incidence_analysis_id, ²​n_persons, ³​person_days, ⁴​n_events,
-#> #   ⁵​person_years, ⁶​ir_100000_pys, ⁷​ir_100000_pys_low, ⁸​ir_100000_pys_high
+#> #   ⁵​person_years, ⁶​ir_100000_pys
 ```
 
 ``` r
-prev_point <- computePrevalence(
+prev_point <- estimatePrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
@@ -180,7 +180,7 @@ head(prev_point$prevalence_estimates)
 ```
 
 ``` r
-prev_period <- computePrevalence(
+prev_period <- estimatePrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
@@ -191,12 +191,12 @@ head(prev_period$prevalence_estimates)
 #> # A tibble: 6 × 11
 #>   prevalenc…¹ time  numer…² denom…³   prev prev_…⁴ prev_…⁵ start_time end_time  
 #>   <chr>       <chr>   <int>   <int>  <dbl>   <dbl>   <dbl> <date>     <date>    
-#> 1 1           2008…      35     479 0.0731  0.0498  0.0964 2008-01-01 2008-01-31
-#> 2 1           2008…      35     485 0.0722  0.0491  0.0952 2008-02-01 2008-02-29
-#> 3 1           2008…      30     482 0.0622  0.0407  0.0838 2008-03-01 2008-03-31
-#> 4 1           2008…      31     497 0.0624  0.0411  0.0836 2008-04-01 2008-04-30
-#> 5 1           2008…      39     483 0.0807  0.0564  0.105  2008-05-01 2008-05-31
-#> 6 1           2008…      34     465 0.0731  0.0495  0.0968 2008-06-01 2008-06-30
+#> 1 1           2008…      39     513 0.0760  0.0531  0.0990 2008-01-01 2008-01-31
+#> 2 1           2008…      36     509 0.0707  0.0485  0.0930 2008-02-01 2008-02-29
+#> 3 1           2008…      31     521 0.0595  0.0392  0.0798 2008-03-01 2008-03-31
+#> 4 1           2008…      32     513 0.0624  0.0415  0.0833 2008-04-01 2008-04-30
+#> 5 1           2008…      41     515 0.0796  0.0562  0.103  2008-05-01 2008-05-31
+#> 6 1           2008…      34     505 0.0673  0.0455  0.0892 2008-06-01 2008-06-30
 #> # … with 2 more variables: cohort_obscured <chr>, result_obscured <chr>, and
 #> #   abbreviated variable names ¹​prevalence_analysis_id, ²​numerator,
 #> #   ³​denominator, ⁴​prev_low, ⁵​prev_high

@@ -14,34 +14,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-#' Identify the denominator populations
-#'
-#' @param cdm CDMConnector CDM reference object
-#' @param startDate Date indicating the start of the study period.
-#' @param endDate Date indicating the end of the study period.
-#' @param minAge Minimum ages for the cohort
-#' @param maxAge Maximum ages for the cohort
-#' @param daysPriorHistory Days of prior history required to enter
-#' the study cohort.
-#' @param strataTable strataTable
-#' @param strataId strataId
-#' @param sample sample n
-#'
-#' @return
 #' @importFrom rlang .data
 #' @importFrom rlang ":="
-#' @export
-#'
-#' @examples
-getDenominatorPop <- function(cdm,
+getDenominatorCohorts <- function(cdm,
                               startDate,
                               endDate,
                               minAge,
                               maxAge,
                               daysPriorHistory,
                               strataTable,
-                              strataId,
+                              strataCohortId,
                               sample) {
   sqlQueries <- list()
 
@@ -73,7 +55,7 @@ getDenominatorPop <- function(cdm,
   # stratify population on cohort
   if (!is.null(strataTable)) {
     strataDb <- cdm[[strataTable]] %>%
-      dplyr::filter(.data$cohort_definition_id == .env$strataId)
+      dplyr::filter(.data$cohort_definition_id == .env$strataCohortId)
 
     # drop anyone not in the strata cohort
     personDb <- personDb %>%
