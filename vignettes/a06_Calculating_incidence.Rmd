@@ -68,8 +68,8 @@ knitr::include_graphics(here("vignettes/inc_rep_some_washout.png"))
 ```
 
 
-# Using computeIncidence()
-`computeIncidence()` is the function we use to estimate incidence rates To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `mockIncidencePrevalenceRef()` function, from whom we´ll create a denominator population without adding any restrictions other than a study period.
+# Using estimateIncidence()
+`estimateIncidence()` is the function we use to estimate incidence rates. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `mockIncidencePrevalenceRef()` function, from whom we´ll create a denominator population without adding any restrictions other than a study period.
 
 ```{r setup}
 library(IncidencePrevalence)
@@ -82,12 +82,12 @@ cdm <- mockIncidencePrevalenceRef(
   outPre = 0.5
 )
 
-dpop <- collectDenominator(
+dpop <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2012-01-01"),
-  ageStrata = list(c(0, 150)),
-  sexStrata = "Both",
+  ageGroups = list(c(0, 150)),
+  sex = "Both",
   daysPriorHistory = 0
 )
 
@@ -100,7 +100,7 @@ cdm$denominator %>%
 
 Let´s first calculate incidence rates on a yearly basis, without allowing repetitive events
 ```{r, message= FALSE, warning=FALSE}
-inc <- computeIncidence(
+inc <- estimateIncidence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
@@ -121,7 +121,7 @@ inc$incidence_estimates %>%
 
 Now with a washout of all prior history while still not allowing repetitive events
 ```{r, message= FALSE, warning=FALSE}
-inc <- computeIncidence(
+inc <- estimateIncidence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
@@ -142,7 +142,7 @@ inc$incidence_estimates %>%
 
 Now we´ll set the washout to 180 days while still not allowing repetitive events
 ```{r, message= FALSE, warning=FALSE}
-inc <- computeIncidence(
+inc <- estimateIncidence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
@@ -161,9 +161,9 @@ inc$incidence_estimates %>%
   theme_minimal()
 ```
 
-And finally we´ll set the washout to 180 days and allow repetitve events
+And finally we´ll set the washout to 180 days and allow repetitive events
 ```{r, message= FALSE, warning=FALSE}
-inc <- computeIncidence(
+inc <- estimateIncidence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",

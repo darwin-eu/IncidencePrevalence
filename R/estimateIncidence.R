@@ -20,17 +20,15 @@
 #' @param cdm CDMConnector CDM reference
 #' @param denominatorTable Name of the table with the denominator cohorts
 #' @param outcomeTable Name of the table with the outcome cohorts.
-#' Can be "days", "weeks", "months", "quarters", or "years".
-#' @param denominatorId Cohort ids of denominator populations
-#' @param outcomeId Outcome cohort ids
+#' Can be "weeks", "months", "quarters", or "years".
+#' @param denominatorCohortId Cohort ids of denominator populations
+#' @param outcomeCohortId Outcome cohort ids
 #' @param interval Time intervals for incidence estimates
 #' @param fullPeriods If full period is required
 #' @param outcomeWashout Clean windows
 #' @param repeatedEvents Repeated events
 #' @param confidenceInterval Method for confidence intervals
-#' @param returnAnalysisSettings Whether to return analysis settings
-#' @param returnAttrition Whether to return attrition
-#' @param returnPopulation Whether to return population
+#' @param returnAnalysisCohort Whether to return population
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
 #' @param verbose Whether to report progress
@@ -39,34 +37,31 @@
 #' @export
 #'
 #' @examples
-computeIncidence <- function(cdm,
-                             denominatorTable,
-                             outcomeTable,
-                             denominatorId = NULL,
-                             outcomeId = NULL,
-                             interval = "months",
-                             fullPeriods = TRUE,
-                             outcomeWashout = 0,
-                             repeatedEvents = FALSE,
-                             confidenceInterval = "poisson",
-                             returnAnalysisSettings=TRUE,
-                             returnAttrition = TRUE,
-                             returnPopulation = TRUE,
-                             minCellCount = 5,
-                             verbose = FALSE) {
-
+estimateIncidence <- function(cdm,
+                              denominatorTable,
+                              outcomeTable,
+                              denominatorCohortId = NULL,
+                              outcomeCohortId = NULL,
+                              interval = "months",
+                              fullPeriods = TRUE,
+                              outcomeWashout = 0,
+                              repeatedEvents = FALSE,
+                              confidenceInterval = "poisson",
+                              returnAnalysisCohort = TRUE,
+                              minCellCount = 5,
+                              verbose = FALSE) {
   if (verbose == TRUE) {
     startCollect <- Sys.time()
     message("Progress: Checking inputs")
   }
   # help to avoid formatting errors
-  if (!is.null(denominatorId) &&
-    is.numeric(denominatorId)) {
-    denominatorId <- as.character(denominatorId)
+  if (!is.null(denominatorCohortId) &&
+    is.numeric(denominatorCohortId)) {
+    denominatorCohortId <- as.character(denominatorCohortId)
   }
-  if (!is.null(outcomeId) &&
-    is.numeric(outcomeId)) {
-    outcomeId <- as.character(outcomeId)
+  if (!is.null(outcomeCohortId) &&
+    is.numeric(outcomeCohortId)) {
+    outcomeCohortId <- as.character(outcomeCohortId)
   }
   if (is.character(interval)) {
     interval <- tolower(interval)
@@ -102,7 +97,7 @@ computeIncidence <- function(cdm,
     names(cdm[[denominatorTable]] %>%
       utils::head(1) %>%
       dplyr::collect())))
-  checkmate::assert_character(denominatorId,
+  checkmate::assert_character(denominatorCohortId,
     add = errorMessage,
     null.ok = TRUE
   )
@@ -115,13 +110,15 @@ computeIncidence <- function(cdm,
       "- `outcomeTable` is not found in cdm"
     )
   }
-  checkmate::assert_character(outcomeId,
+  checkmate::assert_character(outcomeCohortId,
     add = errorMessage,
     null.ok = TRUE
   )
   checkmate::assert_choice(interval,
-    choices = c("days", "weeks", "months", "quarters", "years",
-                "overall"),
+    choices = c(
+      "weeks", "months", "quarters", "years",
+      "overall"
+    ),
     add = errorMessage
   )
   checkmate::assert_logical(fullPeriods,
@@ -146,15 +143,15 @@ computeIncidence <- function(cdm,
   checkmate::reportAssertions(collection = errorMessage)
 
   # if not given, use all denominator and outcome cohorts
-  if (is.null(denominatorId)) {
-    denominatorId <- cdm[[denominatorTable]] %>%
+  if (is.null(denominatorCohortId)) {
+    denominatorCohortId <- cdm[[denominatorTable]] %>%
       dplyr::select("cohort_definition_id") %>%
       dplyr::distinct() %>%
       dplyr::collect() %>%
       dplyr::pull()
   }
-  if (is.null(outcomeId)) {
-    outcomeId <- cdm[[outcomeTable]] %>%
+  if (is.null(outcomeCohortId)) {
+    outcomeCohortId <- cdm[[outcomeTable]] %>%
       dplyr::select("cohort_definition_id") %>%
       dplyr::distinct() %>%
       dplyr::collect() %>%
@@ -165,7 +162,7 @@ computeIncidence <- function(cdm,
   errorMessage <- checkmate::makeAssertCollection()
   denomCountCheck <- cdm[[denominatorTable]] %>%
     dplyr::filter(.data$cohort_definition_id %in%
-      .env$denominatorId) %>%
+      .env$denominatorCohortId) %>%
     dplyr::count() %>%
     dplyr::pull() > 0
   checkmate::assertTRUE(denomCountCheck,
@@ -173,11 +170,11 @@ computeIncidence <- function(cdm,
   )
   if (!isTRUE(denomCountCheck)) {
     errorMessage$push(
- "- nobody found in `denominatorTable` with one of the `denominatorId`"
+      "- nobody found in `denominatorTable` with one of the `denominatorCohortId`"
     )
   }
   outcomeCountCheck <- cdm[[outcomeTable]] %>%
-    dplyr::filter(.data$cohort_definition_id %in% .env$outcomeId) %>%
+    dplyr::filter(.data$cohort_definition_id %in% .env$outcomeCohortId) %>%
     dplyr::count() %>%
     dplyr::pull() > 0
   checkmate::assertTRUE(outcomeCountCheck,
@@ -185,7 +182,7 @@ computeIncidence <- function(cdm,
   )
   if (!isTRUE(outcomeCountCheck)) {
     errorMessage$push(
-      "- nobody found in `outcomeTable` with one of the `outcomeId`"
+      "- nobody found in `outcomeTable` with one of the `outcomeCohortId`"
     )
   }
   checkmate::reportAssertions(collection = errorMessage)
@@ -193,7 +190,7 @@ computeIncidence <- function(cdm,
     message("Progress: All input checks passed")
     duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
-   "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
 
@@ -203,14 +200,14 @@ computeIncidence <- function(cdm,
     start <- Sys.time()
   }
   outcome <- cdm[[outcomeTable]] %>%
-    dplyr::filter(.data$cohort_definition_id %in% .env$outcomeId) %>%
-    dplyr::rename("outcome_id" = "cohort_definition_id") %>%
+    dplyr::filter(.data$cohort_definition_id %in% .env$outcomeCohortId) %>%
+    dplyr::rename("outcome_cohort_id" = "cohort_definition_id") %>%
     dplyr::rename("outcome_start_date" = "cohort_start_date") %>%
     dplyr::rename("outcome_end_date" = "cohort_end_date") %>%
     dplyr::inner_join(
       cdm[[denominatorTable]] %>%
         dplyr::filter(.data$cohort_definition_id %in%
-          .env$denominatorId) %>%
+          .env$denominatorCohortId) %>%
         dplyr::select(-"cohort_definition_id") %>%
         dplyr::distinct(),
       by = "subject_id"
@@ -223,7 +220,7 @@ computeIncidence <- function(cdm,
     dplyr::group_by(
       .data$subject_id,
       .data$cohort_start_date,
-      .data$outcome_id
+      .data$outcome_cohort_id
     ) %>%
     dplyr::filter(.data$outcome_start_date ==
       max(.data$outcome_start_date, na.rm = TRUE)) %>%
@@ -239,7 +236,7 @@ computeIncidence <- function(cdm,
     dplyr::group_by(
       .data$subject_id,
       .data$cohort_start_date,
-      .data$outcome_id
+      .data$outcome_cohort_id
     ) %>%
     dbplyr::window_order(.data$outcome_start_date) %>%
     dplyr::mutate(index = rank()) %>%
@@ -256,7 +253,7 @@ computeIncidence <- function(cdm,
         dplyr::select(-"outcome_start_date"),
       by = c(
         "subject_id", "cohort_start_date",
-        "cohort_end_date", "outcome_id", "index"
+        "cohort_end_date", "outcome_cohort_id", "index"
       )
     ) %>%
     dplyr::select(-"index") %>%
@@ -265,7 +262,7 @@ computeIncidence <- function(cdm,
     message("Progress: Limited to relevant outcomes")
     duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
     message(glue::glue(
-   "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
 
@@ -274,8 +271,8 @@ computeIncidence <- function(cdm,
     start <- Sys.time()
   }
   studySpecs <- tidyr::expand_grid(
-    outcome_id = outcomeId,
-    denominator_id = denominatorId,
+    outcome_cohort_id = outcomeCohortId,
+    denominator_cohort_id = denominatorCohortId,
     interval = interval,
     full_periods = fullPeriods,
     outcome_washout = outcomeWashout,
@@ -297,32 +294,30 @@ computeIncidence <- function(cdm,
     workingInc <- getIncidence(
       cdm = cdm,
       denominatorTable = denominatorTable,
-      denominatorId = x$denominator_id,
+      denominatorCohortId = x$denominator_cohort_id,
       outcomeTable = outcomeTable,
-      outcomeId = x$outcome_id,
+      outcomeCohortId = x$outcome_cohort_id,
       interval = x$interval,
       fullPeriods = x$full_periods,
       outcomeWashout = x$outcome_washout,
       repeatedEvents = x$repeated_events,
-      returnAnalysisSettings = returnAnalysisSettings,
-      returnAttrition = returnAttrition,
-      returnPopulation = returnPopulation,
+      returnAnalysisCohort = returnAnalysisCohort,
       verbose = verbose
     )
 
     workingIncIr <- workingInc[["ir"]] %>%
       dplyr::mutate(incidence_analysis_id = x$incidence_analysis_id) %>%
       dplyr::relocate("incidence_analysis_id")
-    if(returnPopulation==TRUE){
-    workingIncPersonTable <- workingInc[["person_table"]] %>%
-      dplyr::mutate(incidence_analysis_id = x$incidence_analysis_id) %>%
-      dplyr::relocate("incidence_analysis_id")
+    if (returnAnalysisCohort == TRUE) {
+      workingIncPersonTable <- workingInc[["person_table"]] %>%
+        dplyr::mutate(incidence_analysis_id = x$incidence_analysis_id) %>%
+        dplyr::relocate("incidence_analysis_id")
     }
-    if(returnAnalysisSettings==TRUE){
+
     workingIncAnalysisSettings <- workingInc[["analysis_settings"]] %>%
       dplyr::mutate(
-        outcome_id = x$outcome_id,
-        denominator_id = x$denominator_id,
+        outcome_cohort_id = x$outcome_cohort_id,
+        denominator_cohort_id = x$denominator_cohort_id,
         interval = x$interval,
         outcome_washout = x$outcome_washout,
         repeated_events = x$repeated_events,
@@ -331,23 +326,19 @@ computeIncidence <- function(cdm,
         incidence_analysis_id = x$incidence_analysis_id
       ) %>%
       dplyr::relocate("incidence_analysis_id")
-    }
-    if(returnAttrition==TRUE){
+
     workingIncAttrition <- workingInc[["attrition"]] %>%
       dplyr::mutate(incidence_analysis_id = x$incidence_analysis_id) %>%
       dplyr::relocate("incidence_analysis_id")
-    }
+
     result <- list()
     result[["ir"]] <- workingIncIr
-    if(returnAnalysisSettings==TRUE){
     result[["analysis_settings"]] <- workingIncAnalysisSettings
+    if (returnAnalysisCohort == TRUE) {
+      result[["person_table"]] <- workingIncPersonTable
     }
-    if(returnPopulation==TRUE){
-    result[["person_table"]] <- workingIncPersonTable
-    }
-    if(returnAttrition==TRUE){
     result[["attrition"]] <- workingIncAttrition
-    }
+
 
     return(result)
   })
@@ -355,7 +346,7 @@ computeIncidence <- function(cdm,
     message("Progress: Incidence fetched for subgroups")
     duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
-   "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
 
@@ -366,13 +357,11 @@ computeIncidence <- function(cdm,
   irsList <- purrr::flatten(irsList)
 
   # analysis settings
-  if(returnAnalysisSettings==TRUE){
   analysisSettings <- irsList[names(irsList) == "analysis_settings"]
   # to tibble
   analysisSettings <- dplyr::bind_rows(analysisSettings,
     .id = NULL
   )
-  }
 
   # incidence estimates
   irs <- irsList[names(irsList) == "ir"]
@@ -383,50 +372,45 @@ computeIncidence <- function(cdm,
 
   # get confidence intervals
   if (nrow(irs) > 0) {
-  irs <- getCiIncidence(irs, confidenceInterval) %>%
-    dplyr::relocate("ir_100000_pys_low", .after = "ir_100000_pys") %>%
-    dplyr::relocate("ir_100000_pys_high", .after = "ir_100000_pys_low")
+    irs <- getCiIncidence(irs, confidenceInterval) %>%
+      dplyr::relocate("ir_100000_pys_low", .after = "ir_100000_pys") %>%
+      dplyr::relocate("ir_100000_pys_high", .after = "ir_100000_pys_low")
 
-  # obscure counts
+    # obscure counts
     irs <- obscureCounts(irs, minCellCount = minCellCount, substitute = NA)
-
   }
 
   # person_table summary
-  if(returnPopulation==TRUE){
-  personTable <- irsList[names(irsList) == "person_table"]
-  # to tibble
-  personTable <- dplyr::bind_rows(personTable,
-    .id = NULL
-  )
+  if (returnAnalysisCohort == TRUE) {
+    personTable <- irsList[names(irsList) == "person_table"]
+    # to tibble
+    personTable <- dplyr::bind_rows(personTable,
+      .id = NULL
+    )
   }
 
   # attrition summary
-  if(returnAttrition==TRUE){
   attrition <- irsList[names(irsList) == "attrition"]
   # to tibble
   attrition <- dplyr::bind_rows(attrition,
     .id = NULL
   )
-  }
+
 
   # results to return as a list
   results <- list()
   results[["incidence_estimates"]] <- irs
-  if(returnAnalysisSettings==TRUE){
   results[["analysis_settings"]] <- analysisSettings
+  if (returnAnalysisCohort == TRUE) {
+    results[["person_table"]] <- personTable
   }
-  if(returnPopulation==TRUE){
-  results[["person_table"]] <- personTable
-  }
-  if(returnAttrition==TRUE){
   results[["attrition"]] <- attrition
-  }
+
   if (verbose == TRUE) {
     message("Progress: All incidence results computed")
     duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
     message(glue::glue(
-  "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
 
@@ -434,7 +418,7 @@ computeIncidence <- function(cdm,
   if (verbose == TRUE) {
     duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
-"Overall time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      "Overall time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
   return(results)

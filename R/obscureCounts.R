@@ -14,17 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
-#' Obscure the small number of counts
-#'
-#' @param x x
-#' @param minCellCount minCellCount
-#' @param substitute substitute
-#'
-#' @return
-#' @export
-#'
-#' @examples
 obscureCounts <- function(x,
                            minCellCount = 5,
                            substitute = NA) {
