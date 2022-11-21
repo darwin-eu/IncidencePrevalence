@@ -10,6 +10,7 @@ estimatePrevalence(
   outcomeTable,
   denominatorCohortId = NULL,
   outcomeCohortId = NULL,
+  outcomeLookbackDays = 0,
   type = "point",
   interval = "months",
   fullPeriods = TRUE,
@@ -30,6 +31,8 @@ estimatePrevalence(
 \item{denominatorCohortId}{Cohort ids of denominator populations}
 
 \item{outcomeCohortId}{Outcome cohort ids}
+
+\item{outcomeLookbackDays}{Days lookback when considering an outcome as prevalent}
 
 \item{type}{type of prevalence, point or period}
 

@@ -163,6 +163,105 @@ test_that("mock db: working examples 2", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
+test_that("mock db: check outcome lookback", {
+  personTable <- tibble::tibble(
+    person_id = "1",
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id = "1",
+    person_id = "1",
+    observation_period_start_date = as.Date("2000-01-01"),
+    observation_period_end_date = as.Date("2012-06-01")
+  )
+  outcomeTable <- tibble::tibble(
+    cohort_definition_id = "1",
+    subject_id = "1",
+    cohort_start_date = c(
+      as.Date("2008-02-05")
+    ),
+    cohort_end_date = c(
+      as.Date("2008-02-05")
+    )
+  )
+
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    outcomeTable = outcomeTable
+  )
+
+  dpop <- generateDenominatorCohortSet(cdm = cdm,
+                                       startDate = as.Date("2006-01-01"),
+                                       endDate = as.Date("2010-12-31"))
+  cdm$denominator <- dpop$denominator_populations
+
+  # without look back we´ll only include ongoing outcomes
+  # of which none are at the start of a year
+  prev <- estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    type = "point",
+    interval = "years",
+    minCellCount = 0
+  )
+  expect_true(all(prev[["prevalence_estimates"]]$numerator == 0))
+
+  # with a lookback of 365 days
+  # the person would be considered as a prevalent case at the start of 2009
+  prev <- estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    outcomeLookbackDays = 365,
+    type = "point",
+    interval = "years",
+    minCellCount = 0
+  )
+  expect_true((prev[["prevalence_estimates"]] %>%
+                 dplyr::filter(time=="2008") %>%
+                 dplyr::select(numerator) %>%
+                 dplyr::pull() == 0))
+  expect_true((prev[["prevalence_estimates"]] %>%
+                 dplyr::filter(time=="2009") %>%
+                 dplyr::select(numerator) %>%
+                 dplyr::pull() == 1))
+  expect_true((prev[["prevalence_estimates"]] %>%
+                 dplyr::filter(time=="2010") %>%
+                 dplyr::select(numerator) %>%
+                 dplyr::pull() == 0))
+
+  # with a lookback of 1500 days
+  # the person would be considered as a prevalent case at the start of 2009 and 2010
+  prev <- estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    outcomeLookbackDays = 1500,
+    type = "point",
+    interval = "years",
+    minCellCount = 0
+  )
+  expect_true((prev[["prevalence_estimates"]] %>%
+                 dplyr::filter(time=="2008") %>%
+                 dplyr::select(numerator) %>%
+                 dplyr::pull() == 0))
+  expect_true((prev[["prevalence_estimates"]] %>%
+                 dplyr::filter(time=="2009") %>%
+                 dplyr::select(numerator) %>%
+                 dplyr::pull() == 1))
+  expect_true((prev[["prevalence_estimates"]] %>%
+                 dplyr::filter(time=="2010") %>%
+                 dplyr::select(numerator) %>%
+                 dplyr::pull() == 1))
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
 test_that("mock db: check minimum counts", {
   # 20 people
   personTable <- tibble::tibble(

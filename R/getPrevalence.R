@@ -19,6 +19,7 @@ getPrevalence <- function(cdm,
                              denominatorCohortId,
                              outcomeTable,
                              outcomeCohortId,
+                             outcomeLookbackDays,
                              type,
                              interval,
                              fullPeriods,
@@ -122,7 +123,8 @@ getPrevalence <- function(cdm,
 
     numerator <- workingPop %>%
       dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
-      dplyr::filter(.data$outcome_end_date >= .data$t_start_date) %>%
+      dplyr::filter(.data$outcome_end_date >= (.data$t_start_date -
+                                lubridate::days(.env$outcomeLookbackDays))) %>%
       dplyr::select("subject_id") %>%
       dplyr::distinct() %>%
       nrow()
