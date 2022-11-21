@@ -22,7 +22,7 @@
 #' @param outcomeTable Name of the table with the outcome cohorts
 #' @param denominatorCohortId Cohort ids of denominator populations
 #' @param outcomeCohortId Outcome cohort ids
-#' @param outcomeLookbackDays Days lookback when considering an outcome as prevalent
+#' @param outcomeLookbackDays Days lookback when considering an outcome as prevalent. If NULL any prior outcome will be considered as prevalent.
 #' @param type type of prevalence, point or period
 #' @param points where to compute the point prevalence
 #' @param interval Time intervals for prevalence estimates
@@ -119,6 +119,10 @@ estimatePrevalence <- function(cdm,
     add = errorMessage,
     null.ok = TRUE
   )
+  checkmate::assert_numeric(outcomeLookbackDays,
+                            add = errorMessage,
+                            null.ok = TRUE
+  )
   checkmate::assert_choice(type,
     choices = c("point", "period"),
     add = errorMessage
@@ -178,6 +182,9 @@ estimatePrevalence <- function(cdm,
     point = points,
     fullContribution = fullContribution
   )
+  if (is.null(outcomeLookbackDays)) {
+    studySpecs$outcomeLookbackDays <- NA
+  }
 
   studySpecs <- studySpecs %>%
     dplyr::mutate(prevalence_analysis_id = as.character(dplyr::row_number()))

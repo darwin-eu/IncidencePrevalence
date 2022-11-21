@@ -32,7 +32,7 @@ estimatePrevalence(
 
 \item{outcomeCohortId}{Outcome cohort ids}
 
-\item{outcomeLookbackDays}{Days lookback when considering an outcome as prevalent}
+\item{outcomeLookbackDays}{Days lookback when considering an outcome as prevalent. If NULL any prior outcome will be considered as prevalent.}
 
 \item{type}{type of prevalence, point or period}
 

@@ -235,13 +235,14 @@ test_that("mock db: check outcome lookback", {
                  dplyr::select(numerator) %>%
                  dplyr::pull() == 0))
 
-  # with a lookback of 1500 days
+  # with a NULL lookback
+  # where any prior outcome is used
   # the person would be considered as a prevalent case at the start of 2009 and 2010
   prev <- estimatePrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeLookbackDays = 1500,
+    outcomeLookbackDays = NULL,
     type = "point",
     interval = "years",
     minCellCount = 0
