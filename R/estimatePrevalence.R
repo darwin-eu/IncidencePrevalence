@@ -22,6 +22,7 @@
 #' @param outcomeTable Name of the table with the outcome cohorts
 #' @param denominatorCohortId Cohort ids of denominator populations
 #' @param outcomeCohortId Outcome cohort ids
+#' @param outcomeLookbackDays Days lookback when considering an outcome as prevalent. If NULL any prior outcome will be considered as prevalent.
 #' @param type type of prevalence, point or period
 #' @param points where to compute the point prevalence
 #' @param interval Time intervals for prevalence estimates
@@ -42,6 +43,7 @@ estimatePrevalence <- function(cdm,
                                outcomeTable,
                                denominatorCohortId = NULL,
                                outcomeCohortId = NULL,
+                               outcomeLookbackDays = 0,
                                type = "point",
                                interval = "months",
                                fullPeriods = TRUE,
@@ -117,6 +119,10 @@ estimatePrevalence <- function(cdm,
     add = errorMessage,
     null.ok = TRUE
   )
+  checkmate::assert_numeric(outcomeLookbackDays,
+                            add = errorMessage,
+                            null.ok = TRUE
+  )
   checkmate::assert_choice(type,
     choices = c("point", "period"),
     add = errorMessage
@@ -170,11 +176,15 @@ estimatePrevalence <- function(cdm,
 
   studySpecs <- tidyr::expand_grid(
     outcomeCohortId = outcomeCohortId,
+    outcomeLookbackDays = outcomeLookbackDays,
     denominatorCohortId = denominatorCohortId,
     interval = interval,
     point = points,
     fullContribution = fullContribution
   )
+  if (is.null(outcomeLookbackDays)) {
+    studySpecs$outcomeLookbackDays <- NA
+  }
 
   studySpecs <- studySpecs %>%
     dplyr::mutate(prevalence_analysis_id = as.character(dplyr::row_number()))
@@ -192,6 +202,7 @@ estimatePrevalence <- function(cdm,
       denominatorCohortId = x$denominatorCohortId,
       outcomeTable = outcomeTable,
       outcomeCohortId = x$outcomeCohortId,
+      outcomeLookbackDays= x$outcomeLookbackDays,
       type = type,
       interval = x$interval,
       fullPeriods = fullPeriods,
@@ -211,6 +222,7 @@ estimatePrevalence <- function(cdm,
     workingPrevAnalysisSettings <- workingPrev[["analysis_settings"]] %>%
       dplyr::mutate(
         outcome_cohort_id = x$outcomeCohortId,
+        outcome_lookback_days  = x$outcomeLookbackDays,
         denominator_cohort_id = x$denominatorCohortId,
         type = type,
         interval = x$interval,

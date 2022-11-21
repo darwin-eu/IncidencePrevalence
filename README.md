@@ -48,7 +48,7 @@ cdm<-mockIncidencePrevalenceRef(sampleSize=5000)
 # and this is what this example data looks like
 head(cdm$person)
 #> # Source:   SQL [6 x 5]
-#> # Database: DuckDB 0.5.0 [unknown@Linux 5.4.0-126-generic:R 4.1.2/:memory:]
+#> # Database: DuckDB 0.5.0 [unknown@Linux 5.4.0-132-generic:R 4.1.2/:memory:]
 #>   person_id gender_concept_id year_of_birth month_of_birth day_of_birth
 #>   <chr>     <chr>                     <dbl>          <dbl>        <dbl>
 #> 1 1         8532                       1926              8            2
@@ -59,7 +59,7 @@ head(cdm$person)
 #> 6 6         8532                       1960              9           25
 head(cdm$observation_period)
 #> # Source:   SQL [6 x 4]
-#> # Database: DuckDB 0.5.0 [unknown@Linux 5.4.0-126-generic:R 4.1.2/:memory:]
+#> # Database: DuckDB 0.5.0 [unknown@Linux 5.4.0-132-generic:R 4.1.2/:memory:]
 #>   observation_period_id person_id observation_period_start_date observation_pe…¹
 #>   <chr>                 <chr>     <date>                        <date>          
 #> 1 1                     1         2013-12-18                    2014-12-30      
@@ -71,7 +71,7 @@ head(cdm$observation_period)
 #> # … with abbreviated variable name ¹​observation_period_end_date
 head(cdm$outcome)
 #> # Source:   SQL [6 x 4]
-#> # Database: DuckDB 0.5.0 [unknown@Linux 5.4.0-126-generic:R 4.1.2/:memory:]
+#> # Database: DuckDB 0.5.0 [unknown@Linux 5.4.0-132-generic:R 4.1.2/:memory:]
 #>   cohort_definition_id subject_id cohort_start_date cohort_end_date
 #>   <chr>                <chr>      <date>            <date>         
 #> 1 1                    1          2014-07-01        2014-07-09     
@@ -97,7 +97,7 @@ dpop <- generateDenominatorCohortSet(
 # this is what the data looks like
 head(dpop$denominator_population)
 #> # Source:   SQL [6 x 4]
-#> # Database: DuckDB 0.5.0 [unknown@Linux 5.4.0-126-generic:R 4.1.2/:memory:]
+#> # Database: DuckDB 0.5.0 [unknown@Linux 5.4.0-132-generic:R 4.1.2/:memory:]
 #>   cohort_definition_id subject_id cohort_start_date cohort_end_date
 #>   <chr>                <chr>      <date>            <date>         
 #> 1 1                    1          2013-12-18        2014-12-30     

@@ -19,12 +19,18 @@ getPrevalence <- function(cdm,
                              denominatorCohortId,
                              outcomeTable,
                              outcomeCohortId,
+                             outcomeLookbackDays,
                              type,
                              interval,
                              fullPeriods,
                              point,
                              fullContribution,
                              verbose) {
+
+  if (is.na(outcomeLookbackDays)) {
+    outcomeLookbackDays <- NULL
+  }
+
   ## Analysis code
   # bring in study population
   if (verbose == TRUE) {
@@ -120,12 +126,21 @@ getPrevalence <- function(cdm,
       dplyr::distinct() %>%
       nrow()
 
+    if(!is.null(outcomeLookbackDays)){
     numerator <- workingPop %>%
       dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
-      dplyr::filter(.data$outcome_end_date >= .data$t_start_date) %>%
+      dplyr::filter(.data$outcome_end_date >= (.data$t_start_date -
+                                lubridate::days(.env$outcomeLookbackDays))) %>%
       dplyr::select("subject_id") %>%
       dplyr::distinct() %>%
       nrow()
+    } else {
+      numerator <- workingPop %>%
+        dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
+        dplyr::select("subject_id") %>%
+        dplyr::distinct() %>%
+        nrow()
+    }
 
     pr[[paste0(i)]] <- studyDays[i, ] %>%
       dplyr::mutate(numerator = .env$numerator) %>%
