@@ -2,7 +2,8 @@
 
 export("%>%")
 export(estimateIncidence)
-export(estimatePrevalence)
+export(estimatePeriodPrevalence)
+export(estimatePointPrevalence)
 export(generateDenominatorCohortSet)
 export(mockIncidencePrevalenceRef)
 importFrom(magrittr,"%>%")

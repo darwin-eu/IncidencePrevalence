@@ -811,3 +811,70 @@ test_that("mock db: check expected errors", {
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
+
+test_that("mock db: check user point prevalence function", {
+  cdm <- mockIncidencePrevalenceRef()
+
+  dpop <- generateDenominatorCohortSet(cdm = cdm)
+  cdm$denominator <- dpop$denominator_populations
+
+  prev <- estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    denominatorCohortId = "1",
+    outcomeTable = "outcome",
+    outcomeCohortId = "1",
+    confidenceInterval = "none"
+  )
+  prev_point <- estimatePointPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    denominatorCohortId = "1",
+    outcomeTable = "outcome",
+    outcomeCohortId = "1",
+    confidenceInterval = "none"
+  )
+
+  expect_true(class(prev) == class(prev_point))
+  expect_true(all(names(prev)==names(prev_point)))
+  expect_true(all(names(prev[["analysis_settings"]])==
+                    names(prev_point[["analysis_settings"]])))
+  expect_true(all(names(prev[["prevalence_estimates"]])==
+                    names(prev_point[["prevalence_estimates"]])))
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
+test_that("mock db: check user period prevalence function", {
+  cdm <- mockIncidencePrevalenceRef()
+
+  dpop <- generateDenominatorCohortSet(cdm = cdm)
+  cdm$denominator <- dpop$denominator_populations
+
+  prev <- estimatePrevalence(
+    cdm = cdm,
+    type="period",
+    denominatorTable = "denominator",
+    denominatorCohortId = "1",
+    outcomeTable = "outcome",
+    outcomeCohortId = "1",
+    confidenceInterval = "none"
+  )
+  prev_period <- estimatePeriodPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    denominatorCohortId = "1",
+    outcomeTable = "outcome",
+    outcomeCohortId = "1",
+    confidenceInterval = "none"
+  )
+
+  expect_true(class(prev) == class(prev_period))
+  expect_true(all(names(prev)==names(prev_period)))
+  expect_true(all(names(prev[["analysis_settings"]])==
+                    names(prev_period[["analysis_settings"]])))
+  expect_true(all(names(prev[["prevalence_estimates"]])==
+                    names(prev_period[["prevalence_estimates"]])))
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})

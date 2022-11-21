@@ -15,7 +15,7 @@
 # limitations under the License.
 
 
-#' Collect population prevalence estimates
+#' Estimate point prevalence
 #'
 #' @param cdm CDMConnector CDM reference object
 #' @param denominatorTable denominatorTable
@@ -23,8 +23,59 @@
 #' @param denominatorCohortId Cohort ids of denominator populations
 #' @param outcomeCohortId Outcome cohort ids
 #' @param outcomeLookbackDays Days lookback when considering an outcome as prevalent. If NULL any prior outcome will be considered as prevalent.
-#' @param type type of prevalence, point or period
+#' @param interval Time intervals for prevalence estimates
+#' @param fullPeriods If full period is required
+#' @param fullContribution If complete periods are required for
+#' individuals to contribute
 #' @param points where to compute the point prevalence
+#' @param confidenceInterval Method for confidence intervals
+#' @param minCellCount Minimum number of events to report- results
+#' lower than this will be obscured. If NULL all results will be reported.
+#' @param verbose Whether to report progress
+#'
+#' @return
+#' @export
+#'
+#' @examples
+estimatePointPrevalence <- function(cdm,
+                                    denominatorTable,
+                                    outcomeTable,
+                                    denominatorCohortId = NULL,
+                                    outcomeCohortId = NULL,
+                                    outcomeLookbackDays = 0,
+                                    interval = "months",
+                                    fullPeriods = TRUE,
+                                    fullContribution = FALSE,
+                                    points = "start",
+                                    confidenceInterval = "binomial",
+                                    minCellCount = 5,
+                                    verbose = FALSE) {
+
+  estimatePrevalence(cdm = cdm,
+                     denominatorTable = denominatorTable,
+                     outcomeTable = outcomeTable,
+                     denominatorCohortId = denominatorCohortId,
+                     outcomeCohortId = outcomeCohortId,
+                     outcomeLookbackDays = outcomeLookbackDays,
+                     type = "point",
+                     interval = interval,
+                     fullPeriods = fullPeriods,
+                     fullContribution = fullContribution,
+                     points = points,
+                     confidenceInterval = confidenceInterval,
+                     minCellCount = minCellCount,
+                     verbose = verbose)
+}
+
+
+#' Estimate period prevalence
+#'
+#' @param cdm CDMConnector CDM reference object
+#' @param denominatorTable denominatorTable
+#' @param outcomeTable Name of the table with the outcome cohorts
+#' @param denominatorCohortId Cohort ids of denominator populations
+#' @param outcomeCohortId Outcome cohort ids
+#' @param outcomeLookbackDays Days lookback when considering an outcome as prevalent. If NULL any prior outcome will be considered as prevalent.
 #' @param interval Time intervals for prevalence estimates
 #' @param fullPeriods If full period is required
 #' @param fullContribution If complete periods are required for
@@ -38,6 +89,35 @@
 #' @export
 #'
 #' @examples
+estimatePeriodPrevalence <- function(cdm,
+                                    denominatorTable,
+                                    outcomeTable,
+                                    denominatorCohortId = NULL,
+                                    outcomeCohortId = NULL,
+                                    outcomeLookbackDays = 0,
+                                    interval = "months",
+                                    fullPeriods = TRUE,
+                                    fullContribution = FALSE,
+                                    confidenceInterval = "binomial",
+                                    minCellCount = 5,
+                                    verbose = FALSE) {
+
+estimatePrevalence(cdm = cdm,
+                     denominatorTable = denominatorTable,
+                     outcomeTable = outcomeTable,
+                     denominatorCohortId = denominatorCohortId,
+                     outcomeCohortId = outcomeCohortId,
+                     outcomeLookbackDays = outcomeLookbackDays,
+                     type = "period",
+                     interval = interval,
+                     fullPeriods = fullPeriods,
+                     fullContribution = fullContribution,
+                     points = "start",
+                     confidenceInterval = confidenceInterval,
+                     minCellCount = minCellCount,
+                     verbose = verbose)
+}
+
 estimatePrevalence <- function(cdm,
                                denominatorTable,
                                outcomeTable,

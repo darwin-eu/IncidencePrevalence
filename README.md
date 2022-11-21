@@ -157,12 +157,11 @@ head(inc$incidence_estimates)
 ```
 
 ``` r
-prev_point <- estimatePrevalence(
+prev_point <- estimatePointPrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
-  interval = "months",
-  type = "point"
+  interval = "months"
 )
 head(prev_point$prevalence_estimates)
 #> # A tibble: 6 × 11
@@ -180,12 +179,11 @@ head(prev_point$prevalence_estimates)
 ```
 
 ``` r
-prev_period <- estimatePrevalence(
+prev_period <- estimatePeriodPrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
-  interval = "months",
-  type = "period"
+  interval = "months"
 )
 head(prev_period$prevalence_estimates)
 #> # A tibble: 6 × 11
