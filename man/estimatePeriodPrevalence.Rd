@@ -12,7 +12,7 @@ estimatePeriodPrevalence(
   outcomeCohortId = NULL,
   outcomeLookbackDays = 0,
   interval = "months",
-  fullPeriods = TRUE,
+  completeDatabaseIntervals = TRUE,
   fullContribution = FALSE,
   confidenceInterval = "binomial",
   minCellCount = 5,
@@ -34,7 +34,7 @@ estimatePeriodPrevalence(
 
 \item{interval}{Time intervals for prevalence estimates}
 
-\item{fullPeriods}{If full period is required}
+\item{completeDatabaseIntervals}{If full period is required}
 
 \item{fullContribution}{If complete periods are required for
 individuals to contribute}

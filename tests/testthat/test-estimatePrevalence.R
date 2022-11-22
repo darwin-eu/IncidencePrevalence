@@ -30,7 +30,7 @@ test_that("mock db: check output format", {
     "point",
     "interval",
     "full_contribution",
-    "full_periods",
+    "complete_database_intervals",
     "outcome_cohort_id",
     "denominator_cohort_id",
     "confidence_interval",
@@ -531,7 +531,7 @@ test_that("mock db: check periods follow calendar dates", {
     outcomeTable = outcomeTable
   )
 
-  # if fullPeriods is TRUE we should go from 2010 to 2013
+  # if completeDatabaseIntervals is TRUE we should go from 2010 to 2013
   # but if FALSE we should go from 2011 to 2012
   # for yearly incidence
   dpop <- generateDenominatorCohortSet(
@@ -547,7 +547,7 @@ test_that("mock db: check periods follow calendar dates", {
     interval = "years",
     minCellCount = 0,
     fullContribution = FALSE,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   expect_true(nrow(prev1$prevalence_estimates) == 4)
   expect_true(all(prev1$prevalence_estimates$time ==
@@ -562,7 +562,7 @@ test_that("mock db: check periods follow calendar dates", {
     interval = "years",
     minCellCount = 0,
     fullContribution = FALSE,
-    fullPeriods = TRUE
+    completeDatabaseIntervals = TRUE
   )
   expect_true(nrow(prev2$prevalence_estimates) == 2)
   expect_true(all(prev2$time == c("2011", "2012")))
@@ -584,7 +584,7 @@ test_that("mock db: check periods follow calendar dates", {
     interval = "months",
     minCellCount = 0,
     fullContribution = FALSE,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   expect_true(prev[["prevalence_estimates"]]$start_time[1] ==
                 as.Date("2011-01-15"))
@@ -598,7 +598,7 @@ test_that("mock db: check periods follow calendar dates", {
     interval = "months",
     minCellCount = 0,
     fullContribution = FALSE,
-    fullPeriods = TRUE
+    completeDatabaseIntervals = TRUE
   )
   expect_true(prev[["prevalence_estimates"]]$start_time[1] ==
     as.Date("2011-02-01"))

@@ -24,7 +24,7 @@
 #' @param outcomeCohortId Outcome cohort ids
 #' @param outcomeLookbackDays Days lookback when considering an outcome as prevalent. If NULL any prior outcome will be considered as prevalent.
 #' @param interval Time intervals for prevalence estimates
-#' @param fullPeriods If full period is required
+#' @param completeDatabaseIntervals If full period is required
 #' @param fullContribution If complete periods are required for
 #' individuals to contribute
 #' @param points where to compute the point prevalence
@@ -44,7 +44,7 @@ estimatePointPrevalence <- function(cdm,
                                     outcomeCohortId = NULL,
                                     outcomeLookbackDays = 0,
                                     interval = "months",
-                                    fullPeriods = TRUE,
+                                    completeDatabaseIntervals = TRUE,
                                     fullContribution = FALSE,
                                     points = "start",
                                     confidenceInterval = "binomial",
@@ -59,7 +59,7 @@ estimatePointPrevalence <- function(cdm,
                      outcomeLookbackDays = outcomeLookbackDays,
                      type = "point",
                      interval = interval,
-                     fullPeriods = fullPeriods,
+                     completeDatabaseIntervals = completeDatabaseIntervals,
                      fullContribution = fullContribution,
                      points = points,
                      confidenceInterval = confidenceInterval,
@@ -77,7 +77,7 @@ estimatePointPrevalence <- function(cdm,
 #' @param outcomeCohortId Outcome cohort ids
 #' @param outcomeLookbackDays Days lookback when considering an outcome as prevalent. If NULL any prior outcome will be considered as prevalent.
 #' @param interval Time intervals for prevalence estimates
-#' @param fullPeriods If full period is required
+#' @param completeDatabaseIntervals If full period is required
 #' @param fullContribution If complete periods are required for
 #' individuals to contribute
 #' @param confidenceInterval Method for confidence intervals
@@ -96,7 +96,7 @@ estimatePeriodPrevalence <- function(cdm,
                                     outcomeCohortId = NULL,
                                     outcomeLookbackDays = 0,
                                     interval = "months",
-                                    fullPeriods = TRUE,
+                                    completeDatabaseIntervals = TRUE,
                                     fullContribution = FALSE,
                                     confidenceInterval = "binomial",
                                     minCellCount = 5,
@@ -110,7 +110,7 @@ estimatePrevalence(cdm = cdm,
                      outcomeLookbackDays = outcomeLookbackDays,
                      type = "period",
                      interval = interval,
-                     fullPeriods = fullPeriods,
+                     completeDatabaseIntervals = completeDatabaseIntervals,
                      fullContribution = fullContribution,
                      points = "start",
                      confidenceInterval = confidenceInterval,
@@ -126,7 +126,7 @@ estimatePrevalence <- function(cdm,
                                outcomeLookbackDays = 0,
                                type = "point",
                                interval = "months",
-                               fullPeriods = TRUE,
+                               completeDatabaseIntervals = TRUE,
                                fullContribution = FALSE,
                                points = "start",
                                confidenceInterval = "binomial",
@@ -225,7 +225,7 @@ estimatePrevalence <- function(cdm,
   checkmate::assert_logical(verbose,
     add = errorMessage
   )
-  checkmate::assert_logical(fullPeriods,
+  checkmate::assert_logical(completeDatabaseIntervals,
     add = errorMessage
   )
   checkmate::assert_choice(confidenceInterval,
@@ -285,7 +285,7 @@ estimatePrevalence <- function(cdm,
       outcomeLookbackDays= x$outcomeLookbackDays,
       type = type,
       interval = x$interval,
-      fullPeriods = fullPeriods,
+      completeDatabaseIntervals = completeDatabaseIntervals,
       point = x$point,
       fullContribution = x$fullContribution,
       verbose = verbose
@@ -306,7 +306,7 @@ estimatePrevalence <- function(cdm,
         denominator_cohort_id = x$denominatorCohortId,
         type = type,
         interval = x$interval,
-        full_periods = fullPeriods,
+        complete_database_intervals = completeDatabaseIntervals,
         point = x$point,
         fullContribution = x$fullContribution,
         confidence_interval = confidenceInterval,

@@ -22,7 +22,7 @@ getPrevalence <- function(cdm,
                              outcomeLookbackDays,
                              type,
                              interval,
-                             fullPeriods,
+                             completeDatabaseIntervals,
                              point,
                              fullContribution,
                              verbose) {
@@ -61,7 +61,7 @@ getPrevalence <- function(cdm,
     startDate = start,
     endDate = end,
     timeInterval = interval,
-    fullPeriods = fullPeriods,
+    completeDatabaseIntervals = completeDatabaseIntervals,
     type = type,
     point = point
   )
@@ -159,7 +159,7 @@ getPrevalence <- function(cdm,
     point = .env$point,
     interval = .env$interval,
     full_contribution = .env$fullContribution,
-    full_periods_required = .env$fullPeriods
+    full_periods_required = .env$completeDatabaseIntervals
   )
 
   studyPop <- studyPop %>%

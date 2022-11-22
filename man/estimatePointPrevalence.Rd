@@ -12,7 +12,7 @@ estimatePointPrevalence(
   outcomeCohortId = NULL,
   outcomeLookbackDays = 0,
   interval = "months",
-  fullPeriods = TRUE,
+  completeDatabaseIntervals = TRUE,
   fullContribution = FALSE,
   points = "start",
   confidenceInterval = "binomial",
@@ -35,7 +35,7 @@ estimatePointPrevalence(
 
 \item{interval}{Time intervals for prevalence estimates}
 
-\item{fullPeriods}{If full period is required}
+\item{completeDatabaseIntervals}{If full period is required}
 
 \item{fullContribution}{If complete periods are required for
 individuals to contribute}

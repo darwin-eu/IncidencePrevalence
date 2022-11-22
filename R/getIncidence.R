@@ -20,7 +20,7 @@ getIncidence <- function(cdm,
                             denominatorCohortId,
                             outcomeCohortId,
                             interval,
-                            fullPeriods,
+                            completeDatabaseIntervals,
                             outcomeWashout,
                             repeatedEvents,
                             returnAnalysisCohort,
@@ -143,7 +143,7 @@ getIncidence <- function(cdm,
     startDate = start_end$min,
     endDate = start_end$max,
     timeInterval = interval,
-    fullPeriods = fullPeriods
+    completeDatabaseIntervals = completeDatabaseIntervals
   )
   }
 
@@ -226,7 +226,7 @@ getIncidence <- function(cdm,
     outcome_washout = .env$outcomeWashout,
     repeated_events = .env$repeatedEvents,
     interval = .env$interval,
-    full_periods = .env$fullPeriods
+    complete_database_intervals = .env$completeDatabaseIntervals
   )
   if(returnAnalysisCohort==TRUE){
   studyPop <- studyPop %>%
