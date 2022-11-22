@@ -18,36 +18,50 @@ generateDenominatorCohortSet(
 )
 }
 \arguments{
-\item{cdm}{CDMConnector CDM reference object}
+\item{cdm}{A CDM reference object}
 
-\item{startDate}{Date indicating the start of the study
-period. If NULL,
-the earliest observation_start_date in the observation_period table
-will be used.}
+\item{startDate}{A date indicating the start of the study
+period. If NULL, the earliest observation_start_date in the
+observation_period table will be used.}
 
-\item{endDate}{Date indicating the end of the study
-period. If NULL,
-the latest observation_end_date in the observation_period table
-will be used.}
+\item{endDate}{A date indicating the end of the study
+period. If NULL, the latest observation end date in the observation period
+table will be used.}
 
-\item{ageGroups}{List of age groups}
+\item{ageGroups}{A list of age groups for which cohorts will be generated. A
+value of \code{list(c(0,17), c(18,30))} would, for example, lead to the creation of
+cohorts for those aged from 0 to 17 (up to the day before their 18th
+birthday), and from 18 (starting the day of their 18th birthday) to 30 (up
+to the day before their 31st birthday).}
 
-\item{sex}{Sex of the cohorts}
+\item{sex}{Sex of the cohorts. This can be one or more of: \code{"Male"},
+\code{"Female"}, or \code{"Both"}.}
 
-\item{daysPriorHistory}{Days of prior history required to enter
-the study cohort.}
+\item{daysPriorHistory}{The number of days of prior history observed in
+the database required for an individual to start contributing time in
+a cohort.}
 
-\item{strataTable}{strataTable}
+\item{strataTable}{A cohort table in the cdm reference to use
+to limit cohort entry and exit (with individuals only contributing to a
+cohort when they are contibuting to the cohort in the stata table).}
 
-\item{strataCohortId}{strata cohort definition id}
+\item{strataCohortId}{The cohort definition id for the cohort of interest
+in the strata table. Only one stratifying cohort is supported.}
 
-\item{sample}{sample n}
+\item{sample}{An integer for which to take a random sample, using
+\code{dplyr::slice_sample()}, of the people in the person table eligible to be
+included in the cohort set.}
 
-\item{verbose}{Either TRUE or FALSE.
-If TRUE, progress will be reported.}
+\item{verbose}{Either TRUE or FALSE. If TRUE, progress will be reported.}
+}
+\value{
+A cohort reference
 }
 \description{
-\code{generateDenominatorCohortSet()} creates a set of denominator cohorts
+\code{generateDenominatorCohortSet()} creates a set of cohorts that
+can be used for the denominator population in analyses of incidence,
+using \code{estimateIncidence()}, or prevalence, using \code{estimatePointPrevalence()}
+or \code{estimatePeriodPrevalence()}.
 }
 \examples{
 \dontrun{
