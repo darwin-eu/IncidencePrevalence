@@ -20,32 +20,77 @@ estimatePeriodPrevalence(
 )
 }
 \arguments{
-\item{cdm}{CDMConnector CDM reference object}
+\item{cdm}{A CDM reference object}
 
-\item{denominatorTable}{denominatorTable}
+\item{denominatorTable}{A cohort table with a set of denominator cohorts
+(for example, created using the \code{generateDenominatorCohortSet()}
+function).}
 
-\item{outcomeTable}{Name of the table with the outcome cohorts}
+\item{outcomeTable}{A cohort table in the cdm reference containing
+a set of outcome cohorts.}
 
-\item{denominatorCohortId}{Cohort ids of denominator populations}
+\item{denominatorCohortId}{The cohort definition ids of the denominator
+cohorts of interest. If NULL all cohorts will be considered in the
+analysis.}
 
-\item{outcomeCohortId}{Outcome cohort ids}
+\item{outcomeCohortId}{The cohort definition ids of the outcome
+cohorts of interest. If NULL all cohorts will be considered in the
+analysis.}
 
-\item{outcomeLookbackDays}{Days lookback when considering an outcome as prevalent. If NULL any prior outcome will be considered as prevalent.}
+\item{outcomeLookbackDays}{Days lookback when considering an outcome
+as prevalent. If NULL any prior outcome will be considered as prevalent. If
+0, only ongoing outcomes will be considered as prevalent.}
 
-\item{interval}{Time intervals for prevalence estimates}
+\item{interval}{Time intervals over which period prevalence is estimated.
+This can be "weeks", "months", "quarters", "years", or "overall".
+ISO weeks will be used for weeks. Calendar months, quarters, or
+years can be used as the period. If more than one option
+is chosen then results will be estimated for each chosen interval.}
 
-\item{completeDatabaseIntervals}{If full period is required}
+\item{completeDatabaseIntervals}{TRUE/ FALSE. Where TRUE, incidence will
+only be estimated for those intervals where the database
+captures all the interval (based on the earliest and latest observation
+period start dates, respectively).}
 
-\item{fullContribution}{If complete periods are required for
-individuals to contribute}
+\item{fullContribution}{TRUE/ FALSE. Where TRUE, individuals will only be
+included if they in the database for the entire interval of interest. If
+FALSE they are only required to present for one day of the interval in
+order to contribute.}
 
-\item{confidenceInterval}{Method for confidence intervals}
+\item{confidenceInterval}{The method used for calculating confidence
+intervals. Options are "binomial" or "none" (in which case no estimates
+will
+be calculated).}
 
 \item{minCellCount}{Minimum number of events to report- results
 lower than this will be obscured. If NULL all results will be reported.}
 
 \item{verbose}{Whether to report progress}
 }
+\value{
+Period prevalence estimates
+}
 \description{
 Estimate period prevalence
+}
+\examples{
+\dontrun{
+db <- DBI::dbConnect(" Your database connection here ")
+cdm <- CDMConnector::cdm_from_con(
+  con = db,
+  cdm_schema = "cdm schema name"
+)
+dpop <- generateDenominatorCohortSet(
+  cdm = cdm,
+  startDate = as.Date("2008-01-01"),
+  endDate = as.Date("2018-01-01")
+)
+cdm$denominator <- dpop$denominator_population
+estimatePeriodPrevalence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = "months"
+)
+}
 }
