@@ -17,33 +17,75 @@
 
 #' Collect population incidence estimates
 #'
-#' @param cdm CDMConnector CDM reference
-#' @param denominatorTable Name of the table with the denominator cohorts
-#' @param outcomeTable Name of the table with the outcome cohorts.
-#' Can be "weeks", "months", "quarters", or "years".
-#' @param denominatorCohortId Cohort ids of denominator populations
-#' @param outcomeCohortId Outcome cohort ids
-#' @param interval Time intervals for incidence estimates
-#' @param fullPeriods If full period is required
-#' @param outcomeWashout Clean windows
-#' @param repeatedEvents Repeated events
-#' @param confidenceInterval Method for confidence intervals
-#' @param returnAnalysisCohort Whether to return population
-#' @param minCellCount Minimum number of events to report- results
-#' lower than this will be obscured. If NULL all results will be reported.
-#' @param verbose Whether to report progress
+#' @param cdm A CDM reference object
+#' @param denominatorTable A cohort table with a set of denominator cohorts
+#' (for example, created using the `generateDenominatorCohortSet()`
+#' function).
+#' @param outcomeTable A cohort table in the cdm reference containing
+#' a set of outcome cohorts.
+#' @param denominatorCohortId The cohort definition ids of the denominator
+#' cohorts of interest. If NULL all cohorts will be considered in the
+#' analysis.
+#' @param outcomeCohortId The cohort definition ids of the outcome
+#' cohorts of interest. If NULL all cohorts will be considered in the
+#' analysis.
+#' @param interval Time intervals over which incidence is estimated. Can
+#' be "weeks", "months", "quarters", "years", or "overall". ISO weeks will
+#' be used for weeks. Calendar months, quarters, or years can be used, or an
+#' overall estimate for the entire time period observed (from earliest cohort
+#' start to last cohort end) can also be estimated. If more than one option is
+#' chosen then results will be estimated for each chosen interval.
+#' @param completeDatabaseIntervals TRUE/ FALSE. Where TRUE, incidence will
+#' only be estimated for those intervals where the database
+#' captures all the interval (based on the earliest and latest observation
+#' period start dates, respectively).
+#' @param outcomeWashout The number of days used for a 'washout' period
+#' between the end of one outcome and an individual starting to contribute
+#' time at risk. If NULL, no time can be contributed after an event has
+#' occurred (whether during the study period or if occurring beforehand).
+#' @param repeatedEvents TRUE/ FALSE. If TRUE, an individual will be able to
+#' contribute multiple events during the study period (time while they are
+#' present in an outcome cohort and any subsequent washout will be
+#' excluded). If FALSE, an individual will only contribute time up to their
+#' first event during the study period.
+#' @param confidenceInterval The method used for calculating confidence
+#' intervals. Options are "poisson" or "none" (in which case no estimates will
+#' be calculated).
+#' @param returnAnalysisCohort TRUE/ FALSE. If TRUE the population contributing
+#' to an analysis will be returned.
+#' @param minCellCount The minimum number of events to reported, below which
+#' results will be obscured. If 0, all results will be reported.
+#' @param verbose Either TRUE or FALSE. If TRUE, progress will be reported.
 #'
-#' @return
+#' @return Incidence estimates
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' db <- DBI::dbConnect(" Your database connection here ")
+#' cdm <- CDMConnector::cdm_from_con(
+#'   con = db,
+#'   cdm_schema = "cdm schema name"
+#' )
+#' dpop <- generateDenominatorCohortSet(
+#'   cdm = cdm,
+#'   startDate = as.Date("2008-01-01"),
+#'   endDate = as.Date("2018-01-01")
+#' )
+#' cdm$denominator <- dpop$denominator_population
+#' inc <- estimateIncidence(
+#'  cdm = cdm,
+#'  denominatorTable = "denominator",
+#'  outcomeTable = "outcome"
+#')
+#' }
 estimateIncidence <- function(cdm,
                               denominatorTable,
                               outcomeTable,
                               denominatorCohortId = NULL,
                               outcomeCohortId = NULL,
                               interval = "months",
-                              fullPeriods = TRUE,
+                              completeDatabaseIntervals = TRUE,
                               outcomeWashout = 0,
                               repeatedEvents = FALSE,
                               confidenceInterval = "poisson",
@@ -121,7 +163,7 @@ estimateIncidence <- function(cdm,
     ),
     add = errorMessage
   )
-  checkmate::assert_logical(fullPeriods,
+  checkmate::assert_logical(completeDatabaseIntervals,
     add = errorMessage
   )
   checkmate::assert_numeric(outcomeWashout,
@@ -274,7 +316,7 @@ estimateIncidence <- function(cdm,
     outcome_cohort_id = outcomeCohortId,
     denominator_cohort_id = denominatorCohortId,
     interval = interval,
-    full_periods = fullPeriods,
+    complete_database_intervals = completeDatabaseIntervals,
     outcome_washout = outcomeWashout,
     repeated_events = repeatedEvents,
     confidence_interval = confidenceInterval
@@ -298,7 +340,7 @@ estimateIncidence <- function(cdm,
       outcomeTable = outcomeTable,
       outcomeCohortId = x$outcome_cohort_id,
       interval = x$interval,
-      fullPeriods = x$full_periods,
+      completeDatabaseIntervals = x$complete_database_intervals,
       outcomeWashout = x$outcome_washout,
       repeatedEvents = x$repeated_events,
       returnAnalysisCohort = returnAnalysisCohort,

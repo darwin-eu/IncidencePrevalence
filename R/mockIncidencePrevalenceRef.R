@@ -15,28 +15,45 @@
 # limitations under the License.
 
 
-#' Generate example database for IncidencePrevalence package
+#' Generate example subset of the OMOP CDM for
+#' estimating incidence and prevalence
 #'
-#' @param personTable Person table.
-#' @param observationPeriodTable observation_period table.
-#' @param strataTable strata table.
-#' @param outcomeTable outcome table.
-#' @param sampleSize number of unique patient
-#' @param outPre fraction of patient with an event
-#' @param seed seed for simulating the data set use same seed to get same data set
-#' @param ageBeta the beta for the standardized age in logistics regression outcome model
-#' @param genderBeta the beta for the gender flag in logistics regression outcome model
-#' @param intercept the beta for the intercept in the logistics regression outcome model
-#' @param earliestDateOfBirth the earliest date of birth of patient in person table format "dd-mm-yyyy"
-#' @param latestDateOfBirth the latest date of birth for patient in person table format "dd-mm-yyyy"
-#' @param earliestObservationStartDate the earliest observation start date for patient format "dd-mm-yyyy"
-#' @param latestObservationStartDate the latest observation start date for patient format "dd-mm-yyyy"
-#' @param minDaysToObservationEnd the minimum number of days of the observational integer
-#' @param maxDaysToObservationEnd the maximum number of days of the observation period integer
-#' @param minOutcomeDays the minimum number of days of the outcome period default set to 1
-#' @param maxOutcomeDays the maximum number of days of the outcome period default set to 10
-#' @param maxOutcomes the maximum possible number of outcomes per person can have default set to 1
-#' @return CDMConnector CDM reference object to duckdb database with mock data
+#' @param personTable A tibble in the format of the person table.
+#' @param observationPeriodTable A tibble in the format of the observation
+#' period table.
+#' @param strataTable A tibble in the format of a cohort table which can
+#' be used for stratification
+#' @param outcomeTable A tibble in the format of a cohort table which can
+#' be used for outcomes
+#' @param sampleSize The number of unique patients.
+#' @param outPre The fraction of patients with an event.
+#' @param seed The seed for simulating the data set. Use the same
+#' seed to get same data set.
+#' @param ageBeta The beta for the standardised age in a logistic
+#' regression outcome model.
+#' @param genderBeta The beta for the gender flag in a logistic
+#' regression outcome model.
+#' @param intercept The beta for the intercept in a logistic
+#' regression outcome model.
+#' @param earliestDateOfBirth The earliest date of birth of a patient in
+#' person table.
+#' @param latestDateOfBirth The latest date of birth of a patient in
+#' person table.
+#' @param earliestObservationStartDate The earliest observation start date
+#' for patient format.
+#' @param latestObservationStartDate The latest observation start date
+#' for patient format.
+#' @param minDaysToObservationEnd The minimum number of days of
+#' the observational integer.
+#' @param maxDaysToObservationEnd The maximum number of days of
+#' the observation period integer.
+#' @param minOutcomeDays The minimum number of days of the outcome
+#' period default set to 1.
+#' @param maxOutcomeDays The maximum number of days of the outcome
+#' period default set to 10.
+#' @param maxOutcomes The maximum possible number of outcomes per
+#' person can have default set to 1.
+#' @return A cdm reference to a duckdb database with mock data.
 
 #' @export
 #'
@@ -103,6 +120,7 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
   checkmate::assert_int(minOutcomeDays, lower = 1)
   checkmate::assert_int(maxOutcomeDays, lower = 1)
   checkmate::assert_int(maxOutcomes, lower = 1)
+
   if (!is.null(latestDateOfBirth) &&
     !is.null(earliestDateOfBirth)) {
     checkmate::assertTRUE(latestDateOfBirth >= earliestDateOfBirth)

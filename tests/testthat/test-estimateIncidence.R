@@ -32,7 +32,7 @@ test_that("mock db: check output format", {
     "outcome_washout",
     "repeated_events",
     "interval",
-    "full_periods",
+    "complete_database_intervals",
     "outcome_cohort_id",
     "denominator_cohort_id",
     "confidence_interval",
@@ -156,7 +156,7 @@ test_that("mock db: check working example 2", {
     repeatedEvents = FALSE,
     outcomeWashout = 0,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   expect_true(sum(inc[["incidence_estimates"]]$n_events) == 1)
 
@@ -166,7 +166,7 @@ test_that("mock db: check working example 2", {
     repeatedEvents = TRUE,
     outcomeWashout = 2,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   expect_true(sum(inc[["incidence_estimates"]]$n_events) == 3)
 
@@ -176,7 +176,7 @@ test_that("mock db: check working example 2", {
     repeatedEvents = TRUE,
     outcomeWashout = 10,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   expect_true(sum(inc[["incidence_estimates"]]$n_events) == 2)
 
@@ -189,7 +189,7 @@ test_that("mock db: check working example 2", {
     repeatedEvents = TRUE,
     outcomeWashout = NULL,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   expect_true(sum(inc[["incidence_estimates"]]$n_events) == 1)
 
@@ -200,7 +200,7 @@ test_that("mock db: check working example 2", {
     outcomeWashout = NULL,
     minCellCount = 0,
     interval = "weeks",
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   expect_true(sum(inc[["incidence_estimates"]]$n_events) == 1)
 
@@ -251,7 +251,7 @@ test_that("mock db: check study periods", {
     interval = "months",
     repeatedEvents = TRUE,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
 
   # we expect 12 months of which the last in december
@@ -266,10 +266,10 @@ test_that("mock db: check study periods", {
     interval = "months",
     repeatedEvents = TRUE,
     minCellCount = 0,
-    fullPeriods = TRUE
+    completeDatabaseIntervals = TRUE
   )
 
-  # now with fullPeriods is TRUE
+  # now with completeDatabaseIntervals is TRUE
   # we expect 10 months of which the last in november
   expect_true(length(inc[["incidence_estimates"]]$time) == 10)
 
@@ -324,7 +324,7 @@ test_that("mock db: check overall", {
                           repeatedEvents = FALSE,
                           outcomeWashout = 0,
                           minCellCount = 0,
-                          fullPeriods = FALSE
+                          completeDatabaseIntervals = FALSE
   )
   # we expect one row with the overall results
   # with two people
@@ -346,7 +346,7 @@ test_that("mock db: check overall", {
                           repeatedEvents = TRUE,
                           outcomeWashout = 0,
                           minCellCount = 0,
-                          fullPeriods = FALSE
+                          completeDatabaseIntervals = FALSE
   )
   expect_true(nrow(inc[["incidence_estimates"]]) == 1)
   expect_true(inc[["incidence_estimates"]]$start_time ==
@@ -401,7 +401,7 @@ test_that("mock db: check person days", {
     interval = c("Years"),
     verbose = TRUE,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
 
   # in 2019 we expect person 2 to contribute from 1st july to end of December
@@ -501,7 +501,7 @@ test_that("mock db: check periods follow calendar dates", {
     interval = c("Years"),
     verbose = TRUE,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   expect_true(inc[["incidence_estimates"]]$n_events[1] == 1)
   expect_true(inc[["incidence_estimates"]]$n_events[2] == 3)
@@ -523,7 +523,7 @@ test_that("mock db: check periods follow calendar dates", {
     interval = c("months"),
     verbose = TRUE,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   expect_true(inc[["incidence_estimates"]]$n_events[1] == 1)
   expect_true(inc[["incidence_estimates"]]$n_events[2] == 1)
@@ -580,7 +580,7 @@ test_that("mock db: check washout windows", {
     outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = 0,
-    fullPeriods = FALSE,
+    completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
   # expect all events if we have zero days washout
@@ -591,7 +591,7 @@ test_that("mock db: check washout windows", {
     outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = 1,
-    fullPeriods = FALSE,
+    completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
   # expect three events if we have one days washout
@@ -602,7 +602,7 @@ test_that("mock db: check washout windows", {
     outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = 2,
-    fullPeriods = FALSE,
+    completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
   # expect two events if we have two days washout
@@ -613,7 +613,7 @@ test_that("mock db: check washout windows", {
     outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = 365,
-    fullPeriods = FALSE,
+    completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
   # expect one event if we have 365 days washout
@@ -624,7 +624,7 @@ test_that("mock db: check washout windows", {
     outcomeTable = "outcome",
     repeatedEvents = TRUE,
     outcomeWashout = NULL,
-    fullPeriods = FALSE,
+    completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
   # expect one event if we have NULL (all history washout)
@@ -851,7 +851,7 @@ test_that("mock db: check entry and event on same day", {
     outcomeWashout = NULL,
     interval = "years",
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   expect_true(sum(incWithoutRep[["incidence_estimates"]]$n_events) == 1)
 
@@ -863,7 +863,7 @@ test_that("mock db: check entry and event on same day", {
     outcomeWashout = NULL,
     interval = "years",
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   expect_true(sum(incWithRep[["incidence_estimates"]]$n_events) == 1)
 
@@ -1161,7 +1161,7 @@ test_that("mock db: check minimum counts", {
     outcomeTable = "outcome",
     repeatedEvents = FALSE,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   expect_true(inc[["incidence_estimates"]]$n_persons[1] == 20)
   expect_true(inc[["incidence_estimates"]]$n_persons[2] == 3)
@@ -1184,7 +1184,7 @@ test_that("mock db: check minimum counts", {
     outcomeTable = "outcome",
     repeatedEvents = FALSE,
     minCellCount = 5,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   expect_true(inc[["incidence_estimates"]]$n_persons[1] == 20)
   expect_true(is.na(inc[["incidence_estimates"]]$n_persons[2]))
@@ -1354,7 +1354,7 @@ test_that("mock db: cohort before period start ending after period", {
     repeatedEvents = FALSE,
     interval = c("Years"),
     verbose = TRUE,
-    fullPeriods = FALSE,
+    completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
   expect_true(all(inc$incidence_estimates$n_events == c(1)))
@@ -1368,7 +1368,7 @@ test_that("mock db: cohort before period start ending after period", {
     repeatedEvents = FALSE,
     interval = c("Years"),
     verbose = TRUE,
-    fullPeriods = FALSE,
+    completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
   expect_true(all(inc$incidence_estimates$n_events == c(1)))
@@ -1579,7 +1579,7 @@ test_that("mock db: check full period requirement - month", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
-test_that("mock db: check fullPeriods", {
+test_that("mock db: check completeDatabaseIntervals", {
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
@@ -1623,7 +1623,7 @@ test_that("mock db: check fullPeriods", {
     outcomeTable = "outcome",
     interval = c("Years"),
     repeatedEvents = TRUE,
-    fullPeriods = TRUE,
+    completeDatabaseIntervals = TRUE,
     minCellCount = 0
   )
   expect_true(nrow(inc$incidence_estimates) == 2)
@@ -1637,7 +1637,7 @@ test_that("mock db: check fullPeriods", {
     outcomeTable = "outcome",
     interval = c("Years"),
     repeatedEvents = FALSE,
-    fullPeriods = TRUE,
+    completeDatabaseIntervals = TRUE,
     minCellCount = 0
   )
   expect_true(nrow(inc$incidence_estimates) == 1)
@@ -1653,7 +1653,7 @@ test_that("mock db: check fullPeriods", {
     outcomeTable = "outcome",
     interval = c("Years"),
     repeatedEvents = TRUE,
-    fullPeriods = FALSE,
+    completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
   expect_true(nrow(inc$incidence_estimates) == 4)
@@ -1668,7 +1668,7 @@ test_that("mock db: check fullPeriods", {
     outcomeTable = "outcome",
     interval = c("Years"),
     repeatedEvents = FALSE,
-    fullPeriods = FALSE,
+    completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
   expect_true(nrow(inc$incidence_estimates) == 3)
@@ -1722,7 +1722,7 @@ test_that("mock db: check insufficient study days", {
     outcomeTable = "outcome",
     interval = c("Years"),
     repeatedEvents = TRUE,
-    fullPeriods = TRUE,
+    completeDatabaseIntervals = TRUE,
     minCellCount = 0
   )
 
@@ -1846,7 +1846,7 @@ test_that("mock db: check with and without study start and end date", {
     repeatedEvents = TRUE,
     outcomeWashout = 0,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   inc2A <- estimateIncidence(cdm,
     denominatorTable = "denominator2",
@@ -1855,7 +1855,7 @@ test_that("mock db: check with and without study start and end date", {
     repeatedEvents = TRUE,
     outcomeWashout = 0,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
 
   # given the settings above we would expect the same results for 2010
@@ -1892,7 +1892,7 @@ test_that("mock db: check with and without study start and end date", {
     repeatedEvents = TRUE,
     outcomeWashout = 365,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   inc2B <- estimateIncidence(cdm,
     denominatorTable = "denominator2",
@@ -1901,7 +1901,7 @@ test_that("mock db: check with and without study start and end date", {
     repeatedEvents = TRUE,
     outcomeWashout = 365,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   # given the settings above we would expect the same results for 2010
   expect_true(inc1B$incidence_estimates %>%
@@ -1963,7 +1963,7 @@ test_that("mock db: check study start and end date 10000", {
     repeatedEvents = TRUE,
     outcomeWashout = 0,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   inc2A <- estimateIncidence(cdm,
     denominatorTable = "denominator2",
@@ -1972,7 +1972,7 @@ test_that("mock db: check study start and end date 10000", {
     repeatedEvents = TRUE,
     outcomeWashout = 0,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
 
   expect_true(inc1A$incidence_estimates %>%
@@ -2016,7 +2016,7 @@ test_that("mock db: check study start and end date 10000", {
     repeatedEvents = TRUE,
     outcomeWashout = 365,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   inc2B <- estimateIncidence(cdm,
     denominatorTable = "denominator2",
@@ -2025,7 +2025,7 @@ test_that("mock db: check study start and end date 10000", {
     repeatedEvents = TRUE,
     outcomeWashout = 365,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
 
   expect_true(inc1B$incidence_estimates %>%
@@ -2093,7 +2093,7 @@ test_that("mock db: check study start and end date 10000", {
     repeatedEvents = TRUE,
     outcomeWashout = 0,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   inc2A <- estimateIncidence(cdm,
     denominatorTable = "denominator2",
@@ -2102,7 +2102,7 @@ test_that("mock db: check study start and end date 10000", {
     repeatedEvents = TRUE,
     outcomeWashout = 0,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
 
   expect_true(inc1A$incidence_estimates %>%
@@ -2146,7 +2146,7 @@ test_that("mock db: check study start and end date 10000", {
     repeatedEvents = TRUE,
     outcomeWashout = 365,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
   inc2B <- estimateIncidence(cdm,
     denominatorTable = "denominator2",
@@ -2155,7 +2155,7 @@ test_that("mock db: check study start and end date 10000", {
     repeatedEvents = TRUE,
     outcomeWashout = 365,
     minCellCount = 0,
-    fullPeriods = FALSE
+    completeDatabaseIntervals = FALSE
   )
 
   expect_true(inc1B$incidence_estimates %>%

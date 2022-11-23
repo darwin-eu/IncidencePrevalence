@@ -17,26 +17,59 @@
 
 #' Estimate point prevalence
 #'
-#' @param cdm CDMConnector CDM reference object
-#' @param denominatorTable denominatorTable
-#' @param outcomeTable Name of the table with the outcome cohorts
-#' @param denominatorCohortId Cohort ids of denominator populations
-#' @param outcomeCohortId Outcome cohort ids
-#' @param outcomeLookbackDays Days lookback when considering an outcome as prevalent. If NULL any prior outcome will be considered as prevalent.
-#' @param interval Time intervals for prevalence estimates
-#' @param fullPeriods If full period is required
-#' @param fullContribution If complete periods are required for
-#' individuals to contribute
+#' @param cdm A CDM reference object
+#' @param denominatorTable A cohort table with a set of denominator cohorts
+#' (for example, created using the `generateDenominatorCohortSet()`
+#' function).
+#' @param outcomeTable A cohort table in the cdm reference containing
+#' a set of outcome cohorts.
+#' @param denominatorCohortId The cohort definition ids of the denominator
+#' cohorts of interest. If NULL all cohorts will be considered in the
+#' analysis.
+#' @param outcomeCohortId The cohort definition ids of the outcome
+#' cohorts of interest. If NULL all cohorts will be considered in the
+#' analysis.
+#' @param outcomeLookbackDays Days lookback when considering an outcome
+#' as prevalent. If NULL any prior outcome will be considered as prevalent. If
+#' 0, only ongoing outcomes will be considered as prevalent.
+#' @param interval Time intervals over which period prevalence is estimated. Can
+#' be "weeks", "months", "quarters", "years", or "overall". ISO weeks will
+#' be used for weeks. Calendar months, quarters, or years can be used as
+#' the period. If more than one option is chosen then results will
+#' be estimated for each chosen interval.
+#' @param completeDatabaseIntervals TRUE/ FALSE. Where TRUE, incidence will
+#' only be estimated for those intervals where the database
+#' captures all the interval (based on the earliest and latest observation
+#' period start dates, respectively).
 #' @param points where to compute the point prevalence
 #' @param confidenceInterval Method for confidence intervals
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
 #' @param verbose Whether to report progress
 #'
-#' @return
+#' @return Point prevalence estimates
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' db <- DBI::dbConnect(" Your database connection here ")
+#' cdm <- CDMConnector::cdm_from_con(
+#'   con = db,
+#'   cdm_schema = "cdm schema name"
+#' )
+#' dpop <- generateDenominatorCohortSet(
+#'   cdm = cdm,
+#'   startDate = as.Date("2008-01-01"),
+#'   endDate = as.Date("2018-01-01")
+#' )
+#' cdm$denominator <- dpop$denominator_population
+#' estimatePointPrevalence(
+#'   cdm = cdm,
+#'   denominatorTable = "denominator",
+#'   outcomeTable = "outcome",
+#'   interval = "months"
+#' )
+#' }
 estimatePointPrevalence <- function(cdm,
                                     denominatorTable,
                                     outcomeTable,
@@ -44,8 +77,7 @@ estimatePointPrevalence <- function(cdm,
                                     outcomeCohortId = NULL,
                                     outcomeLookbackDays = 0,
                                     interval = "months",
-                                    fullPeriods = TRUE,
-                                    fullContribution = FALSE,
+                                    completeDatabaseIntervals = TRUE,
                                     points = "start",
                                     confidenceInterval = "binomial",
                                     minCellCount = 5,
@@ -59,8 +91,8 @@ estimatePointPrevalence <- function(cdm,
                      outcomeLookbackDays = outcomeLookbackDays,
                      type = "point",
                      interval = interval,
-                     fullPeriods = fullPeriods,
-                     fullContribution = fullContribution,
+                     completeDatabaseIntervals = completeDatabaseIntervals,
+                     fullContribution = FALSE,
                      points = points,
                      confidenceInterval = confidenceInterval,
                      minCellCount = minCellCount,
@@ -70,25 +102,65 @@ estimatePointPrevalence <- function(cdm,
 
 #' Estimate period prevalence
 #'
-#' @param cdm CDMConnector CDM reference object
-#' @param denominatorTable denominatorTable
-#' @param outcomeTable Name of the table with the outcome cohorts
-#' @param denominatorCohortId Cohort ids of denominator populations
-#' @param outcomeCohortId Outcome cohort ids
-#' @param outcomeLookbackDays Days lookback when considering an outcome as prevalent. If NULL any prior outcome will be considered as prevalent.
-#' @param interval Time intervals for prevalence estimates
-#' @param fullPeriods If full period is required
-#' @param fullContribution If complete periods are required for
-#' individuals to contribute
-#' @param confidenceInterval Method for confidence intervals
+#' @param cdm A CDM reference object
+#' @param denominatorTable A cohort table with a set of denominator cohorts
+#' (for example, created using the `generateDenominatorCohortSet()`
+#' function).
+#' @param outcomeTable A cohort table in the cdm reference containing
+#' a set of outcome cohorts.
+#' @param denominatorCohortId The cohort definition ids of the denominator
+#' cohorts of interest. If NULL all cohorts will be considered in the
+#' analysis.
+#' @param outcomeCohortId The cohort definition ids of the outcome
+#' cohorts of interest. If NULL all cohorts will be considered in the
+#' analysis.
+#' @param outcomeLookbackDays Days lookback when considering an outcome
+#' as prevalent. If NULL any prior outcome will be considered as prevalent. If
+#' 0, only ongoing outcomes will be considered as prevalent.
+#' @param interval Time intervals over which period prevalence is estimated.
+#' This can be "weeks", "months", "quarters", "years", or "overall".
+#' ISO weeks will be used for weeks. Calendar months, quarters, or
+#' years can be used as the period. If more than one option
+#' is chosen then results will be estimated for each chosen interval.
+#' @param completeDatabaseIntervals TRUE/ FALSE. Where TRUE, incidence will
+#' only be estimated for those intervals where the database
+#' captures all the interval (based on the earliest and latest observation
+#' period start dates, respectively).
+#' @param fullContribution TRUE/ FALSE. Where TRUE, individuals will only be
+#' included if they in the database for the entire interval of interest. If
+#' FALSE they are only required to present for one day of the interval in
+#' order to contribute.
+#' @param confidenceInterval The method used for calculating confidence
+#' intervals. Options are "binomial" or "none" (in which case no estimates
+#' will
+#' be calculated).
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
 #' @param verbose Whether to report progress
 #'
-#' @return
+#' @return  Period prevalence estimates
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' db <- DBI::dbConnect(" Your database connection here ")
+#' cdm <- CDMConnector::cdm_from_con(
+#'   con = db,
+#'   cdm_schema = "cdm schema name"
+#' )
+#' dpop <- generateDenominatorCohortSet(
+#'   cdm = cdm,
+#'   startDate = as.Date("2008-01-01"),
+#'   endDate = as.Date("2018-01-01")
+#' )
+#' cdm$denominator <- dpop$denominator_population
+#' estimatePeriodPrevalence(
+#'   cdm = cdm,
+#'   denominatorTable = "denominator",
+#'   outcomeTable = "outcome",
+#'   interval = "months"
+#' )
+#' }
 estimatePeriodPrevalence <- function(cdm,
                                     denominatorTable,
                                     outcomeTable,
@@ -96,7 +168,7 @@ estimatePeriodPrevalence <- function(cdm,
                                     outcomeCohortId = NULL,
                                     outcomeLookbackDays = 0,
                                     interval = "months",
-                                    fullPeriods = TRUE,
+                                    completeDatabaseIntervals = TRUE,
                                     fullContribution = FALSE,
                                     confidenceInterval = "binomial",
                                     minCellCount = 5,
@@ -110,7 +182,7 @@ estimatePrevalence(cdm = cdm,
                      outcomeLookbackDays = outcomeLookbackDays,
                      type = "period",
                      interval = interval,
-                     fullPeriods = fullPeriods,
+                     completeDatabaseIntervals = completeDatabaseIntervals,
                      fullContribution = fullContribution,
                      points = "start",
                      confidenceInterval = confidenceInterval,
@@ -126,7 +198,7 @@ estimatePrevalence <- function(cdm,
                                outcomeLookbackDays = 0,
                                type = "point",
                                interval = "months",
-                               fullPeriods = TRUE,
+                               completeDatabaseIntervals = TRUE,
                                fullContribution = FALSE,
                                points = "start",
                                confidenceInterval = "binomial",
@@ -225,7 +297,7 @@ estimatePrevalence <- function(cdm,
   checkmate::assert_logical(verbose,
     add = errorMessage
   )
-  checkmate::assert_logical(fullPeriods,
+  checkmate::assert_logical(completeDatabaseIntervals,
     add = errorMessage
   )
   checkmate::assert_choice(confidenceInterval,
@@ -285,7 +357,7 @@ estimatePrevalence <- function(cdm,
       outcomeLookbackDays= x$outcomeLookbackDays,
       type = type,
       interval = x$interval,
-      fullPeriods = fullPeriods,
+      completeDatabaseIntervals = completeDatabaseIntervals,
       point = x$point,
       fullContribution = x$fullContribution,
       verbose = verbose
@@ -306,7 +378,7 @@ estimatePrevalence <- function(cdm,
         denominator_cohort_id = x$denominatorCohortId,
         type = type,
         interval = x$interval,
-        full_periods = fullPeriods,
+        complete_database_intervals = completeDatabaseIntervals,
         point = x$point,
         fullContribution = x$fullContribution,
         confidence_interval = confidenceInterval,

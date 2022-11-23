@@ -17,28 +17,40 @@
 
 #' Identify a set of denominator populations
 #'
-#' `generateDenominatorCohortSet()` creates a set of denominator cohorts
+#' @description
+#' `generateDenominatorCohortSet()` creates a set of cohorts that
+#' can be used for the denominator population in analyses of incidence,
+#' using `estimateIncidence()`, or prevalence, using `estimatePointPrevalence()`
+#' or `estimatePeriodPrevalence()`.
 #'
-#' @param cdm CDMConnector CDM reference object
-#' @param startDate Date indicating the start of the study
-#' period. If NULL,
-#'  the earliest observation_start_date in the observation_period table
-#'  will be used.
-#' @param endDate Date indicating the end of the study
-#' period. If NULL,
-#'  the latest observation_end_date in the observation_period table
-#'  will be used.
-#' @param ageGroups List of age groups
-#' @param sex Sex of the cohorts
-#' @param daysPriorHistory Days of prior history required to enter
-#' the study cohort.
-#' @param strataTable strataTable
-#' @param strataCohortId strata cohort definition id
-#' @param sample sample n
-#' @param verbose Either TRUE or FALSE.
-#' If TRUE, progress will be reported.
+#' @param cdm A CDM reference object
+#' @param startDate A date indicating the start of the study
+#' period. If NULL, the earliest observation_start_date in the
+#' observation_period table will be used.
+#' @param endDate A date indicating the end of the study
+#' period. If NULL, the latest observation end date in the observation period
+#' table will be used.
+#' @param ageGroups A list of age groups for which cohorts will be generated. A
+#' value of `list(c(0,17), c(18,30))` would, for example, lead to the creation of
+#' cohorts for those aged from 0 to 17 (up to the day before their 18th
+#' birthday), and from 18 (starting the day of their 18th birthday) to 30 (up
+#' to the day before their 31st birthday).
+#' @param sex Sex of the cohorts. This can be one or more of: `"Male"`,
+#' `"Female"`, or `"Both"`.
+#' @param daysPriorHistory The number of days of prior history observed in
+#' the database required for an individual to start contributing time in
+#' a cohort.
+#' @param strataTable A cohort table in the cdm reference to use
+#' to limit cohort entry and exit (with individuals only contributing to a
+#' cohort when they are contibuting to the cohort in the stata table).
+#' @param strataCohortId The cohort definition id for the cohort of interest
+#'  in the strata table. Only one stratifying cohort is supported.
+#' @param sample An integer for which to take a random sample, using
+#' `dplyr::slice_sample()`, of the people in the person table eligible to be
+#' included in the cohort set.
+#' @param verbose Either TRUE or FALSE. If TRUE, progress will be reported.
 #'
-#' @return
+#' @return A cohort reference
 #' @importFrom rlang .data
 #' @export
 #'
