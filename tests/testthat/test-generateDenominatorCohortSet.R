@@ -10,7 +10,7 @@ test_that("mock db: check output format", {
     "cohort_start_date",
     "cohort_end_date"
   ) %in%
-    names(dpop$denominator_populations %>% dplyr::collect())))
+    names(dpop %>% dplyr::collect())))
 
   expect_true(all(c(
     "age_group", "min_age", "max_age",
@@ -20,30 +20,30 @@ test_that("mock db: check output format", {
     "days_prior_history",
     "cohort_definition_id"
   ) %in%
-    names(dpop$denominator_settings)))
+    names(settings(dpop))))
 
   # variable names
-  expect_true(length(names(dpop$denominator_population %>%
+  expect_true(length(names(dpop %>%
                              dplyr::collect())) == 4)
   expect_true(all(c(
     "cohort_definition_id", "subject_id",
     "cohort_start_date", "cohort_end_date"
   ) %in%
-    names(dpop$denominator_population %>% dplyr::collect())))
+    names(dpop %>% dplyr::collect())))
   # types
-  expect_true(class(dpop$denominator_population %>%
+  expect_true(class(dpop %>%
     dplyr::collect() %>%
     dplyr::select(cohort_definition_id) %>%
     dplyr::pull()) == "character")
-  expect_true(class(dpop$denominator_population %>%
+  expect_true(class(dpop %>%
     dplyr::collect() %>%
     dplyr::select(subject_id) %>%
     dplyr::pull()) == "character")
-  expect_true(class(dpop$denominator_population %>%
+  expect_true(class(dpop %>%
     dplyr::collect() %>%
     dplyr::select(cohort_start_date) %>%
     dplyr::pull()) == "Date")
-  expect_true(class(dpop$denominator_population %>%
+  expect_true(class(dpop %>%
     dplyr::collect() %>%
     dplyr::select(cohort_end_date) %>%
     dplyr::pull()) == "Date")
@@ -78,25 +78,25 @@ test_that("mock db: checks on working example", {
     observationPeriodTable = observationPeriodTable
   )
   # some pops with people, but some without
-  dpops <- generateDenominatorCohortSet(cdm,
+  cdm$dpop <- generateDenominatorCohortSet(cdm,
     startDate = NULL,
     endDate = NULL,
     ageGroups = list(c(0, 59), c(60, 69)),
     sex = c("Female", "Male", "Both"),
     verbose = TRUE
   )
-  expect_true(dpops$denominator_populations %>%
+  expect_true(cdm$dpop %>%
     dplyr::count() %>%
       dplyr::pull() >= 1)
 
   # all pops without anyone
-  expect_message(dpops <- generateDenominatorCohortSet(cdm,
+  expect_message(cdm$dpop <- generateDenominatorCohortSet(cdm,
     startDate = NULL,
     endDate = NULL,
     ageGroups = list(c(50, 59), c(60, 69)),
     daysPriorHistory = c(0, 365)
   ))
-  expect_true(dpops$denominator_populations %>%
+  expect_true(cdm$dpop %>%
     dplyr::count() %>%
       dplyr::pull() == 0)
 
@@ -116,15 +116,15 @@ test_that("mock db: checks on working example", {
   )
 
   # using strata cohort
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
     strataCohortId = "1"
   )
-  expect_true(dpop$denominator_population %>%
+  expect_true(cdm$dpop %>%
     dplyr::select(cohort_start_date) %>%
       dplyr::pull() == "2010-03-15")
-  expect_true(dpop$denominator_population %>%
+  expect_true(cdm$dpop %>%
     dplyr::select(cohort_end_date) %>%
       dplyr::pull() == "2012-03-15")
 
@@ -152,28 +152,28 @@ test_that("mock db: check example we expect to work", {
     observationPeriodTable = observationPeriodTable
   )
 
-  dpop <- generateDenominatorCohortSet(cdm = cdm)
-  expect_true(nrow(dpop$denominator_populations %>%
+  cdm$dpop <- generateDenominatorCohortSet(cdm = cdm)
+  expect_true(nrow(cdm$dpop %>%
                      dplyr::collect()) == 1)
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
                 dplyr::collect() %>%
                 dplyr::pull(cohort_start_date) == as.Date("2010-01-01"))
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
                 dplyr::collect() %>%
                 dplyr::pull(cohort_end_date) == as.Date("2015-06-01"))
 
 
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     startDate = as.Date("2010-02-15"),
     endDate = as.Date("2010-05-15")
   )
-  expect_true(nrow(dpop$denominator_populations %>%
+  expect_true(nrow(cdm$dpop %>%
                      dplyr::collect()) == 1)
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
                 dplyr::collect() %>%
                 dplyr::pull(cohort_start_date) == as.Date("2010-02-15"))
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
                 dplyr::collect() %>%
                 dplyr::pull(cohort_end_date) == as.Date("2010-05-15"))
 
@@ -201,40 +201,40 @@ test_that("mock db: check another example we expect to work", {
     observationPeriodTable = observationPeriodTable
   )
 
-  dpop <- generateDenominatorCohortSet(cdm = cdm)
+  cdm$dpop <- generateDenominatorCohortSet(cdm = cdm)
 
-  expect_true(nrow(dpop$denominator_populations %>%
+  expect_true(nrow(cdm$dpop %>%
                      dplyr::collect()) == 4)
-  expect_true(all(dpop$denominator_populations %>%
+  expect_true(all(cdm$dpop %>%
                     dplyr::collect() %>%
                     dplyr::pull(cohort_start_date) == as.Date("2000-01-01")))
-  expect_true(all(dpop$denominator_populations %>%
+  expect_true(all(cdm$dpop %>%
                     dplyr::collect() %>%
                     dplyr::pull(cohort_end_date) == as.Date("2015-06-01")))
 
 
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroups = list(c(10, 100))
   )
   # check min age change cohort start date
   # check imputation
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
     dplyr::collect() %>%
     dplyr::filter(subject_id == "1") %>%
     dplyr::summarise(check = cohort_start_date == as.Date("2005-07-25")) %>%
     dplyr::pull())
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
     dplyr::collect() %>%
     dplyr::filter(subject_id == "2") %>%
     dplyr::summarise(check = cohort_start_date == as.Date("2003-01-01")) %>%
     dplyr::pull())
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
     dplyr::collect() %>%
     dplyr::filter(subject_id == "3") %>%
     dplyr::summarise(check = cohort_start_date == as.Date("2004-06-01")) %>%
     dplyr::pull())
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
     dplyr::collect() %>%
     dplyr::filter(subject_id == "4") %>%
     dplyr::summarise(check = cohort_start_date == as.Date("2006-05-02")) %>%
@@ -242,42 +242,42 @@ test_that("mock db: check another example we expect to work", {
 
   # check max age change cohort start date
   # check imputation
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroups = list(c(0, 10))
   )
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
     dplyr::collect() %>%
     dplyr::filter(subject_id == "1") %>%
     dplyr::summarise(check = cohort_end_date == as.Date("2006-07-24")) %>%
     dplyr::pull())
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
     dplyr::collect() %>%
     dplyr::filter(subject_id == "2") %>%
     dplyr::summarise(check = cohort_end_date == as.Date("2003-12-31")) %>%
     dplyr::pull())
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
     dplyr::collect() %>%
     dplyr::filter(subject_id == "3") %>%
     dplyr::summarise(check = cohort_end_date == as.Date("2005-05-31")) %>%
     dplyr::pull())
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
     dplyr::collect() %>%
     dplyr::filter(subject_id == "4") %>%
     dplyr::summarise(check = cohort_end_date == as.Date("2007-05-01")) %>%
     dplyr::pull())
 
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     startDate = as.Date("2010-02-15"),
     endDate = as.Date("2010-05-15")
   )
-  expect_true(nrow(dpop$denominator_populations %>%
+  expect_true(nrow(cdm$dpop %>%
     dplyr::collect()) == 4)
-  expect_true(all(dpop$denominator_populations %>%
+  expect_true(all(cdm$dpop %>%
     dplyr::collect() %>%
     dplyr::pull(cohort_start_date) == as.Date("2010-02-15")))
-  expect_true(all(dpop$denominator_populations %>%
+  expect_true(all(cdm$dpop %>%
     dplyr::collect() %>%
     dplyr::pull(cohort_end_date) == as.Date("2010-05-15")))
 
@@ -287,7 +287,7 @@ test_that("mock db: check another example we expect to work", {
 test_that("mock db: mock example 10000", {
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
   # all options being used except study start and end
-  dpops <- generateDenominatorCohortSet(cdm,
+  cdm$dpop <- generateDenominatorCohortSet(cdm,
     startDate = NULL,
     endDate = NULL,
     ageGroups = list(c(0, 59), c(60, 69)),
@@ -295,11 +295,11 @@ test_that("mock db: mock example 10000", {
     daysPriorHistory = c(0, 180),
     verbose = TRUE
   )
-  expect_true(nrow(dpops$denominator_population %>%
+  expect_true(nrow(cdm$dpop %>%
     dplyr::collect()) > 0)
 
   # all options being used
-  dpops <- generateDenominatorCohortSet(cdm,
+  cdm$dpop <- generateDenominatorCohortSet(cdm,
     startDate = as.Date("2011-01-01"),
     endDate = as.Date("2013-06-15"),
     ageGroups = list(c(0, 59), c(60, 69)),
@@ -307,22 +307,22 @@ test_that("mock db: mock example 10000", {
     daysPriorHistory = c(0, 180),
     verbose = TRUE
   )
-  expect_true(nrow(dpops$denominator_population %>%
+  expect_true(nrow(cdm$dpop %>%
     dplyr::collect()) > 0)
-  expect_true(min(dpops$denominator_populations %>%
+  expect_true(min(cdm$dpop %>%
     dplyr::collect() %>%
     dplyr::pull(cohort_start_date)) >=
     as.Date("2011-01-01"))
-  expect_true(max(dpops$denominator_populations %>%
+  expect_true(max(cdm$dpop %>%
     dplyr::collect() %>%
     dplyr::pull(cohort_end_date)) <=
     as.Date("2013-06-15"))
 
   # with sampling
-  dpops <- generateDenominatorCohortSet(cdm,
+  cdm$dpop <- generateDenominatorCohortSet(cdm,
     sample = 55
   )
-  expect_true(nrow(dpops$denominator_populations %>%
+  expect_true(nrow(cdm$dpop%>%
                      dplyr::collect()) == 55)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
@@ -359,15 +359,15 @@ test_that("mock db: subset denominator by cohort", {
 
   # without using strata cohort
   dpop <- generateDenominatorCohortSet(cdm = cdm)
-  expect_true(all(dpop$denominator_populations %>%
+  expect_true(all(dpop %>%
     dplyr::collect() %>%
     dplyr::pull(subject_id) %in%
     c("1", "2", "3")))
-  expect_true(all(dpop$denominator_populations %>%
+  expect_true(all(dpop %>%
     dplyr::collect() %>%
     dplyr::pull(cohort_start_date) ==
     "2010-01-01"))
-  expect_true(all(dpop$denominator_populations %>%
+  expect_true(all(dpop %>%
     dplyr::collect() %>%
     dplyr::pull(cohort_end_date) ==
     "2015-06-01"))
@@ -378,19 +378,19 @@ test_that("mock db: subset denominator by cohort", {
     strataTable = "strata",
     strataCohortId = "1",
   )
-  expect_true(all(dpop$denominator_populations %>%
+  expect_true(all(dpop %>%
     dplyr::collect() %>%
     dplyr::pull(subject_id) %in%
     c("1", "2")))
-  expect_true(all(!dpop$denominator_populations %>%
+  expect_true(all(!dpop %>%
     dplyr::collect() %>%
     dplyr::pull(subject_id) %in%
     c("3")))
-  expect_true(all(dpop$denominator_populations %>%
+  expect_true(all(dpop %>%
     dplyr::collect() %>%
     dplyr::pull(cohort_start_date) ==
     "2012-06-06"))
-  expect_true(all(dpop$denominator_populations %>%
+  expect_true(all(dpop %>%
     dplyr::collect() %>%
     dplyr::pull(cohort_end_date) ==
     "2013-06-06"))
@@ -424,26 +424,26 @@ test_that("mock db: subset denominator by cohort", {
     strataTable = "strata",
     strataCohortId = "1",
   )
-  expect_true(all(dpop$denominator_populations %>%
+  expect_true(all(dpop %>%
                     dplyr::collect() %>%
                     dplyr::pull(subject_id) %in%
     c("1", "2")))
-  expect_true(all(!dpop$denominator_populations %>%
+  expect_true(all(!dpop %>%
     dplyr::collect() %>%
     dplyr::pull(subject_id) %in%
     c("3")))
-  expect_true(sum(dpop$denominator_populations %>%
+  expect_true(sum(dpop %>%
                     dplyr::collect() %>%
                     dplyr::pull(subject_id) == "1") == 1)
-  expect_true(sum(dpop$denominator_populations %>%
+  expect_true(sum(dpop %>%
                     dplyr::collect() %>%
                     dplyr::pull(subject_id) == "2") == 2)
 
-  expect_true(all(dpop$denominator_populations %>%
+  expect_true(all(dpop %>%
                     dplyr::collect() %>%
                     dplyr::pull(cohort_start_date) %in%
     as.Date(c("2012-06-06", "2013-11-01"))))
-  expect_true(all(dpop$denominator_populations %>%
+  expect_true(all(dpop %>%
                     dplyr::collect() %>%
                     dplyr::pull(cohort_end_date) %in%
     as.Date(c("2013-06-06", "2014-02-01"))))
@@ -499,16 +499,16 @@ test_that("mock db: subset denominator by cohort", {
     strataTable = "strata",
     strataCohortId = "1",
   )
-  expect_true(sum(dpop$denominator_populations %>%
+  expect_true(sum(dpop %>%
                     dplyr::collect() %>%
                     dplyr::pull(subject_id) == "1") == 3)
 
-  expect_true(all(dpop$denominator_populations %>%
+  expect_true(all(dpop %>%
                     dplyr::collect() %>%
                     dplyr::pull(cohort_start_date) %in%
     as.Date(c("2010-02-01", "2009-02-01", "2008-02-01"))))
 
-  expect_true(all(dpop$denominator_populations %>%
+  expect_true(all(dpop %>%
                     dplyr::collect() %>%
                     dplyr::pull(cohort_end_date) %in%
     as.Date(c("2008-04-01", "2009-04-01", "2010-04-01"))))
@@ -522,7 +522,7 @@ test_that("mock db: subset denominator by cohort", {
     strataTable = "condition_cohort",
     strataCohortId = "1",
   )
-  expect_true(sum(dpop$denominator_populations %>%
+  expect_true(sum(dpop %>%
                     dplyr::collect() %>%
     dplyr::pull(subject_id) == "1") == 3)
 
@@ -549,26 +549,26 @@ test_that("mock db: one male, one female", {
     observationPeriodTable = observationPeriodTable
   )
   # male only
-  dpops <- generateDenominatorCohortSet(cdm,
+  cdm$dpop <- generateDenominatorCohortSet(cdm,
     sex = c("Male")
   )
-  expect_true(dpops$denominator_populations %>%
+  expect_true(cdm$dpop %>%
                 dplyr::collect() %>%
                 dplyr::pull(subject_id) == "1")
 
   # female only
-  dpops <- generateDenominatorCohortSet(cdm,
+  cdm$dpop <- generateDenominatorCohortSet(cdm,
     sex = c("Female")
   )
-  expect_true(dpops$denominator_populations %>%
+  expect_true(cdm$dpop%>%
                 dplyr::collect() %>%
                 dplyr::pull(subject_id) == "2")
 
   # both
-  dpops <- generateDenominatorCohortSet(cdm,
+  cdm$dpop <- generateDenominatorCohortSet(cdm,
     sex = c("Both")
   )
-  expect_true(all(dpops$denominator_populations %>%
+  expect_true(all(cdm$dpop%>%
                     dplyr::collect() %>%
     dplyr::pull(subject_id) %in% c("1", "2")))
 
@@ -596,21 +596,21 @@ test_that("mock db: check example with restriction on sex", {
     observationPeriodTable = observationPeriodTable
   )
 
-  dpop1 <- generateDenominatorCohortSet(
+  cdm$dpop1 <- generateDenominatorCohortSet(
     cdm = cdm,
     sex = "Male"
   )
-  dpop2 <- generateDenominatorCohortSet(
+  cdm$dpop2 <- generateDenominatorCohortSet(
     cdm = cdm,
     sex = "Both"
   )
-  dpop3 <- generateDenominatorCohortSet(
+  cdm$dpop3 <- generateDenominatorCohortSet(
     cdm = cdm,
     sex = "Female"
   )
-  expect_true(nrow(dpop1$denominator_population %>% dplyr::collect()) == 2)
-  expect_true(nrow(dpop2$denominator_population %>% dplyr::collect()) == 3)
-  expect_true(nrow(dpop3$denominator_population %>% dplyr::collect()) == 1)
+  expect_true(nrow(cdm$dpop1 %>% dplyr::collect()) == 2)
+  expect_true(nrow(cdm$dpop2 %>% dplyr::collect()) == 3)
+  expect_true(nrow(cdm$dpop3 %>% dplyr::collect()) == 1)
 
 
   # one male only
@@ -633,21 +633,21 @@ test_that("mock db: check example with restriction on sex", {
     observationPeriodTable = observationPeriodTable
   )
 
-  dpop1 <- generateDenominatorCohortSet(
+  cdm$dpop1 <- generateDenominatorCohortSet(
     cdm = cdm,
     sex = "Male"
   )
-  dpop2 <- generateDenominatorCohortSet(
+  cdm$dpop2 <- generateDenominatorCohortSet(
     cdm = cdm,
     sex = "Both"
   )
-  dpop3 <- generateDenominatorCohortSet(
+  cdm$dpop3 <- generateDenominatorCohortSet(
     cdm = cdm,
     sex = "Female"
   )
-  expect_true(nrow(dpop1$denominator_population %>% dplyr::collect()) == 1)
-  expect_true(nrow(dpop2$denominator_population %>% dplyr::collect()) == 1)
-  expect_true(nrow(dpop3$denominator_population %>% dplyr::collect()) == 0)
+  expect_true(nrow(cdm$dpop1 %>% dplyr::collect()) == 1)
+  expect_true(nrow(cdm$dpop2 %>% dplyr::collect()) == 1)
+  expect_true(nrow(cdm$dpop3 %>% dplyr::collect()) == 0)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -674,27 +674,27 @@ test_that("mock db: check example with restriction on age", {
   )
 
   # check min_age
-  dpop1 <- generateDenominatorCohortSet(
+  cdm$dpop1 <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroups = list(c(0, 150))
   )
-  dpop2 <- generateDenominatorCohortSet(
+  cdm$dpop2 <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroups = list(c(8, 150))
   )
-  dpop3 <- generateDenominatorCohortSet(
+  cdm$dpop3 <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroups = list(c(12, 150))
   )
-  dpop4 <- generateDenominatorCohortSet(
+  cdm$dpop4 <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroups = list(c(40, 150))
   )
 
-  expect_true(nrow(dpop1$denominator_population %>% dplyr::collect()) == 3)
-  expect_true(nrow(dpop2$denominator_population %>% dplyr::collect()) == 2)
-  expect_true(nrow(dpop3$denominator_population %>% dplyr::collect()) == 1)
-  expect_true(nrow(dpop4$denominator_population %>% dplyr::collect()) == 0)
+  expect_true(nrow(cdm$dpop1 %>% dplyr::collect()) == 3)
+  expect_true(nrow(cdm$dpop2 %>% dplyr::collect()) == 2)
+  expect_true(nrow(cdm$dpop3 %>% dplyr::collect()) == 1)
+  expect_true(nrow(cdm$dpop4 %>% dplyr::collect()) == 0)
 
   # one person, born in 2000
   personTable <- tibble::tibble(
@@ -716,23 +716,23 @@ test_that("mock db: check example with restriction on age", {
                   observationPeriodTable = observationPeriodTable)
 
   # entry once they reach the min age criteria
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroups = list(c(10, 150))
   )
   # start date is now date of 10th birthday
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
                 dplyr::collect() %>%
                 dplyr::pull(cohort_start_date) == as.Date("2010-06-01"))
 
 
   # exit once they reach the max age criteria
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroups = list(c(0, 10))
   )
   # end date is the day before their 11th birthday
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
                 dplyr::collect() %>%
                 dplyr::pull(cohort_end_date) == as.Date("2011-05-31"))
 
@@ -763,26 +763,26 @@ test_that("mock db check age strata entry and exit", {
   # to the day before their 13th birthday
   # and in the second from their 13th birthday
   # up to the day before their 15th birthday
-  dpops <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroups = list(
       c(11, 12),
       c(13, 14)
     )
   )
-  expect_true(dpops$denominator_populations %>%
+  expect_true(cdm$dpop%>%
     dplyr::filter(cohort_definition_id == 1) %>%
     dplyr::select(cohort_start_date) %>%
     dplyr::pull() == as.Date("2011-01-01"))
-  expect_true(dpops$denominator_populations %>%
+  expect_true(cdm$dpop%>%
     dplyr::filter(cohort_definition_id == 1) %>%
     dplyr::select(cohort_end_date) %>%
     dplyr::pull() == as.Date("2012-12-31"))
-  expect_true(dpops$denominator_populations %>%
+  expect_true(cdm$dpop%>%
     dplyr::filter(cohort_definition_id == 2) %>%
     dplyr::select(cohort_start_date) %>%
     dplyr::pull() == as.Date("2013-01-01"))
-  expect_true(dpops$denominator_populations %>%
+  expect_true(cdm$dpop%>%
     dplyr::filter(cohort_definition_id == 2) %>%
     dplyr::select(cohort_end_date) %>%
     dplyr::pull() == as.Date("2014-12-31"))
@@ -818,33 +818,33 @@ test_that("mock db: check example with multiple observation periods", {
 
   # expect two rows
   # one per observation period
-  dpop <- generateDenominatorCohortSet(cdm = cdm)
-  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 2)
+  cdm$dpop <- generateDenominatorCohortSet(cdm = cdm)
+  expect_true(nrow(cdm$dpop %>% dplyr::collect()) == 2)
 
   # expect one rows- if start date is 1st Jan 2011
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     startDate = as.Date("2011-01-01")
   )
-  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 1)
-  expect_true(dpop$denominator_populations %>%
+  expect_true(nrow(cdm$dpop %>% dplyr::collect()) == 1)
+  expect_true(cdm$dpop %>%
                 dplyr::collect() %>%
                 dplyr::pull(cohort_start_date) == as.Date("2011-01-01"))
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
                 dplyr::collect() %>%
                 dplyr::pull(cohort_end_date) == as.Date("2011-06-01"))
 
   # expect one rows- if start date is end of 2020
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     endDate = as.Date("2010-12-31")
   )
-  expect_true(nrow(dpop$denominator_populations %>%
+  expect_true(nrow(cdm$dpop %>%
                      dplyr::collect()) == 1)
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
                 dplyr::collect() %>%
                 dplyr::pull(cohort_start_date) == as.Date("2010-01-01"))
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
                 dplyr::collect() %>%
                 dplyr::pull(cohort_end_date) == as.Date("2010-06-01"))
 
@@ -872,29 +872,29 @@ test_that("mock db: check imputation of date of birth", {
     observationPeriodTable = observationPeriodTable
   )
 
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroups = list(c(10, 100))
   )
-  expect_true(nrow(dpop$denominator_populations %>%
+  expect_true(nrow(cdm$dpop %>%
                      dplyr::collect()) == 4)
 
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
                 dplyr::collect() %>%
     dplyr::filter(subject_id == "1") %>%
     dplyr::summarise(check = cohort_start_date == as.Date("2010-03-03")) %>%
     dplyr::pull())
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
                 dplyr::collect() %>%
     dplyr::filter(subject_id == "2") %>%
     dplyr::summarise(check = cohort_start_date == as.Date("2010-01-03")) %>%
     dplyr::pull())
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
                 dplyr::collect() %>%
     dplyr::filter(subject_id == "3") %>%
     dplyr::summarise(check = cohort_start_date == as.Date("2010-03-01")) %>%
     dplyr::pull())
-  expect_true(dpop$denominator_populations %>%
+  expect_true(cdm$dpop %>%
                 dplyr::collect() %>%
     dplyr::filter(subject_id == "4") %>%
     dplyr::summarise(check = cohort_start_date == as.Date("2010-01-01")) %>%
@@ -924,39 +924,39 @@ test_that("mock db: check edge cases (zero results expected)", {
     observationPeriodTable = observationPeriodTable
   )
 
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     startDate = as.Date("2100-01-01")
   )
-  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 0)
+  expect_true(nrow(cdm$dpop %>% dplyr::collect()) == 0)
 
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     endDate = as.Date("1800-01-01")
   )
-  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 0)
+  expect_true(nrow(cdm$dpop %>% dplyr::collect()) == 0)
 
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroups = list(c(155, 200))
   )
-  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 0)
+  expect_true(nrow(cdm$dpop %>% dplyr::collect()) == 0)
 
   # note could include people as it would go up to day before first birthday
   # but given observation period, here we would expect a null
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroups = list(c(0, 1))
   )
-  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 0)
+  expect_true(nrow(cdm$dpop %>% dplyr::collect()) == 0)
 
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroups = list(c(0, 15)),
     daysPriorHistory = 365000,
     verbose = FALSE
   )
-  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) == 0)
+  expect_true(nrow(cdm$dpop %>% dplyr::collect()) == 0)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -1063,49 +1063,49 @@ test_that("mock db: check attrition table", {
     personTable = personTable,
     observationPeriodTable = observationPeriodTable
   )
-  dpop <- generateDenominatorCohortSet(cdm = cdm)
+  cdm$dpop <- generateDenominatorCohortSet(cdm = cdm)
 
   # check last n_current equals the number of rows of the denominator pop
-  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) ==
-    dpop$attrition$current_n[7])
+  expect_true(nrow(cdm$dpop %>% dplyr::collect()) ==
+    attrition(cdm$dpop)$current_n[7])
 
   # check missings
-  dpop <- generateDenominatorCohortSet(cdm = cdm)
-  expect_true(dpop$attrition$excluded[2] == 1)
-  expect_true(dpop$attrition$excluded[3] == 1)
+  cdm$dpop <- generateDenominatorCohortSet(cdm = cdm)
+  expect_true(attrition(cdm$dpop)$excluded[2] == 1)
+  expect_true(attrition(cdm$dpop)$excluded[3] == 1)
 
   # check sex criteria
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     sex = "Female"
   )
-  expect_true(nrow(dpop$denominator_populations %>% dplyr::collect()) ==
-    dpop$attrition$current_n[8])
-  expect_true(dpop$attrition$excluded[8] == 2)
+  expect_true(nrow(cdm$dpop %>% dplyr::collect()) ==
+                attrition(cdm$dpop)$current_n[8])
+  expect_true(attrition(cdm$dpop)$excluded[8] == 2)
 
   # check age criteria
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroups = list(c(24, 25))
   )
-  expect_true(dpop$attrition$excluded[3] == 1)
+  expect_true(attrition(cdm$dpop)$excluded[3] == 1)
 
   # check observation criteria
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     startDate = as.Date("2010-01-01"),
     endDate = as.Date("2012-01-01")
   )
-  expect_true(dpop$attrition$excluded[5] == 2)
+  expect_true(attrition(cdm$dpop)$excluded[5] == 2)
 
   # check prior observation criteria
-  dpop <- generateDenominatorCohortSet(
+  cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     startDate = as.Date("2015-01-01"),
     endDate = as.Date("2016-06-30"),
     daysPriorHistory = 365
   )
-  expect_true(dpop$attrition$excluded[7] == 1)
+  expect_true(attrition(cdm$dpop)$excluded[7] == 1)
 
   # multiple observation periods per person
   personTable <- tibble::tibble(
@@ -1135,7 +1135,7 @@ test_that("mock db: check attrition table", {
     observationPeriodTable = observationPeriodTable
   )
   dpop <- generateDenominatorCohortSet(cdm = cdm)
-  expect_true(all(dpop$attrition$current_n == 1))
+  expect_true(all(attrition(dpop)$current_n == 1))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })

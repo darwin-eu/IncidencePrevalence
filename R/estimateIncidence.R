@@ -79,6 +79,8 @@ estimateIncidence <- function(cdm,
   if (!isTRUE(cdmCheck)) {
     "- cdm must be a CDMConnector CDM reference object"
   }
+  checkmate::reportAssertions(collection = errorMessage)
+  errorMessage <- checkmate::makeAssertCollection()
   denominatorCheck <- denominatorTable %in% names(cdm)
   checkmate::assertTRUE(denominatorCheck,
     add = errorMessage

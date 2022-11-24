@@ -58,7 +58,7 @@ head(cdm$outcome)
 To identify our denominator population we can use the `generateDenominatorCohortSet` function. Here for example, we want to identify a denominator population for a study period between 2008 and 2018. To note, other options ave available when defining this population which are summarised in the package vignettes. 
 
 ```{r}
-dpop <- generateDenominatorCohortSet(
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2018-01-01")
@@ -69,11 +69,6 @@ head(dpop$attrition)
 ```
 
 Now we have identified our denominator population, we can calculate incidence, point prevalence, and period prevalence as below (given that our mock cdm_reference also has an outcome cohort defined). Again further details for each of these functions are provided in the vignettes.
-
-To do this, first we´ll add the denominator cohort to our cdm reference.
-```{r}
-cdm$denominator <- dpop$denominator_population
-```
 
 Now we´ve added the denominator cohort to our cdm reference, we can go on and estimate incidence and prevalence. 
 

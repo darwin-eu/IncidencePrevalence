@@ -434,9 +434,10 @@ sqlTrace.IncidencePrevalenceDenominator <- function(x) {
 }
 
 #' @export
+#' @importFrom utils str
 print.sqlTrace <- function(x, ...) {
   cli::cat_line("<SQL query trace>")
-  print(str(x))
+  print(utils::str(x))
 }
 
 print.IncidencePrevalenceDenominator <- function(x, ...) {

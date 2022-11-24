@@ -96,7 +96,7 @@ cdm <- mockIncidencePrevalenceRef(sampleSize = 500)
 We can get a denominator population without including any particular requirements like so
 
 ```{r, message=FALSE, warning=FALSE}
-dpop <- generateDenominatorCohortSet(
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = NULL,
   endDate = NULL,
@@ -104,16 +104,16 @@ dpop <- generateDenominatorCohortSet(
   sex = "Both",
   daysPriorHistory = 0
 )
-dpop$denominator_population %>% glimpse()
+cdm$denominator %>% glimpse()
 
-dpop$denominator_population %>%
+cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5"))
 ```
 
 Let´s have a look at the included time of the first five patients
 
 ```{r, message=FALSE, warning=FALSE}
-dpop$denominator_population %>%
+cdm$denominator%>%
   collect() %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5")) %>%
   pivot_longer(cols = c(
@@ -129,7 +129,7 @@ dpop$denominator_population %>%
 
 We can also plot a histogram of start and end dates of the 500 simulated patients 
 ```{r, message=FALSE, warning=FALSE}
-dpop$denominator_population %>%
+cdm$denominator %>%
   collect() %>%
   ggplot() +
   theme_minimal() +
@@ -139,7 +139,7 @@ dpop$denominator_population %>%
 ```
 
 ```{r, message=FALSE, warning=FALSE}
-dpop$denominator_population %>%
+cdm$denominator %>%
   collect() %>%
   ggplot() +
   theme_minimal() +
@@ -152,7 +152,7 @@ dpop$denominator_population %>%
 We can get specify a study period like so
 
 ```{r, message=FALSE, warning=FALSE}
-dpop <- generateDenominatorCohortSet(
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
@@ -160,17 +160,17 @@ dpop <- generateDenominatorCohortSet(
   sex = "Both",
   daysPriorHistory = 0
 )
-dpop$denominator_population %>%
+cdm$denominator %>%
   glimpse()
 
-dpop$denominator_population %>%
+cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5"))
 ```
 
 Now we can see the person "2", "4" and "5" haven´t been included as they don´t have any observation time during the study period. Indeed, we´re now including 328 of the original 500 simulated patients.
 
 ```{r, message=FALSE, warning=FALSE}
-dpop$denominator_population %>%
+cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5")) %>%
   collect() %>%
   pivot_longer(cols = c(
@@ -186,7 +186,7 @@ dpop$denominator_population %>%
 
 We can also plot a histogram of start and end dates and we can see that now most people enter at the start of the study period and leave at the end.
 ```{r, message=FALSE, warning=FALSE}
-dpop$denominator_population %>%
+cdm$denominator %>%
   collect() %>%
   ggplot() +
   theme_minimal() +
@@ -196,7 +196,7 @@ dpop$denominator_population %>%
 ```
 
 ```{r, message=FALSE, warning=FALSE}
-dpop$denominator_population %>%
+cdm$denominator %>%
   collect() %>%
   ggplot() +
   theme_minimal() +
@@ -210,7 +210,7 @@ dpop$denominator_population %>%
 We can add some requirement of prior history
 
 ```{r, message=FALSE, warning=FALSE}
-dpop <- generateDenominatorCohortSet(
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
@@ -218,17 +218,17 @@ dpop <- generateDenominatorCohortSet(
   sex = "Both",
   daysPriorHistory = 365
 )
-dpop$denominator_population %>%
+cdm$denominator %>%
   glimpse()
 
-dpop$denominator_population %>%
+cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5"))
 ```
 
 Now we only include patient "1" of the original first five and we´re now including 178 of the original 500 simulated patients.
 
 ```{r, message=FALSE, warning=FALSE}
-dpop$denominator_population %>%
+cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5")) %>%
   collect() %>%
   pivot_longer(cols = c(
@@ -244,7 +244,7 @@ dpop$denominator_population %>%
 
 With the histograms of start and end dates now looking like
 ```{r, message=FALSE, warning=FALSE}
-dpop$denominator_population %>%
+cdm$denominator %>%
   collect() %>%
   ggplot() +
   theme_minimal() +
@@ -254,7 +254,7 @@ dpop$denominator_population %>%
 ```
 
 ```{r, message=FALSE, warning=FALSE}
-dpop$denominator_population %>%
+cdm$denominator %>%
   collect() %>%
   ggplot() +
   theme_minimal() +
@@ -267,7 +267,7 @@ dpop$denominator_population %>%
 In addition to all the above we could also add some requirements around age and sex. One thing to note is that the age upper limit will include time from a person up to the day before their reach the age upper limit + 1 year. For instance, when the upper limit is 65, that means we will include time from a person up to and including the day before their 66th birthday.
 
 ```{r, message=FALSE, warning=FALSE}
-dpop <- generateDenominatorCohortSet(
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
@@ -275,10 +275,10 @@ dpop <- generateDenominatorCohortSet(
   sex = "Female",
   daysPriorHistory = 365
 )
-dpop$denominator_population %>%
+cdm$denominator %>%
   glimpse()
 
-dpop$denominator_population %>%
+cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5"))
 ```
 
@@ -286,7 +286,7 @@ Now none of the original first five are included and we´re including 48 of the 
 
 The histograms of start and end dates now looking like
 ```{r, message=FALSE, warning=FALSE}
-dpop$denominator_population %>%
+cdm$denominator %>%
   collect() %>%
   ggplot() +
   theme_minimal() +
@@ -296,7 +296,7 @@ dpop$denominator_population %>%
 ```
 
 ```{r, message=FALSE, warning=FALSE}
-dpop$denominator_population %>%
+cdm$denominator %>%
   collect() %>%
   ggplot() +
   theme_minimal() +
@@ -308,7 +308,7 @@ dpop$denominator_population %>%
 ### Multiple options to return multiple denominator populations 
 More than one age, sex and prior history requirements can be specified at the same time. First, we can take a look at having two age groups. We can see below that those individuals who have their 41st birthday during the study period will go from the first cohort (age_group: 0;40) to the second (age_group: 41;100) on this day.
 ```{r, message=FALSE, warning=FALSE}
-dpop <- generateDenominatorCohortSet(
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
@@ -319,9 +319,9 @@ dpop <- generateDenominatorCohortSet(
   sex = "Both",
   daysPriorHistory = 0
 )
-dpop <- dpop$denominator_population %>%
+dpop <- cdm$denominator %>%
   collect() %>%
-  left_join(dpop$denominator_settings)
+  left_join(settings(cdm$denominator))
 
 dpop %>%
   glimpse()
@@ -348,7 +348,7 @@ dpop %>%
 
 We can then also 
 ```{r, message=FALSE, warning=FALSE, fig.height=8}
-dpop <- generateDenominatorCohortSet(
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
@@ -359,9 +359,9 @@ dpop <- generateDenominatorCohortSet(
   sex = c("Male", "Female", "Both"),
   daysPriorHistory = 0
 )
-dpop <- dpop$denominator_population %>%
+dpop <- cdm$denominator %>%
   collect() %>%
-  left_join(dpop$denominator_settings)
+  left_join(settings(cdm$denominator))
 
 dpop %>% glimpse()
 
@@ -388,7 +388,7 @@ dpop %>%
 
 And then also specifying multiple prior history requirements 
 ```{r, message=FALSE, warning=FALSE, fig.height=10}
-dpop <- generateDenominatorCohortSet(
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
@@ -399,9 +399,9 @@ dpop <- generateDenominatorCohortSet(
   sex = c("Male", "Female", "Both"),
   daysPriorHistory = c(0, 365)
 )
-dpop <- dpop$denominator_population %>%
+dpop <- cdm$denominator %>%
   collect() %>%
-  left_join(dpop$denominator_settings)
+  left_join(settings(cdm$denominator))
 
 dpop %>% glimpse()
 
@@ -429,7 +429,7 @@ dpop %>%
 We can set verbose=TRUE to report progress as code is running. By default, no progress is reported (verbose=FALSE). 
 
 ```{r, message=TRUE, warning=FALSE}
-dpop <- generateDenominatorCohortSet(
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
@@ -455,7 +455,7 @@ The denominator population includes the information on all the individuals who f
 Considering the following example, we can see:
 
 ```{r, message=TRUE, warning=FALSE}
-dpop <- generateDenominatorCohortSet(
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
@@ -467,7 +467,7 @@ dpop <- generateDenominatorCohortSet(
   daysPriorHistory = c(0, 365)
 )
 
-head(dpop$denominator_populations, 8)
+head(cdm$denominator, 8)
 ```
 
 The denominator settings will report the characteristics of the denominator populations created as a result of running this function. More than one age, sex and prior history requirements can be specified at the same time. Therefore, each combination of these variables will result in a different cohort, which be analyzed and identified with a unique cohort_definition_id. This tibble includes information on the study start and end dates, and its characteristics in terms of age and sex groups and the amount of prior history required.
@@ -475,7 +475,7 @@ The denominator settings will report the characteristics of the denominator popu
 In this example, we have 8 different cohorts.
 
 ```{r, message=TRUE, warning=FALSE}
-dpop$denominator_settings
+settings(cdm$denominator)
 ```
 
 The attrition list includes information on the number of individuals who are excluded of the denominator population and the reason behind its exclusion, such as missing crucial information or not satisfying the sex or age criteria required, among others. 
@@ -483,7 +483,7 @@ The attrition list includes information on the number of individuals who are exc
 In this example we only show the attrition list for the first cohort, but it's generated for every cohort of our analysis (in this case, eight).
 
 ```{r, message=TRUE, warning=FALSE}
-head(dpop$attrition, 8)
+attrition(cdm$denominator)
 ```
 
 
