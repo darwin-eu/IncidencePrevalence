@@ -387,9 +387,7 @@ generateDenominatorCohortSet <- function(cdm,
       "Overall time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
-  # browser()
   # return results as a cohort_reference class
-  # if (dpop$denominator_population %>% dplyr::count() %>% dplyr::pull() > 0) { # is this ok if rowcounts are zero?
 
   attr(studyPops, "settings") <- popSpecs
   attr(studyPops, "attrition") <- dpop$attrition
@@ -403,6 +401,8 @@ generateDenominatorCohortSet <- function(cdm,
   return(studyPops)
 }
 
+#' @param x Cohort for which to get attrition
+#'
 #' @export
 attrition <- function(x) {
   UseMethod("attrition")
@@ -413,6 +413,8 @@ attrition.IncidencePrevalenceDenominator <- function(x) {
   attr(x, "attrition")
 }
 
+#' @param Cohort for which to get settings
+#'
 #' @export
 settings <- function(x) {
   UseMethod("settings")
@@ -423,6 +425,8 @@ settings.IncidencePrevalenceDenominator <- function(x) {
   attr(x, "settings")
 }
 
+#' @param Cohort for which to get SQL trace
+#'
 #' @export
 sqlTrace <- function(x) {
   UseMethod("sqlTrace")
