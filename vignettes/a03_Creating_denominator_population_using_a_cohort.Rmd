@@ -110,12 +110,10 @@ cdm <- mockIncidencePrevalenceRef(
 ### Not applying any subset
 We can get a denominator population without including any particular subset like so
 ```{r, message=FALSE, warning=FALSE}
-dpop <- generateDenominatorCohortSet(
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm
 )
-
-dpop <- dpop$denominator_pop
-dpop
+cdm$denominator
 ```
 As we did not specify any study start and end date, the cohort start and end date of our 5 patients correspond to the same registered as observation period. 
 
@@ -127,14 +125,12 @@ observationPeriodTable
 Let's suppose we want to subset our population based on a non-time varying characteristic such as ethnicity, which corresponds to strataCohortId "1" in our simulated strata table.
 
 ```{r, message=FALSE, warning=FALSE}
-dpop <- generateDenominatorCohortSet(
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   strataTable = "strata",
   strataCohortId = "1",
 )
-
-dpop <- dpop$denominator_pop
-dpop
+cdm$denominator 
 ```
 
 We have obtained the 3 patients with the particular ethnicity we were interested in. Moreover, because ethnicity does not change during the study period, the cohort start and end date correspond to same dates of their observation period. Therefore, the obtained denominator population cohort is the same than the one observed in the first example, but it's limited to the individuals that have our characteristic of interest.
@@ -149,14 +145,12 @@ observationPeriodTable %>%
 Now we want to subset our population based on a time varying characteristic such a particular condition (strataCohortId "2" in our simulated strata table).
 
 ```{r, message=FALSE, warning=FALSE}
-dpop <- generateDenominatorCohortSet(
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   strataTable = "strata",
   strataCohortId = "2",
 )
-
-dpop <- dpop$denominator_pop
-dpop
+cdm$denominator
 ```
 
 We have obtained a denominator population with 3 individuals who have experienced this event during their observation period. In this case, the cohort start and end dates correspond to the cohort start and end date of our strata table, and not to their observation period. Therefore, individuals only contribute time while they are experiencing this particular condition. 
@@ -170,14 +164,12 @@ conditionX %>%
 Depending in which condition we're interested in, people might experience the same condition multiple times. Let's use strataCohortId "3" to illustrate this example. 
 
 ```{r, message=FALSE, warning=FALSE}
-dpop <- generateDenominatorCohortSet(
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   strataTable = "strata",
   strataCohortId = "3",
 )
-
-dpop <- dpop$denominator_pop
-dpop
+cdm$denominator
 ```
 
 We can see that person "3" and "5" experienced this condition in two different occasions. Therefore, they only contribute time to the denominator population during the time periods they had this condition. As before, cohort start and end date correspond to the start and end date of this condition.
@@ -192,7 +184,7 @@ In both examples, the study period can be restricted to a particular period of i
 
 
 ```{r, message=FALSE, warning=FALSE}
-dpop <- generateDenominatorCohortSet(
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   strataTable = "strata",
   strataCohortId = "3",
@@ -202,10 +194,7 @@ dpop <- generateDenominatorCohortSet(
   sex = "Female",
   daysPriorHistory = 0
 )
-
-
-dpop <- dpop$denominator_pop
-dpop
+cdm$denominator
 ```
 
 In this case we have used the same strata than before, but we have restricted our analysis to females and we have limited our study period.As we can see, using this period of time we don't capture patient "2" (who was a man) and we only observe one time period for individuals "3" and "5" (who had multiple contributing time periods in the prior example).

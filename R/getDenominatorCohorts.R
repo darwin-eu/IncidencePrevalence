@@ -468,11 +468,7 @@ getDenominatorCohorts <- function(cdm,
 
   # return list
   dpop <- list()
-  if ((studyPopDb %>% dplyr::count() %>% dplyr::pull()) == 0) {
-    dpop[["denominator_population"]] <- tibble::tibble()
-  } else {
-    dpop[["denominator_population"]] <- studyPopDb
-  }
+  dpop[["denominator_population"]] <- studyPopDb
   dpop[["attrition"]] <- attrition
   dpop[["sql_queries"]] <- sqlQueries
 

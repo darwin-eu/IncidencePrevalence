@@ -82,7 +82,7 @@ cdm <- mockIncidencePrevalenceRef(
   outPre = 0.5
 )
 
-dpop <- generateDenominatorCohortSet(
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2012-01-01"),
@@ -90,8 +90,6 @@ dpop <- generateDenominatorCohortSet(
   sex = "Both",
   daysPriorHistory = 0
 )
-
-cdm$denominator <- dpop$denominator_population
 
 cdm$denominator %>%
   glimpse()

@@ -57,7 +57,7 @@ cdm <- mockIncidencePrevalenceRef(
   outPre = 0.5
 )
 
-dpop <- generateDenominatorCohortSet(
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2012-01-01"),
@@ -65,8 +65,6 @@ dpop <- generateDenominatorCohortSet(
   sex = "Both",
   daysPriorHistory = 0
 )
-
-cdm$denominator <- dpop$denominator_population
 
 cdm$denominator %>%
   glimpse()
@@ -191,7 +189,7 @@ cdm2 <- mockIncidencePrevalenceRef(
 print(nrow(dplyr::tbl(attr(cdm2, "dbcon"), "person") %>% collect()))
 print(nrow(dplyr::tbl(attr(cdm2, "dbcon"), "outcome") %>% collect()))
 
-dpop2 <- generateDenominatorCohortSet(
+cdm2$denominator <- generateDenominatorCohortSet(
   cdm = cdm2,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2016-01-01"),
@@ -203,8 +201,6 @@ dpop2 <- generateDenominatorCohortSet(
   sex = c("Male", "Female"),
   daysPriorHistory = 0
 )
-
-cdm2$denominator <- dpop2$denominator_populations
 
 prev2 <- estimatePeriodPrevalence(
   cdm = cdm2,
@@ -218,7 +214,7 @@ prev2$prevalence_estimates %>%
   left_join(prev2$analysis_settings,
     by = "prevalence_analysis_id"
   ) %>%
-  left_join(dpop2$denominator_settings,
+  left_join(settings(cdm$denominator),
     by = c("denominator_cohort_id" = "cohort_definition_id")
   ) %>%
   ggplot(aes(start_time, prev)) +

@@ -65,11 +65,12 @@ or \code{estimatePeriodPrevalence()}.
 }
 \examples{
 \dontrun{
-db <- DBI::dbConnect(" Your database connection here ")
+con <- DBI::dbConnect(duckdb::duckdb(), CDMConnector::eunomia_dir())
 cdm <- CDMConnector::cdm_from_con(
-  con = db,
-  cdm_schema = "cdm schema name"
+  con = con,
+  cdm_schema = "main"
 )
+
 dpop <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),

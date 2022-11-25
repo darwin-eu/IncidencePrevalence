@@ -56,18 +56,18 @@
 #'
 #' @examples
 #' \dontrun{
-#' db <- DBI::dbConnect(" Your database connection here ")
+#' con <- DBI::dbConnect(duckdb::duckdb(), CDMConnector::eunomia_dir())
 #' cdm <- CDMConnector::cdm_from_con(
-#'   con = db,
-#'   cdm_schema = "cdm schema name"
+#'   con = con,
+#'   cdm_schema = "main"
 #' )
+#'
 #' dpop <- generateDenominatorCohortSet(
 #'   cdm = cdm,
 #'   startDate = as.Date("2008-01-01"),
 #'   endDate = as.Date("2018-01-01")
 #' )
 #' }
-
 generateDenominatorCohortSet <- function(cdm,
                                startDate = NULL,
                                endDate = NULL,
@@ -261,7 +261,8 @@ generateDenominatorCohortSet <- function(cdm,
   if (verbose == TRUE) {
     message("Progress: Run get_denominator_pop to get overall population")
     start <- Sys.time()
-  }
+  }; #browser()
+
   dpop <- getDenominatorCohorts(
     cdm = cdm,
     startDate = unique(popSpecs$start_date),
@@ -273,26 +274,29 @@ generateDenominatorCohortSet <- function(cdm,
     strataCohortId = strataCohortId,
     sample = sample
   )
+
   if (verbose == TRUE) {
     message("Progress: Overall denominator population identified")
     duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
-  "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
 
   sqlQueries <- dpop$sql_queries
+  denominator_population_nrows <- dpop$denominator_population %>% dplyr::count() %>% dplyr::pull(.data$n)
 
   # build each of the cohorts of interest
   if (verbose == TRUE) {
     message("Progress: Create each denominator population of interest")
     start <- Sys.time()
   }
-  if (dpop$denominator_population %>% dplyr::count() %>% dplyr::pull() == 0) {
-    message("- No people found for any denominator population")
-  }
 
-  if (dpop$denominator_population %>% dplyr::count() %>% dplyr::pull() > 0) {
+  if (denominator_population_nrows == 0) {
+    message("- No people found for any denominator population")
+    studyPops <- dpop$denominator_population
+
+  } else if (denominator_population_nrows > 0) {
     # first, if all cohorts are Male or Female get number that will be excluded
     if (all(popSpecs$sex == "Female")) {
       dpop$attrition <- recordAttrition(
@@ -377,32 +381,83 @@ generateDenominatorCohortSet <- function(cdm,
         extractQuery(description = "combine_cohorts")
       studyPops <- studyPops %>% dplyr::compute()
     }
+  } else {
+    rlang::abort("Error creating denominator population in the database. File a bug report.")
   }
+
   if (verbose == TRUE) {
     message("Progress: Each denominator population of interest created")
     duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
     message(glue::glue(
-  "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
 
   if (verbose == TRUE) {
     duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
-"Overall time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      "Overall time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
+  # return results as a cohort_reference class
 
-  # return results as a list
-  results <- list()
-  if (dpop$denominator_population %>% dplyr::count() %>% dplyr::pull() > 0) {
-    results[["denominator_populations"]] <- studyPops
-  } else {
-    results[["denominator_populations"]] <- tibble::tibble()
-  }
-  results[["denominator_settings"]] <- popSpecs
-  results[["attrition"]] <- dpop$attrition
-  results[["sql_queries"]] <- unlist(sqlQueries)
+  attr(studyPops, "settings") <- popSpecs
+  attr(studyPops, "attrition") <- dpop$attrition
+  sqlQueries <- unlist(sqlQueries)
+  class(sqlQueries) <- c("sqlTrace", class(sqlQueries))
+  attr(studyPops, "sql") <- sqlQueries
+  attr(studyPops, "nrow") <- denominator_population_nrows
 
-  return(results)
+  class(studyPops) <- c("IncidencePrevalenceDenominator", "cohort_reference", class(studyPops))
+
+  return(studyPops)
 }
+
+#' @param x Cohort for which to get attrition
+#'
+#' @export
+attrition <- function(x) {
+  UseMethod("attrition")
+}
+
+#' @export
+attrition.IncidencePrevalenceDenominator <- function(x) {
+  attr(x, "attrition")
+}
+
+#' @param Cohort for which to get settings
+#'
+#' @export
+settings <- function(x) {
+  UseMethod("settings")
+}
+
+#' @export
+settings.IncidencePrevalenceDenominator <- function(x) {
+  attr(x, "settings")
+}
+
+#' @param Cohort for which to get SQL trace
+#'
+#' @export
+sqlTrace <- function(x) {
+  UseMethod("sqlTrace")
+}
+
+#' @export
+sqlTrace.IncidencePrevalenceDenominator <- function(x) {
+  attr(x, "sql")
+}
+
+#' @export
+#' @importFrom utils str
+print.sqlTrace <- function(x, ...) {
+  cli::cat_line("<SQL query trace>")
+  print(utils::str(x))
+}
+
+print.IncidencePrevalenceDenominator <- function(x, ...) {
+  cli::cat_rule("IncidencePrevalence denominator generated cohort set")
+  print(x)
+}
+
