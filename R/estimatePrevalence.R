@@ -41,7 +41,7 @@
 #' only be estimated for those intervals where the database
 #' captures all the interval (based on the earliest and latest observation
 #' period start dates, respectively).
-#' @param points where to compute the point prevalence
+#' @param timePoint where to compute the point prevalence
 #' @param confidenceInterval Method for confidence intervals
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
@@ -78,7 +78,7 @@ estimatePointPrevalence <- function(cdm,
                                     outcomeLookbackDays = 0,
                                     interval = "months",
                                     completeDatabaseIntervals = TRUE,
-                                    points = "start",
+                                    timePoint = "start",
                                     confidenceInterval = "binomial",
                                     minCellCount = 5,
                                     verbose = FALSE) {
@@ -93,7 +93,7 @@ estimatePointPrevalence <- function(cdm,
                      interval = interval,
                      completeDatabaseIntervals = completeDatabaseIntervals,
                      fullContribution = FALSE,
-                     points = points,
+                     timePoint = timePoint,
                      confidenceInterval = confidenceInterval,
                      minCellCount = minCellCount,
                      verbose = verbose)
@@ -184,7 +184,7 @@ estimatePrevalence(cdm = cdm,
                      interval = interval,
                      completeDatabaseIntervals = completeDatabaseIntervals,
                      fullContribution = fullContribution,
-                     points = "start",
+                     timePoint = "start",
                      confidenceInterval = confidenceInterval,
                      minCellCount = minCellCount,
                      verbose = verbose)
@@ -200,7 +200,7 @@ estimatePrevalence <- function(cdm,
                                interval = "months",
                                completeDatabaseIntervals = TRUE,
                                fullContribution = FALSE,
-                               points = "start",
+                               timePoint = "start",
                                confidenceInterval = "binomial",
                                minCellCount = 5,
                                verbose = FALSE) {
@@ -226,8 +226,8 @@ estimatePrevalence <- function(cdm,
   if (is.character(confidenceInterval)) {
     confidenceInterval <- tolower(confidenceInterval)
   }
-  if (is.character(points)) {
-    points <- tolower(points)
+  if (is.character(timePoint)) {
+    timePoint <- tolower(timePoint)
   }
 
   ## check for standard types of user error
@@ -287,7 +287,7 @@ estimatePrevalence <- function(cdm,
       )),
     add = errorMessage
   )
-  checkmate::assertTRUE(all(points %in% c("start", "middle", "end")),
+  checkmate::assertTRUE(all(timePoint %in% c("start", "middle", "end")),
     add = errorMessage
   )
   checkmate::assert_number(minCellCount)
@@ -331,7 +331,7 @@ estimatePrevalence <- function(cdm,
     outcomeLookbackDays = outcomeLookbackDays,
     denominatorCohortId = denominatorCohortId,
     interval = interval,
-    point = points,
+    timePoint = timePoint,
     fullContribution = fullContribution
   )
   if (is.null(outcomeLookbackDays)) {
@@ -358,7 +358,7 @@ estimatePrevalence <- function(cdm,
       type = type,
       interval = x$interval,
       completeDatabaseIntervals = completeDatabaseIntervals,
-      point = x$point,
+      timePoint = x$timePoint,
       fullContribution = x$fullContribution,
       verbose = verbose
     )
@@ -379,8 +379,8 @@ estimatePrevalence <- function(cdm,
         type = type,
         interval = x$interval,
         complete_database_intervals = completeDatabaseIntervals,
-        point = x$point,
-        fullContribution = x$fullContribution,
+        time_point = x$timePoint,
+        full_contribution = x$fullContribution,
         confidence_interval = confidenceInterval,
         min_cell_count = minCellCount,
         prevalence_analysis_id = x$prevalence_analysis_id
@@ -392,13 +392,14 @@ estimatePrevalence <- function(cdm,
       dplyr::relocate("prevalence_analysis_id")
 
     workingPrevPersonTable <- workingPrev[["person_table"]] %>%
-      dplyr::mutate(prevalence_analysis_id = x$prevalence_analysis_id) %>%
+      dplyr::mutate(prevalence_analysis_id = !!x$prevalence_analysis_id) %>%
       dplyr::relocate("prevalence_analysis_id")
 
     result <- list()
     result[["pr"]] <- workingPrevPr
     result[["analysis_settings"]] <- workingPrevAnalysisSettings
-    result[["person_table"]] <- workingPrevPersonTable
+    result[[paste0("study_population_analyis_",
+                   x$prevalence_analysis_id)]] <- workingPrevPersonTable
     result[["attrition"]] <- workingPrevAttrition
 
     return(result)
@@ -408,21 +409,16 @@ estimatePrevalence <- function(cdm,
 
   # analysis settings
   analysisSettings <- prsList[names(prsList) == "analysis_settings"]
-  # to tibble
   analysisSettings <- dplyr::bind_rows(analysisSettings,
     .id = NULL
   )
 
-  # analysis settings
-  personTable <- prsList[names(prsList) == "person_table"]
-  # to tibble
-  personTable <- dplyr::bind_rows(personTable,
-    .id = NULL
-  )
+  # study population
+  personTable <- prsList[stringr::str_detect(names(prsList),
+                                             "study_population")]
 
   # prevalence estimates
   prs <- prsList[names(prsList) == "pr"]
-  # to tibble
   prs <- dplyr::bind_rows(prs,
     .id = NULL
   )

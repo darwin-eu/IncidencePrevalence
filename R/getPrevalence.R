@@ -23,7 +23,7 @@ getPrevalence <- function(cdm,
                              type,
                              interval,
                              completeDatabaseIntervals,
-                             point,
+                             timePoint,
                              fullContribution,
                              verbose) {
 
@@ -45,17 +45,20 @@ getPrevalence <- function(cdm,
     dplyr::rename("outcome_end_date" = "cohort_end_date") %>%
     dplyr::select("subject_id", "outcome_start_date",
                   "outcome_end_date"),
-    by="subject_id") %>%
-    dplyr::collect()
+    by="subject_id")
 
   if (interval == "days") {
     type <- "point"
   }
 
   # start date
-  start <- min(studyPop$cohort_start_date)
+  start <- studyPop %>%
+    dplyr::summarise(min(cohort_start_date, na.rm=TRUE)) %>%
+    dplyr::pull()
   # end date
-  end <- max(studyPop$cohort_end_date)
+  end <- studyPop %>%
+    dplyr::summarise(max(cohort_end_date, na.rm=TRUE)) %>%
+    dplyr::pull()
   # compute studyDays as a function of inputs
   studyDays <- getStudyDays(
     startDate = start,
@@ -63,7 +66,7 @@ getPrevalence <- function(cdm,
     timeInterval = interval,
     completeDatabaseIntervals = completeDatabaseIntervals,
     type = type,
-    point = point
+    timePoint = timePoint
   )
 
   if (nrow(studyDays) == 0) {
@@ -124,22 +127,26 @@ getPrevalence <- function(cdm,
     denominator <- workingPop %>%
       dplyr::select("subject_id") %>%
       dplyr::distinct() %>%
-      nrow()
+      dplyr::count() %>%
+      dplyr::pull()
 
     if(!is.null(outcomeLookbackDays)){
-    numerator <- workingPop %>%
-      dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
-      dplyr::filter(.data$outcome_end_date >= (.data$t_start_date -
-                                lubridate::days(.env$outcomeLookbackDays))) %>%
-      dplyr::select("subject_id") %>%
-      dplyr::distinct() %>%
-      nrow()
+      numerator <- workingPop %>%
+        dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
+        dplyr::filter(.data$outcome_end_date >= (
+          !!CDMConnector::dateadd("t_start_date", -{{outcomeLookbackDays}},
+                                  interval = "day"))) %>%
+        dplyr::select("subject_id") %>%
+        dplyr::distinct() %>%
+        dplyr::count() %>%
+        dplyr::pull()
     } else {
       numerator <- workingPop %>%
         dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
         dplyr::select("subject_id") %>%
         dplyr::distinct() %>%
-        nrow()
+        dplyr::count() %>%
+        dplyr::pull()
     }
 
     pr[[paste0(i)]] <- studyDays[i, ] %>%
@@ -156,7 +163,7 @@ getPrevalence <- function(cdm,
   # study design related variables
   analysisSettings <- tibble::tibble(
     type = .env$type,
-    point = .env$point,
+    time_point = .env$timePoint,
     interval = .env$interval,
     full_contribution = .env$fullContribution,
     full_periods_required = .env$completeDatabaseIntervals

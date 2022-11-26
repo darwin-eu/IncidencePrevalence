@@ -21,7 +21,7 @@
 #' @param timeInterval interval to compute
 #' @param completeDatabaseIntervals whether full periods are required
 #' @param type point or period, default value is period
-#' @param point point of computation in case type = point
+#' @param timePoint timePoint of computation in case type = point
 #'
 #' @noRd
 getStudyDays <- function(startDate,
@@ -29,7 +29,7 @@ getStudyDays <- function(startDate,
                              timeInterval,
                              completeDatabaseIntervals,
                              type = "period",
-                             point = NULL) {
+                             timePoint = NULL) {
   if (timeInterval == "weeks") {
     weekCorrection <- lubridate::days(1)
   } else {
@@ -58,7 +58,7 @@ getStudyDays <- function(startDate,
     unit <- substr(timeInterval, 1, nchar(timeInterval) - 1)
     startDay <- lubridate::floor_date(startDate, unit = unit) +
       weekCorrection +
-      switch(point,
+      switch(timePoint,
         "start" = lubridate::days(0),
         "middle" = switch(timeInterval,
           "weeks" = lubridate::days(3),
