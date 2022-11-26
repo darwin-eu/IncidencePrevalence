@@ -13,7 +13,7 @@ estimatePointPrevalence(
   outcomeLookbackDays = 0,
   interval = "months",
   completeDatabaseIntervals = TRUE,
-  points = "start",
+  timePoint = "start",
   confidenceInterval = "binomial",
   minCellCount = 5,
   verbose = FALSE
@@ -52,7 +52,7 @@ only be estimated for those intervals where the database
 captures all the interval (based on the earliest and latest observation
 period start dates, respectively).}
 
-\item{points}{where to compute the point prevalence}
+\item{timePoint}{where to compute the point prevalence}
 
 \item{confidenceInterval}{Method for confidence intervals}
 

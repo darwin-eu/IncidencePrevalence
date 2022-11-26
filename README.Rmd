@@ -64,8 +64,8 @@ cdm$denominator <- generateDenominatorCohortSet(
   endDate = as.Date("2018-01-01")
 )
 # this is what the data looks like
-head(dpop$denominator_population)
-head(dpop$attrition)
+head(cdm$denominator)
+head(attrition(cdm$denominator))
 ```
 
 Now we have identified our denominator population, we can calculate incidence, point prevalence, and period prevalence as below (given that our mock cdm_reference also has an outcome cohort defined). Again further details for each of these functions are provided in the vignettes.

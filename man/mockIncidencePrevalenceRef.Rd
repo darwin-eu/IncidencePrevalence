@@ -2,7 +2,8 @@
 % Please edit documentation in R/mockIncidencePrevalenceRef.R
 \name{mockIncidencePrevalenceRef}
 \alias{mockIncidencePrevalenceRef}
-\title{Generate example database for IncidencePrevalence package}
+\title{Generate example subset of the OMOP CDM for
+estimating incidence and prevalence}
 \usage{
 mockIncidencePrevalenceRef(
   personTable = NULL,
@@ -27,49 +28,66 @@ mockIncidencePrevalenceRef(
 )
 }
 \arguments{
-\item{personTable}{Person table.}
+\item{personTable}{A tibble in the format of the person table.}
 
-\item{observationPeriodTable}{observation_period table.}
+\item{observationPeriodTable}{A tibble in the format of the observation
+period table.}
 
-\item{strataTable}{strata table.}
+\item{strataTable}{A tibble in the format of a cohort table which can
+be used for stratification}
 
-\item{outcomeTable}{outcome table.}
+\item{outcomeTable}{A tibble in the format of a cohort table which can
+be used for outcomes}
 
-\item{sampleSize}{number of unique patient}
+\item{sampleSize}{The number of unique patients.}
 
-\item{outPre}{fraction of patient with an event}
+\item{outPre}{The fraction of patients with an event.}
 
-\item{seed}{seed for simulating the data set use same seed to get same data set}
+\item{seed}{The seed for simulating the data set. Use the same
+seed to get same data set.}
 
-\item{ageBeta}{the beta for the standardized age in logistics regression outcome model}
+\item{ageBeta}{The beta for the standardised age in a logistic
+regression outcome model.}
 
-\item{genderBeta}{the beta for the gender flag in logistics regression outcome model}
+\item{genderBeta}{The beta for the gender flag in a logistic
+regression outcome model.}
 
-\item{intercept}{the beta for the intercept in the logistics regression outcome model}
+\item{intercept}{The beta for the intercept in a logistic
+regression outcome model.}
 
-\item{earliestDateOfBirth}{the earliest date of birth of patient in person table format "dd-mm-yyyy"}
+\item{earliestDateOfBirth}{The earliest date of birth of a patient in
+person table.}
 
-\item{latestDateOfBirth}{the latest date of birth for patient in person table format "dd-mm-yyyy"}
+\item{latestDateOfBirth}{The latest date of birth of a patient in
+person table.}
 
-\item{earliestObservationStartDate}{the earliest observation start date for patient format "dd-mm-yyyy"}
+\item{earliestObservationStartDate}{The earliest observation start date
+for patient format.}
 
-\item{latestObservationStartDate}{the latest observation start date for patient format "dd-mm-yyyy"}
+\item{latestObservationStartDate}{The latest observation start date
+for patient format.}
 
-\item{minDaysToObservationEnd}{the minimum number of days of the observational integer}
+\item{minDaysToObservationEnd}{The minimum number of days of
+the observational integer.}
 
-\item{maxDaysToObservationEnd}{the maximum number of days of the observation period integer}
+\item{maxDaysToObservationEnd}{The maximum number of days of
+the observation period integer.}
 
-\item{minOutcomeDays}{the minimum number of days of the outcome period default set to 1}
+\item{minOutcomeDays}{The minimum number of days of the outcome
+period default set to 1.}
 
-\item{maxOutcomeDays}{the maximum number of days of the outcome period default set to 10}
+\item{maxOutcomeDays}{The maximum number of days of the outcome
+period default set to 10.}
 
-\item{maxOutcomes}{the maximum possible number of outcomes per person can have default set to 1}
+\item{maxOutcomes}{The maximum possible number of outcomes per
+person can have default set to 1.}
 }
 \value{
-CDMConnector CDM reference object to duckdb database with mock data
+A cdm reference to a duckdb database with mock data.
 }
 \description{
-Generate example database for IncidencePrevalence package
+Generate example subset of the OMOP CDM for
+estimating incidence and prevalence
 }
 \examples{
 \dontrun{
