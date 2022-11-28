@@ -26,7 +26,7 @@ test_that("mock db: check output format", {
   expect_true(all(c(
     "prevalence_analysis_id",
     "type",
-    "point",
+    "time_point",
     "interval",
     "full_contribution",
     "complete_database_intervals",

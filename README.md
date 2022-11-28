@@ -89,13 +89,13 @@ identify a denominator population for a study period between 2008 and
 which are summarised in the package vignettes.
 
 ``` r
-dpop <- generateDenominatorCohortSet(
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2018-01-01")
 )
 # this is what the data looks like
-head(dpop$denominator_population)
+head(cdm$denominator)
 #> # Source:   SQL [6 x 4]
 #> # Database: DuckDB 0.5.0 [unknown@Linux 5.4.0-132-generic:R 4.1.2/:memory:]
 #>   cohort_definition_id subject_id cohort_start_date cohort_end_date
@@ -106,7 +106,7 @@ head(dpop$denominator_population)
 #> 4 1                    8          2008-09-01        2008-10-15     
 #> 5 1                    11         2008-12-18        2010-08-13     
 #> 6 1                    12         2008-05-28        2010-06-13
-head(dpop$attrition)
+head(attrition(cdm$denominator))
 #> # A tibble: 6 × 3
 #>   current_n reason                                                       exclu…¹
 #>       <dbl> <chr>                                                          <dbl>
@@ -124,12 +124,6 @@ incidence, point prevalence, and period prevalence as below (given that
 our mock cdm_reference also has an outcome cohort defined). Again
 further details for each of these functions are provided in the
 vignettes.
-
-To do this, first we´ll add the denominator cohort to our cdm reference.
-
-``` r
-cdm$denominator <- dpop$denominator_population
-```
 
 Now we´ve added the denominator cohort to our cdm reference, we can go
 on and estimate incidence and prevalence.
@@ -166,7 +160,7 @@ prev_point <- estimatePointPrevalence(
 head(prev_point$prevalence_estimates)
 #> # A tibble: 6 × 11
 #>   prevale…¹ time  numer…² denom…³    prev prev_low prev_…⁴ start_time end_time
-#>   <chr>     <chr>   <int>   <int>   <dbl>    <dbl>   <dbl> <date>     <date>  
+#>   <chr>     <chr>   <dbl>   <dbl>   <dbl>    <dbl>   <dbl> <date>     <date>  
 #> 1 1         2008…       8     488  0.0164  0.00513  0.0277 2008-01-01 NA      
 #> 2 1         2008…       6     481  0.0125  0.00256  0.0224 2008-02-01 NA      
 #> 3 1         2008…      11     486  0.0226  0.00941  0.0359 2008-03-01 NA      
@@ -188,7 +182,7 @@ prev_period <- estimatePeriodPrevalence(
 head(prev_period$prevalence_estimates)
 #> # A tibble: 6 × 11
 #>   prevalenc…¹ time  numer…² denom…³   prev prev_…⁴ prev_…⁵ start_time end_time  
-#>   <chr>       <chr>   <int>   <int>  <dbl>   <dbl>   <dbl> <date>     <date>    
+#>   <chr>       <chr>   <dbl>   <dbl>  <dbl>   <dbl>   <dbl> <date>     <date>    
 #> 1 1           2008…      39     513 0.0760  0.0531  0.0990 2008-01-01 2008-01-31
 #> 2 1           2008…      36     509 0.0707  0.0485  0.0930 2008-02-01 2008-02-29
 #> 3 1           2008…      31     521 0.0595  0.0392  0.0798 2008-03-01 2008-03-31
