@@ -24,22 +24,29 @@ test_that("mock db: check output format", {
 
   # check analysis settings tibble::tibble
   expect_true(all(c(
-    "prevalence_analysis_id",
-    "type",
-    "time_point",
-    "interval",
-    "full_contribution",
-    "complete_database_intervals",
     "outcome_cohort_id",
+    "analysis_id",
+    "analysis_type",
+    "analysis_time_point",
+    "analysis_interval",
+    "analysis_full_contribution",
+    "analysis_complete_database_intervals",
+    "analysis_confidence_interval",
+    "analysis_min_cell_count",
     "denominator_cohort_id",
-    "confidence_interval",
-    "min_cell_count"
+    "denominator_age_group",
+    "denominator_min_age",
+    "denominator_max_age",
+    "denominator_sex",
+    "denominator_days_prior_history",
+    "denominator_start_date",
+    "denominator_end_date"
   ) %in%
     names(prev[["analysis_settings"]])))
 
   # check estimates tibble
   expect_true(all(c(
-    "prevalence_analysis_id",
+    "analysis_id",
     "time",
     "numerator", "denominator",
     "prev",

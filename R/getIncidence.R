@@ -223,10 +223,10 @@ getIncidence <- function(cdm,
 
   # study design related variables
   analysisSettings <- tibble::tibble(
-    outcome_washout = .env$outcomeWashout,
-    repeated_events = .env$repeatedEvents,
-    interval = .env$interval,
-    complete_database_intervals = .env$completeDatabaseIntervals
+    analysis_outcome_washout = .env$outcomeWashout,
+    analysis_repeated_events = .env$repeatedEvents,
+    analysis_interval = .env$interval,
+    analysis_complete_database_intervals = .env$completeDatabaseIntervals
   )
   if(returnAnalysisCohort==TRUE){
   studyPop <- studyPop %>%

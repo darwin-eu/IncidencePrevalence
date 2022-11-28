@@ -212,13 +212,10 @@ prev2 <- estimatePeriodPrevalence(
 
 prev2$prevalence_estimates %>%
   left_join(prev2$analysis_settings,
-    by = "prevalence_analysis_id"
-  ) %>%
-  left_join(settings(cdm$denominator),
-    by = c("denominator_cohort_id" = "cohort_definition_id")
+    by = "analysis_id"
   ) %>%
   ggplot(aes(start_time, prev)) +
-  facet_grid(age_group ~ sex) +
+  facet_grid(denominator_age_group ~ denominator_sex) +
   geom_point() +
   scale_y_continuous(
     labels = scales::percent,
