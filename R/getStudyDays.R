@@ -138,7 +138,7 @@ getStudyDays <- function(startDate,
         end_time = max(.data$dates, na.rm = TRUE)
       ) %>%
       dplyr::ungroup()
-    if (completeDatabaseIntervals) {
+    if (completeDatabaseIntervals == TRUE) {
       studyDays <- studyDays %>%
         dplyr::filter(.data$start_time ==
                         lubridate::floor_date(.data$start_time,

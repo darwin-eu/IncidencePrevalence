@@ -101,6 +101,9 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
                                        minOutcomeDays = 1,
                                        maxOutcomeDays = 10,
                                        maxOutcomes = 1) {
+
+  rlang::check_installed("duckdb")
+
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assert_tibble(personTable, null.ok = TRUE)
   checkmate::assert_tibble(observationPeriodTable, null.ok = TRUE)
