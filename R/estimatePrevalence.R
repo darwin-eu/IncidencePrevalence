@@ -332,22 +332,30 @@ estimatePrevalence <- function(cdm,
     denominatorCohortId = denominatorCohortId,
     interval = interval,
     timePoint = timePoint,
-    fullContribution = fullContribution
+    fullContribution = fullContribution,
+    completeDatabaseIntervals = completeDatabaseIntervals
   )
   if (is.null(outcomeLookbackDays)) {
     studySpecs$outcomeLookbackDays <- NA
   }
 
   studySpecs <- studySpecs %>%
-    dplyr::mutate(prevalence_analysis_id = as.character(dplyr::row_number()))
+    dplyr::mutate(analysis_id = as.character(dplyr::row_number()))
 
   studySpecs <- split(
     studySpecs,
-    studySpecs[, c("prevalence_analysis_id")]
+    studySpecs[, c("analysis_id")]
   )
 
   # get prs
   prsList <- lapply(studySpecs, function(x) {
+
+    if (verbose == TRUE) {
+      message(glue::glue(
+        "Getting prevalence for {x$analysis_id} of {length(studySpecs)}"
+      ))
+    }
+
     workingPrev <- getPrevalence(
       cdm = cdm,
       denominatorTable = denominatorTable,
@@ -357,7 +365,7 @@ estimatePrevalence <- function(cdm,
       outcomeLookbackDays= x$outcomeLookbackDays,
       type = type,
       interval = x$interval,
-      completeDatabaseIntervals = completeDatabaseIntervals,
+      completeDatabaseIntervals = x$completeDatabaseIntervals,
       timePoint = x$timePoint,
       fullContribution = x$fullContribution,
       verbose = verbose
@@ -367,39 +375,39 @@ estimatePrevalence <- function(cdm,
       workingPrevPr <- tibble::tibble()
     } else {
       workingPrevPr <- workingPrev[["pr"]] %>%
-        dplyr::mutate(prevalence_analysis_id = x$prevalence_analysis_id) %>%
-        dplyr::relocate("prevalence_analysis_id")
+        dplyr::mutate(analysis_id = x$analysis_id) %>%
+        dplyr::relocate("analysis_id")
     }
 
     workingPrevAnalysisSettings <- workingPrev[["analysis_settings"]] %>%
       dplyr::mutate(
         outcome_cohort_id = x$outcomeCohortId,
-        outcome_lookback_days  = x$outcomeLookbackDays,
         denominator_cohort_id = x$denominatorCohortId,
-        type = type,
-        interval = x$interval,
-        complete_database_intervals = completeDatabaseIntervals,
-        time_point = x$timePoint,
-        full_contribution = x$fullContribution,
-        confidence_interval = confidenceInterval,
-        min_cell_count = minCellCount,
-        prevalence_analysis_id = x$prevalence_analysis_id
+        analysis_outcome_lookback_days  = x$outcomeLookbackDays,
+        analysis_type = type,
+        analysis_interval = x$interval,
+        analysis_complete_database_intervals = x$completeDatabaseIntervals,
+        analysis_time_point = x$timePoint,
+        analysis_full_contribution = x$fullContribution,
+        analysis_confidence_interval = confidenceInterval,
+        analysis_min_cell_count = minCellCount,
+        analysis_id = x$analysis_id
       ) %>%
-      dplyr::relocate("prevalence_analysis_id")
+      dplyr::relocate("analysis_id")
 
     workingPrevAttrition <- workingPrev[["attrition"]] %>%
-      dplyr::mutate(prevalence_analysis_id = x$prevalence_analysis_id) %>%
-      dplyr::relocate("prevalence_analysis_id")
+      dplyr::mutate(analysis_id = x$analysis_id) %>%
+      dplyr::relocate("analysis_id")
 
     workingPrevPersonTable <- workingPrev[["person_table"]] %>%
-      dplyr::mutate(prevalence_analysis_id = !!x$prevalence_analysis_id) %>%
-      dplyr::relocate("prevalence_analysis_id")
+      dplyr::mutate(analysis_id = !!x$analysis_id) %>%
+      dplyr::relocate("analysis_id")
 
     result <- list()
     result[["pr"]] <- workingPrevPr
     result[["analysis_settings"]] <- workingPrevAnalysisSettings
     result[[paste0("study_population_analyis_",
-                   x$prevalence_analysis_id)]] <- workingPrevPersonTable
+                   x$analysis_id)]] <- workingPrevPersonTable
     result[["attrition"]] <- workingPrevAttrition
 
     return(result)
@@ -412,6 +420,14 @@ estimatePrevalence <- function(cdm,
   analysisSettings <- dplyr::bind_rows(analysisSettings,
     .id = NULL
   )
+
+  analysisSettings <- analysisSettings %>%
+    dplyr::left_join(settings(cdm[[denominatorTable]]) %>%
+    dplyr::rename("cohort_id" ="cohort_definition_id") %>%
+    dplyr::rename_with(.cols = everything(),
+                       function(x){paste0("denominator_", x)}),
+  by = "denominator_cohort_id")
+
 
   # study population
   personTable <- prsList[stringr::str_detect(names(prsList),
@@ -443,13 +459,13 @@ estimatePrevalence <- function(cdm,
     .id = NULL
   )
 
-  # results to return as a list
-  results <- list()
-  results[["prevalence_estimates"]] <- prs
-  results[["analysis_settings"]] <- analysisSettings
-  results[["person_table"]] <- personTable
-  results[["attrition"]] <- attrition
+  # return results as an IncidencePrevalenceResult class
+  attr(prs, "settings") <- analysisSettings
+  attr(prs, "attrition") <- attrition
+  attr(prs, "participants") <- personTable
+  attr(prs, "sql") <- tibble::tibble() # placeholder
 
+  class(prs) <- c("IncidencePrevalenceResult", class(prs))
 
   if (verbose == TRUE) {
     duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
@@ -457,5 +473,6 @@ estimatePrevalence <- function(cdm,
       "Overall time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
-  return(results)
+
+  return(prs)
 }

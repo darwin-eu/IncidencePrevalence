@@ -15,32 +15,30 @@ test_that("mock db: check output format", {
     verbose = TRUE
   )
 
-  expect_true(class(inc) == "list")
-  expect_true(all(names(inc) %in%
-    c(
-      "incidence_estimates",
-      "analysis_settings",
-      "person_table",
-      "attrition"
-    )))
-
   # check analysis settings tibble
   expect_true(all(c(
-    "incidence_analysis_id",
-    "outcome_washout",
-    "repeated_events",
-    "interval",
-    "complete_database_intervals",
+    "analysis_id",
+    "analysis_outcome_washout",
+    "analysis_repeated_events",
+    "analysis_interval",
+    "analysis_complete_database_intervals",
+    "analysis_confidence_interval",
+    "analysis_min_cell_count",
     "outcome_cohort_id",
     "denominator_cohort_id",
-    "confidence_interval",
-    "min_cell_count"
+    "denominator_age_group",
+    "denominator_min_age",
+    "denominator_max_age",
+    "denominator_sex",
+    "denominator_days_prior_history",
+    "denominator_start_date",
+    "denominator_end_date"
   ) %in%
-    names(inc[["analysis_settings"]])))
+    names(settings(inc))))
 
   # check estimates tibble
   expect_true(all(c(
-    "incidence_analysis_id",
+    "analysis_id",
     "n_persons",
     "person_days",
     "person_years",
@@ -52,7 +50,7 @@ test_that("mock db: check output format", {
     "cohort_obscured",
     "result_obscured"
   ) %in%
-    names(inc[["incidence_estimates"]])))
+    names(inc)))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -103,7 +101,7 @@ test_that("mock db: checks on working example", {
     interval = c("months"),
     verbose = TRUE
   )
-  expect_true(nrow(inc[["incidence_estimates"]]) >= 1)
+  expect_true(nrow(inc) >= 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -153,7 +151,7 @@ test_that("mock db: check working example 2", {
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(sum(inc[["incidence_estimates"]]$n_events) == 1)
+  expect_true(sum(inc$n_events) == 1)
 
   inc <- estimateIncidence(cdm,
     denominatorTable = "denominator",
@@ -163,7 +161,7 @@ test_that("mock db: check working example 2", {
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(sum(inc[["incidence_estimates"]]$n_events) == 3)
+  expect_true(sum(inc$n_events) == 3)
 
   inc <- estimateIncidence(cdm,
     denominatorTable = "denominator",
@@ -173,7 +171,7 @@ test_that("mock db: check working example 2", {
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(sum(inc[["incidence_estimates"]]$n_events) == 2)
+  expect_true(sum(inc$n_events) == 2)
 
   # even if repeatedEvents = TRUE,
   # if outcomeWashout=NULL (all of history)
@@ -186,7 +184,7 @@ test_that("mock db: check working example 2", {
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(sum(inc[["incidence_estimates"]]$n_events) == 1)
+  expect_true(sum(inc$n_events) == 1)
 
   inc <- estimateIncidence(cdm,
     denominatorTable = "denominator",
@@ -197,7 +195,7 @@ test_that("mock db: check working example 2", {
     interval = "weeks",
     completeDatabaseIntervals = FALSE
   )
-  expect_true(sum(inc[["incidence_estimates"]]$n_events) == 1)
+  expect_true(sum(inc$n_events) == 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -251,7 +249,7 @@ test_that("mock db: check study periods", {
   # we expect 12 months of which the last in december
   # the last month should also be included
   # as the person goes up to the last day of the month
-  expect_true(length(inc[["incidence_estimates"]]$time) == 12)
+  expect_true(length(inc$time) == 12)
 
 
   inc <- estimateIncidence(cdm,
@@ -265,7 +263,7 @@ test_that("mock db: check study periods", {
 
   # now with completeDatabaseIntervals is TRUE
   # we expect 10 months of which the last in november
-  expect_true(length(inc[["incidence_estimates"]]$time) == 10)
+  expect_true(length(inc$time) == 10)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -324,11 +322,11 @@ test_that("mock db: check overall", {
   # one person had the event before the study period
   # (but washout was 0 so was included)
   # one person had the event during the study period
-  expect_true(nrow(inc[["incidence_estimates"]]) == 1)
-  expect_true(inc[["incidence_estimates"]]$n_persons == 2)
-  expect_true(inc[["incidence_estimates"]]$start_time ==
+  expect_true(nrow(inc) == 1)
+  expect_true(inc$n_persons == 2)
+  expect_true(inc$start_time ==
                 as.Date("2007-01-01"))
-  expect_true(inc[["incidence_estimates"]]$end_time ==
+  expect_true(inc$end_time ==
                 as.Date("2010-02-05")) # date of first event
 
 
@@ -341,10 +339,10 @@ test_that("mock db: check overall", {
                           minCellCount = 0,
                           completeDatabaseIntervals = FALSE
   )
-  expect_true(nrow(inc[["incidence_estimates"]]) == 1)
-  expect_true(inc[["incidence_estimates"]]$start_time ==
+  expect_true(nrow(inc) == 1)
+  expect_true(inc$start_time ==
                 as.Date("2007-01-01"))
-  expect_true(inc[["incidence_estimates"]]$end_time ==
+  expect_true(inc$end_time ==
                 as.Date("2011-06-15")) # date of end of obs
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
@@ -397,7 +395,7 @@ test_that("mock db: check person days", {
   )
 
   # in 2019 we expect person 2 to contribute from 1st july to end of December
-  expect_true(inc$incidence_estimates$person_days[1] ==
+  expect_true(inc$person_days[1] ==
     as.numeric(difftime(
       as.Date("2019-12-31"),
       as.Date("2019-07-01")
@@ -405,7 +403,7 @@ test_that("mock db: check person days", {
 
   # in 2020 we expect person 2 to contribute all year
   # and person 1 from 1st January to end of December
-  expect_true(inc$incidence_estimates$person_days[2] ==
+  expect_true(inc$person_days[2] ==
     (as.numeric(difftime(
       as.Date("2020-12-31"),
       as.Date("2020-07-01")
@@ -417,7 +415,7 @@ test_that("mock db: check person days", {
 
   # in 2021 we expect person 2 to contribute all year
   # and person 1 from 1st January up to 27th june (date of their outcome)
-  expect_true(inc$incidence_estimates$person_days[3] ==
+  expect_true(inc$person_days[3] ==
     (as.numeric(difftime(
       as.Date("2021-12-31"),
       as.Date("2021-01-01")
@@ -429,7 +427,7 @@ test_that("mock db: check person days", {
 
   # in 2022 we expect person 2 to contribute all year
   # (person 1 is out- they have had an event)
-  expect_true(inc$incidence_estimates$person_days[4] ==
+  expect_true(inc$person_days[4] ==
     (as.numeric(difftime(
       as.Date("2021-10-05"),
       as.Date("2021-01-01")
@@ -494,8 +492,8 @@ test_that("mock db: check periods follow calendar dates", {
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(inc[["incidence_estimates"]]$n_events[1] == 1)
-  expect_true(inc[["incidence_estimates"]]$n_events[2] == 3)
+  expect_true(inc$n_events[1] == 1)
+  expect_true(inc$n_events[2] == 3)
 
 
   # startDate during a month (with month as interval)
@@ -515,9 +513,9 @@ test_that("mock db: check periods follow calendar dates", {
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(inc[["incidence_estimates"]]$n_events[1] == 1)
-  expect_true(inc[["incidence_estimates"]]$n_events[2] == 1)
-  expect_true(inc[["incidence_estimates"]]$n_events[3] == 1)
+  expect_true(inc$n_events[1] == 1)
+  expect_true(inc$n_events[2] == 1)
+  expect_true(inc$n_events[3] == 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -573,7 +571,7 @@ test_that("mock db: check washout windows", {
     minCellCount = 0
   )
   # expect all events if we have zero days washout
-  expect_true(sum(incW0[["incidence_estimates"]]$n_events) == 4)
+  expect_true(sum(incW0$n_events) == 4)
 
   incW1 <- estimateIncidence(cdm,
     denominatorTable = "denominator",
@@ -584,7 +582,7 @@ test_that("mock db: check washout windows", {
     minCellCount = 0
   )
   # expect three events if we have one days washout
-  expect_true(sum(incW1[["incidence_estimates"]]$n_events) == 3)
+  expect_true(sum(incW1$n_events) == 3)
 
   incW2 <- estimateIncidence(cdm,
     denominatorTable = "denominator",
@@ -595,7 +593,7 @@ test_that("mock db: check washout windows", {
     minCellCount = 0
   )
   # expect two events if we have two days washout
-  expect_true(sum(incW2[["incidence_estimates"]]$n_events) == 2)
+  expect_true(sum(incW2$n_events) == 2)
 
   incW365 <- estimateIncidence(cdm,
     denominatorTable = "denominator",
@@ -606,7 +604,7 @@ test_that("mock db: check washout windows", {
     minCellCount = 0
   )
   # expect one event if we have 365 days washout
-  expect_true(sum(incW365[["incidence_estimates"]]$n_events) == 1)
+  expect_true(sum(incW365$n_events) == 1)
 
   incNull <- estimateIncidence(cdm,
     denominatorTable = "denominator",
@@ -617,12 +615,12 @@ test_that("mock db: check washout windows", {
     minCellCount = 0
   )
   # expect one event if we have NULL (all history washout)
-  expect_true(sum(incNull[["incidence_estimates"]]$n_events) == 1)
+  expect_true(sum(incNull$n_events) == 1)
 
   # but, we will have move days when using the 365 day washout
   # as the person came back to contribute more time at risk
-  expect_true(sum(incNull[["incidence_estimates"]]$person_days) <
-                sum(incW365[["incidence_estimates"]]$person_days))
+  expect_true(sum(incNull$person_days) <
+                sum(incW365$person_days))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -673,7 +671,7 @@ test_that("mock db: check events overlapping with start of a period", {
     minCellCount = 0
   )
 
-  expect_true(all(inc$incidence_estimates$n_persons == 1))
+  expect_true(all(inc$n_persons == 1))
 
   # another example
   personTable <- tibble::tibble(
@@ -719,7 +717,7 @@ test_that("mock db: check events overlapping with start of a period", {
     verbose = TRUE,
     minCellCount = 0
   )
-  expect_true(all(inc2$incidence_estimates$n_persons == 1))
+  expect_true(all(inc2$n_persons == 1))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -781,15 +779,15 @@ test_that("mock db: compare results from months and years", {
   )
 
   # consistent results for months and years
-  expect_true(sum(incMonths$incidence_estimates$n_events) ==
-    sum(incYears$incidence_estimates$n_events))
+  expect_true(sum(incMonths$n_events) ==
+    sum(incYears$n_events))
   expect_equal(
-    sum(incMonths$incidence_estimates$person_days),
-    sum(incYears$incidence_estimates$person_days)
+    sum(incMonths$person_days),
+    sum(incYears$person_days)
   )
   expect_equal(
-    sum(incMonths$incidence_estimates$person_years),
-    sum(incYears$incidence_estimates$person_years)
+    sum(incMonths$person_years),
+    sum(incYears$person_years)
   )
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
@@ -838,7 +836,7 @@ test_that("mock db: check entry and event on same day", {
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(sum(incWithoutRep[["incidence_estimates"]]$n_events) == 1)
+  expect_true(sum(incWithoutRep$n_events) == 1)
 
   incWithRep <- estimateIncidence(
     cdm = cdm,
@@ -850,7 +848,7 @@ test_that("mock db: check entry and event on same day", {
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(sum(incWithRep[["incidence_estimates"]]$n_events) == 1)
+  expect_true(sum(incWithRep$n_events) == 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -900,7 +898,7 @@ test_that("mock db: cohort start overlaps with the outcome", {
     minCellCount = 0
   )
 
-  expect_true(all(inc$incidence_estimates$n_persons == c(1, 2)))
+  expect_true(all(inc$n_persons == c(1, 2)))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -961,8 +959,8 @@ test_that("mock db: check outcome before observation period start", {
     minCellCount = 0
   )
 
-  expect_true(all(incRep$incidence_estimates$n_persons == 2))
-  expect_true(all(incNoRep$incidence_estimates$n_persons == 1))
+  expect_true(all(incRep$n_persons == 2))
+  expect_true(all(incNoRep$n_persons == 1))
 
   # 2) with outcome starting before observation period start,
   # ending during observation period
@@ -1020,8 +1018,8 @@ test_that("mock db: check outcome before observation period start", {
     minCellCount = 0
   )
 
-  expect_true(all(incRep$incidence_estimates$n_persons == 1))
-  expect_true(all(incNoRep$incidence_estimates$n_persons == 1))
+  expect_true(all(incRep$n_persons == 1))
+  expect_true(all(incNoRep$n_persons == 1))
 
   # 3) with outcome starting before observation period start,
   # ending after observation period end
@@ -1079,8 +1077,8 @@ test_that("mock db: check outcome before observation period start", {
     minCellCount = 0
   )
 
-  expect_true(all(incRep$incidence_estimates$n_persons == c(1, 2, 2, 2)))
-  expect_true(all(incNoRep$incidence_estimates$n_persons == 1))
+  expect_true(all(incRep$n_persons == c(1, 2, 2, 2)))
+  expect_true(all(incNoRep$n_persons == 1))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -1141,20 +1139,20 @@ test_that("mock db: check minimum counts", {
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(inc[["incidence_estimates"]]$n_persons[1] == 20)
-  expect_true(inc[["incidence_estimates"]]$n_persons[2] == 3)
-  expect_true(!is.na(inc[["incidence_estimates"]]$person_days[1]))
-  expect_true(!is.na(inc[["incidence_estimates"]]$person_days[2]))
-  expect_true(!is.na(inc[["incidence_estimates"]]$person_years[1]))
-  expect_true(!is.na(inc[["incidence_estimates"]]$person_years[2]))
-  expect_true(inc[["incidence_estimates"]]$n_events[1] == 17)
-  expect_true(inc[["incidence_estimates"]]$n_events[2] == 3)
-  expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys[1]))
-  expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys[2]))
-  expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys_low[1]))
-  expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys_low[2]))
-  expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys_high[1]))
-  expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys_high[2]))
+  expect_true(inc$n_persons[1] == 20)
+  expect_true(inc$n_persons[2] == 3)
+  expect_true(!is.na(inc$person_days[1]))
+  expect_true(!is.na(inc$person_days[2]))
+  expect_true(!is.na(inc$person_years[1]))
+  expect_true(!is.na(inc$person_years[2]))
+  expect_true(inc$n_events[1] == 17)
+  expect_true(inc$n_events[2] == 3)
+  expect_true(!is.na(inc$ir_100000_pys[1]))
+  expect_true(!is.na(inc$ir_100000_pys[2]))
+  expect_true(!is.na(inc$ir_100000_pys_low[1]))
+  expect_true(!is.na(inc$ir_100000_pys_low[2]))
+  expect_true(!is.na(inc$ir_100000_pys_high[1]))
+  expect_true(!is.na(inc$ir_100000_pys_high[2]))
 
   inc <- estimateIncidence(
     cdm = cdm,
@@ -1164,20 +1162,20 @@ test_that("mock db: check minimum counts", {
     minCellCount = 5,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(inc[["incidence_estimates"]]$n_persons[1] == 20)
-  expect_true(is.na(inc[["incidence_estimates"]]$n_persons[2]))
-  expect_true(!is.na(inc[["incidence_estimates"]]$person_days[1]))
-  expect_true(is.na(inc[["incidence_estimates"]]$person_days[2]))
-  expect_true(!is.na(inc[["incidence_estimates"]]$person_years[1]))
-  expect_true(is.na(inc[["incidence_estimates"]]$person_years[2]))
-  expect_true(inc[["incidence_estimates"]]$n_events[1] == 17)
-  expect_true(is.na(inc[["incidence_estimates"]]$n_events[2]))
-  expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys[1]))
-  expect_true(is.na(inc[["incidence_estimates"]]$ir_100000_pys[2]))
-  expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys_low[1]))
-  expect_true(is.na(inc[["incidence_estimates"]]$ir_100000_pys_low[2]))
-  expect_true(!is.na(inc[["incidence_estimates"]]$ir_100000_pys_high[1]))
-  expect_true(is.na(inc[["incidence_estimates"]]$ir_100000_pys_high[2]))
+  expect_true(inc$n_persons[1] == 20)
+  expect_true(is.na(inc$n_persons[2]))
+  expect_true(!is.na(inc$person_days[1]))
+  expect_true(is.na(inc$person_days[2]))
+  expect_true(!is.na(inc$person_years[1]))
+  expect_true(is.na(inc$person_years[2]))
+  expect_true(inc$n_events[1] == 17)
+  expect_true(is.na(inc$n_events[2]))
+  expect_true(!is.na(inc$ir_100000_pys[1]))
+  expect_true(is.na(inc$ir_100000_pys[2]))
+  expect_true(!is.na(inc$ir_100000_pys_low[1]))
+  expect_true(is.na(inc$ir_100000_pys_low[2]))
+  expect_true(!is.na(inc$ir_100000_pys_high[1]))
+  expect_true(is.na(inc$ir_100000_pys_high[2]))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -1224,7 +1222,7 @@ test_that("mock db: multiple overlapping outcomes", {
     verbose = TRUE,
     minCellCount = 0
   )
-  expect_true(all(inc$incidence_estimates$n_persons) == 1)
+  expect_true(all(inc$n_persons) == 1)
 
   # three
   personTable <- tibble::tibble(
@@ -1274,7 +1272,7 @@ test_that("mock db: multiple overlapping outcomes", {
     interval = c("Years"),
     minCellCount = 0
   )
-  expect_true(all(inc$incidence_estimates$n_persons) == 1)
+  expect_true(all(inc$n_persons) == 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -1332,7 +1330,7 @@ test_that("mock db: cohort before period start ending after period", {
     completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
-  expect_true(all(inc$incidence_estimates$n_events == c(1)))
+  expect_true(all(inc$n_events == c(1)))
 
   # washout
   inc <- estimateIncidence(
@@ -1346,7 +1344,7 @@ test_that("mock db: cohort before period start ending after period", {
     completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
-  expect_true(all(inc$incidence_estimates$n_events == c(1)))
+  expect_true(all(inc$n_events == c(1)))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -1395,7 +1393,7 @@ test_that("mock db: check full period requirement - year", {
     verbose = TRUE,
     minCellCount = 0
   )
-  expect_true(inc$incidence_estimates$n_persons[1] == 1)
+  expect_true(inc$n_persons[1] == 1)
 
   # edge case first day to last of the year
   # still expect this to work
@@ -1442,7 +1440,7 @@ test_that("mock db: check full period requirement - year", {
     verbose = TRUE,
     minCellCount = 0
   )
-  expect_true(inc$incidence_estimates$n_persons[1] == 1)
+  expect_true(inc$n_persons[1] == 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -1492,7 +1490,7 @@ test_that("mock db: check full period requirement - month", {
     verbose = TRUE,
     minCellCount = 0
   )
-  expect_true(nrow(inc$incidence_estimates) >= 1)
+  expect_true(nrow(inc) >= 1)
 
 
   # edge case first day to last of the month
@@ -1541,8 +1539,8 @@ test_that("mock db: check full period requirement - month", {
     verbose = TRUE,
     minCellCount = 0
   )
-  expect_true(inc$incidence_estimates$n_persons == 1)
-  expect_true(nrow(inc$incidence_estimates) >= 1)
+  expect_true(inc$n_persons == 1)
+  expect_true(nrow(inc) >= 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -1593,9 +1591,9 @@ test_that("mock db: check completeDatabaseIntervals", {
     completeDatabaseIntervals = TRUE,
     minCellCount = 0
   )
-  expect_true(nrow(inc$incidence_estimates) == 2)
-  expect_true(inc$incidence_estimates$time[1] == "2020")
-  expect_true(inc$incidence_estimates$time[2] == "2021")
+  expect_true(nrow(inc) == 2)
+  expect_true(inc$time[1] == "2020")
+  expect_true(inc$time[2] == "2021")
   # repetitive events FALSE
   # - now we expect only to use 2020 (id 2 obs end is in 21)
   inc <- estimateIncidence(
@@ -1607,8 +1605,8 @@ test_that("mock db: check completeDatabaseIntervals", {
     completeDatabaseIntervals = TRUE,
     minCellCount = 0
   )
-  expect_true(nrow(inc$incidence_estimates) == 1)
-  expect_true(inc$incidence_estimates$time[1] == "2020")
+  expect_true(nrow(inc) == 1)
+  expect_true(inc$time[1] == "2020")
 
   # full periods required FALSE
   # repetitive events TRUE
@@ -1623,11 +1621,11 @@ test_that("mock db: check completeDatabaseIntervals", {
     completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
-  expect_true(nrow(inc$incidence_estimates) == 4)
-  expect_true(inc$incidence_estimates$time[1] == "2019")
-  expect_true(inc$incidence_estimates$time[2] == "2020")
-  expect_true(inc$incidence_estimates$time[3] == "2021")
-  expect_true(inc$incidence_estimates$time[4] == "2022")
+  expect_true(nrow(inc) == 4)
+  expect_true(inc$time[1] == "2019")
+  expect_true(inc$time[2] == "2020")
+  expect_true(inc$time[3] == "2021")
+  expect_true(inc$time[4] == "2022")
   # repetitive events FALSE
   inc <- estimateIncidence(
     cdm = cdm,
@@ -1638,10 +1636,10 @@ test_that("mock db: check completeDatabaseIntervals", {
     completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
-  expect_true(nrow(inc$incidence_estimates) == 3)
-  expect_true(inc$incidence_estimates$time[1] == "2019")
-  expect_true(inc$incidence_estimates$time[2] == "2020")
-  expect_true(inc$incidence_estimates$time[3] == "2021")
+  expect_true(nrow(inc) == 3)
+  expect_true(inc$time[1] == "2019")
+  expect_true(inc$time[2] == "2020")
+  expect_true(inc$time[3] == "2021")
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -1692,7 +1690,7 @@ test_that("mock db: check insufficient study days", {
     minCellCount = 0
   )
 
-  expect_true(nrow(inc$incidence_estimates) == 0)
+  expect_true(nrow(inc) == 0)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -1710,7 +1708,7 @@ test_that("mock db: check conversion of user inputs", {
     outcomeCohortId = 1,
     outcomeWashout = NA
   )
-  expect_true(nrow(inc[["incidence_estimates"]]) >= 1)
+  expect_true(nrow(inc) >= 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -1822,27 +1820,27 @@ test_that("mock db: check with and without study start and end date", {
   )
 
   # given the settings above we would expect the same results for 2010
-  expect_true(inc1A$incidence_estimates %>%
+  expect_true(inc1A %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("n_persons") %>%
     dplyr::pull() ==
-    inc2A$incidence_estimates %>%
+    inc2A %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("n_persons") %>%
       dplyr::pull())
-  expect_true(inc1A$incidence_estimates %>%
+  expect_true(inc1A %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("person_days") %>%
     dplyr::pull() ==
-    inc2A$incidence_estimates %>%
+    inc2A %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("person_days") %>%
       dplyr::pull())
-  expect_true(inc1A$incidence_estimates %>%
+  expect_true(inc1A %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("n_events") %>%
     dplyr::pull() ==
-    inc2A$incidence_estimates %>%
+    inc2A %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("n_events") %>%
       dplyr::pull())
@@ -1867,28 +1865,28 @@ test_that("mock db: check with and without study start and end date", {
     completeDatabaseIntervals = FALSE
   )
   # given the settings above we would expect the same results for 2010
-  expect_true(inc1B$incidence_estimates %>%
+  expect_true(inc1B %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("n_persons") %>%
     dplyr::pull() ==
-    inc2B$incidence_estimates %>%
+    inc2B %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("n_persons") %>%
       dplyr::pull())
-  expect_true(inc1B$incidence_estimates %>%
+  expect_true(inc1B %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("person_days") %>%
     dplyr::pull() ==
-    inc2B$incidence_estimates %>%
+    inc2B %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("person_days") %>%
       dplyr::pull())
 
-  expect_true(inc1B$incidence_estimates %>%
+  expect_true(inc1B %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("n_events") %>%
     dplyr::pull() ==
-    inc2B$incidence_estimates %>%
+    inc2B %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("n_events") %>%
       dplyr::pull())
@@ -1936,35 +1934,35 @@ test_that("mock db: check study start and end date 10000", {
     completeDatabaseIntervals = FALSE
   )
 
-  expect_true(inc1A$incidence_estimates %>%
+  expect_true(inc1A %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("n_persons") %>%
     dplyr::pull() ==
-    inc2A$incidence_estimates %>%
+    inc2A %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("n_persons") %>%
       dplyr::pull())
-  expect_true(inc1A$incidence_estimates %>%
+  expect_true(inc1A %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("person_days") %>%
     dplyr::pull() ==
-    inc2A$incidence_estimates %>%
+    inc2A %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("person_days") %>%
       dplyr::pull())
-  expect_true(inc1A$incidence_estimates %>%
+  expect_true(inc1A %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("n_events") %>%
     dplyr::pull() ==
-    inc2A$incidence_estimates %>%
+    inc2A %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("n_events") %>%
       dplyr::pull())
-  expect_true(inc1A$incidence_estimates %>%
+  expect_true(inc1A %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("ir_100000_pys") %>%
     dplyr::pull() ==
-    inc2A$incidence_estimates %>%
+    inc2A %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("ir_100000_pys") %>%
       dplyr::pull())
@@ -1989,36 +1987,36 @@ test_that("mock db: check study start and end date 10000", {
     completeDatabaseIntervals = FALSE
   )
 
-  expect_true(inc1B$incidence_estimates %>%
+  expect_true(inc1B %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("n_persons") %>%
     dplyr::pull() ==
-    inc2B$incidence_estimates %>%
+    inc2B %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("n_persons") %>%
       dplyr::pull())
-  expect_true(inc1B$incidence_estimates %>%
+  expect_true(inc1B %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("person_days") %>%
     dplyr::pull() ==
-    inc2B$incidence_estimates %>%
+    inc2B %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("person_days") %>%
       dplyr::pull())
 
-  expect_true(inc1B$incidence_estimates %>%
+  expect_true(inc1B %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("n_events") %>%
     dplyr::pull() ==
-    inc2B$incidence_estimates %>%
+    inc2B %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("n_events") %>%
       dplyr::pull())
-  expect_true(inc1B$incidence_estimates %>%
+  expect_true(inc1B %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("ir_100000_pys") %>%
     dplyr::pull() ==
-    inc1B$incidence_estimates %>%
+    inc1B %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("ir_100000_pys") %>%
       dplyr::pull())
@@ -2064,35 +2062,35 @@ test_that("mock db: check study start and end date 10000", {
     completeDatabaseIntervals = FALSE
   )
 
-  expect_true(inc1A$incidence_estimates %>%
+  expect_true(inc1A %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("n_persons") %>%
     dplyr::pull() ==
-    inc2A$incidence_estimates %>%
+    inc2A %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("n_persons") %>%
       dplyr::pull())
-  expect_true(inc1A$incidence_estimates %>%
+  expect_true(inc1A %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("person_days") %>%
     dplyr::pull() ==
-    inc2A$incidence_estimates %>%
+    inc2A %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("person_days") %>%
       dplyr::pull())
-  expect_true(inc1A$incidence_estimates %>%
+  expect_true(inc1A %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("n_events") %>%
     dplyr::pull() ==
-    inc2A$incidence_estimates %>%
+    inc2A %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("n_events") %>%
       dplyr::pull())
-  expect_true(inc1A$incidence_estimates %>%
+  expect_true(inc1A %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("ir_100000_pys") %>%
     dplyr::pull() ==
-    inc2A$incidence_estimates %>%
+    inc2A %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("ir_100000_pys") %>%
       dplyr::pull())
@@ -2117,35 +2115,35 @@ test_that("mock db: check study start and end date 10000", {
     completeDatabaseIntervals = FALSE
   )
 
-  expect_true(inc1B$incidence_estimates %>%
+  expect_true(inc1B %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("n_persons") %>%
     dplyr::pull() ==
-    inc2B$incidence_estimates %>%
+    inc2B %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("n_persons") %>%
       dplyr::pull())
-  expect_true(inc1B$incidence_estimates %>%
+  expect_true(inc1B %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("person_days") %>%
     dplyr::pull() ==
-    inc2B$incidence_estimates %>%
+    inc2B %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("person_days") %>%
       dplyr::pull())
-  expect_true(inc1B$incidence_estimates %>%
+  expect_true(inc1B %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("n_events") %>%
     dplyr::pull() ==
-    inc2B$incidence_estimates %>%
+    inc2B %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("n_events") %>%
       dplyr::pull())
-  expect_true(inc1B$incidence_estimates %>%
+  expect_true(inc1B %>%
     dplyr::filter(time == 2010) %>%
     dplyr::select("ir_100000_pys") %>%
     dplyr::pull() ==
-    inc2B$incidence_estimates %>%
+    inc2B %>%
       dplyr::filter(time == 2010) %>%
       dplyr::select("ir_100000_pys") %>%
       dplyr::pull())

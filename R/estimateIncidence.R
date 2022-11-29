@@ -327,10 +327,10 @@ estimateIncidence <- function(cdm,
     studySpecs$outcome_washout <- NA
   }
   studySpecs <- studySpecs %>%
-    dplyr::mutate(incidence_analysis_id = as.character(dplyr::row_number()))
+    dplyr::mutate(analysis_id = as.character(dplyr::row_number()))
   studySpecs <- split(
     studySpecs,
-    studySpecs[, c("incidence_analysis_id")]
+    studySpecs[, c("analysis_id")]
   )
 
   # get irs
@@ -350,30 +350,30 @@ estimateIncidence <- function(cdm,
     )
 
     workingIncIr <- workingInc[["ir"]] %>%
-      dplyr::mutate(incidence_analysis_id = x$incidence_analysis_id) %>%
-      dplyr::relocate("incidence_analysis_id")
+      dplyr::mutate(analysis_id = x$analysis_id) %>%
+      dplyr::relocate("analysis_id")
     if (returnAnalysisCohort == TRUE) {
       workingIncPersonTable <- workingInc[["person_table"]] %>%
-        dplyr::mutate(incidence_analysis_id = x$incidence_analysis_id) %>%
-        dplyr::relocate("incidence_analysis_id")
+        dplyr::mutate(analysis_id = x$analysis_id) %>%
+        dplyr::relocate("analysis_id")
     }
 
     workingIncAnalysisSettings <- workingInc[["analysis_settings"]] %>%
       dplyr::mutate(
         outcome_cohort_id = x$outcome_cohort_id,
         denominator_cohort_id = x$denominator_cohort_id,
-        interval = x$interval,
-        outcome_washout = x$outcome_washout,
-        repeated_events = x$repeated_events,
-        confidence_interval = .env$confidenceInterval,
-        min_cell_count = .env$minCellCount,
-        incidence_analysis_id = x$incidence_analysis_id
+        analysis_interval = x$interval,
+        analysis_outcome_washout = x$outcome_washout,
+        analysis_repeated_events = x$repeated_events,
+        analysis_confidence_interval = .env$confidenceInterval,
+        analysis_min_cell_count = .env$minCellCount,
+        analysis_id = x$analysis_id
       ) %>%
-      dplyr::relocate("incidence_analysis_id")
+      dplyr::relocate("analysis_id")
 
     workingIncAttrition <- workingInc[["attrition"]] %>%
-      dplyr::mutate(incidence_analysis_id = x$incidence_analysis_id) %>%
-      dplyr::relocate("incidence_analysis_id")
+      dplyr::mutate(analysis_id = x$analysis_id) %>%
+      dplyr::relocate("analysis_id")
 
     result <- list()
     result[["ir"]] <- workingIncIr
@@ -406,6 +406,13 @@ estimateIncidence <- function(cdm,
   analysisSettings <- dplyr::bind_rows(analysisSettings,
     .id = NULL
   )
+
+  analysisSettings <- analysisSettings %>%
+    dplyr::left_join(settings(cdm[[denominatorTable]]) %>%
+                       dplyr::rename("cohort_id" ="cohort_definition_id") %>%
+                       dplyr::rename_with(.cols = everything(),
+                                          function(x){paste0("denominator_", x)}),
+                     by = "denominator_cohort_id")
 
   # incidence estimates
   irs <- irsList[names(irsList) == "ir"]
@@ -440,15 +447,14 @@ estimateIncidence <- function(cdm,
     .id = NULL
   )
 
+  # return results as an IncidencePrevalenceResult class
+  attr(irs, "settings") <- analysisSettings
+  attr(irs, "attrition") <- attrition
+  attr(irs, "participants") <- personTable
+  attr(irs, "sql") <- tibble::tibble() # placeholder
 
-  # results to return as a list
-  results <- list()
-  results[["incidence_estimates"]] <- irs
-  results[["analysis_settings"]] <- analysisSettings
-  if (returnAnalysisCohort == TRUE) {
-    results[["person_table"]] <- personTable
-  }
-  results[["attrition"]] <- attrition
+  class(irs) <- c("IncidencePrevalenceResult", class(irs))
+
 
   if (verbose == TRUE) {
     message("Progress: All incidence results computed")
@@ -465,5 +471,5 @@ estimateIncidence <- function(cdm,
       "Overall time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
-  return(results)
+  return(irs)
 }

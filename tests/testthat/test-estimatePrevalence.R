@@ -13,33 +13,9 @@ test_that("mock db: check output format", {
     confidenceInterval = "none"
   )
 
-  expect_true(class(prev) == "list")
-  expect_true(all(names(prev) %in%
-    c(
-      "prevalence_estimates",
-      "analysis_settings",
-      "person_table",
-      "attrition"
-    )))
-
-  # check analysis settings tibble::tibble
-  expect_true(all(c(
-    "prevalence_analysis_id",
-    "type",
-    "time_point",
-    "interval",
-    "full_contribution",
-    "complete_database_intervals",
-    "outcome_cohort_id",
-    "denominator_cohort_id",
-    "confidence_interval",
-    "min_cell_count"
-  ) %in%
-    names(prev[["analysis_settings"]])))
-
   # check estimates tibble
   expect_true(all(c(
-    "prevalence_analysis_id",
+    "analysis_id",
     "time",
     "numerator", "denominator",
     "prev",
@@ -49,7 +25,29 @@ test_that("mock db: check output format", {
     "cohort_obscured",
     "result_obscured"
   ) %in%
-    names(prev[["prevalence_estimates"]])))
+    names(prev)))
+
+  # check analysis settings tibble::tibble
+  expect_true(all(c(
+    "outcome_cohort_id",
+    "analysis_id",
+    "analysis_type",
+    "analysis_time_point",
+    "analysis_interval",
+    "analysis_full_contribution",
+    "analysis_complete_database_intervals",
+    "analysis_confidence_interval",
+    "analysis_min_cell_count",
+    "denominator_cohort_id",
+    "denominator_age_group",
+    "denominator_min_age",
+    "denominator_max_age",
+    "denominator_sex",
+    "denominator_days_prior_history",
+    "denominator_start_date",
+    "denominator_end_date"
+  ) %in%
+    names(settings(prev))))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -99,7 +97,7 @@ test_that("mock db: checks on working example", {
     denominatorCohortId = "1",
     minCellCount = 0
   )
-  expect_true(nrow(prev[["prevalence_estimates"]]) >= 1)
+  expect_true(nrow(prev) >= 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -147,7 +145,7 @@ test_that("mock db: working examples 2", {
     type = "point",
     interval = "months"
   )
-  expect_true(nrow(prev[["prevalence_estimates"]]) >= 1)
+  expect_true(nrow(prev) >= 1)
 
   prev <- estimatePrevalence(cdm,
                             denominatorTable = "denominator",
@@ -155,7 +153,7 @@ test_that("mock db: working examples 2", {
                             type = "point",
                             interval = "days"
   )
-  expect_true(nrow(prev[["prevalence_estimates"]]) >= 1)
+  expect_true(nrow(prev) >= 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -205,7 +203,7 @@ test_that("mock db: check outcome lookback", {
     interval = "years",
     minCellCount = 0
   )
-  expect_true(all(prev[["prevalence_estimates"]]$numerator == 0))
+  expect_true(all(prev$numerator == 0))
 
   # with a lookback of 365 days
   # the person would be considered as a prevalent case at the start of 2009
@@ -218,15 +216,15 @@ test_that("mock db: check outcome lookback", {
     interval = "years",
     minCellCount = 0
   )
-  expect_true((prev[["prevalence_estimates"]] %>%
+  expect_true((prev %>%
                  dplyr::filter(time=="2008") %>%
                  dplyr::select(numerator) %>%
                  dplyr::pull() == 0))
-  expect_true((prev[["prevalence_estimates"]] %>%
+  expect_true((prev %>%
                  dplyr::filter(time=="2009") %>%
                  dplyr::select(numerator) %>%
                  dplyr::pull() == 1))
-  expect_true((prev[["prevalence_estimates"]] %>%
+  expect_true((prev %>%
                  dplyr::filter(time=="2010") %>%
                  dplyr::select(numerator) %>%
                  dplyr::pull() == 0))
@@ -243,15 +241,15 @@ test_that("mock db: check outcome lookback", {
     interval = "years",
     minCellCount = 0
   )
-  expect_true((prev[["prevalence_estimates"]] %>%
+  expect_true((prev %>%
                  dplyr::filter(time=="2008") %>%
                  dplyr::select(numerator) %>%
                  dplyr::pull() == 0))
-  expect_true((prev[["prevalence_estimates"]] %>%
+  expect_true((prev %>%
                  dplyr::filter(time=="2009") %>%
                  dplyr::select(numerator) %>%
                  dplyr::pull() == 1))
-  expect_true((prev[["prevalence_estimates"]] %>%
+  expect_true((prev %>%
                  dplyr::filter(time=="2010") %>%
                  dplyr::select(numerator) %>%
                  dplyr::pull() == 1))
@@ -328,17 +326,17 @@ test_that("mock db: check minimum counts", {
     interval = "months",
     confidenceInterval = "binomial"
   )
-  expect_true(prev[["prevalence_estimates"]]$numerator[1] == 17)
-  expect_true(prev[["prevalence_estimates"]]$numerator[2] == 3)
-  expect_true(prev[["prevalence_estimates"]]$numerator[3] == 0)
-  expect_true(prev[["prevalence_estimates"]]$denominator[1] == 20)
-  expect_true(prev[["prevalence_estimates"]]$denominator[2] == 3)
-  expect_true(prev[["prevalence_estimates"]]$denominator[3] == 3)
-  expect_true(!is.na(prev[["prevalence_estimates"]]$prev[1]))
-  expect_true(!is.na(prev[["prevalence_estimates"]]$prev[2]))
-  expect_true(!is.na(prev[["prevalence_estimates"]]$prev[3]))
-  expect_true(!is.na(prev[["prevalence_estimates"]]$prev_low[1]))
-  expect_true(!is.na(prev[["prevalence_estimates"]]$prev_high[1]))
+  expect_true(prev$numerator[1] == 17)
+  expect_true(prev$numerator[2] == 3)
+  expect_true(prev$numerator[3] == 0)
+  expect_true(prev$denominator[1] == 20)
+  expect_true(prev$denominator[2] == 3)
+  expect_true(prev$denominator[3] == 3)
+  expect_true(!is.na(prev$prev[1]))
+  expect_true(!is.na(prev$prev[2]))
+  expect_true(!is.na(prev$prev[3]))
+  expect_true(!is.na(prev$prev_low[1]))
+  expect_true(!is.na(prev$prev_high[1]))
 
   prev <- estimatePrevalence(
     cdm = cdm,
@@ -351,21 +349,21 @@ test_that("mock db: check minimum counts", {
     interval = "months",
     confidenceInterval = "binomial"
   )
-  expect_true(prev[["prevalence_estimates"]]$numerator[1] == 17)
-  expect_true(is.na(prev[["prevalence_estimates"]]$numerator[2]))
-  expect_true(is.na(prev[["prevalence_estimates"]]$numerator[3]))
-  expect_true(prev[["prevalence_estimates"]]$denominator[1] == 20)
-  expect_true(is.na(prev[["prevalence_estimates"]]$denominator[2]))
-  expect_true(is.na(prev[["prevalence_estimates"]]$denominator[3]))
-  expect_true(!is.na(prev[["prevalence_estimates"]]$prev[1]))
-  expect_true(is.na(prev[["prevalence_estimates"]]$prev[2]))
-  expect_true(is.na(prev[["prevalence_estimates"]]$prev[3]))
-  expect_true(!is.na(prev[["prevalence_estimates"]]$prev_low[1]))
-  expect_true(is.na(prev[["prevalence_estimates"]]$prev_low[2]))
-  expect_true(is.na(prev[["prevalence_estimates"]]$prev_low[3]))
-  expect_true(!is.na(prev[["prevalence_estimates"]]$prev_high[1]))
-  expect_true(is.na(prev[["prevalence_estimates"]]$prev_high[2]))
-  expect_true(is.na(prev[["prevalence_estimates"]]$prev_high[3]))
+  expect_true(prev$numerator[1] == 17)
+  expect_true(is.na(prev$numerator[2]))
+  expect_true(is.na(prev$numerator[3]))
+  expect_true(prev$denominator[1] == 20)
+  expect_true(is.na(prev$denominator[2]))
+  expect_true(is.na(prev$denominator[3]))
+  expect_true(!is.na(prev$prev[1]))
+  expect_true(is.na(prev$prev[2]))
+  expect_true(is.na(prev$prev[3]))
+  expect_true(!is.na(prev$prev_low[1]))
+  expect_true(is.na(prev$prev_low[2]))
+  expect_true(is.na(prev$prev_low[3]))
+  expect_true(!is.na(prev$prev_high[1]))
+  expect_true(is.na(prev$prev_high[2]))
+  expect_true(is.na(prev$prev_high[3]))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -418,7 +416,7 @@ test_that("mock db: check study time periods", {
   # we expect 12 months of which the last in December
   # the last month should also be included
   # as the person goes up to the last day of the month
-  expect_true(nrow(prev[["prevalence_estimates"]]) == 12)
+  expect_true(nrow(prev) == 12)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -469,7 +467,7 @@ test_that("mock db: check fullContribution requirement", {
                             fullContribution = FALSE,
                             minCellCount = 0
   )
-  expect_true(all(prev$prevalence_estimates[["denominator"]] == 2))
+  expect_true(all(prev[["denominator"]] == 2))
 
   prev <- estimatePrevalence(cdm,
                             denominatorTable = "denominator",
@@ -479,7 +477,7 @@ test_that("mock db: check fullContribution requirement", {
                             fullContribution = TRUE,
                             minCellCount = 0
   )
-  expect_true(all(prev$prevalence_estimates[["denominator"]] == c(2,1)))
+  expect_true(all(prev[["denominator"]] == c(2,1)))
 
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
@@ -541,8 +539,8 @@ test_that("mock db: check periods follow calendar dates", {
     fullContribution = FALSE,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(nrow(prev1$prevalence_estimates) == 4)
-  expect_true(all(prev1$prevalence_estimates$time ==
+  expect_true(nrow(prev1) == 4)
+  expect_true(all(prev1$time ==
                     c("2010", "2011", "2012", "2013")))
 
   prev2 <- estimatePrevalence(cdm,
@@ -556,7 +554,7 @@ test_that("mock db: check periods follow calendar dates", {
     fullContribution = FALSE,
     completeDatabaseIntervals = TRUE
   )
-  expect_true(nrow(prev2$prevalence_estimates) == 2)
+  expect_true(nrow(prev2) == 2)
   expect_true(all(prev2$time == c("2011", "2012")))
 
   # for months
@@ -577,7 +575,7 @@ test_that("mock db: check periods follow calendar dates", {
     fullContribution = FALSE,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(prev[["prevalence_estimates"]]$start_time[1] ==
+  expect_true(prev$start_time[1] ==
                 as.Date("2011-01-15"))
   # where we expect the study to start the next month
   prev <- estimatePrevalence(cdm,
@@ -591,7 +589,7 @@ test_that("mock db: check periods follow calendar dates", {
     fullContribution = FALSE,
     completeDatabaseIntervals = TRUE
   )
-  expect_true(prev[["prevalence_estimates"]]$start_time[1] ==
+  expect_true(prev$start_time[1] ==
     as.Date("2011-02-01"))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
@@ -637,7 +635,7 @@ test_that("mock db: check multiple outcome ids", {
                             interval = "years",
                             minCellCount = 0
   )
-  expect_true(all(prev$prevalence_estimates[["numerator"]] == 1))
+  expect_true(all(prev[["numerator"]] == 1))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -682,7 +680,7 @@ test_that("mock db: some empty result sets", {
                             interval = "years",
                             minCellCount = 0
   )
-  expect_true(nrow(prev$prevalence_estimates) == 0)
+  expect_true(nrow(prev) == 0)
 
   prev <- estimatePrevalence(cdm,
                             denominatorTable = "denominator",
@@ -691,7 +689,7 @@ test_that("mock db: some empty result sets", {
                             interval = c("months","years"),
                             minCellCount = 0
   )
-  expect_true(nrow(prev$prevalence_estimates) > 0)
+  expect_true(nrow(prev) > 0)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -708,7 +706,7 @@ test_that("mock db: check conversion of user inputs", {
     outcomeCohortId = 1,
     denominatorCohortId = 1,
   )
-  expect_true(nrow(prev[["prevalence_estimates"]]) >= 1)
+  expect_true(nrow(prev) >= 1)
 
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
@@ -820,12 +818,11 @@ test_that("mock db: check user point prevalence function", {
     confidenceInterval = "none"
   )
 
-  expect_true(class(prev) == class(prev_point))
   expect_true(all(names(prev)==names(prev_point)))
-  expect_true(all(names(prev[["analysis_settings"]])==
-                    names(prev_point[["analysis_settings"]])))
-  expect_true(all(names(prev[["prevalence_estimates"]])==
-                    names(prev_point[["prevalence_estimates"]])))
+  expect_true(all(names(settings(prev))==
+                    names(settings(prev_point))))
+  expect_true(all(names(prev)==
+                    names(prev_point)))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -853,12 +850,11 @@ test_that("mock db: check user period prevalence function", {
     confidenceInterval = "none"
   )
 
-  expect_true(class(prev) == class(prev_period))
   expect_true(all(names(prev)==names(prev_period)))
-  expect_true(all(names(prev[["analysis_settings"]])==
-                    names(prev_period[["analysis_settings"]])))
-  expect_true(all(names(prev[["prevalence_estimates"]])==
-                    names(prev_period[["prevalence_estimates"]])))
+  expect_true(all(names(settings(prev))==
+                    names(settings(prev_period))))
+  expect_true(all(names(prev)==
+                    names(prev_period)))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
