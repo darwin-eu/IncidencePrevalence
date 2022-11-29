@@ -459,13 +459,13 @@ estimatePrevalence <- function(cdm,
     .id = NULL
   )
 
-  # results to return as a list
-  results <- list()
-  results[["prevalence_estimates"]] <- prs
-  results[["analysis_settings"]] <- analysisSettings
-  results[["person_table"]] <- personTable
-  results[["attrition"]] <- attrition
+  # return results as an IncidencePrevalenceResult class
+  attr(prs, "settings") <- analysisSettings
+  attr(prs, "attrition") <- attrition
+  attr(prs, "participants") <- personTable
+  attr(prs, "sql") <- tibble::tibble() # placeholder
 
+  class(prs) <- c("IncidencePrevalenceResult", class(prs))
 
   if (verbose == TRUE) {
     duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
@@ -473,5 +473,6 @@ estimatePrevalence <- function(cdm,
       "Overall time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
-  return(results)
+
+  return(prs)
 }

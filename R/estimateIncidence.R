@@ -447,15 +447,14 @@ estimateIncidence <- function(cdm,
     .id = NULL
   )
 
+  # return results as an IncidencePrevalenceResult class
+  attr(irs, "settings") <- analysisSettings
+  attr(irs, "attrition") <- attrition
+  attr(irs, "participants") <- personTable
+  attr(irs, "sql") <- tibble::tibble() # placeholder
 
-  # results to return as a list
-  results <- list()
-  results[["incidence_estimates"]] <- irs
-  results[["analysis_settings"]] <- analysisSettings
-  if (returnAnalysisCohort == TRUE) {
-    results[["person_table"]] <- personTable
-  }
-  results[["attrition"]] <- attrition
+  class(irs) <- c("IncidencePrevalenceResult", class(irs))
+
 
   if (verbose == TRUE) {
     message("Progress: All incidence results computed")
@@ -472,5 +471,5 @@ estimateIncidence <- function(cdm,
       "Overall time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
-  return(results)
+  return(irs)
 }
