@@ -423,7 +423,7 @@ estimatePrevalence <- function(cdm,
   analysisSettings <- analysisSettings %>%
     dplyr::left_join(settings(cdm[[denominatorTable]]) %>%
     dplyr::rename("cohort_id" ="cohort_definition_id") %>%
-    dplyr::rename_with(.cols = everything(),
+    dplyr::rename_with(.cols = tidyselect::everything(),
                        function(x){paste0("denominator_", x)}),
   by = "denominator_cohort_id")
 
