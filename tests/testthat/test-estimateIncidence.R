@@ -52,6 +52,10 @@ test_that("mock db: check output format", {
   ) %in%
     names(inc)))
 
+  expect_true(tibble::is_tibble(attrition(inc)))
+  expect_true(!is.null(sqlTrace(inc)))
+  expect_true(!is.null(participants(inc)))
+
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
@@ -2240,6 +2244,11 @@ test_that("expected errors with mock", {
 
   # no study pop
   expect_error(estimateIncidence(cdm,
+                                 outcomeTable = "outcome",
+                                 interval = c("months"),
+                                 denominatorTable = "denominator1"
+  ))
+  expect_error(estimateIncidence(cdm,
     outcomeTable = "outcome",
     interval = c("months"),
     denominatorTable = "denominator",
@@ -2248,6 +2257,11 @@ test_that("expected errors with mock", {
 
 
   # no outcomes
+  expect_error(estimateIncidence(cdm,
+                                 outcomeTable = "outcome1",
+                                 interval = c("months"),
+                                 denominatorTable = "denominator",
+  ))
   expect_error(estimateIncidence(cdm,
                                  outcomeTable = "outcome",
                                  interval = c("months"),

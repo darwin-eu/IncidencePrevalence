@@ -132,15 +132,6 @@ estimateIncidence <- function(cdm,
       "- `denominatorTable` is not found in cdm"
     )
   }
-  checkmate::assertTRUE(all(c(
-    "cohort_definition_id",
-    "subject_id",
-    "cohort_start_date",
-    "cohort_end_date"
-  ) %in%
-    names(cdm[[denominatorTable]] %>%
-      utils::head(1) %>%
-      dplyr::collect())))
   checkmate::assert_character(denominatorCohortId,
     add = errorMessage,
     null.ok = TRUE

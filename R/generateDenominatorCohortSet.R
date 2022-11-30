@@ -381,8 +381,6 @@ generateDenominatorCohortSet <- function(cdm,
         extractQuery(description = "combine_cohorts")
       studyPops <- studyPops %>% dplyr::compute()
     }
-  } else {
-    rlang::abort("Error creating denominator population in the database. File a bug report.")
   }
 
   if (verbose == TRUE) {

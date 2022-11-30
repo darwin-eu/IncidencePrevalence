@@ -73,7 +73,6 @@ getStudyDays <- function(startDate,
           "years" = lubridate::years(1) - lubridate::days(1)
         )
       )
-    if (endDate >= startDay) {
       studyDays <- dplyr::tibble(start_time = seq.Date(
         from = startDay,
         to = endDate,
@@ -103,9 +102,6 @@ getStudyDays <- function(startDate,
         dplyr::select("time", "start_time") %>%
         dplyr::mutate(end_time = as.Date(NA)) %>%
         dplyr::filter(.data$start_time >= startDate)
-    } else {
-      studyDays <- dplyr::tibble()
-    }
   } else {
     studyDays <- dplyr::tibble(dates = seq.Date(
       from = startDate,
