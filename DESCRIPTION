@@ -34,7 +34,8 @@ Imports:
     tidyr,
     tidyselect,
     CDMConnector,
-    SqlRender (>= 1.10.0)
+    SqlRender (>= 1.10.0),
+    stringr
 Suggests: 
     knitr,
     rmarkdown,
