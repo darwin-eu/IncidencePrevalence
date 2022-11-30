@@ -1,7 +1,12 @@
 
-#' @param x Cohort for which to get attrition
+#' Cohort attrition
 #'
+#' @param x Cohort set for which to get attrition
+#'
+#' @return tibble with counts and reasons for attrition.
 #' @export
+#'
+#' @examples
 attrition <- function(x) {
   UseMethod("attrition")
 }
@@ -16,9 +21,15 @@ attrition.IncidencePrevalenceResult <- function(x) {
   attr(x, "attrition")
 }
 
-#' @param Cohort for which to get settings
+
+#' Settings associated with a cohort set
 #'
+#' @param x Cohort set for which to get settings
+#'
+#' @return tibble with settings used when generating the cohort set
 #' @export
+#'
+#' @examples
 settings <- function(x) {
   UseMethod("settings")
 }
@@ -33,9 +44,15 @@ settings.IncidencePrevalenceResult <- function(x) {
   attr(x, "settings")
 }
 
-#' @param Cohort for which to get SQL trace
+
+#' SQL trace for a cohort
 #'
+#' @param x Cohort set for which to get associated SQL
+#'
+#' @return SQL used to generate the cohort set
 #' @export
+#'
+#' @examples
 sqlTrace <- function(x) {
   UseMethod("sqlTrace")
 }
@@ -62,9 +79,16 @@ print.IncidencePrevalenceDenominator <- function(x, ...) {
   print(x)
 }
 
-#' @param x Cohort for which to get attrition
+
+#'  Participants contributing to an analysis
 #'
+#' @param x Result object
+#'
+#' @return References to tables with the study participants contributing to
+#' a given analysis
 #' @export
+#'
+#' @examples
 participants <- function(x) {
   UseMethod("participants")
 }
