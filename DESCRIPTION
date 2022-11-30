@@ -9,7 +9,11 @@ Authors@R: c(
     person("Marti", "Catala", email = "marti.catalasabate@ndorms.ox.ac.uk", role = c("aut"), 
     comment = c(ORCID = "0000-0003-3308-9905")),
     person("Mike", "Du", email = "mike.du@ndorms.ox.ac.uk", role = c("aut"), 
-    comment = c(ORCID = "0000-0002-9517-8834"))
+    comment = c(ORCID = "0000-0002-9517-8834")),
+    person("Adam", "Black", email = "black@ohdsi.org", role = c("aut"),
+    comment = c(ORCID = "0000-0001-5576-8701")),
+    person("Ger", "Inberg", email = "g.inberg@erasmusmc.nl", role = c("aut"),
+    comment = c(ORCID = "0000-0001-8993-8748"))
     )
 Description: Calculate population incidence and prevalence using data mapped to the OMOP common data model.
 License: Apache License (>= 2)
@@ -28,8 +32,10 @@ Imports:
     rlang,
     purrr,
     tidyr,
+    tidyselect,
     CDMConnector,
-    SqlRender (>= 1.10.0)
+    SqlRender (>= 1.10.0),
+    stringr
 Suggests: 
     knitr,
     rmarkdown,
@@ -42,6 +48,8 @@ Suggests:
     here,
     testthat (>= 3.0.0),
     spelling
+Remotes:  
+    OdyOSG/CDMConnector
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Language: en-US

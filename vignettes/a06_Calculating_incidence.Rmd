@@ -107,10 +107,10 @@ inc <- estimateIncidence(
   repeatedEvents = FALSE
 )
 
-inc$incidence_estimates %>%
+inc %>%
   glimpse()
 
-inc$incidence_estimates %>%
+inc %>%
   ggplot(aes(start_time, ir_100000_pys)) +
   geom_point() +
   scale_y_continuous(limits = c(0, NA)) +
@@ -128,10 +128,10 @@ inc <- estimateIncidence(
   repeatedEvents = FALSE
 )
 
-inc$incidence_estimates %>%
+inc %>%
   glimpse()
 
-inc$incidence_estimates %>%
+inc %>%
   ggplot(aes(start_time, ir_100000_pys)) +
   geom_point() +
   scale_y_continuous(limits = c(0, NA)) +
@@ -149,10 +149,10 @@ inc <- estimateIncidence(
   repeatedEvents = FALSE
 )
 
-inc$incidence_estimates %>%
+inc %>%
   glimpse()
 
-inc$incidence_estimates %>%
+inc %>%
   ggplot(aes(start_time, ir_100000_pys)) +
   geom_point() +
   scale_y_continuous(limits = c(0, NA)) +
@@ -170,10 +170,10 @@ inc <- estimateIncidence(
   repeatedEvents = TRUE
 )
 
-inc$incidence_estimates %>%
+inc %>%
   glimpse()
 
-inc$incidence_estimates %>%
+inc %>%
   ggplot(aes(start_time, ir_100000_pys)) +
   geom_point() +
   scale_y_continuous(limits = c(0, NA)) +
