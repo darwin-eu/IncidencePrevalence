@@ -80,10 +80,10 @@ prev <- estimatePointPrevalence(
   minCellCount = 0
 )
 
-prev$prevalence_estimates %>%
+prev %>%
   glimpse()
 
-prev$prevalence_estimates %>%
+prev %>%
   ggplot(aes(time, prev)) +
   geom_point() +
   scale_y_continuous(
@@ -103,10 +103,10 @@ prev <- estimatePointPrevalence(
   minCellCount = 0
 )
 
-prev$prevalence_estimates %>%
+prev %>%
   glimpse()
 
-prev$prevalence_estimates %>%
+prev %>%
   ggplot(aes(start_time, prev)) +
   geom_point() +
   scale_y_continuous(
@@ -126,10 +126,10 @@ prev <- estimatePeriodPrevalence(
   minCellCount = 0
 )
 
-prev$prevalence_estimates %>%
+prev %>%
   glimpse()
 
-prev$prevalence_estimates %>%
+prev %>%
   ggplot(aes(start_time, prev)) +
   geom_point() +
   scale_y_continuous(
@@ -150,10 +150,10 @@ prev <- estimatePeriodPrevalence(
   minCellCount = 0
 )
 
-prev$prevalence_estimates %>%
+prev %>%
   glimpse()
 
-prev$prevalence_estimates %>%
+prev %>%
   ggplot(aes(start_time, prev)) +
   geom_point() +
   scale_y_continuous(
@@ -210,8 +210,8 @@ prev2 <- estimatePeriodPrevalence(
   minCellCount = 0
 )
 
-prev2$prevalence_estimates %>%
-  left_join(prev2$analysis_settings,
+prev2 %>%
+  left_join(settings(prev2),
     by = "analysis_id"
   ) %>%
   ggplot(aes(start_time, prev)) +
