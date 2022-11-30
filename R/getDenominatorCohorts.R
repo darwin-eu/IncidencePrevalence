@@ -206,20 +206,11 @@ getDenominatorCohorts <- function(cdm,
   lowerAgeLimit <- min(minAge)
   upperAgeLimit <- max(maxAge)
 
-  sqlYearLower <- sqlAddYears(
-    dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
-    yearsToAdd = lowerAgeLimit,
-    variable = "dob"
-  )
-  sqlYearUpper <- sqlAddYears(
-    dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
-    yearsToAdd = upperAgeLimit,
-    variable = "dob"
-  )
-
   studyPopDb <- studyPopDb %>%
-    dplyr::mutate(lower_age_check = dplyr::sql(sqlYearLower)) %>%
-    dplyr::mutate(upper_age_check = dplyr::sql(sqlYearUpper)) %>%
+    dplyr::mutate(lower_age_check = as.Date(!!CDMConnector::dateadd("dob", {{lowerAgeLimit}},
+                                              interval = "year"))) %>%
+    dplyr::mutate(upper_age_check = as.Date(!!CDMConnector::dateadd("dob", {{upperAgeLimit}},
+                                              interval = "year"))) %>%
     # drop people too old even at study start
     dplyr::filter(.data$upper_age_check >= .env$startDate) %>%
     # drop people too young even at study end
@@ -264,14 +255,11 @@ getDenominatorCohorts <- function(cdm,
     for (i in seq_along(minAge)) {
       workingMin <- minAge[[i]]
       variableName <- glue::glue("date_min_age{workingMin}")
-      sqlYearAdd <- sqlAddYears(
-        dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
-        yearsToAdd = workingMin,
-        variable = "dob"
-      )
       studyPopDb <- studyPopDb %>%
         dplyr::mutate("date_min_age{{workingMin}}" :=
-          as.Date(dplyr::sql(sqlYearAdd)))
+                        as.Date(!!CDMConnector::dateadd("dob",
+                                                        {{workingMin}},
+                                                        interval = "year")))
 
       if (i %% 10 == 0) {
         # in case many options have been chosen
@@ -292,22 +280,12 @@ getDenominatorCohorts <- function(cdm,
       workingMax <- maxAge[[i]]
       workingMaxPlusOne <- maxAge[[i]] + 1
       variableName <- glue::glue("date_max_age{workingMax}")
-      sqlYearAdd <- sqlAddYears(
-        dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
-        yearsToAdd = workingMaxPlusOne,
-        variable = "dob"
-      )
-      sqlMinusDay <- sqlAddDays(
-        dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
-        daysToAdd = -1,
-        variable = variableName
-      )
 
       studyPopDb <- studyPopDb %>%
-        dplyr::mutate("date_max_age{{workingMax}}" :=
-          as.Date(dplyr::sql(sqlYearAdd))) %>%
-        dplyr::mutate("date_max_age{{workingMax}}" :=
-          as.Date(dbplyr::sql(sqlMinusDay)))
+        dplyr::mutate("date_max_age{{workingMax}}" := as.Date(!!CDMConnector::dateadd(
+          "dob", {{workingMaxPlusOne}}, interval = "year"))) %>%
+        dplyr::mutate("date_max_age{{workingMax}}" := as.Date(!!CDMConnector::dateadd(
+          variableName, -1, interval = "day")))
 
       if (i %% 10 == 0) {
         sqlQueries[[paste0("getting_max_age_", i)]] <- studyPopDb %>%
@@ -326,17 +304,13 @@ getDenominatorCohorts <- function(cdm,
       workingDaysPriorHistory <- daysPriorHistory[[i]]
       variableName <-
         glue::glue("date_with_prior_history{workingDaysPriorHistory}")
-      sqlAddDay <- sqlAddDays(
-        dialect = CDMConnector::dbms(attr(cdm, "dbcon")),
-        daysToAdd = workingDaysPriorHistory,
-        variable = "observation_period_start_date"
-      )
 
       studyPopDb <- studyPopDb %>%
         dplyr::mutate(
           "date_with_prior_history{{workingDaysPriorHistory}}" :=
-            as.Date(dplyr::sql(sqlAddDay))
-        )
+            as.Date(!!CDMConnector::dateadd("observation_period_start_date",
+                                    {{workingDaysPriorHistory}},
+                                    interval = "day")))
 
       if (i %% 5 == 0) {
         # in case many options have been chosen

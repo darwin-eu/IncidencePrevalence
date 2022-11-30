@@ -84,3 +84,15 @@ participants <- function(x) {
 participants.IncidencePrevalenceResult <- function(x) {
   attr(x, "participants")
 }
+
+
+extractQuery <- function(query, description = "") {
+  sql <- dbplyr::sql_render(query)
+  sql <- gsub("\"", "", sql)
+  sql <- rbind(
+    paste0("< SQL ", description, ">"),
+    sql, " "
+  )
+  return(sql)
+}
+
