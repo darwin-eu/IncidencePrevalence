@@ -367,8 +367,7 @@ estimatePrevalence <- function(cdm,
       interval = x$interval,
       completeDatabaseIntervals = x$completeDatabaseIntervals,
       timePoint = x$timePoint,
-      fullContribution = x$fullContribution,
-      verbose = verbose
+      fullContribution = x$fullContribution
     )
 
     if (nrow(workingPrev[["pr"]]) == 0) {

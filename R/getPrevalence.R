@@ -24,20 +24,16 @@ getPrevalence <- function(cdm,
                              interval,
                              completeDatabaseIntervals,
                              timePoint,
-                             fullContribution,
-                             verbose) {
+                             fullContribution) {
 
   if (is.na(outcomeLookbackDays)) {
     outcomeLookbackDays <- NULL
   }
 
-  ## Analysis code
-  # bring in study population
-  if (verbose == TRUE) {
-    message("Bringing population into memory")
-  }
-  # keeping outcomes of people in the denominator
+  # keeping outcome of interest
+  # of people in the denominator of interest
   studyPop <- cdm[[denominatorTable]] %>%
+    dplyr::filter(.data$cohort_definition_id == .env$denominatorCohortId) %>%
     dplyr::left_join(
     cdm[[outcomeTable]] %>%
     dplyr::filter(.data$cohort_definition_id == .env$outcomeCohortId) %>%
@@ -45,7 +41,8 @@ getPrevalence <- function(cdm,
     dplyr::rename("outcome_end_date" = "cohort_end_date") %>%
     dplyr::select("subject_id", "outcome_start_date",
                   "outcome_end_date"),
-    by="subject_id")
+    by="subject_id") %>%
+    dplyr::compute()
 
   if (interval == "days") {
     type <- "point"
@@ -59,7 +56,7 @@ getPrevalence <- function(cdm,
   end <- studyPop %>%
     dplyr::summarise(max(.data$cohort_end_date, na.rm=TRUE)) %>%
     dplyr::pull()
-  # compute studyDays as a function of inputs
+  # get studyDays as a function of inputs
   studyDays <- getStudyDays(
     startDate = start,
     endDate = end,
