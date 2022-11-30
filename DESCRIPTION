@@ -42,6 +42,8 @@ Suggests:
     here,
     testthat (>= 3.0.0),
     spelling
+Remotes:  
+    OdyOSG/CDMConnector
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Language: en-US
