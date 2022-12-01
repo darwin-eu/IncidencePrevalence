@@ -48,6 +48,9 @@ test_that("mock db: check output format", {
     dplyr::select(cohort_end_date) %>%
     dplyr::pull()) == "Date")
 
+  expect_true(tibble::is_tibble(attrition(dpop)))
+  expect_true(!is.null(sqlTrace(dpop)))
+
   # check verbose
   expect_message(generateDenominatorCohortSet(
     cdm = cdm,
@@ -284,15 +287,21 @@ test_that("mock db: check another example we expect to work", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
-test_that("mock db: mock example 10000", {
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+test_that("mock db: mock example 1000", {
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   # all options being used except study start and end
   cdm$dpop <- generateDenominatorCohortSet(cdm,
     startDate = NULL,
     endDate = NULL,
-    ageGroups = list(c(0, 59), c(60, 69)),
+    ageGroups = list(c(0, 5),c(6, 10),
+                     c(11, 15),c(16, 20),
+                     c(21, 25),c(26, 30),
+                     c(31, 35),c(36, 40),
+                     c(41, 45),c(46, 50),
+                     c(51, 55),c(56, 60),
+                     c(61, 100)),
     sex = c("Female", "Male", "Both"),
-    daysPriorHistory = c(0, 180),
+    daysPriorHistory = c(0,30,60, 90,120,150, 180),
     verbose = TRUE
   )
   expect_true(nrow(cdm$dpop %>%

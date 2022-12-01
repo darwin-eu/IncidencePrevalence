@@ -67,19 +67,6 @@ sqlTrace.IncidencePrevalenceResult <- function(x) {
   attr(x, "sql")
 }
 
-#' @export
-#' @importFrom utils str
-print.sqlTrace <- function(x, ...) {
-  cli::cat_line("<SQL query trace>")
-  print(utils::str(x))
-}
-
-print.IncidencePrevalenceDenominator <- function(x, ...) {
-  cli::cat_rule("IncidencePrevalence denominator generated cohort set")
-  print(x)
-}
-
-
 #'  Participants contributing to an analysis
 #'
 #' @param x Result object
@@ -97,3 +84,15 @@ participants <- function(x) {
 participants.IncidencePrevalenceResult <- function(x) {
   attr(x, "participants")
 }
+
+
+extractQuery <- function(query, description = "") {
+  sql <- dbplyr::sql_render(query)
+  sql <- gsub("\"", "", sql)
+  sql <- rbind(
+    paste0("< SQL ", description, ">"),
+    sql, " "
+  )
+  return(sql)
+}
+
