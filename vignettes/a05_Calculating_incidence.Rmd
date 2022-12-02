@@ -34,10 +34,11 @@ library(IncidencePrevalence)
 # Introduction
 Incidence rates describe the rate at which new events occur in a population, with the denominator the person-time at risk of the event during this period. In the previous vignettes we have seen how we can identify a denominator population and define and instantiate an outcome cohort. Incidence rates can then be calculated using time contributed from the denominator population up to their entry in the outcome cohort.
 
-There are a number of options to consider when calculating incidence rates. 
+There are a number of options to consider when calculating incidence rates. This package accommodates two main parameters, including:
 
-outcome_washout_window
-repeatedEvents
+1. **Outcome washout window**: The number of days used for a 'washout' period between the end of one outcome and an individual starting to contribute time at risk
+2. **Repetitive events**: Whether individuals are able to contribute multiple events during the study period or if they will only contribute time up to their first event during the study period.
+
 
 
 ### No washout, no repetitive events
@@ -66,6 +67,16 @@ Now repetitive events are allowed with some amount of outcome washout specified.
 ```{r,echo=FALSE, out.width="80%"}
 knitr::include_graphics(here("vignettes/inc_rep_some_washout.png"))
 ```
+
+# Outcome definition
+Detailed information on how to define outcome cohorts can be found in the vignette "Creating numerator populations". The main important aspect to consider when defining an outcome cohort is to not restrict the definition with features that can be latter specified when running the package.
+For incidence rates, this means:
+
+1. Do not restrict outcome cohorts to first events only. This will impact the ability to exclude participants (as they can be excluded based on the prior latest event) and to capture more than one event per person (which is an option allowed in the package).
+2. Set an appropriate cohort exit strategy. If the user wants to be able to capture more than one event per person, it is important to set the event persistence to a fixed duration relative to the event and not to the end of observation.
+3. Do not add further restrictions on sex, age and prior history requirements. This can be specified when identifying the denominator population with the `generateDenominatorCohortSet()`.
+
+Considering all the above, we only recommend restricting outcome definitions to first events if the user is not interested in further occurrences and if all prior history is considered to exclude participants who have already experienced the event.
 
 
 # Using estimateIncidence()
@@ -179,3 +190,46 @@ inc %>%
   scale_y_continuous(limits = c(0, NA)) +
   theme_minimal()
 ```
+
+
+### Other parameters
+In the examples above, we have used calculated incidence rates by months and years, but it can be also calculated by weeks, months or for the entire time period observed (overall). In addition, we can decide whether to include time intervals that are not fully captured in the database (e.g., having data up to June for the last study year when computing yearly incidence rates). By default, incidence will only be estimated for those intervals where the database captures all the interval (completeDatabaseIntervals=TRUE).
+
+Given that we can set estimateIncidence() to exclude individuals based on other parameters (e.g., outcomeWashout), it is important to note that the denominator population used to compute incidence rates might differ from the one calculated with `generateDenominatorCohortSet()`. By default, the population contributing to an analysis will be returned (see section "Output"), but it can be hided by setting returnAnalysisCohort=FALSE.
+
+The user can also set the minimum number of events to be reported, below which results will be obscured. By default, results with <5 occurrences are blinded, but if minCellCount=0, all results will be reported. By default, the 95 % confidence intervals are calculated using a Poisson distribution. If we set confidenceInterval="none", no estimates will be provided. In addition, we can set verbose=TRUE to report progress as code is running. By default, no progress is reported (verbose=FALSE). 
+
+```{r, message=TRUE, warning=FALSE}
+inc <- estimateIncidence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = c("weeks"),
+  completeDatabaseIntervals = FALSE,
+  outcomeWashout = 180,
+  repeatedEvents = TRUE,
+  confidenceInterval="none",
+  minCellCount = 0,
+  verbose = TRUE
+)
+```
+### Output
+`estimateIncidence()` will generate a table with incidence rates for each of the time intervals studied and for each combination of the parameters set. Similar to the output obtained by `generateDenominatorCohortSet()`, the table generated will also include attributes, including tibbles with information on settings and attrition.
+
+```{r, message= FALSE, warning=FALSE}
+inc <- estimateIncidence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = c("Years"),
+  outcomeWashout = 180,
+  repeatedEvents = TRUE
+)
+attrition(inc)
+settings(inc)
+```
+In addition, it will provide a table with the individuals who contributed to the incidence rate analysis (which might differ from the denominator population), and the start and end date of their contribution. 
+```{r, message= FALSE, warning=FALSE}
+participants(inc)
+```
+

@@ -83,7 +83,7 @@ prev %>%
   theme_minimal()
 ```
 
-Similarly we can use the `collectPopIncidence()` function to estimate incidence rates. Here we annual incidence rates, with 180 days used for outcome washout windows.
+Similarly we can use the `estimateIncidence()` function to estimate incidence rates. Here we annual incidence rates, with 180 days used for outcome washout windows.
 
 ```{r, message= FALSE, warning=FALSE}
 inc <- estimateIncidence(
