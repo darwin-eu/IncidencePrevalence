@@ -49,6 +49,15 @@ test_that("mock db: check output format", {
   ) %in%
     names(settings(prev))))
 
+  # check we can get the reference to participants who contributed
+  expect_true(is.list(participants(prev))) # list of references to participants
+  expect_true(tibble::is_tibble(participants(prev,1) %>%
+                                  dplyr::collect()))
+  expect_true(participants(prev,1) %>%
+    dplyr::collect() %>%
+    dplyr::select("subject_id") %>%
+    dplyr::pull() == 1)
+
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
@@ -478,7 +487,6 @@ test_that("mock db: check fullContribution requirement", {
                             minCellCount = 0
   )
   expect_true(all(prev[["denominator"]] == c(2,1)))
-
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })

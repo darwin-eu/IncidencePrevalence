@@ -76,13 +76,17 @@ sqlTrace.IncidencePrevalenceResult <- function(x) {
 #' @export
 #'
 #' @examples
-participants <- function(x) {
+participants <- function(result, analysisId=NULL) {
   UseMethod("participants")
 }
 
 #' @export
-participants.IncidencePrevalenceResult <- function(x) {
-  attr(x, "participants")
+participants.IncidencePrevalenceResult <- function(result, analysisId=NULL) {
+  included<-attr(result, "participants")
+  if(!is.null(analysisId)){
+    included<-included[[paste0("study_population_analyis_",analysisId)]]
+  }
+ return(included)
 }
 
 

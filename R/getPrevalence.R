@@ -167,7 +167,8 @@ getPrevalence <- function(cdm,
   )
 
   studyPop <- studyPop %>%
-    dplyr::select("subject_id", "cohort_start_date", "cohort_end_date")
+    dplyr::select("subject_id", "cohort_start_date") %>%
+    dplyr::distinct()
 
   results <- list()
   results[["pr"]] <- pr
