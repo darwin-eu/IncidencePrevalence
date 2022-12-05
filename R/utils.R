@@ -69,7 +69,8 @@ sqlTrace.IncidencePrevalenceResult <- function(x) {
 
 #'  Participants contributing to an analysis
 #'
-#' @param x Result object
+#' @param result Result object
+#' @param analysisId ID of a specific analysis to return participants for
 #'
 #' @return References to tables with the study participants contributing to
 #' a given analysis

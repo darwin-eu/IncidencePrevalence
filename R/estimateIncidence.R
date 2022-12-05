@@ -51,8 +51,6 @@
 #' @param confidenceInterval The method used for calculating confidence
 #' intervals. Options are "poisson" or "none" (in which case no estimates will
 #' be calculated).
-#' @param returnAnalysisCohort TRUE/ FALSE. If TRUE the population contributing
-#' to an analysis will be returned.
 #' @param minCellCount The minimum number of events to reported, below which
 #' results will be obscured. If 0, all results will be reported.
 #' @param verbose Either TRUE or FALSE. If TRUE, progress will be reported.
@@ -89,7 +87,6 @@ estimateIncidence <- function(cdm,
                               outcomeWashout = 0,
                               repeatedEvents = FALSE,
                               confidenceInterval = "poisson",
-                              returnAnalysisCohort = TRUE,
                               minCellCount = 5,
                               verbose = FALSE) {
   if (verbose == TRUE) {
@@ -336,18 +333,16 @@ estimateIncidence <- function(cdm,
       completeDatabaseIntervals = x$complete_database_intervals,
       outcomeWashout = x$outcome_washout,
       repeatedEvents = x$repeated_events,
-      returnAnalysisCohort = returnAnalysisCohort,
       verbose = verbose
     )
 
     workingIncIr <- workingInc[["ir"]] %>%
       dplyr::mutate(analysis_id = x$analysis_id) %>%
       dplyr::relocate("analysis_id")
-    if (returnAnalysisCohort == TRUE) {
+
       workingIncPersonTable <- workingInc[["person_table"]] %>%
-        dplyr::mutate(analysis_id = x$analysis_id) %>%
+        dplyr::mutate(analysis_id = !!x$analysis_id) %>%
         dplyr::relocate("analysis_id")
-    }
 
     workingIncAnalysisSettings <- workingInc[["analysis_settings"]] %>%
       dplyr::mutate(
@@ -369,9 +364,8 @@ estimateIncidence <- function(cdm,
     result <- list()
     result[["ir"]] <- workingIncIr
     result[["analysis_settings"]] <- workingIncAnalysisSettings
-    if (returnAnalysisCohort == TRUE) {
-      result[["person_table"]] <- workingIncPersonTable
-    }
+    result[[paste0("study_population_analyis_",
+                   x$analysis_id)]] <- workingIncPersonTable
     result[["attrition"]] <- workingIncAttrition
 
 
@@ -423,13 +417,8 @@ estimateIncidence <- function(cdm,
   }
 
   # person_table summary
-  if (returnAnalysisCohort == TRUE) {
-    personTable <- irsList[names(irsList) == "person_table"]
-    # to tibble
-    personTable <- dplyr::bind_rows(personTable,
-      .id = NULL
-    )
-  }
+  personTable <- irsList[stringr::str_detect(names(irsList),
+                                             "study_population")]
 
   # attrition summary
   attrition <- irsList[names(irsList) == "attrition"]
@@ -454,7 +443,6 @@ estimateIncidence <- function(cdm,
       "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
     ))
   }
-
 
   if (verbose == TRUE) {
     duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))

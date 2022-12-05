@@ -4,10 +4,12 @@
 \alias{participants}
 \title{Participants contributing to an analysis}
 \usage{
-participants(x)
+participants(result, analysisId = NULL)
 }
 \arguments{
-\item{x}{Result object}
+\item{result}{Result object}
+
+\item{analysisId}{ID of a specific analysis to return participants for}
 }
 \value{
 References to tables with the study participants contributing to

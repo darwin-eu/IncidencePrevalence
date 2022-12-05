@@ -54,7 +54,14 @@ test_that("mock db: check output format", {
 
   expect_true(tibble::is_tibble(attrition(inc)))
   expect_true(!is.null(sqlTrace(inc)))
-  expect_true(!is.null(participants(inc)))
+
+  expect_true(is.list(participants(inc))) # list of references to participants
+  expect_true(tibble::is_tibble(participants(inc,1) %>%
+                                  dplyr::collect()))
+  expect_true(participants(inc,1) %>%
+                dplyr::collect() %>%
+                dplyr::select("subject_id") %>%
+                dplyr::pull() == 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
