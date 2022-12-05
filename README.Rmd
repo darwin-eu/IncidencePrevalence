@@ -49,10 +49,8 @@ library(IncidencePrevalence)
 
 # We first need to create a cdm_reference 
 cdm<-mockIncidencePrevalenceRef(sampleSize=5000)
-# and this is what this example data looks like
+# this is what the person table for this example data looks like
 head(cdm$person)
-head(cdm$observation_period)
-head(cdm$outcome)
 ```
 
 To identify our denominator population we can use the `generateDenominatorCohortSet` function. Here for example, we want to identify a denominator population for a study period between 2008 and 2018. To note, other options ave available when defining this population which are summarised in the package vignettes. 
@@ -63,14 +61,16 @@ cdm$denominator <- generateDenominatorCohortSet(
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2018-01-01")
 )
-# this is what the data looks like
+# this is what the resulting cohort data looks like
 head(cdm$denominator)
-head(attrition(cdm$denominator))
 ```
 
-Now we have identified our denominator population, we can calculate incidence, point prevalence, and period prevalence as below (given that our mock cdm_reference also has an outcome cohort defined). Again further details for each of these functions are provided in the vignettes.
+We can also see the reasons people in the database did not enter the cohort 
+```{r}
+attrition(cdm$denominator)
+```
 
-Now we´ve added the denominator cohort to our cdm reference, we can go on and estimate incidence and prevalence. 
+Now we have identified our denominator population, we can calculate incidence, point prevalence, and period prevalence as below (given that our mock cdm reference also has an outcome cohort defined). Again further details for each of these functions are provided in the vignettes.
 
 ```{r}
 inc <- estimateIncidence(
@@ -78,7 +78,7 @@ inc <- estimateIncidence(
   denominatorTable = "denominator",
   outcomeTable = "outcome"
 )
-head(inc$incidence_estimates)
+dplyr::glimpse(inc)
 ```
 
 ```{r}
@@ -88,7 +88,7 @@ prev_point <- estimatePointPrevalence(
   outcomeTable = "outcome",
   interval = "months"
 )
-head(prev_point$prevalence_estimates)
+dplyr::glimpse(prev_point)
 ```
 
 ```{r}
@@ -98,6 +98,20 @@ prev_period <- estimatePeriodPrevalence(
   outcomeTable = "outcome",
   interval = "months"
 )
-head(prev_period$prevalence_estimates)
+dplyr::glimpse(prev_period)
 ```
+
+For a result set we can also obtain extra related information. 
+
+We can see the attrition
+```{r}
+attrition(prev_period)
+```
+
+We can also have a reference to the study participants that informed the analysis
+```{r}
+participants(prev_period)
+```
+
+
 

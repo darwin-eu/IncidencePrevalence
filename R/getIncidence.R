@@ -23,7 +23,6 @@ getIncidence <- function(cdm,
                             completeDatabaseIntervals,
                             outcomeWashout,
                             repeatedEvents,
-                            returnAnalysisCohort,
                             verbose) {
   if (verbose == TRUE) {
     message("-- Getting incidence")
@@ -35,19 +34,20 @@ getIncidence <- function(cdm,
   }
 
   ## Analysis code
-  # collect the people in the relevant denominator
+  # people in the relevant denominator
   # along with their outcomes
   studyPop <- cdm[[denominatorTable]] %>%
     dplyr::filter(.data$cohort_definition_id ==
                     .env$denominatorCohortId) %>%
     dplyr::select(-"cohort_definition_id") %>%
     dplyr::left_join(cdm[[outcomeTable]] %>%
-                       dplyr::filter(.data$outcome_cohort_id == .env$outcomeCohortId) %>%
+                       dplyr::filter(.data$outcome_cohort_id ==
+                                     .env$outcomeCohortId) %>%
                        dplyr::select(-"outcome_cohort_id"),
                      by = c("subject_id",
                             "cohort_start_date",
                             "cohort_end_date")) %>%
-    dplyr::collect()
+    dplyr::compute()
 
   # participants without an outcome
   studyPopNoOutcome <- studyPop %>%
@@ -88,11 +88,13 @@ getIncidence <- function(cdm,
       )) %>%
       dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
     if (repeatedEvents == FALSE &
-        sum(!is.na(studyPopOutcome$outcome_start_date)) > 0) {
+        sum(!is.na(studyPopOutcome %>%
+                   dplyr::pull(.data$outcome_start_date))) > 0) {
       studyPopOutcome <- studyPopOutcome %>%
         dplyr::group_by(.data$subject_id) %>%
-        dplyr::mutate(events_post=sum(!is.na(.data$outcome_start_date)))
-      studyPopOutcome <- dplyr::bind_rows(
+        dplyr::mutate(events_post=sum(dplyr::if_else(
+          !is.na(.data$outcome_start_date),1,0), na.rm = TRUE ))
+      studyPopOutcome <- dplyr::union_all(
         # with history of outcome, without outcome in follow up
         studyPopOutcome %>%
           dplyr::group_by(.data$subject_id) %>%
@@ -118,8 +120,12 @@ getIncidence <- function(cdm,
 
   # combine those without an outcome back with those with an outcome
   # this is now our study population to get the incidence rates for
-  studyPop <- studyPopNoOutcome %>%
-    dplyr::bind_rows(studyPopOutcome)
+  studyPopDb <- studyPopNoOutcome %>%
+    dplyr::union_all(studyPopOutcome) %>%
+    dplyr::compute()
+
+  studyPop <- studyPopDb %>%
+    dplyr::collect()
 
   # study dates
   # based on the earliest start and latest end of those
@@ -228,18 +234,15 @@ getIncidence <- function(cdm,
     analysis_interval = .env$interval,
     analysis_complete_database_intervals = .env$completeDatabaseIntervals
   )
-  if(returnAnalysisCohort==TRUE){
   studyPop <- studyPop %>%
     dplyr::select("subject_id", "cohort_start_date",
-                  "cohort_end_date", "outcome_start_date")}
+                  "cohort_end_date", "outcome_start_date")
 
   # return list
   results <- list()
   results[["ir"]] <- ir
   results[["analysis_settings"]] <- analysisSettings
-  if(returnAnalysisCohort==TRUE){
-  results[["person_table"]] <- studyPop
-  }
+  results[["person_table"]] <- studyPopDb
   results[["attrition"]] <- tibble::tibble(attrition = "attrition")
 
   return(results)
