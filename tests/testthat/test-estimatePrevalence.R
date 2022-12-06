@@ -866,3 +866,142 @@ test_that("mock db: check user period prevalence function", {
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
+
+test_that("mock db: multiple observation periods", {
+  # create data for hypothetical people to test
+  personTable <- tibble::tibble(
+    person_id = c("1", "2"),
+    gender_concept_id = c("8507","8507"),
+    year_of_birth = c(1998,1976),
+    month_of_birth = c(02,06),
+    day_of_birth = c(12,01)
+  )
+
+  # three observation periods for 1 person and a couple of consecutive events lost to washout
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id = c("1","2","3","4"),
+    person_id = c("1", "1", "1", "2"),
+    observation_period_start_date = c(
+      as.Date("2005-04-01"),
+      as.Date("2009-04-10"),
+      as.Date("2010-08-20"),
+      as.Date("2012-01-01")
+    ),
+    observation_period_end_date = c(
+      as.Date("2005-11-29"),
+      as.Date("2010-01-02"),
+      as.Date("2011-12-11"),
+      as.Date("2015-06-01")
+    )
+  )
+
+  conditionX <- tibble::tibble(
+    cohort_definition_id = c("1","1","1","1"),
+    subject_id = c("1", "1", "1", "2"),
+    cohort_start_date = c(
+      as.Date("2005-04-01"),
+      as.Date("2009-06-10"),
+      as.Date("2010-08-20"),
+      as.Date("2010-01-01")
+    ),
+    cohort_end_date = c(
+      as.Date("2005-11-29"),
+      as.Date("2010-01-02"),
+      as.Date("2011-10-11"),
+      as.Date("2015-06-01")
+    )
+  )
+
+  outcomeTable <- tibble::tibble(
+    cohort_definition_id = c("1","1","1","1","1","1","1"),
+    subject_id = c("1","1","1","1","1","1","2"),
+    cohort_start_date = c(
+      as.Date("2005-08-09"),
+      as.Date("2005-08-10"),
+      as.Date("2005-08-11"),
+      as.Date("2009-11-11"),
+      as.Date("2009-11-21"),
+      as.Date("2010-12-21"),
+      as.Date("2014-04-04")
+    ),
+    cohort_end_date = c(
+      as.Date("2005-08-09"),
+      as.Date("2005-08-10"),
+      as.Date("2005-08-11"),
+      as.Date("2009-11-11"),
+      as.Date("2009-11-21"),
+      as.Date("2010-12-21"),
+      as.Date("2014-04-04")
+
+    )
+  )
+
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    strataTable = conditionX,
+    outcomeTable = outcomeTable
+  )
+
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm,
+    strataTable = "strata",
+    strataCohortId = "1"
+  )
+
+  # should expect for period prevalence monthly 3 times with numerator 1, and denominator 1 only at inclusion criteria satisfaction
+  ppe <- estimatePeriodPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    minCellCount = 0
+  )
+  expect_true(sum(ppe$numerator) == 3)
+  expect_true(sum(ppe$denominator) == 8+8+14)
+
+  # same if we look back 1 day, as some repeated events at month 8 disappear but the person still has an outcome then
+  ppe <- estimatePeriodPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    minCellCount = 0,
+    outcomeLookbackDays = 1
+  )
+  expect_true(sum(ppe$numerator) == 3)
+
+  # if we look back 365 days, all outcomes count monthly for a whole year after their onset, so we should see 4+3+14
+  ppe <- estimatePeriodPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    minCellCount = 0,
+    outcomeLookbackDays = 365
+  )
+  expect_true(sum(ppe$numerator) == 21)
+
+  # as for point prevalence, we would expect no positive numerator at default
+  ppo <- estimatePointPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    minCellCount = 0
+  )
+  expect_true(sum(ppo$numerator) == 0)
+
+  # we would expect 4 numerator == 1 at daily calculation
+  ppo <- estimatePointPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "days",
+    minCellCount = 0
+  )
+  expect_true(sum(ppo$numerator) == 6)
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+})

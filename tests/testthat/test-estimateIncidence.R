@@ -2280,4 +2280,384 @@ test_that("expected errors with mock", {
 
 })
 
+test_that("mock db: multiple observation periods", {
+  # create data for hypothetical people to test
+  personTable <- tibble::tibble(
+    person_id = c("1", "2"),
+    gender_concept_id = c("8507","8507"),
+    year_of_birth = c(1998,1976),
+    month_of_birth = c(02,06),
+    day_of_birth = c(12,01)
+  )
+
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id = c("1","2","3","4"),
+    person_id = c("1", "1", "2", "2"),
+    observation_period_start_date = c(
+      as.Date("2005-04-01"),
+      as.Date("2009-04-10"),
+      as.Date("2010-08-20"),
+      as.Date("2012-01-01")
+    ),
+    observation_period_end_date = c(
+      as.Date("2005-11-29"),
+      as.Date("2016-01-02"),
+      as.Date("2011-12-11"),
+      as.Date("2015-06-01")
+    )
+  )
+
+  conditionX <- tibble::tibble(
+    cohort_definition_id = c("1", "1"),
+    subject_id = c("1", "2"),
+    cohort_start_date = c(
+      as.Date("2002-07-19"),
+      as.Date("2010-12-11")
+    ),
+    cohort_end_date = c(
+      as.Date("2016-01-02"),
+      as.Date("2015-06-01")
+    )
+  )
+
+  outcomeTable <- tibble::tibble(
+    cohort_definition_id = c("1","1","1","1"),
+    subject_id = c("1","1","2", "2"),
+    cohort_start_date = c(
+      as.Date("2005-08-09"),
+      as.Date("2010-01-11"),
+      as.Date("2010-12-21"),
+      as.Date("2014-04-04")
+    ),
+    cohort_end_date = c(
+      as.Date("2005-08-09"),
+      as.Date("2010-01-11"),
+      as.Date("2010-12-21"),
+      as.Date("2014-04-04")
+
+    )
+  )
+
+  # should only pick up one of the four observation periods, as the inclusion of the cohorts is only well defined for one (entry event in the observation period)
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    strataTable = conditionX,
+    outcomeTable = outcomeTable
+  )
+
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm,
+    strataTable = "strata",
+    strataCohortId = "1"
+  )
+
+  incW0 <- estimateIncidence(cdm,
+                             denominatorTable = "denominator",
+                             outcomeTable = "outcome",
+                             repeatedEvents = TRUE,
+                             outcomeWashout = 0,
+                             completeDatabaseIntervals = FALSE,
+                             minCellCount = 0
+  )
+  # expect all events if we have zero days washout
+  expect_true(sum(incW0$n_events) == 1)
+  # expect a certain number of person_time days (intersection of observation periods and inclusion criteria)
+  expect_true(incW0 %>% dplyr::select(person_days) %>% sum() == as.numeric(difftime(as.Date("2011-12-11"),as.Date("2010-12-11"))) + 1)
+
+
+  # Change the inclusion so that both patients have valid observation periods. Now 1 should have two, and 2 one.
+  # Should capture the final part of the first observation period, and the initial part of the second for person 1
+  conditionX <- tibble::tibble(
+    cohort_definition_id = c("1", "1", "1"),
+    subject_id = c("1", "1", "2"),
+    cohort_start_date = c(
+      as.Date("2005-07-19"),
+      as.Date("2009-04-10"),
+      as.Date("2010-12-11")
+    ),
+    cohort_end_date = c(
+      as.Date("2005-08-11"),
+      as.Date("2015-01-02"),
+      as.Date("2011-12-11")
+    )
+  )
+
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    strataTable = conditionX,
+    outcomeTable = outcomeTable
+  )
+
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm,
+    strataTable = "strata",
+    strataCohortId = "1"
+  )
+
+  incW10 <- estimateIncidence(cdm,
+                              denominatorTable = "denominator",
+                              outcomeTable = "outcome",
+                              repeatedEvents = TRUE,
+                              outcomeWashout = 10,
+                              completeDatabaseIntervals = FALSE,
+                              minCellCount = 0
+  )
+  # expect all events if we have ten days washout
+  expect_true(sum(incW10$n_events) == 3)
+  # expect a certain number of person_time days (intersection of observation periods and inclusion criteria)
+  expect_true(incW10 %>% dplyr::select(person_days) %>% sum() == as.numeric(difftime(as.Date("2005-08-11"),as.Date("2005-07-19"))) + 1 -2 + as.numeric(difftime(as.Date("2015-01-02"),as.Date("2009-04-10"))) + 1 -10 + as.numeric(difftime(as.Date("2011-12-11"),as.Date("2010-12-11"))) + 1 -10)
+
+
+  # try event not counted for outcome but counted for washout as denominator (before observ period)
+  outcomeTable <- tibble::tibble(
+    cohort_definition_id = c("1","1","1","1","1"),
+    subject_id = c("1","1","1","2", "2"),
+    cohort_start_date = c(
+      as.Date("2005-07-11"),
+      as.Date("2005-08-09"),
+      as.Date("2010-01-11"),
+      as.Date("2010-12-21"),
+      as.Date("2014-04-04")
+    ),
+    cohort_end_date = c(
+      as.Date("2005-07-11"),
+      as.Date("2005-08-09"),
+      as.Date("2010-01-11"),
+      as.Date("2010-12-21"),
+      as.Date("2014-04-04")
+
+    )
+  )
+
+  # now we would expect same number of events, but three less days in the denominator
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    strataTable = conditionX,
+    outcomeTable = outcomeTable
+  )
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm,
+    strataTable = "strata",
+    strataCohortId = "1"
+  )
+  inc_PreWashout <- estimateIncidence(cdm,
+                                      denominatorTable = "denominator",
+                                      outcomeTable = "outcome",
+                                      repeatedEvents = TRUE,
+                                      outcomeWashout = 10,
+                                      completeDatabaseIntervals = FALSE,
+                                      minCellCount = 0
+  )
+  expect_true(sum(inc_PreWashout$n_events) == 3)
+  expect_true(inc_PreWashout %>% dplyr::select(person_days) %>% sum() == as.numeric(difftime(as.Date("2005-08-11"),as.Date("2005-07-19"))) + 1 -2 + as.numeric(difftime(as.Date("2015-01-02"),as.Date("2009-04-10"))) + 1 -10 + as.numeric(difftime(as.Date("2011-12-11"),as.Date("2010-12-11"))) + 1 -10 - 3)
+
+
+  # multiple events in one of the observation periods of person 1
+  conditionX <- tibble::tibble(
+    cohort_definition_id = c("1", "1", "1"),
+    subject_id = c("1", "1", "2"),
+    cohort_start_date = c(
+      as.Date("2005-06-19"),
+      as.Date("2009-04-10"),
+      as.Date("2010-12-11")
+    ),
+    cohort_end_date = c(
+      as.Date("2005-08-11"),
+      as.Date("2015-01-02"),
+      as.Date("2011-12-11")
+    )
+  )
+
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    strataTable = conditionX,
+    outcomeTable = outcomeTable
+  )
+
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm,
+    strataTable = "strata",
+    strataCohortId = "1"
+  )
+
+  inc_Mult1_W0 <- estimateIncidence(cdm,
+                                    denominatorTable = "denominator",
+                                    outcomeTable = "outcome",
+                                    repeatedEvents = TRUE,
+                                    outcomeWashout = 0,
+                                    completeDatabaseIntervals = FALSE,
+                                    minCellCount = 0
+  )
+
+
+
+
+  inc_Mult1_W30 <- estimateIncidence(cdm,
+                                     denominatorTable = "denominator",
+                                     outcomeTable = "outcome",
+                                     repeatedEvents = TRUE,
+                                     outcomeWashout = 30,
+                                     completeDatabaseIntervals = FALSE,
+                                     minCellCount = 0
+  )
+
+  # we should have 4 events with washout 0, but 3 events with washout 30
+  expect_true(sum(inc_Mult1_W0$n_events) == 4)
+  expect_true(sum(inc_Mult1_W30$n_events) == 3)
+  expect_true(inc_Mult1_W0 %>% dplyr::select(person_days) %>% sum() == as.numeric(difftime(as.Date("2005-08-11"),as.Date("2005-06-19"))) + 1 + as.numeric(difftime(as.Date("2015-01-02"),as.Date("2009-04-10"))) + 1 + as.numeric(difftime(as.Date("2011-12-11"),as.Date("2010-12-11"))) + 1)
+  expect_true(inc_Mult1_W30 %>% dplyr::select(person_days) %>% sum() == as.numeric(difftime(as.Date("2005-08-11"),as.Date("2005-06-19"))) -30 + as.numeric(difftime(as.Date("2015-01-02"),as.Date("2009-04-10"))) + 1 -30 + as.numeric(difftime(as.Date("2011-12-11"),as.Date("2010-12-11"))) + 1 - 30)
+
+
+  # The first event of person 1 will not be included in the observation period but should also influence the second event with the washout
+  conditionX <- tibble::tibble(
+    cohort_definition_id = c("1", "1", "1"),
+    subject_id = c("1", "1", "2"),
+    cohort_start_date = c(
+      as.Date("2005-07-19"),
+      as.Date("2009-04-10"),
+      as.Date("2010-12-11")
+    ),
+    cohort_end_date = c(
+      as.Date("2005-08-11"),
+      as.Date("2015-01-02"),
+      as.Date("2011-12-11")
+    )
+  )
+
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    strataTable = conditionX,
+    outcomeTable = outcomeTable
+  )
+
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm,
+    strataTable = "strata",
+    strataCohortId = "1"
+  )
+
+
+  inc_PreWashEv <- estimateIncidence(cdm,
+                                     denominatorTable = "denominator",
+                                     outcomeTable = "outcome",
+                                     repeatedEvents = TRUE,
+                                     outcomeWashout = 30,
+                                     completeDatabaseIntervals = FALSE,
+                                     minCellCount = 0
+  )
+
+  # we should have 2 events with washout 30
+  expect_true(sum(inc_PreWashEv$n_events) == 2)
+  expect_true(inc_PreWashEv %>% dplyr::select(person_days) %>% sum() == as.numeric(difftime(as.Date("2005-08-11"),as.Date("2005-07-19"))) -30 + 7 + as.numeric(difftime(as.Date("2015-01-02"),as.Date("2009-04-10"))) + 1 -30 + as.numeric(difftime(as.Date("2011-12-11"),as.Date("2010-12-11"))) + 1 - 30)
+
+
+  # three observation periods for 1 person and a couple of consecutive events lost to washout
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id = c("1","2","3","4"),
+    person_id = c("1", "1", "1", "2"),
+    observation_period_start_date = c(
+      as.Date("2005-04-01"),
+      as.Date("2009-04-10"),
+      as.Date("2010-08-20"),
+      as.Date("2012-01-01")
+    ),
+    observation_period_end_date = c(
+      as.Date("2005-11-29"),
+      as.Date("2010-01-02"),
+      as.Date("2011-12-11"),
+      as.Date("2015-06-01")
+    )
+  )
+
+  conditionX <- tibble::tibble(
+    cohort_definition_id = c("1","1","1","1"),
+    subject_id = c("1", "1", "1", "2"),
+    cohort_start_date = c(
+      as.Date("2005-04-01"),
+      as.Date("2009-06-10"),
+      as.Date("2010-08-20"),
+      as.Date("2010-01-01")
+    ),
+    cohort_end_date = c(
+      as.Date("2005-11-29"),
+      as.Date("2010-01-02"),
+      as.Date("2011-10-11"),
+      as.Date("2015-06-01")
+    )
+  )
+
+  outcomeTable <- tibble::tibble(
+    cohort_definition_id = c("1","1","1","1","1","1","1"),
+    subject_id = c("1","1","1","1","1","1","2"),
+    cohort_start_date = c(
+      as.Date("2005-08-09"),
+      as.Date("2005-08-10"),
+      as.Date("2005-08-11"),
+      as.Date("2009-11-11"),
+      as.Date("2009-11-21"),
+      as.Date("2010-12-21"),
+      as.Date("2014-04-04")
+    ),
+    cohort_end_date = c(
+      as.Date("2005-08-09"),
+      as.Date("2005-08-10"),
+      as.Date("2005-08-11"),
+      as.Date("2009-11-11"),
+      as.Date("2009-11-21"),
+      as.Date("2010-12-21"),
+      as.Date("2014-04-04")
+
+    )
+  )
+
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    strataTable = conditionX,
+    outcomeTable = outcomeTable
+  )
+
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm,
+    strataTable = "strata",
+    strataCohortId = "1"
+  )
+
+
+  inc_3op <- estimateIncidence(cdm,
+                               denominatorTable = "denominator",
+                               outcomeTable = "outcome",
+                               repeatedEvents = TRUE,
+                               outcomeWashout = 1,
+                               completeDatabaseIntervals = FALSE,
+                               minCellCount = 0
+  )
+
+  # we should have 4 events with washout 1
+  expect_true(sum(inc_3op$n_events) == 4)
+  expect_true(inc_3op %>% dplyr::select(person_days) %>% sum() == as.numeric(difftime(as.Date("2005-11-29"),as.Date("2005-04-01"))) -3 + 1 + as.numeric(difftime(as.Date("2010-01-02"),as.Date("2009-06-10"))) + 1 -2 + as.numeric(difftime(as.Date("2011-10-11"),as.Date("2010-08-20"))) + 1 - 1)
+
+  # try repeated events FALSE.
+  inc_repev <- estimateIncidence(cdm,
+                                 denominatorTable = "denominator",
+                                 outcomeTable = "outcome",
+                                 repeatedEvents = FALSE,
+                                 outcomeWashout = 1,
+                                 completeDatabaseIntervals = FALSE,
+                                 minCellCount = 0
+  )
+
+  # we should have 1 event, and the person only counting for the denom. up until the first event
+  expect_true(sum(inc_repev$n_events) == 1)
+  expect_true(inc_repev %>% dplyr::select(person_days) %>% sum() == as.numeric(difftime(as.Date("2005-08-09"),as.Date("2005-04-01"))) + 1)
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+})
+
 
