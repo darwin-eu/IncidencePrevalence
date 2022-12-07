@@ -24,9 +24,7 @@ getIncidence <- function(cdm,
                             outcomeWashout,
                             repeatedEvents,
                             verbose) {
-  if (verbose == TRUE) {
-    message("-- Getting incidence")
-  }
+
   if (!is.null(outcomeWashout)) {
     if (is.na(outcomeWashout)) {
       outcomeWashout <- NULL
@@ -79,8 +77,8 @@ getIncidence <- function(cdm,
       dplyr::mutate(outcome_prev_end_date = dplyr::if_else(
         is.na(.data$outcome_prev_end_date),
         .data$outcome_prev_end_date,
-        .data$outcome_prev_end_date +
-          lubridate::days(.env$outcomeWashoutPlusOne)
+        as.Date(.data$outcome_prev_end_date +
+          lubridate::days(.env$outcomeWashoutPlusOne))
       )) %>%
       dplyr::mutate(cohort_start_date = dplyr::if_else(
         is.na(.data$outcome_prev_end_date) |

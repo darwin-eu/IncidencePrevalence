@@ -310,6 +310,13 @@ estimateIncidence <- function(cdm,
 
   # get irs
   irsList <- lapply(studySpecs, function(x) {
+
+    if (verbose == TRUE) {
+      message(glue::glue(
+        "Getting incidence for {x$analysis_id} of {length(studySpecs)}"
+      ))
+    }
+
     workingInc <- getIncidence(
       cdm = cdm,
       denominatorTable = denominatorTable,
