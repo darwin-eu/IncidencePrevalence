@@ -15,12 +15,13 @@ test_that("mock db: check output format", {
   # check estimates tibble
   expect_true(all(c(
     "analysis_id",
-    "time",
-    "numerator", "denominator",
-    "prev",
-    "prev_low",
-    "prev_high",
-    "start_time", "end_time",
+    "n_cases",
+    "n_population",
+    "prevalence",
+    "prevalence_95CI_lower",
+    "prevalence_95CI_upper",
+    "prevalence_start_date",
+    "prevalence_end_date",
     "cohort_obscured",
     "result_obscured"
   ) %in%
@@ -210,7 +211,7 @@ test_that("mock db: check outcome lookback", {
     interval = "years",
     minCellCount = 0
   )
-  expect_true(all(prev$numerator == 0))
+  expect_true(all(prev$n_cases == 0))
 
   # with a lookback of 365 days
   # the person would be considered as a prevalent case at the start of 2009
@@ -224,16 +225,16 @@ test_that("mock db: check outcome lookback", {
     minCellCount = 0
   )
   expect_true((prev %>%
-                 dplyr::filter(time=="2008") %>%
-                 dplyr::select(numerator) %>%
+                 dplyr::filter(lubridate::year(prevalence_start_date)=="2008") %>%
+                 dplyr::select(n_cases) %>%
                  dplyr::pull() == 0))
   expect_true((prev %>%
-                 dplyr::filter(time=="2009") %>%
-                 dplyr::select(numerator) %>%
+                 dplyr::filter(lubridate::year(prevalence_start_date)=="2009") %>%
+                 dplyr::select(n_cases) %>%
                  dplyr::pull() == 1))
   expect_true((prev %>%
-                 dplyr::filter(time=="2010") %>%
-                 dplyr::select(numerator) %>%
+                 dplyr::filter(lubridate::year(prevalence_start_date)=="2010") %>%
+                 dplyr::select(n_cases) %>%
                  dplyr::pull() == 0))
 
   # with a NULL lookback
@@ -249,16 +250,16 @@ test_that("mock db: check outcome lookback", {
     minCellCount = 0
   )
   expect_true((prev %>%
-                 dplyr::filter(time=="2008") %>%
-                 dplyr::select(numerator) %>%
+                 dplyr::filter(lubridate::year(prevalence_start_date)=="2008") %>%
+                 dplyr::select(n_cases) %>%
                  dplyr::pull() == 0))
   expect_true((prev %>%
-                 dplyr::filter(time=="2009") %>%
-                 dplyr::select(numerator) %>%
+                 dplyr::filter(lubridate::year(prevalence_start_date)=="2009") %>%
+                 dplyr::select(n_cases) %>%
                  dplyr::pull() == 1))
   expect_true((prev %>%
-                 dplyr::filter(time=="2010") %>%
-                 dplyr::select(numerator) %>%
+                 dplyr::filter(lubridate::year(prevalence_start_date)=="2010") %>%
+                 dplyr::select(n_cases) %>%
                  dplyr::pull() == 1))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
@@ -332,17 +333,17 @@ test_that("mock db: check minimum counts", {
     type = "period",
     interval = "months"
   )
-  expect_true(prev$numerator[1] == 17)
-  expect_true(prev$numerator[2] == 3)
-  expect_true(prev$numerator[3] == 0)
-  expect_true(prev$denominator[1] == 20)
-  expect_true(prev$denominator[2] == 3)
-  expect_true(prev$denominator[3] == 3)
-  expect_true(!is.na(prev$prev[1]))
-  expect_true(!is.na(prev$prev[2]))
-  expect_true(!is.na(prev$prev[3]))
-  expect_true(!is.na(prev$prev_low[1]))
-  expect_true(!is.na(prev$prev_high[1]))
+  expect_true(prev$n_cases[1] == 17)
+  expect_true(prev$n_cases[2] == 3)
+  expect_true(prev$n_cases[3] == 0)
+  expect_true(prev$n_population[1] == 20)
+  expect_true(prev$n_population[2] == 3)
+  expect_true(prev$n_population[3] == 3)
+  expect_true(!is.na(prev$prevalence[1]))
+  expect_true(!is.na(prev$prevalence[2]))
+  expect_true(!is.na(prev$prevalence[3]))
+  expect_true(!is.na(prev$prevalence_95CI_lower[1]))
+  expect_true(!is.na(prev$prevalence_95CI_upper[1]))
 
   prev <- estimatePrevalence(
     cdm = cdm,
@@ -354,21 +355,21 @@ test_that("mock db: check minimum counts", {
     type = "period",
     interval = "months"
   )
-  expect_true(prev$numerator[1] == 17)
-  expect_true(is.na(prev$numerator[2]))
-  expect_true(is.na(prev$numerator[3]))
-  expect_true(prev$denominator[1] == 20)
-  expect_true(is.na(prev$denominator[2]))
-  expect_true(is.na(prev$denominator[3]))
-  expect_true(!is.na(prev$prev[1]))
-  expect_true(is.na(prev$prev[2]))
-  expect_true(is.na(prev$prev[3]))
-  expect_true(!is.na(prev$prev_low[1]))
-  expect_true(is.na(prev$prev_low[2]))
-  expect_true(is.na(prev$prev_low[3]))
-  expect_true(!is.na(prev$prev_high[1]))
-  expect_true(is.na(prev$prev_high[2]))
-  expect_true(is.na(prev$prev_high[3]))
+  expect_true(prev$n_cases[1] == 17)
+  expect_true(is.na(prev$n_cases[2]))
+  expect_true(is.na(prev$n_cases[3]))
+  expect_true(prev$n_population[1] == 20)
+  expect_true(is.na(prev$n_population[2]))
+  expect_true(is.na(prev$n_population[3]))
+  expect_true(!is.na(prev$prevalence[1]))
+  expect_true(is.na(prev$prevalence[2]))
+  expect_true(is.na(prev$prevalence[3]))
+  expect_true(!is.na(prev$prevalence_95CI_lower[1]))
+  expect_true(is.na(prev$prevalence_95CI_lower[2]))
+  expect_true(is.na(prev$prevalence_95CI_lower[3]))
+  expect_true(!is.na(prev$prevalence_95CI_upper[1]))
+  expect_true(is.na(prev$prevalence_95CI_upper[2]))
+  expect_true(is.na(prev$prevalence_95CI_upper[3]))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -544,7 +545,7 @@ test_that("mock db: check periods follow calendar dates", {
     completeDatabaseIntervals = FALSE
   )
   expect_true(nrow(prev1) == 4)
-  expect_true(all(prev1$time ==
+  expect_true(all(lubridate::year(prev1$prevalence_start_date) ==
                     c("2010", "2011", "2012", "2013")))
 
   prev2 <- estimatePrevalence(cdm,
@@ -559,7 +560,8 @@ test_that("mock db: check periods follow calendar dates", {
     completeDatabaseIntervals = TRUE
   )
   expect_true(nrow(prev2) == 2)
-  expect_true(all(prev2$time == c("2011", "2012")))
+  expect_true(all(lubridate::year(prev2$prevalence_start_date)==
+                    c("2011", "2012")))
 
   # for months
   cdm$denominator <- generateDenominatorCohortSet(
@@ -579,7 +581,7 @@ test_that("mock db: check periods follow calendar dates", {
     fullContribution = FALSE,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(prev$start_time[1] ==
+  expect_true(prev$prevalence_start_date[1] ==
                 as.Date("2011-01-15"))
   # where we expect the study to start the next month
   prev <- estimatePrevalence(cdm,
@@ -593,7 +595,7 @@ test_that("mock db: check periods follow calendar dates", {
     fullContribution = FALSE,
     completeDatabaseIntervals = TRUE
   )
-  expect_true(prev$start_time[1] ==
+  expect_true(prev$prevalence_start_date[1] ==
     as.Date("2011-02-01"))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
@@ -639,7 +641,7 @@ test_that("mock db: check multiple outcome ids", {
                             interval = "years",
                             minCellCount = 0
   )
-  expect_true(all(prev[["numerator"]] == 1))
+  expect_true(all(prev[["n_cases"]] == 1))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -941,7 +943,7 @@ test_that("mock db: multiple observation periods", {
     strataCohortId = "1"
   )
 
-  # should expect for period prevalence monthly 3 times with numerator 1, and denominator 1 only at inclusion criteria satisfaction
+  # should expect for period prevalence monthly 3 times with n_cases 1, and denominator 1 only at inclusion criteria satisfaction
   ppe <- estimatePeriodPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
@@ -949,8 +951,8 @@ test_that("mock db: multiple observation periods", {
     interval = "months",
     minCellCount = 0
   )
-  expect_true(sum(ppe$numerator) == 3)
-  expect_true(sum(ppe$denominator) == 8+8+14)
+  expect_true(sum(ppe$n_cases) == 3)
+  expect_true(sum(ppe$n_population) == 8+8+14)
 
   # same if we look back 1 day, as some repeated events at month 8 disappear but the person still has an outcome then
   ppe <- estimatePeriodPrevalence(
@@ -961,7 +963,7 @@ test_that("mock db: multiple observation periods", {
     minCellCount = 0,
     outcomeLookbackDays = 1
   )
-  expect_true(sum(ppe$numerator) == 3)
+  expect_true(sum(ppe$n_cases) == 3)
 
   # if we look back 365 days, all outcomes count monthly for a whole year after their onset, so we should see 4+3+14
   ppe <- estimatePeriodPrevalence(
@@ -972,9 +974,9 @@ test_that("mock db: multiple observation periods", {
     minCellCount = 0,
     outcomeLookbackDays = 365
   )
-  expect_true(sum(ppe$numerator) == 21)
+  expect_true(sum(ppe$n_cases) == 21)
 
-  # as for point prevalence, we would expect no positive numerator at default
+  # as for point prevalence, we would expect no positive n_cases at default
   ppo <- estimatePointPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
@@ -982,9 +984,9 @@ test_that("mock db: multiple observation periods", {
     interval = "months",
     minCellCount = 0
   )
-  expect_true(sum(ppo$numerator) == 0)
+  expect_true(sum(ppo$n_cases) == 0)
 
-  # we would expect 4 numerator == 1 at daily calculation
+  # we would expect 4 n_cases == 1 at daily calculation
   ppo <- estimatePointPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
@@ -992,7 +994,7 @@ test_that("mock db: multiple observation periods", {
     interval = "days",
     minCellCount = 0
   )
-  expect_true(sum(ppo$numerator) == 6)
+  expect_true(sum(ppo$n_cases) == 6)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
@@ -1014,13 +1016,13 @@ test_that("mock db: check confidence intervals", {
   )
 
   # compare our wilson CIs with those from Hmisc
-  hmisc_ci <-  Hmisc::binconf(prev$numerator, prev$denominator,
+  hmisc_ci <-  Hmisc::binconf(prev$n_cases, prev$n_population,
                               alpha=0.05,
                               method=c("wilson"),
                               return.df=TRUE)
-  expect_equal(prev$prev_low, hmisc_ci$Lower,
+  expect_equal(prev$prevalence_95CI_lower, hmisc_ci$Lower,
                tolerance = 1e-2)
-  expect_equal(prev$prev_high, hmisc_ci$Upper,
+  expect_equal(prev$prevalence_95CI_upper, hmisc_ci$Upper,
                tolerance = 1e-2)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)

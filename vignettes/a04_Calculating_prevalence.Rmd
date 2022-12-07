@@ -94,7 +94,7 @@ prev %>%
   glimpse()
 
 prev %>%
-  ggplot(aes(time, prev)) +
+  ggplot(aes(prevalence_start_date, prevalence)) +
   geom_point() +
   scale_y_continuous(
     labels = scales::percent,
@@ -117,7 +117,7 @@ prev %>%
   glimpse()
 
 prev %>%
-  ggplot(aes(start_time, prev)) +
+  ggplot(aes(prevalence_start_date, prevalence)) +
   geom_point() +
   scale_y_continuous(
     labels = scales::percent,
@@ -143,7 +143,8 @@ prev %>%
 
 prev %>%
   left_join(attributes(prev)$settings)%>%
-  ggplot(aes(time, prev, colour=analysis_time_point)) +
+  ggplot(aes(prevalence_start_date, prevalence, 
+             colour=analysis_time_point)) +
   geom_point() +
   scale_y_continuous(
     labels = scales::percent,
@@ -168,7 +169,7 @@ prev %>%
   glimpse()
 
 prev %>%
-  ggplot(aes(start_time, prev)) +
+  ggplot(aes(prevalence_start_date, prevalence)) +
   geom_point() +
   scale_y_continuous(
     labels = scales::percent,
@@ -192,7 +193,7 @@ prev %>%
   glimpse()
 
 prev %>%
-  ggplot(aes(start_time, prev)) +
+  ggplot(aes(prevalence_start_date, prevalence)) +
   geom_point() +
   scale_y_continuous(
     labels = scales::percent,
@@ -219,7 +220,7 @@ prev %>%
 
 prev %>%
   left_join(attributes(prev)$settings)%>%
-  ggplot(aes(start_time, prev, colour=analysis_full_contribution)) +
+  ggplot(aes(prevalence_start_date, prevalence, colour=analysis_full_contribution)) +
   geom_point() +
   scale_y_continuous(
     labels = scales::percent,
@@ -247,7 +248,7 @@ prev %>%
 prev %>%
   left_join(attributes(prev)$settings)%>%
   mutate(analysis_outcome_lookback_days= factor(analysis_outcome_lookback_days))%>%
-  ggplot(aes(start_time, prev, colour=analysis_outcome_lookback_days)) +
+  ggplot(aes(prevalence_start_date, prevalence, colour=analysis_outcome_lookback_days)) +
   geom_point() +
   scale_y_continuous(
     labels = scales::percent,

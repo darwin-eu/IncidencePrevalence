@@ -100,7 +100,7 @@ getStudyDays <- function(startDate,
         dplyr::rename("time" = .env$timeInterval) %>%
         dplyr::mutate(time = as.character(.data$time)) %>%
         dplyr::select("time", "start_time") %>%
-        dplyr::mutate(end_time = as.Date(NA)) %>%
+        dplyr::mutate(end_time = .data$start_time) %>%
         dplyr::filter(.data$start_time >= startDate)
   } else {
     studyDays <- dplyr::tibble(dates = seq.Date(

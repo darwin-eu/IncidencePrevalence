@@ -420,10 +420,14 @@ estimatePrevalence <- function(cdm,
   # get confidence intervals
   if (nrow(prs) > 0) {
     prs <- prs %>%
-      dplyr::bind_cols(binomialCiWilson(prs$numerator,
-                                          prs$denominator)) %>%
-      dplyr::relocate("prev_low", .after = "prev") %>%
-      dplyr::relocate("prev_high", .after = "prev_low")
+      dplyr::relocate("prevalence_start_date", .after = "analysis_id") %>%
+      dplyr::relocate("prevalence_end_date", .after = "prevalence_start_date")
+
+    prs <- prs %>%
+      dplyr::bind_cols(binomialCiWilson(prs$n_cases,
+                                          prs$n_population)) %>%
+      dplyr::relocate("prevalence_95CI_lower", .after = "prevalence") %>%
+      dplyr::relocate("prevalence_95CI_upper", .after = "prevalence_95CI_lower")
 
     # obscure counts
     prs <- obscureCounts(prs,
@@ -466,6 +470,6 @@ binomialCiWilson <- function(x, n) {
   z <- stats::qnorm(1-alpha/2)
   t_1 <- (x + z^2/2)/(n + z^2)
   t_2 <- z*sqrt(n)/(n + z^2)*sqrt(p*q + z^2/(4*n))
-  return(tibble::tibble(prev_low = t_1 - t_2,
-                        prev_high = t_1 + t_2))
+  return(tibble::tibble(prevalence_95CI_lower = t_1 - t_2,
+                        prevalence_95CI_upper = t_1 + t_2))
 }
