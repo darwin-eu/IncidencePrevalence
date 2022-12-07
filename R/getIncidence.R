@@ -74,11 +74,13 @@ getIncidence <- function(cdm,
       dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
   } else {
     # otherwise add the washout to the previous outcome
+    outcomeWashoutPlusOne<-outcomeWashout + 1
     studyPopOutcome <- studyPopOutcome %>%
       dplyr::mutate(outcome_prev_end_date = dplyr::if_else(
         is.na(.data$outcome_prev_end_date),
         .data$outcome_prev_end_date,
-        .data$outcome_prev_end_date + lubridate::days(.env$outcomeWashout + 1)
+        .data$outcome_prev_end_date +
+          lubridate::days(.env$outcomeWashoutPlusOne)
       )) %>%
       dplyr::mutate(cohort_start_date = dplyr::if_else(
         is.na(.data$outcome_prev_end_date) |
