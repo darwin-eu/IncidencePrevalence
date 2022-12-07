@@ -420,7 +420,7 @@ estimatePrevalence <- function(cdm,
   # get confidence intervals
   if (nrow(prs) > 0) {
     prs <- prs %>%
-      dplyr::bind_cols(binomial_ci_wilson(prs$numerator,
+      dplyr::bind_cols(binomialCiWilson(prs$numerator,
                                           prs$denominator)) %>%
       dplyr::relocate("prev_low", .after = "prev") %>%
       dplyr::relocate("prev_high", .after = "prev_low")
@@ -459,7 +459,7 @@ estimatePrevalence <- function(cdm,
 
 
 
-binomial_ci_wilson <- function(x, n) {
+binomialCiWilson <- function(x, n) {
   alpha <- 0.05
   p <- x/n
   q <- 1 - p

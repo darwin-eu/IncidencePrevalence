@@ -11,7 +11,6 @@ test_that("mock db: check output format", {
     outcomeWashout = 0,
     repeatedEvents = FALSE,
     interval = c("months"),
-    confidenceInterval = "none",
     verbose = TRUE
   )
 
@@ -22,7 +21,6 @@ test_that("mock db: check output format", {
     "analysis_repeated_events",
     "analysis_interval",
     "analysis_complete_database_intervals",
-    "analysis_confidence_interval",
     "analysis_min_cell_count",
     "outcome_cohort_id",
     "denominator_cohort_id",
@@ -2659,5 +2657,36 @@ test_that("mock db: multiple observation periods", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
 })
+
+test_that("mock db: check confidence intervals", {
+
+  cdm <- mockIncidencePrevalenceRef(
+    sampleSize = 10000
+  )
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm,
+    startDate = as.Date("2008-01-01"),
+    endDate = as.Date("2011-01-01")
+  )
+  inc <- estimateIncidence(cdm,
+                             denominatorTable = "denominator",
+                             outcomeTable = "outcome",
+                             interval = "years",
+                             repeatedEvents = TRUE,
+                             outcomeWashout = 0,
+                             minCellCount = 0,
+                             completeDatabaseIntervals = TRUE
+  )
+
+  expect_equal(inc$ir_100000_pys_low,
+               epitools::pois.exact(inc$n_events,inc$person_years)$lower * 100000,
+               tolerance = 1e-2)
+  expect_equal(inc$ir_100000_pys_high,
+               epitools::pois.exact(inc$n_events,inc$person_years)$upper * 100000,
+               tolerance = 1e-2)
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
 
 

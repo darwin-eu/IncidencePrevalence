@@ -48,9 +48,6 @@
 #' present in an outcome cohort and any subsequent washout will be
 #' excluded). If FALSE, an individual will only contribute time up to their
 #' first event during the study period.
-#' @param confidenceInterval The method used for calculating confidence
-#' intervals. Options are "poisson" or "none" (in which case no estimates will
-#' be calculated).
 #' @param minCellCount The minimum number of events to reported, below which
 #' results will be obscured. If 0, all results will be reported.
 #' @param verbose Either TRUE or FALSE. If TRUE, progress will be reported.
@@ -86,7 +83,6 @@ estimateIncidence <- function(cdm,
                               completeDatabaseIntervals = TRUE,
                               outcomeWashout = 0,
                               repeatedEvents = FALSE,
-                              confidenceInterval = "poisson",
                               minCellCount = 5,
                               verbose = FALSE) {
   if (verbose == TRUE) {
@@ -104,9 +100,6 @@ estimateIncidence <- function(cdm,
   }
   if (is.character(interval)) {
     interval <- tolower(interval)
-  }
-  if (is.character(confidenceInterval)) {
-    confidenceInterval <- tolower(confidenceInterval)
   }
 
   ## check for standard types of user error
@@ -162,11 +155,6 @@ estimateIncidence <- function(cdm,
   )
   checkmate::assert_logical(repeatedEvents,
     add = errorMessage
-  )
-  checkmate::assert_choice(confidenceInterval,
-    choices = c("none", "poisson"),
-    add = errorMessage,
-    null.ok = TRUE
   )
   checkmate::assert_number(minCellCount)
   checkmate::assert_logical(verbose,
@@ -308,8 +296,7 @@ estimateIncidence <- function(cdm,
     interval = interval,
     complete_database_intervals = completeDatabaseIntervals,
     outcome_washout = outcomeWashout,
-    repeated_events = repeatedEvents,
-    confidence_interval = confidenceInterval
+    repeated_events = repeatedEvents
   )
   if (is.null(outcomeWashout)) {
     studySpecs$outcome_washout <- NA
@@ -351,7 +338,6 @@ estimateIncidence <- function(cdm,
         analysis_interval = x$interval,
         analysis_outcome_washout = x$outcome_washout,
         analysis_repeated_events = x$repeated_events,
-        analysis_confidence_interval = .env$confidenceInterval,
         analysis_min_cell_count = .env$minCellCount,
         analysis_id = x$analysis_id
       ) %>%
@@ -408,9 +394,9 @@ estimateIncidence <- function(cdm,
 
   # get confidence intervals
   if (nrow(irs) > 0) {
-    irs <- getCiIncidence(irs, confidenceInterval) %>%
-      dplyr::relocate("ir_100000_pys_low", .after = "ir_100000_pys") %>%
-      dplyr::relocate("ir_100000_pys_high", .after = "ir_100000_pys_low")
+    irs <-irs %>%
+      dplyr::bind_cols(IncRateCiExact(irs$n_events,
+                                   irs$person_years))
 
     # obscure counts
     irs <- obscureCounts(irs, minCellCount = minCellCount, substitute = NA)
@@ -451,4 +437,15 @@ estimateIncidence <- function(cdm,
     ))
   }
   return(irs)
+}
+
+
+
+IncRateCiExact<-function(ev, pt){
+
+return(tibble::tibble(
+  ir_100000_pys_low = ((stats::qchisq(p = 0.025, df = 2 * ev) / 2) / pt)*100000,
+  ir_100000_pys_high = ((stats::qchisq(p = 0.975, df = 2 * (ev + 1)) / 2) / pt)*100000)
+    )
+
 }
