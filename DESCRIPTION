@@ -46,6 +46,8 @@ Suggests:
     duckdb,
     odbc,
     here,
+    Hmisc,
+    epitools,
     testthat (>= 3.0.0),
     spelling
 Remotes:  

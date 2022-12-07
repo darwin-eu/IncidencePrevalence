@@ -197,7 +197,7 @@ In the examples above, we have used calculated incidence rates by months and yea
 
 Given that we can set estimateIncidence() to exclude individuals based on other parameters (e.g., outcomeWashout), it is important to note that the denominator population used to compute incidence rates might differ from the one calculated with `generateDenominatorCohortSet()`. By default, the population contributing to an analysis will be returned (see section "Output"), but it can be hided by setting returnAnalysisCohort=FALSE.
 
-The user can also set the minimum number of events to be reported, below which results will be obscured. By default, results with <5 occurrences are blinded, but if minCellCount=0, all results will be reported. By default, the 95 % confidence intervals are calculated using a Poisson distribution. If we set confidenceInterval="none", no estimates will be provided. In addition, we can set verbose=TRUE to report progress as code is running. By default, no progress is reported (verbose=FALSE). 
+The user can also set the minimum number of events to be reported, below which results will be obscured. By default, results with <5 occurrences are blinded, but if minCellCount=0, all results will be reported. 95 % confidence intervals are calculated using the exact method. We can set verbose=TRUE to report progress as code is running. By default, no progress is reported (verbose=FALSE). 
 
 ```{r, message=TRUE, warning=FALSE}
 inc <- estimateIncidence(
@@ -208,7 +208,6 @@ inc <- estimateIncidence(
   completeDatabaseIntervals = FALSE,
   outcomeWashout = 180,
   repeatedEvents = TRUE,
-  confidenceInterval="none",
   minCellCount = 0,
   verbose = TRUE
 )

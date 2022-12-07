@@ -14,7 +14,6 @@ estimatePeriodPrevalence(
   interval = "months",
   completeDatabaseIntervals = TRUE,
   fullContribution = FALSE,
-  confidenceInterval = "binomial",
   minCellCount = 5,
   verbose = FALSE
 )
@@ -56,11 +55,6 @@ period start dates, respectively).}
 included if they in the database for the entire interval of interest. If
 FALSE they are only required to present for one day of the interval in
 order to contribute.}
-
-\item{confidenceInterval}{The method used for calculating confidence
-intervals. Options are "binomial" or "none" (in which case no estimates
-will
-be calculated).}
 
 \item{minCellCount}{Minimum number of events to report- results
 lower than this will be obscured. If NULL all results will be reported.}

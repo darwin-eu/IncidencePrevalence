@@ -42,7 +42,6 @@
 #' captures all the interval (based on the earliest and latest observation
 #' period start dates, respectively).
 #' @param timePoint where to compute the point prevalence
-#' @param confidenceInterval Method for confidence intervals
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
 #' @param verbose Whether to report progress
@@ -79,7 +78,6 @@ estimatePointPrevalence <- function(cdm,
                                     interval = "months",
                                     completeDatabaseIntervals = TRUE,
                                     timePoint = "start",
-                                    confidenceInterval = "binomial",
                                     minCellCount = 5,
                                     verbose = FALSE) {
 
@@ -94,7 +92,6 @@ estimatePointPrevalence <- function(cdm,
                      completeDatabaseIntervals = completeDatabaseIntervals,
                      fullContribution = FALSE,
                      timePoint = timePoint,
-                     confidenceInterval = confidenceInterval,
                      minCellCount = minCellCount,
                      verbose = verbose)
 }
@@ -130,10 +127,6 @@ estimatePointPrevalence <- function(cdm,
 #' included if they in the database for the entire interval of interest. If
 #' FALSE they are only required to present for one day of the interval in
 #' order to contribute.
-#' @param confidenceInterval The method used for calculating confidence
-#' intervals. Options are "binomial" or "none" (in which case no estimates
-#' will
-#' be calculated).
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
 #' @param verbose Whether to report progress
@@ -170,7 +163,6 @@ estimatePeriodPrevalence <- function(cdm,
                                     interval = "months",
                                     completeDatabaseIntervals = TRUE,
                                     fullContribution = FALSE,
-                                    confidenceInterval = "binomial",
                                     minCellCount = 5,
                                     verbose = FALSE) {
 
@@ -185,7 +177,6 @@ estimatePrevalence(cdm = cdm,
                      completeDatabaseIntervals = completeDatabaseIntervals,
                      fullContribution = fullContribution,
                      timePoint = "start",
-                     confidenceInterval = confidenceInterval,
                      minCellCount = minCellCount,
                      verbose = verbose)
 }
@@ -201,7 +192,6 @@ estimatePrevalence <- function(cdm,
                                completeDatabaseIntervals = TRUE,
                                fullContribution = FALSE,
                                timePoint = "start",
-                               confidenceInterval = "binomial",
                                minCellCount = 5,
                                verbose = FALSE) {
   if (verbose == TRUE) {
@@ -222,9 +212,6 @@ estimatePrevalence <- function(cdm,
   }
   if (is.character(interval)) {
     interval <- tolower(interval)
-  }
-  if (is.character(confidenceInterval)) {
-    confidenceInterval <- tolower(confidenceInterval)
   }
   if (is.character(timePoint)) {
     timePoint <- tolower(timePoint)
@@ -300,11 +287,6 @@ estimatePrevalence <- function(cdm,
   checkmate::assert_logical(completeDatabaseIntervals,
     add = errorMessage
   )
-  checkmate::assert_choice(confidenceInterval,
-    choices = c("none", "binomial"),
-    add = errorMessage,
-    null.ok = TRUE
-  )
   # report initial assertions
   checkmate::reportAssertions(collection = errorMessage)
 
@@ -378,8 +360,8 @@ estimatePrevalence <- function(cdm,
         dplyr::relocate("analysis_id")
     }
 
-    workingPrevAnalysisSettings <- workingPrev[["analysis_settings"]] %>%
-      dplyr::mutate(
+    workingPrevAnalysisSettings <- tibble::tibble(
+        analysis_id = x$analysis_id,
         outcome_cohort_id = x$outcomeCohortId,
         denominator_cohort_id = x$denominatorCohortId,
         analysis_outcome_lookback_days  = x$outcomeLookbackDays,
@@ -388,11 +370,8 @@ estimatePrevalence <- function(cdm,
         analysis_complete_database_intervals = x$completeDatabaseIntervals,
         analysis_time_point = x$timePoint,
         analysis_full_contribution = x$fullContribution,
-        analysis_confidence_interval = confidenceInterval,
-        analysis_min_cell_count = minCellCount,
-        analysis_id = x$analysis_id
-      ) %>%
-      dplyr::relocate("analysis_id")
+        analysis_min_cell_count = minCellCount
+      )
 
     workingPrevAttrition <- workingPrev[["attrition"]] %>%
       dplyr::mutate(analysis_id = x$analysis_id) %>%
@@ -440,7 +419,9 @@ estimatePrevalence <- function(cdm,
 
   # get confidence intervals
   if (nrow(prs) > 0) {
-    prs <- getCiPrevalence(prs, confidenceInterval) %>%
+    prs <- prs %>%
+      dplyr::bind_cols(binomialCiWilson(prs$numerator,
+                                          prs$denominator)) %>%
       dplyr::relocate("prev_low", .after = "prev") %>%
       dplyr::relocate("prev_high", .after = "prev_low")
 
@@ -474,4 +455,17 @@ estimatePrevalence <- function(cdm,
   }
 
   return(prs)
+}
+
+
+
+binomialCiWilson <- function(x, n) {
+  alpha <- 0.05
+  p <- x/n
+  q <- 1 - p
+  z <- stats::qnorm(1-alpha/2)
+  t_1 <- (x + z^2/2)/(n + z^2)
+  t_2 <- z*sqrt(n)/(n + z^2)*sqrt(p*q + z^2/(4*n))
+  return(tibble::tibble(prev_low = t_1 - t_2,
+                        prev_high = t_1 + t_2))
 }

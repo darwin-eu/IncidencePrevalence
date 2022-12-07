@@ -14,7 +14,6 @@ estimatePointPrevalence(
   interval = "months",
   completeDatabaseIntervals = TRUE,
   timePoint = "start",
-  confidenceInterval = "binomial",
   minCellCount = 5,
   verbose = FALSE
 )
@@ -53,8 +52,6 @@ captures all the interval (based on the earliest and latest observation
 period start dates, respectively).}
 
 \item{timePoint}{where to compute the point prevalence}
-
-\item{confidenceInterval}{Method for confidence intervals}
 
 \item{minCellCount}{Minimum number of events to report- results
 lower than this will be obscured. If NULL all results will be reported.}
