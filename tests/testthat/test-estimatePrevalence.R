@@ -9,8 +9,7 @@ test_that("mock db: check output format", {
     denominatorTable = "denominator",
     denominatorCohortId = "1",
     outcomeTable = "outcome",
-    outcomeCohortId = "1",
-    confidenceInterval = "none"
+    outcomeCohortId = "1"
   )
 
   # check estimates tibble
@@ -36,7 +35,6 @@ test_that("mock db: check output format", {
     "analysis_interval",
     "analysis_full_contribution",
     "analysis_complete_database_intervals",
-    "analysis_confidence_interval",
     "analysis_min_cell_count",
     "denominator_cohort_id",
     "denominator_age_group",
@@ -332,8 +330,7 @@ test_that("mock db: check minimum counts", {
     denominatorCohortId = "1",
     minCellCount = 0,
     type = "period",
-    interval = "months",
-    confidenceInterval = "binomial"
+    interval = "months"
   )
   expect_true(prev$numerator[1] == 17)
   expect_true(prev$numerator[2] == 3)
@@ -355,8 +352,7 @@ test_that("mock db: check minimum counts", {
     denominatorCohortId = "1",
     minCellCount = 5,
     type = "period",
-    interval = "months",
-    confidenceInterval = "binomial"
+    interval = "months"
   )
   expect_true(prev$numerator[1] == 17)
   expect_true(is.na(prev$numerator[2]))
@@ -814,16 +810,14 @@ test_that("mock db: check user point prevalence function", {
     denominatorTable = "denominator",
     denominatorCohortId = "1",
     outcomeTable = "outcome",
-    outcomeCohortId = "1",
-    confidenceInterval = "none"
+    outcomeCohortId = "1"
   )
   prev_point <- estimatePointPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
     denominatorCohortId = "1",
     outcomeTable = "outcome",
-    outcomeCohortId = "1",
-    confidenceInterval = "none"
+    outcomeCohortId = "1"
   )
 
   expect_true(all(names(prev)==names(prev_point)))
@@ -846,16 +840,14 @@ test_that("mock db: check user period prevalence function", {
     denominatorTable = "denominator",
     denominatorCohortId = "1",
     outcomeTable = "outcome",
-    outcomeCohortId = "1",
-    confidenceInterval = "none"
+    outcomeCohortId = "1"
   )
   prev_period <- estimatePeriodPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
     denominatorCohortId = "1",
     outcomeTable = "outcome",
-    outcomeCohortId = "1",
-    confidenceInterval = "none"
+    outcomeCohortId = "1"
   )
 
   expect_true(all(names(prev)==names(prev_period)))
@@ -1004,4 +996,32 @@ test_that("mock db: multiple observation periods", {
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
+})
+
+
+
+test_that("mock db: check confidence intervals", {
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm
+  )
+  prev <- estimatePrevalence(cdm,
+                             denominatorTable = "denominator",
+                             outcomeTable = "outcome",
+                             type = "point",
+                             interval = "years",
+                             minCellCount = 0
+  )
+
+  # compare our wilson CIs with those from Hmisc
+  hmisc_ci <-  Hmisc::binconf(prev$numerator, prev$denominator,
+                              alpha=0.05,
+                              method=c("wilson"),
+                              return.df=TRUE)
+  expect_equal(prev$prev_low, hmisc_ci$Lower,
+               tolerance = 1e-2)
+  expect_equal(prev$prev_high, hmisc_ci$Upper,
+               tolerance = 1e-2)
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })

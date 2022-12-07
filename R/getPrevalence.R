@@ -157,22 +157,12 @@ getPrevalence <- function(cdm,
   pr <- dplyr::bind_rows(pr)
   }
 
-  # study design related variables
-  analysisSettings <- tibble::tibble(
-    type = .env$type,
-    time_point = .env$timePoint,
-    interval = .env$interval,
-    full_contribution = .env$fullContribution,
-    full_periods_required = .env$completeDatabaseIntervals
-  )
-
   studyPop <- studyPop %>%
     dplyr::select("subject_id", "cohort_start_date") %>%
     dplyr::distinct()
 
   results <- list()
   results[["pr"]] <- pr
-  results[["analysis_settings"]] <- analysisSettings
   results[["person_table"]] <- studyPop
   results[["attrition"]] <- tibble::tibble(attrition = "attrition")
 
