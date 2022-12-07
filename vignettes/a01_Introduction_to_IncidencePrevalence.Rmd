@@ -74,7 +74,7 @@ prev %>%
   glimpse()
 
 prev %>%
-  ggplot(aes(start_time, prev)) +
+  ggplot(aes(prevalence_start_date, prevalence)) +
   geom_point() +
   scale_y_continuous(
     labels = scales::percent,

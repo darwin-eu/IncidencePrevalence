@@ -121,14 +121,14 @@ getPrevalence <- function(cdm,
           )
       )
 
-    denominator <- workingPop %>%
+    n_population <- workingPop %>%
       dplyr::select("subject_id") %>%
       dplyr::distinct() %>%
       dplyr::count() %>%
       dplyr::pull()
 
     if(!is.null(outcomeLookbackDays)){
-      numerator <- workingPop %>%
+      n_cases <- workingPop %>%
         dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
         dplyr::filter(.data$outcome_end_date >= (
           !!CDMConnector::dateadd("t_start_date", -{{outcomeLookbackDays}},
@@ -138,7 +138,7 @@ getPrevalence <- function(cdm,
         dplyr::count() %>%
         dplyr::pull()
     } else {
-      numerator <- workingPop %>%
+      n_cases <- workingPop %>%
         dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
         dplyr::select("subject_id") %>%
         dplyr::distinct() %>%
@@ -147,11 +147,13 @@ getPrevalence <- function(cdm,
     }
 
     pr[[paste0(i)]] <- studyDays[i, ] %>%
-      dplyr::mutate(numerator = .env$numerator) %>%
-      dplyr::mutate(denominator = .env$denominator) %>%
-      dplyr::mutate(prev = .env$numerator / .env$denominator) %>%
-      dplyr::select("time", "numerator", "denominator",
-                    "prev", "start_time", "end_time")
+      dplyr::mutate(n_cases = .env$n_cases) %>%
+      dplyr::mutate(n_population = .env$n_population) %>%
+      dplyr::mutate(prevalence = .env$n_cases / .env$n_population) %>%
+      dplyr::select("n_cases", "n_population",
+                    "prevalence", "start_time", "end_time") %>%
+      dplyr::rename( "prevalence_start_date" = "start_time") %>%
+      dplyr::rename( "prevalence_end_date" = "end_time")
   }
 
   pr <- dplyr::bind_rows(pr)
