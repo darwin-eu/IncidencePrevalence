@@ -1541,7 +1541,6 @@ test_that("mock db: check full period requirement - month", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortId = "1",
     outcomeWashout = NULL,
     repeatedEvents = TRUE,
     interval = c("Months"),
@@ -2178,7 +2177,6 @@ test_that("mock db: check messages when vebose is true", {
   expect_message(estimateIncidence(cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortId = "1",
     verbose = TRUE
   ))
 

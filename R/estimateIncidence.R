@@ -90,10 +90,6 @@ estimateIncidence <- function(cdm,
     message("Progress: Checking inputs")
   }
   # help to avoid formatting errors
-  if (!is.null(denominatorCohortId) &&
-    is.numeric(denominatorCohortId)) {
-    denominatorCohortId <- as.character(denominatorCohortId)
-  }
   if (is.character(interval)) {
     interval <- tolower(interval)
   }
@@ -118,7 +114,7 @@ estimateIncidence <- function(cdm,
       "- `denominatorTable` is not found in cdm"
     )
   }
-  checkmate::assert_character(denominatorCohortId,
+  checkmate::assertIntegerish(denominatorCohortId,
     add = errorMessage,
     null.ok = TRUE
   )
@@ -131,6 +127,10 @@ estimateIncidence <- function(cdm,
       "- `outcomeTable` is not found in cdm"
     )
   }
+  checkmate::assertIntegerish(outcomeCohortId,
+                              add = errorMessage,
+                              null.ok = TRUE
+  )
   checkmate::assert_choice(interval,
     choices = c(
       "weeks", "months", "quarters", "years",

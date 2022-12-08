@@ -38,23 +38,10 @@ gatherResults <- function(resultList, outcomeCohortId=NULL,
                              null.ok = TRUE,
                              add = errorMessage
   )
-  if(!is.null(outcomeCohortId)){
-  # get type of id var
-  idType<-list()
-  for(i in seq_along(resultList)){
-    idType[[i]] <-typeof(settings(resultList[[i]])$outcome_cohort_id)
-  }
-  idType<-unlist(idType)
-  # check same type is given so we can join later
-  idTypeCheck <- all(typeof(outcomeCohortId)==idType)
-  checkmate::assertTRUE(idTypeCheck,
-                        add = errorMessage)
-  if (!isTRUE(idTypeCheck)) {
-    errorMessage$push(
-      "- outcomeCohortId must be the same type as outcome_cohort_id in the result object"
-    )
-  }
-  }
+  checkmate::assertIntegerish(outcomeCohortId,
+                              add = errorMessage,
+                              null.ok = TRUE
+  )
   if(!is.null(outcomeCohortId)){
     checkmate::assertTRUE(length(outcomeCohortId)==length(outcomeCohortName))
   }

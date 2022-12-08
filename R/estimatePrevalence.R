@@ -199,10 +199,6 @@ estimatePrevalence <- function(cdm,
     message("Progress: Checking inputs")
   }
   # help to avoid formatting errors
-  if (!is.null(denominatorCohortId) &&
-    is.numeric(denominatorCohortId)) {
-    denominatorCohortId <- as.character(denominatorCohortId)
-  }
   if (is.character(type)) {
     type <- tolower(type)
   }
@@ -233,7 +229,7 @@ estimatePrevalence <- function(cdm,
       "- `denominatorTable` is not found in cdm"
     )
   }
-  checkmate::assert_character(denominatorCohortId,
+  checkmate::assertIntegerish(denominatorCohortId,
     add = errorMessage,
     null.ok = TRUE
   )

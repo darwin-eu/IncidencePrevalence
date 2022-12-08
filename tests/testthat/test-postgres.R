@@ -43,11 +43,11 @@ inc2 <- estimateIncidence(
   verbose = TRUE
 )
 
-resultList<-list(pont_prev, period_prev, inc, inc2)
-results<-gatherResults(resultList=list(prev1, prev2, inc1, inc2),
+results<-gatherResults(resultList=list(pont_prev, period_prev, inc, inc2),
                        outcomeCohortName="test_sample",
                        outcomeCohortId = 1,
                        databaseName="test_database")
-expect_true(all(names(results)==c("prevalence_estimates", "incidence_estimates")))
+expect_true(all(names(results)==c("prevalence_estimates",
+                                  "incidence_estimates")))
 
 })

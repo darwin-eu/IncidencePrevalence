@@ -684,24 +684,6 @@ test_that("mock db: some empty result sets", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
-test_that("mock db: check conversion of user inputs", {
-  cdm <- mockIncidencePrevalenceRef()
-
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
-
-  prev <- estimatePrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    outcomeCohortId = 1,
-    denominatorCohortId = 1,
-  )
-  expect_true(nrow(prev) >= 1)
-
-
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-})
-
 test_that("mock db: check messages when vebose is true", {
   outcomeTable <- tibble::tibble(
     cohort_definition_id = "1",
@@ -971,8 +953,6 @@ test_that("mock db: multiple observation periods", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
 })
-
-
 
 test_that("mock db: check confidence intervals", {
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
