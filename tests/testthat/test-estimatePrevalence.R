@@ -7,9 +7,7 @@ test_that("mock db: check output format", {
   prev <- estimatePrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
-    denominatorCohortId = "1",
     outcomeTable = "outcome",
-    outcomeCohortId = "1"
   )
 
   # check estimates tibble
@@ -101,8 +99,6 @@ test_that("mock db: checks on working example", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortId = "1",
-    denominatorCohortId = "1",
     minCellCount = 0
   )
   expect_true(nrow(prev) >= 1)
@@ -327,8 +323,6 @@ test_that("mock db: check minimum counts", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortId = "1",
-    denominatorCohortId = "1",
     minCellCount = 0,
     type = "period",
     interval = "months"
@@ -349,8 +343,6 @@ test_that("mock db: check minimum counts", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortId = "1",
-    denominatorCohortId = "1",
     minCellCount = 5,
     type = "period",
     interval = "months"
@@ -536,8 +528,6 @@ test_that("mock db: check periods follow calendar dates", {
   prev1 <- estimatePrevalence(cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortId = "1",
-    denominatorCohortId = "1",
     type = "period",
     interval = "years",
     minCellCount = 0,
@@ -551,8 +541,6 @@ test_that("mock db: check periods follow calendar dates", {
   prev2 <- estimatePrevalence(cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortId = "1",
-    denominatorCohortId = "1",
     type = "period",
     interval = "years",
     minCellCount = 0,
@@ -573,8 +561,6 @@ test_that("mock db: check periods follow calendar dates", {
   prev <- estimatePrevalence(cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortId = "1",
-    denominatorCohortId = "1",
     type = "period",
     interval = "months",
     minCellCount = 0,
@@ -587,8 +573,6 @@ test_that("mock db: check periods follow calendar dates", {
   prev <- estimatePrevalence(cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortId = "1",
-    denominatorCohortId = "1",
     type = "period",
     interval = "months",
     minCellCount = 0,
@@ -737,8 +721,6 @@ test_that("mock db: check messages when vebose is true", {
   expect_message(estimatePrevalence(cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortId = "1",
-    denominatorCohortId = "1",
     type = "point",
     verbose = TRUE
   ))
@@ -746,8 +728,6 @@ test_that("mock db: check messages when vebose is true", {
   expect_message(estimatePrevalence(cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortId = "1",
-    denominatorCohortId = "1",
     type = "period",
     verbose = TRUE
   ))
@@ -810,16 +790,12 @@ test_that("mock db: check user point prevalence function", {
   prev <- estimatePrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
-    denominatorCohortId = "1",
-    outcomeTable = "outcome",
-    outcomeCohortId = "1"
+    outcomeTable = "outcome"
   )
   prev_point <- estimatePointPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
-    denominatorCohortId = "1",
-    outcomeTable = "outcome",
-    outcomeCohortId = "1"
+    outcomeTable = "outcome"
   )
 
   expect_true(all(names(prev)==names(prev_point)))
@@ -840,16 +816,12 @@ test_that("mock db: check user period prevalence function", {
     cdm = cdm,
     type="period",
     denominatorTable = "denominator",
-    denominatorCohortId = "1",
-    outcomeTable = "outcome",
-    outcomeCohortId = "1"
+    outcomeTable = "outcome"
   )
   prev_period <- estimatePeriodPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
-    denominatorCohortId = "1",
-    outcomeTable = "outcome",
-    outcomeCohortId = "1"
+    outcomeTable = "outcome"
   )
 
   expect_true(all(names(prev)==names(prev_period)))

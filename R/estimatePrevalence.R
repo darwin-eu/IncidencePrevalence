@@ -203,10 +203,6 @@ estimatePrevalence <- function(cdm,
     is.numeric(denominatorCohortId)) {
     denominatorCohortId <- as.character(denominatorCohortId)
   }
-  if (!is.null(outcomeCohortId) &&
-    is.numeric(outcomeCohortId)) {
-    outcomeCohortId <- as.character(outcomeCohortId)
-  }
   if (is.character(type)) {
     type <- tolower(type)
   }
@@ -228,10 +224,6 @@ estimatePrevalence <- function(cdm,
       "- cdm must be a CDMConnector CDM reference object"
     )
   }
-  checkmate::assert_character(outcomeCohortId,
-    add = errorMessage,
-    null.ok = TRUE
-  )
   denomCheck <- denominatorTable %in% names(cdm)
   checkmate::assertTRUE(denomCheck,
     add = errorMessage
@@ -254,9 +246,9 @@ estimatePrevalence <- function(cdm,
       "- `outcomeTable` is not found in cdm"
     )
   }
-  checkmate::assert_character(outcomeCohortId,
-    add = errorMessage,
-    null.ok = TRUE
+  checkmate::assertIntegerish(outcomeCohortId,
+                              add = errorMessage,
+                              null.ok = TRUE
   )
   checkmate::assert_numeric(outcomeLookbackDays,
                             add = errorMessage,

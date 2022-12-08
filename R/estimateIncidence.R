@@ -94,10 +94,6 @@ estimateIncidence <- function(cdm,
     is.numeric(denominatorCohortId)) {
     denominatorCohortId <- as.character(denominatorCohortId)
   }
-  if (!is.null(outcomeCohortId) &&
-    is.numeric(outcomeCohortId)) {
-    outcomeCohortId <- as.character(outcomeCohortId)
-  }
   if (is.character(interval)) {
     interval <- tolower(interval)
   }
@@ -135,10 +131,6 @@ estimateIncidence <- function(cdm,
       "- `outcomeTable` is not found in cdm"
     )
   }
-  checkmate::assert_character(outcomeCohortId,
-    add = errorMessage,
-    null.ok = TRUE
-  )
   checkmate::assert_choice(interval,
     choices = c(
       "weeks", "months", "quarters", "years",
@@ -179,6 +171,36 @@ estimateIncidence <- function(cdm,
   }
 
   # further checks that there are the required data elements
+  errorMessage <- checkmate::makeAssertCollection()
+  idDenomTypeCheck<-typeof(cdm[[denominatorTable]] %>%
+    utils::head(1) %>%
+    dplyr::select("cohort_definition_id") %>%
+    dplyr::pull()) == typeof(denominatorCohortId)
+  checkmate::assertTRUE(idDenomTypeCheck,
+                        add = errorMessage
+  )
+  if (!isTRUE(idDenomTypeCheck)) {
+    errorMessage$push(
+      "- `denominatorCohortId` should be the same type as `cohort_definition_id` in the denominator"
+    )
+  }
+  checkmate::reportAssertions(collection = errorMessage)
+
+  errorMessage <- checkmate::makeAssertCollection()
+  idOutcomeTypeCheck<-typeof(cdm[[outcomeTable]] %>%
+                             utils::head(1) %>%
+                             dplyr::select("cohort_definition_id") %>%
+                             dplyr::pull()) == typeof(outcomeCohortId)
+  checkmate::assertTRUE(idOutcomeTypeCheck,
+                        add = errorMessage
+  )
+  if (!isTRUE(idOutcomeTypeCheck)) {
+    errorMessage$push(
+      "- `denominatorCohortId` should be the same type as `cohort_definition_id` in the denominator"
+    )
+  }
+  checkmate::reportAssertions(collection = errorMessage)
+
   errorMessage <- checkmate::makeAssertCollection()
   denomCountCheck <- cdm[[denominatorTable]] %>%
     dplyr::filter(.data$cohort_definition_id %in%

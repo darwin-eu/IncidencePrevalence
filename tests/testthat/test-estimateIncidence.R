@@ -1704,24 +1704,6 @@ test_that("mock db: check insufficient study days", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
-test_that("mock db: check conversion of user inputs", {
-  cdm <- mockIncidencePrevalenceRef()
-
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
-
-  inc <- estimateIncidence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    denominatorCohortId = 1,
-    outcomeTable = "outcome",
-    outcomeCohortId = 1,
-    outcomeWashout = NA
-  )
-  expect_true(nrow(inc) >= 1)
-
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-})
-
 test_that("mock db: check with and without study start and end date", {
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3", "4", "5", "6"),
@@ -2195,7 +2177,6 @@ test_that("mock db: check messages when vebose is true", {
 
   expect_message(estimateIncidence(cdm,
     denominatorTable = "denominator",
-    denominatorCohortId = "1",
     outcomeTable = "outcome",
     outcomeCohortId = "1",
     verbose = TRUE
