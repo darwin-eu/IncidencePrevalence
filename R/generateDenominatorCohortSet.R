@@ -245,7 +245,7 @@ generateDenominatorCohortSet <- function(cdm,
     ) %>%
     dplyr::mutate(min_age = as.numeric(.data$min_age)) %>%
     dplyr::mutate(max_age = as.numeric(.data$max_age)) %>%
-    dplyr::mutate(cohort_definition_id = as.character(dplyr::row_number()))
+    dplyr::mutate(cohort_definition_id = dplyr::row_number())
 
 
   if (verbose == TRUE) {

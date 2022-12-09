@@ -30,23 +30,6 @@ test_that("mock db: check output format", {
     "cohort_start_date", "cohort_end_date"
   ) %in%
     names(dpop %>% dplyr::collect())))
-  # types
-  expect_true(class(dpop %>%
-    dplyr::collect() %>%
-    dplyr::select(cohort_definition_id) %>%
-    dplyr::pull()) == "character")
-  expect_true(class(dpop %>%
-    dplyr::collect() %>%
-    dplyr::select(subject_id) %>%
-    dplyr::pull()) == "character")
-  expect_true(class(dpop %>%
-    dplyr::collect() %>%
-    dplyr::select(cohort_start_date) %>%
-    dplyr::pull()) == "Date")
-  expect_true(class(dpop %>%
-    dplyr::collect() %>%
-    dplyr::select(cohort_end_date) %>%
-    dplyr::pull()) == "Date")
 
   expect_true(tibble::is_tibble(attrition(dpop)))
   expect_true(!is.null(sqlTrace(dpop)))
@@ -56,7 +39,6 @@ test_that("mock db: check output format", {
     cdm = cdm,
     verbose = TRUE
   ))
-
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })

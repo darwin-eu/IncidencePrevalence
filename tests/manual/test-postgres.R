@@ -12,10 +12,18 @@ cdm <- CDMConnector::cdm_from_con(con = db,
                                     cdm_schema = "public",
                                     write_schema = "results")
 cdm$denominator <- generateDenominatorCohortSet(cdm = cdm,
-                                                sample = 1000)
+                                                daysPriorHistory = c(0,180),
+                                                sample = 1000,
+                                                verbose = TRUE)
 cdm$outcome <- cdm$denominator %>% head(100)
 
-prev <- estimatePrevalence(
+pont_prev <- estimatePointPrevalence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  verbose = TRUE
+)
+period_prev <- estimatePointPrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
@@ -27,7 +35,19 @@ inc <- estimateIncidence(
   outcomeTable = "outcome",
   verbose = TRUE
 )
+inc2 <- estimateIncidence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  outcomeWashout = 180,
+  verbose = TRUE
+)
 
-
+results<-gatherResults(resultList=list(pont_prev, period_prev, inc, inc2),
+                       outcomeCohortName="test_sample",
+                       outcomeCohortId = 1,
+                       databaseName="test_database")
+expect_true(all(names(results)==c("prevalence_estimates",
+                                  "incidence_estimates")))
 
 })
