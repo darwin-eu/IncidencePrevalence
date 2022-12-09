@@ -55,3 +55,23 @@ test_that("check gathering of restuls", {
   expect_true(all(g5$prevalence_estimates$outcome_cohort_name == "test_cohort"))
   expect_true(all(g5$incidence_estimates$outcome_cohort_name == "test_cohort"))
   })
+
+test_that("expected errors", {
+  cdm <- mockIncidencePrevalenceRef()
+
+  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+
+  prev <- estimatePointPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome"
+  )
+  inc <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    outcomeWashout = 0
+  )
+expect_error(gatherResults(resultList=list(prev, "a")))
+
+})

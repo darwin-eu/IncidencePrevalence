@@ -76,7 +76,7 @@ gatherResults <- function(resultList, outcomeCohortId=NULL,
   # combine prevalence estimates, updating analysis_id
   if(any(resultType=="Prevalence")){
     prevalence <- dplyr::bind_rows(resultList[resultType=="Prevalence"]) %>%
-      dplyr::group_by_at(dplyr::vars(starts_with(c("analysis_", "denominator_",
+      dplyr::group_by_at(dplyr::vars(tidyselect::starts_with(c("analysis_", "denominator_",
                                                    "outcome_")))) %>%
       dplyr::mutate(analysis_id = dplyr::cur_group_id())
     if(!is.null(outcomeCohortId)){
@@ -91,7 +91,7 @@ gatherResults <- function(resultList, outcomeCohortId=NULL,
   # combine any incidence results, updating analysis_id
   if(any(resultType=="Incidence")){
     incidence <- dplyr::bind_rows(resultList[resultType=="Incidence"]) %>%
-      dplyr::group_by_at(dplyr::vars(starts_with(c("analysis_", "denominator_",
+      dplyr::group_by_at(dplyr::vars(tidyselect::starts_with(c("analysis_", "denominator_",
                                                    "outcome_")))) %>%
       dplyr::mutate(analysis_id = dplyr::cur_group_id()) %>%
       dplyr::mutate(database_name = .env$databaseName)

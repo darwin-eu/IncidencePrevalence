@@ -73,7 +73,7 @@ test_that("mock db: checks on working example", {
     observation_period_end_date = as.Date("2012-06-01")
   )
   outcomeTable <- tibble::tibble(
-    cohort_definition_id = "1",
+    cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
       as.Date("2008-02-05"),
@@ -121,7 +121,7 @@ test_that("mock db: working examples 2", {
     observation_period_end_date = as.Date("2012-06-01")
   )
   outcomeTable <- tibble::tibble(
-    cohort_definition_id = "1",
+    cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
       as.Date("2010-02-05"),
@@ -177,7 +177,7 @@ test_that("mock db: check outcome lookback", {
     observation_period_end_date = as.Date("2012-06-01")
   )
   outcomeTable <- tibble::tibble(
-    cohort_definition_id = "1",
+    cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
       as.Date("2008-02-05")
@@ -289,7 +289,7 @@ test_that("mock db: check minimum counts", {
     dplyr::bind_rows(
       # 17 in first period
       tibble::tibble(
-        cohort_definition_id = rep("1", 17),
+        cohort_definition_id = rep(1, 17),
         subject_id = as.character(c(1:17)),
         cohort_start_date = rep(
           as.Date("2000-01-02"), 17
@@ -300,7 +300,7 @@ test_that("mock db: check minimum counts", {
       ),
       # three in second
       tibble::tibble(
-        cohort_definition_id = rep("1", 3),
+        cohort_definition_id = rep(1, 3),
         subject_id = as.character(c(18:20)),
         cohort_start_date = rep(
           as.Date("2000-02-02"), 3
@@ -381,7 +381,7 @@ test_that("mock db: check study time periods", {
     observation_period_end_date = as.Date("2010-12-31")
   )
   outcomeTable <- tibble::tibble(
-    cohort_definition_id = "1",
+    cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
       as.Date("2010-02-05"),
@@ -435,7 +435,7 @@ test_that("mock db: check fullContribution requirement", {
                                     as.Date("2012-06-01"))
   )
   outcomeTable <- tibble::tibble(
-    cohort_definition_id = "1",
+    cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
       as.Date("2010-02-05"),
@@ -497,7 +497,7 @@ test_that("mock db: check periods follow calendar dates", {
     observation_period_end_date = as.Date("2013-06-15")
   )
   outcomeTable <- tibble::tibble(
-    cohort_definition_id = "1",
+    cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
       as.Date("2010-03-01"),
@@ -600,7 +600,7 @@ test_that("mock db: check multiple outcome ids", {
     observation_period_end_date = as.Date("2012-06-01")
   )
   outcomeTable <- tibble::tibble(
-    cohort_definition_id = c("1","2"), # two different outcome ids
+    cohort_definition_id = c(1,2), # two different outcome ids
     subject_id = c("1","2"),
     cohort_start_date = c(
       as.Date("2011-02-05")
@@ -645,7 +645,7 @@ test_that("mock db: some empty result sets", {
     observation_period_end_date = as.Date("2012-06-01")
   )
   outcomeTable <- tibble::tibble(
-    cohort_definition_id = c("1","2"), # two different outcome ids
+    cohort_definition_id = c(1,2), # two different outcome ids
     subject_id = c("1","2"),
     cohort_start_date = c(
       as.Date("2011-02-05")
@@ -686,7 +686,7 @@ test_that("mock db: some empty result sets", {
 
 test_that("mock db: check messages when vebose is true", {
   outcomeTable <- tibble::tibble(
-    cohort_definition_id = "1",
+    cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
       as.Date("2010-02-05")
@@ -732,7 +732,7 @@ test_that("mock db: check expected errors", {
     observation_period_end_date = as.Date("2012-06-01")
   )
   outcomeTable <- tibble::tibble(
-    cohort_definition_id = "1",
+    cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
       as.Date("2010-02-05"),
@@ -844,7 +844,7 @@ test_that("mock db: multiple observation periods", {
   )
 
   conditionX <- tibble::tibble(
-    cohort_definition_id = c("1","1","1","1"),
+    cohort_definition_id = c(1,1,1,1),
     subject_id = c("1", "1", "1", "2"),
     cohort_start_date = c(
       as.Date("2005-04-01"),
@@ -861,7 +861,7 @@ test_that("mock db: multiple observation periods", {
   )
 
   outcomeTable <- tibble::tibble(
-    cohort_definition_id = c("1","1","1","1","1","1","1"),
+    cohort_definition_id = c(1,1,1,1,1,1,1),
     subject_id = c("1","1","1","1","1","1","2"),
     cohort_start_date = c(
       as.Date("2005-08-09"),
