@@ -13,7 +13,7 @@ cdm <- CDMConnector::cdm_from_con(con = db,
                                     write_schema = "results")
 cdm$denominator <- generateDenominatorCohortSet(cdm = cdm,
                                                 daysPriorHistory = c(0,180),
-                                                sample = 10000,
+                                                sample = 1000,
                                                 verbose = TRUE)
 cdm$outcome <- cdm$denominator %>% head(100)
 

@@ -56,7 +56,9 @@ gatherResults <- function(resultList, outcomeCohortId=NULL,
   # add analysis settings to results
   for(i in seq_along(resultList)){
     resultList[[i]]<- resultList[[i]] %>%
-      dplyr::inner_join(settings(resultList[[i]]),
+      dplyr::left_join(settings(resultList[[i]]) %>%
+                          dplyr::mutate(outcome_cohort_id=
+                                          as.integer(outcome_cohort_id)),
                         by = "analysis_id")
   }
 

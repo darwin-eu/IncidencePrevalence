@@ -49,7 +49,7 @@ test_that("check gathering of restuls", {
 
   # adding outcome name
   g5<-gatherResults(resultList=list(prev1, prev2, inc1, inc2),
-                    outcomeCohortId = "1",
+                    outcomeCohortId = 1,
                     outcomeCohortName = "test_cohort",
                     databaseName = "test_database")
   expect_true(all(g5$prevalence_estimates$outcome_cohort_name == "test_cohort"))
