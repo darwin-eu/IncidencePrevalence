@@ -57,8 +57,19 @@ gatherResults <- function(resultList, outcomeCohortId = NULL,
   }
 
   # add analysis settings to results
+  estimates <- list()
+  attrition <- list()
   for (i in seq_along(resultList)) {
-    resultList[[i]] <- resultList[[i]] %>%
+    estimates[[i]] <- resultList[[i]] %>%
+      dplyr::left_join(
+        settings(resultList[[i]]) %>%
+          dplyr::mutate(
+            outcome_cohort_id =
+              as.integer(.data$outcome_cohort_id)
+          ),
+        by = "analysis_id"
+      )
+    attrition[[i]] <- attrition(resultList[[i]]) %>%
       dplyr::left_join(
         settings(resultList[[i]]) %>%
           dplyr::mutate(
@@ -80,52 +91,92 @@ gatherResults <- function(resultList, outcomeCohortId = NULL,
   }
   resultType <- unlist(resultType)
 
-  # combine prevalence estimates, updating analysis_id
+
   if (any(resultType == "Prevalence")) {
-    prevalence <- dplyr::bind_rows(resultList[resultType == "Prevalence"]) %>%
+    # combine prevalence estimates, updating analysis_id
+    prevalence_estimates <- dplyr::bind_rows(
+      estimates[resultType == "Prevalence"]
+    ) %>%
+      dplyr::group_by_at(dplyr::vars(tidyselect::starts_with(c(
+        "analysis_", "denominator_",
+        "outcome_"
+      )))) %>%
+      dplyr::mutate(analysis_id = dplyr::cur_group_id())
+    # combine prevalence attrition
+    prevalence_attrition <- dplyr::bind_rows(
+      attrition[resultType == "Prevalence"]
+    ) %>%
       dplyr::group_by_at(dplyr::vars(tidyselect::starts_with(c(
         "analysis_", "denominator_",
         "outcome_"
       )))) %>%
       dplyr::mutate(analysis_id = dplyr::cur_group_id())
     if (!is.null(outcomeCohortId)) {
-      prevalence <- prevalence %>%
+      prevalence_estimates <- prevalence_estimates %>%
+        dplyr::left_join(outcomeRef, by = "outcome_cohort_id")
+      prevalence_attrition <- prevalence_attrition %>%
         dplyr::left_join(outcomeRef, by = "outcome_cohort_id")
     }
     if (!is.null(databaseName)) {
-      prevalence <- prevalence %>%
+      prevalence_estimates <- prevalence_estimates %>%
+        dplyr::mutate(database_name = .env$databaseName)
+      prevalence_attrition <- prevalence_attrition %>%
         dplyr::mutate(database_name = .env$databaseName)
     }
   }
 
   # combine any incidence results, updating analysis_id
   if (any(resultType == "Incidence")) {
-    incidence <- dplyr::bind_rows(resultList[resultType == "Incidence"]) %>%
+    incidence_estimates <- dplyr::bind_rows(
+      estimates[resultType == "Incidence"]
+    ) %>%
       dplyr::group_by_at(dplyr::vars(tidyselect::starts_with(c(
         "analysis_", "denominator_",
         "outcome_"
       )))) %>%
       dplyr::mutate(analysis_id = dplyr::cur_group_id()) %>%
       dplyr::mutate(database_name = .env$databaseName)
+    # combine prevalence attrition
+    incidence_attrition <- dplyr::bind_rows(
+      attrition[resultType == "Incidence"]
+    ) %>%
+      dplyr::group_by_at(dplyr::vars(tidyselect::starts_with(c(
+        "analysis_", "denominator_",
+        "outcome_"
+      )))) %>%
+      dplyr::mutate(analysis_id = dplyr::cur_group_id())
+
     if (!is.null(outcomeCohortId)) {
-      incidence <- incidence %>%
+      incidence_estimates <- incidence_estimates %>%
+        dplyr::left_join(outcomeRef, by = "outcome_cohort_id")
+      prevalence_attrition <- prevalence_attrition %>%
         dplyr::left_join(outcomeRef, by = "outcome_cohort_id")
     }
     if (!is.null(databaseName)) {
-      incidence <- incidence %>%
+      incidence_estimates <- incidence_estimates %>%
+        dplyr::mutate(database_name = .env$databaseName)
+      incidence_attrition <- incidence_attrition %>%
         dplyr::mutate(database_name = .env$databaseName)
     }
   }
 
   if (any(resultType == "Prevalence") & any(resultType == "Incidence")) {
     results <- list(
-      prevalence_estimates = prevalence,
-      incidence_estimates = incidence
+      prevalence_estimates = prevalence_estimates,
+      prevalence_attrition = prevalence_attrition,
+      incidence_estimates = incidence_estimates,
+      incidence_attrition = incidence_attrition
     )
   } else if (any(resultType == "Prevalence")) {
-    results <- list(prevalence_estimates = prevalence)
+    results <- list(
+      prevalence_estimates = prevalence_estimates,
+      prevalence_attrition = prevalence_attrition
+    )
   } else {
-    results <- list(incidence_estimates = incidence)
+    results <- list(
+      incidence_estimates = incidence_estimates,
+      incidence_attrition = incidence_attrition
+    )
   }
 
   return(results)

@@ -29,18 +29,19 @@ test_that("check gathering of restuls", {
   # with both types of results
   g1<-gatherResults(resultList=list(prev1, prev2, inc1, inc2))
   expect_true(is.list(g1))
-  expect_true(length(g1)==2)
-  expect_true(all(names(g1)==c("prevalence_estimates", "incidence_estimates")))
+  expect_true(length(g1)==4)
+  expect_true(all(names(g1)==c("prevalence_estimates","prevalence_attrition",
+                               "incidence_estimates","incidence_attrition")))
   # with only prevalence
   g2<-gatherResults(resultList=list(prev1, prev2))
   expect_true(is.list(g2))
-  expect_true(length(g2)==1)
-  expect_true(all(names(g2)==c("prevalence_estimates")))
+  expect_true(length(g2)==2)
+  expect_true(all(names(g2)==c("prevalence_estimates","prevalence_attrition")))
   # with only incidence
   g3<-gatherResults(resultList=list(inc1))
   expect_true(is.list(g3))
-  expect_true(length(g3)==1)
-  expect_true(all(names(g3)==c("incidence_estimates")))
+  expect_true(length(g3)==2)
+  expect_true(all(names(g3)==c("incidence_estimates","incidence_attrition")))
 
   # with database name
   g4<-gatherResults(resultList=list(prev1, prev2, inc1, inc2),
