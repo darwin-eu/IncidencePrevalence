@@ -179,5 +179,7 @@ gatherResults <- function(resultList, outcomeCohortId = NULL,
     )
   }
 
+  class(results) <- c("IncidencePrevalenceGatheredResult", class(results))
+
   return(results)
 }

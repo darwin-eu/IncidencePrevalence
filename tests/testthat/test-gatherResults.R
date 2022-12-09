@@ -29,6 +29,7 @@ test_that("check gathering of restuls", {
   # with both types of results
   g1<-gatherResults(resultList=list(prev1, prev2, inc1, inc2))
   expect_true(is.list(g1))
+  expect_true(inherits(g1, "IncidencePrevalenceGatheredResult"))
   expect_true(length(g1)==4)
   expect_true(all(names(g1)==c("prevalence_estimates","prevalence_attrition",
                                "incidence_estimates","incidence_attrition")))

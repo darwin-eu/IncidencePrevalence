@@ -35,7 +35,8 @@ Imports:
     tidyselect,
     CDMConnector,
     SqlRender (>= 1.10.0),
-    stringr
+    stringr,
+    zip
 Suggests: 
     knitr,
     rmarkdown,
@@ -50,7 +51,7 @@ Suggests:
     epitools,
     testthat (>= 3.0.0),
     spelling
-Remotes:  
+Remotes: 
     OdyOSG/CDMConnector
 Config/testthat/edition: 3
 VignetteBuilder: knitr
