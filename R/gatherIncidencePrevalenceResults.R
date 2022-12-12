@@ -13,7 +13,7 @@
 #' @export
 #'
 #' @examples
-gatherResults <- function(resultList, outcomeCohortId = NULL,
+gatherIncidencePrevalenceResults <- function(resultList, outcomeCohortId = NULL,
                           outcomeCohortName = NULL, databaseName = NULL) {
   errorMessage <- checkmate::makeAssertCollection()
   objClass <- list()
