@@ -6,7 +6,7 @@ test_that("writing results", {
     denominatorTable = "denominator",
     outcomeTable = "outcome"
   )
-  results<-gatherResults(resultList=list(prev))
+  results<-gatherIncidencePrevalenceResults(resultList=list(prev))
   exportIncidencePrevalenceResults(result=results, zipName="test",
                     outputFolder=tempdir())
   expect_true("test.zip" %in% list.files(tempdir()))
@@ -22,7 +22,7 @@ test_that("writing results- expected errors", {
     denominatorTable = "denominator",
     outcomeTable = "outcome"
   )
-  results<-gatherResults(resultList=list(prev))
+  results<-gatherIncidencePrevalenceResults(resultList=list(prev))
   # not a gathered result
   expect_error(exportIncidencePrevalenceResults(result="a",
                     zipName="test_should_fail",
