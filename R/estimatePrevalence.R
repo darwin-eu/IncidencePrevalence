@@ -37,10 +37,6 @@
 #' be used for weeks. Calendar months, quarters, or years can be used as
 #' the period. If more than one option is chosen then results will
 #' be estimated for each chosen interval.
-#' @param completeDatabaseIntervals TRUE/ FALSE. Where TRUE, incidence will
-#' only be estimated for those intervals where the database
-#' captures all the interval (based on the earliest and latest observation
-#' period start dates, respectively).
 #' @param timePoint where to compute the point prevalence
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
@@ -75,8 +71,7 @@ estimatePointPrevalence <- function(cdm,
                                     denominatorCohortId = NULL,
                                     outcomeCohortId = NULL,
                                     outcomeLookbackDays = 0,
-                                    interval = "months",
-                                    completeDatabaseIntervals = TRUE,
+                                    interval = "years",
                                     timePoint = "start",
                                     minCellCount = 5,
                                     verbose = FALSE) {
@@ -89,7 +84,7 @@ estimatePointPrevalence <- function(cdm,
                      outcomeLookbackDays = outcomeLookbackDays,
                      type = "point",
                      interval = interval,
-                     completeDatabaseIntervals = completeDatabaseIntervals,
+                     completeDatabaseIntervals = FALSE,
                      fullContribution = FALSE,
                      timePoint = timePoint,
                      minCellCount = minCellCount,
@@ -119,7 +114,7 @@ estimatePointPrevalence <- function(cdm,
 #' ISO weeks will be used for weeks. Calendar months, quarters, or
 #' years can be used as the period. If more than one option
 #' is chosen then results will be estimated for each chosen interval.
-#' @param completeDatabaseIntervals TRUE/ FALSE. Where TRUE, incidence will
+#' @param completeDatabaseIntervals TRUE/ FALSE. Where TRUE, prevalence will
 #' only be estimated for those intervals where the database
 #' captures all the interval (based on the earliest and latest observation
 #' period start dates, respectively).
@@ -160,7 +155,7 @@ estimatePeriodPrevalence <- function(cdm,
                                     denominatorCohortId = NULL,
                                     outcomeCohortId = NULL,
                                     outcomeLookbackDays = 0,
-                                    interval = "months",
+                                    interval = "years",
                                     completeDatabaseIntervals = TRUE,
                                     fullContribution = FALSE,
                                     minCellCount = 5,
@@ -257,7 +252,7 @@ estimatePrevalence <- function(cdm,
   checkmate::assertTRUE(
     all(interval %in%
       c(
-        "days", "weeks", "months",
+        "weeks", "months",
         "quarters", "years"
       )),
     add = errorMessage

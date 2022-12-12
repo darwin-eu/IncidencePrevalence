@@ -10,7 +10,7 @@ estimateIncidence(
   outcomeTable,
   denominatorCohortId = NULL,
   outcomeCohortId = NULL,
-  interval = "months",
+  interval = "years",
   completeDatabaseIntervals = TRUE,
   outcomeWashout = 0,
   repeatedEvents = FALSE,

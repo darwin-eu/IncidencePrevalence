@@ -1,8 +1,8 @@
 ---
-title: "Creating denominator populations"
+title: "Creating denominator cohorts"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{a02_Creating_denominator_populations}
+  %\VignetteIndexEntry{a02_Creating_denominator_cohorts}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -18,24 +18,18 @@ knitr::opts_chunk$set(
 ```
 
 ```{r, message= FALSE, warning=FALSE, echo=FALSE}
-library(here)
-library(ggplot2)
-library(DBI)
+library(IncidencePrevalence)
 library(dbplyr)
 library(dplyr)
 library(tibble)
 library(tidyr)
-library(duckdb)
-library(knitr)
-library(IncidencePrevalence)
+library(ggplot2)
 ```
 
 # Introduction
-Calculating incidence or prevalence requires first identifying an appropriate denominator population. To find such a denominator population (or multiple denominator populations) we can use the `generateDenominatorCohortSet()` function. This function will identify the time that people satisfy a set of criteria related to the study period and individuals´ age, sex, and amount of prior observed history. 
+Calculating incidence or prevalence requires first identifying an appropriate denominator population. To find such a denominator population (or multiple denominator populations) we can use the `generateDenominatorCohortSet()` function. This function will identify the time that people in the database satisfy a set of criteria related to the study period and individuals´ age, sex, and amount of prior observed history. 
 
-The `generateDenominatorCohortSet()` function is designed to be used with data mapped to the OMOP CDM format. Unless otherwise specified (see section "Using generateDenominatorCohortSet() against a population subgroup"), it will use information from the person and observation_period tables of the OMOP CDM to identify denominator populations. To note, identifying the denominator populations does not require any information on specific outcome occurrences.
-
-When using `generateDenominatorCohortSet()`, individuals will enter a denominator population on the respective date of the latest of the following: 
+When using `generateDenominatorCohortSet()`, and in the absence of a strata cohort (see below), individuals will enter a denominator population on the respective date of the latest of the following: 
 
 1. Study start date
 2. Date at which they have sufficient prior history (if there is no requirement for prior history, this date will coincide with the date at which their observation period starts)  
@@ -47,12 +41,14 @@ They will then exit on the respective date of the earliest of the following:
 2. Date at which their observation period ends
 3. The last day in which they have the maximum age
 
-Let´s go through a few examples to make this a little more concrete.
+Let´s go through a few examples to make this logic a little more concrete.
 
 ### No specific requirements
 The simplest case is that no study start and end dates are specified, no prior history requirement is imposed, nor any age or sex criteria. In this case individuals will enter the denominator population once they have entered the database (start of observation period) and will leave when they exit the database (end of observation period). Note that in some databases a person can have multiple observation periods, in which case their contribution of person time would look like the the last person below.
 
-```{r,echo=FALSE, out.width="80%"}
+```{r,echo=FALSE, message=FALSE, out.width="80%"}
+library(knitr)
+library(here)
 knitr::include_graphics(here("vignettes/dpop1.png"))
 ```
 
@@ -346,6 +342,7 @@ dpop %>%
     "cohort_start_date",
     "cohort_end_date"
   )) %>%
+  mutate(cohort_definition_id=as.character(cohort_definition_id)) %>% 
   ggplot(aes(x = subject_id, y = value, colour = cohort_definition_id)) +
   geom_point(position = position_dodge(width = 0.5)) +
   geom_line(position = position_dodge(width = 0.5)) +
@@ -384,6 +381,7 @@ dpop %>%
     "cohort_start_date",
     "cohort_end_date"
   )) %>%
+  mutate(cohort_definition_id=as.character(cohort_definition_id)) %>% 
   ggplot(aes(x = subject_id, y = value, colour = cohort_definition_id)) +
   facet_grid(sex ~ ., space = "free_y") +
   geom_point(position = position_dodge(width = 0.5)) +
@@ -424,6 +422,7 @@ dpop %>%
     "cohort_start_date",
     "cohort_end_date"
   )) %>%
+  mutate(cohort_definition_id=as.character(cohort_definition_id)) %>% 
   ggplot(aes(x = subject_id, y = value, colour = cohort_definition_id)) +
   facet_grid(sex + days_prior_history ~ ., space = "free_y") +
   geom_point(position = position_dodge(width = 0.5)) +
@@ -473,41 +472,24 @@ cdm$denominator <- generateDenominatorCohortSet(
 head(cdm$denominator, 8)
 ```
 
-The output table will include several attributes. The denominator settings will report the characteristics of the denominator populations created as a result of running this function. More than one age, sex and prior history requirements can be specified at the same time. Therefore, each combination of these variables will result in a different cohort, which be analyzed and identified with a unique cohort_definition_id. This tibble includes information on the study start and end dates, and its characteristics in terms of age and sex groups and the amount of prior history required.
-
-In this example, we have 8 different cohorts.
+The output table will have several attributes. With `settings()` we can see the options used when defining the set of denominator populations. More than one age, sex and prior history requirements can be specified at the same time and each combination of these variables will result in a different cohort, each of which has a corresponding cohort_definition_id. In the above example, we identified 8 different cohorts:
 
 ```{r, message=TRUE, warning=FALSE}
 settings(cdm$denominator)
 ```
 
-The attrition includes information on the number of individuals who are excluded of the denominator population and the reason behind its exclusion, such as missing crucial information or not satisfying the sex or age criteria required, among others. 
-
-In this example we only show the attrition list for the first cohort, but it's generated for every cohort of our analysis (in this case, eight).
+With `attrition()` we can see the number of individuals in the database who were excluded from entering a given denominator population along with the reaso (such as missing crucial information or not satisfying the sex or age criteria required, among others):
 
 ```{r, message=TRUE, warning=FALSE}
 attrition(cdm$denominator)
 ```
 
-# Using generateDenominatorCohortSet() using a cohort
-The `generateDenominatorCohortSet()` function can also be run for a subset of the population with a particular characteristic recorded in our database, such as sociodemographic groups (ethnicity, socioeconomic status...), conditions or users of a particular medication, among others. 
+# Using generateDenominatorCohortSet() with a cohort
+The `generateDenominatorCohortSet()` function can also be run for a subset of the population with a particular characteristic recorded in our database, which could be time-invariant (e.g. ethnicity), or time-varying (e.g. taking a certain medication). When using `generateDenominatorCohortSet()`, a stratifying cohort must be in the format of an OMOP CDM cohort.
 
-## Defining a subset cohort
-In order to identify our denominator population among a particular subset of individuals, we need to point to a table containing our subset cohort in our server.
-
-Subset cohorts must be inserted in the server before running the `generateDenominatorCohortSet()` function. They can be generated based on different strategies, such as by bespoke code or by using ATLAS. Further information on how to define, structure or insert these tables in the server can be found in the next vignette (see "Creating numerator populations").
-
-When setting the `generateDenominatorCohortSet()` arguments, we'll need to specify the schema and table where our subset cohort is recorded (strata_schema and strataTable). In case we have multiple subsets, we'll also need to specify the identification of the particular strata we're interested in (strataCohortId). 
-
-To note, it's important to consider that some of these characteristics used to define our subset might remain constant during the whole observation period (e.g., ethnicity) and some might change (e.g., suffering from a particular condition or taking a particular medication).
-
-## Using generateDenominatorCohortSet() against a population subgroup
-To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 5 example patients using the `mockIncidencePrevalenceRef()` function.
+To provide an example its use, let´s generate 5 example patients.
 
 ```{r, message=FALSE, warning=FALSE}
-library(IncidencePrevalence)
-library(ggplot2)
-library(tidyr)
 personTable <- tibble(
   person_id = c("1", "2", "3", "4", "5"),
   gender_concept_id = c(rep("8507", 2), rep("8532", 3)),
@@ -576,7 +558,8 @@ cdm <- mockIncidencePrevalenceRef(
   strataTable = conditionX
 )
 ```
-## Not applying any subset
+
+
 We can get a denominator population without including any particular subset like so
 ```{r, message=FALSE, warning=FALSE}
 cdm$denominator <- generateDenominatorCohortSet(
@@ -590,7 +573,6 @@ As we did not specify any study start and end date, the cohort start and end dat
 observationPeriodTable
 ```
 
-### Subset based on non-time-varying characteristics
 Let's suppose we want to subset our population based on a non-time varying characteristic such as ethnicity, which corresponds to strataCohortId "1" in our simulated strata table.
 
 ```{r, message=FALSE, warning=FALSE}
@@ -602,7 +584,7 @@ cdm$denominator <- generateDenominatorCohortSet(
 cdm$denominator 
 ```
 
-We have obtained the 3 patients with the particular ethnicity we were interested in. Moreover, because ethnicity does not change during the study period, the cohort start and end date correspond to same dates of their observation period. Therefore, the obtained denominator population cohort is the same than the one observed in the first example, but it's limited to the individuals that have our characteristic of interest.
+We have obtained the 3 patients with the particular ethnicity we were interested in. Moreover, because ethnicity does not change during the study period, the cohort start and end date correspond to same dates of their observation period. Therefore, the obtained denominator population cohort is the same as the one observed in the first example but limited to the individuals that have our characteristic of interest.
 
 ```{r, message=FALSE, warning=FALSE}
 library(dplyr)
@@ -610,8 +592,7 @@ observationPeriodTable %>%
   filter(person_id %in% c("1", "2", "4"))
 ```
 
-### Subset based on time-varying characteristics 
-Now we want to subset our population based on a time varying characteristic such a particular condition (strataCohortId "2" in our simulated strata table).
+Now say we want to subset our population based on a time varying characteristic such a particular condition (strataCohortId "2" in our simulated strata table).
 
 ```{r, message=FALSE, warning=FALSE}
 cdm$denominator <- generateDenominatorCohortSet(

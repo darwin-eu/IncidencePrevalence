@@ -6,23 +6,27 @@ test_that("check gathering of restuls", {
   prev1 <- estimatePointPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomeTable = "outcome"
+    outcomeTable = "outcome",
+    interval = "months"
   )
   prev2 <- estimatePeriodPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomeTable = "outcome"
+    outcomeTable = "outcome",
+    interval = "months"
   )
   inc1 <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
+    interval = "months",
     outcomeWashout = 0
   )
   inc2 <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
+    interval = "months",
     outcomeWashout = 180
   )
 
@@ -56,6 +60,8 @@ test_that("check gathering of restuls", {
                     databaseName = "test_database")
   expect_true(all(g5$prevalence_estimates$outcome_cohort_name == "test_cohort"))
   expect_true(all(g5$incidence_estimates$outcome_cohort_name == "test_cohort"))
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
   })
 
 test_that("expected errors", {
@@ -75,5 +81,7 @@ test_that("expected errors", {
     outcomeWashout = 0
   )
 expect_error(gatherResults(resultList=list(prev, "a")))
+
+DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
 })

@@ -11,7 +11,7 @@ estimatePeriodPrevalence(
   denominatorCohortId = NULL,
   outcomeCohortId = NULL,
   outcomeLookbackDays = 0,
-  interval = "months",
+  interval = "years",
   completeDatabaseIntervals = TRUE,
   fullContribution = FALSE,
   minCellCount = 5,
@@ -46,7 +46,7 @@ ISO weeks will be used for weeks. Calendar months, quarters, or
 years can be used as the period. If more than one option
 is chosen then results will be estimated for each chosen interval.}
 
-\item{completeDatabaseIntervals}{TRUE/ FALSE. Where TRUE, incidence will
+\item{completeDatabaseIntervals}{TRUE/ FALSE. Where TRUE, prevalence will
 only be estimated for those intervals where the database
 captures all the interval (based on the earliest and latest observation
 period start dates, respectively).}

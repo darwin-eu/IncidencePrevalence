@@ -13,7 +13,7 @@ test_that("mock db: check output format", {
     names(dpop %>% dplyr::collect())))
 
   expect_true(all(c(
-    "age_group", "min_age", "max_age",
+    "age_group",
     "sex",
     "start_date",
     "end_date",
@@ -84,7 +84,7 @@ test_that("mock db: checks on working example", {
   expect_true(cdm$dpop %>%
     dplyr::count() %>%
       dplyr::pull() == 0)
-
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   # using cohort strata
   # add stratifying cohort
@@ -402,6 +402,7 @@ test_that("mock db: subset denominator by cohort", {
       as.Date("2014-02-01")
     )
   )
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   # mock database
   cdm <- mockIncidencePrevalenceRef(
@@ -478,6 +479,8 @@ test_that("mock db: subset denominator by cohort", {
       as.Date("2010-04-01")
     )
   )
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
   # mock database
   cdm <- mockIncidencePrevalenceRef(
     personTable = personTable,
@@ -602,7 +605,7 @@ test_that("mock db: check example with restriction on sex", {
   expect_true(nrow(cdm$dpop1 %>% dplyr::collect()) == 2)
   expect_true(nrow(cdm$dpop2 %>% dplyr::collect()) == 3)
   expect_true(nrow(cdm$dpop3 %>% dplyr::collect()) == 1)
-
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   # one male only
   personTable <- tibble::tibble(
@@ -686,6 +689,8 @@ test_that("mock db: check example with restriction on age", {
   expect_true(nrow(cdm$dpop2 %>% dplyr::collect()) == 2)
   expect_true(nrow(cdm$dpop3 %>% dplyr::collect()) == 1)
   expect_true(nrow(cdm$dpop4 %>% dplyr::collect()) == 0)
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   # one person, born in 2000
   personTable <- tibble::tibble(
@@ -1012,6 +1017,7 @@ test_that("mock db: check expected errors", {
     cdm = cdm1,
     strataTable = "strata"
   ))
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   # strata table doesn´t conform
   strataTable <- tibble::tibble(
@@ -1097,6 +1103,7 @@ test_that("mock db: check attrition table", {
     daysPriorHistory = 365
   )
   expect_true(attrition(cdm$dpop)$excluded[7] == 1)
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   # multiple observation periods per person
   personTable <- tibble::tibble(

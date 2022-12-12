@@ -1,177 +1,38 @@
-library(testthat)
-library(dplyr, warn.conflicts = FALSE)
-
 test_that("test methods against test server", {
   skip_if(Sys.getenv("TESTDB_USER") == "")
+  db <- DBI::dbConnect(odbc::odbc(),
+                       Driver   = "ODBC Driver 11 for SQL Server",
+                       Server   = Sys.getenv("darwinDbDatabaseServer"),
+                       Database = "sql-synthea-1M",
+                       UID      = Sys.getenv("darwinDbUser"),
+                       PWD      = Sys.getenv("darwinDbPassword"),
+                       Port     = Sys.getenv("darwinDbDatabasePort"))
+  cdm_database_schema <- "cdm_synthea_1M"
+  cdm<-CDMConnector::cdm_from_con(db,
+                    cdm_schema = cdm_database_schema)
+  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm,
+                                                  daysPriorHistory = 180,
+                                                  verbose = TRUE)
+  cdm$outcome <- cdm$denominator %>% head(100)
 
-  con <- DBI::dbConnect(odbc::odbc(),
-    Driver   = Sys.getenv("TESTDB_DRIVER"),
-    Server   = Sys.getenv("TESTDB_SERVER"),
-    Database = Sys.getenv("TESTDB_NAME"),
-    UID      = Sys.getenv("TESTDB_USER"),
-    PWD      = Sys.getenv("TESTDB_PWD"),
-    Port     = Sys.getenv("TESTDB_PORT")
-  )
-
-  # Write cohort to db
-  # sql <- SqlRender::readSql(system.file("sql/sql_server/",
-  #  "cohortsTestDb.sql", package = "IncidencePrevalence"))
-  # sql <- SqlRender::render(sql = sql,
-  # cdmDatabaseSchema = Sys.getenv("TESTDB_CDM_SCHEMA"),
-  #  resultsDatabaseSchema = Sys.getenv("TESTDB_WRITE_SCHEMA"))
-  # sql <- SqlRender::translate(sql = sql,
-  #  targetDialect = Sys.getenv("TESTDB_DBMS"))
-  # DBI::dbSendQuery(con, sql)
-
-  cdm <- CDMConnector::cdm_from_con(con,
-    cdm_schema = Sys.getenv("TESTDB_CDM_SCHEMA"),
-    write_schema = Sys.getenv("TESTDB_WRITE_SCHEMA"),
-    cohort_tables = c("cohort")
-  )
-
-  dpop <- collectDenominator(
-    cdm = cdm,
-    sample = 100
-  )
-  cdm$denominator <- dpop$denominator_populations
-
-  expect_true(all(c(
-    "age_strata", "min_age", "max_age",
-    "sex_strata",
-    "start_date",
-    "end_date",
-    "days_prior_history",
-    "cohort_definition_id"
-  ) %in%
-    names(dpop$denominator_settings)))
-
-  dpop <- dpop$denominator_populations %>% dplyr::collect()
-
-  expect_true(all(c(
-    "cohort_definition_id",
-    "subject_id",
-    "cohort_start_date",
-    "cohort_end_date"
-  ) %in%
-    names(dpop)))
-
-  # variable names
-  expect_true(length(names(dpop)) == 4)
-  expect_true(all(c(
-    "cohort_definition_id", "subject_id",
-    "cohort_start_date", "cohort_end_date"
-  ) %in%
-    names(dpop)))
-
-  # types
-  expect_true(class(dpop %>%
-                      dplyr::select(cohort_definition_id) %>%
-    dplyr::pull()) == "character")
-  expect_true(class(dpop %>%
-                      dplyr::select(subject_id) %>%
-    dplyr::pull()) == "integer")
-  expect_true(class(dpop %>%
-                      dplyr::select(cohort_start_date) %>%
-    dplyr::pull()) == "Date")
-  expect_true(class(dpop %>%
-                      dplyr::select(cohort_end_date) %>%
-    dplyr::pull()) == "Date")
-
-  ## Pop incidence
-  inc <- computeIncidence(
+  pont_prev <- estimatePointPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomeTable = "cohort",
-    outcomeWashout = 0,
-    repeatedEvents = FALSE,
-    interval = c("months"),
-    confidenceInterval = "none",
+    outcomeTable = "outcome",
+    verbose = TRUE
+  )
+  inc <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
     verbose = TRUE
   )
 
-  expect_true(class(inc) == "list")
-  expect_true(all(names(inc) %in%
-    c(
-      "incidence_estimates",
-      "analysis_settings",
-      "person_table",
-      "attrition"
-    )))
+  results<-gatherResults(resultList=list(pont_prev, inc),
+                         outcomeCohortName="test_sample",
+                         outcomeCohortId = 1,
+                         databaseName="test_database")
+  expect_true(all(names(results)==c("prevalence_estimates",
+                                    "incidence_estimates")))
 
-  # check analysis settings tibble
-  expect_true(all(c(
-    "incidence_analysis_id",
-    "outcome_id",
-    "denominator_id",
-    "outcome_washout",
-    "repeated_events",
-    "interval",
-    "confidence_interval",
-    "min_cell_count"
-  ) %in%
-    names(inc[["analysis_settings"]])))
-
-  # check estimates tibble
-  expect_true(all(c(
-    "incidence_analysis_id",
-    "n_persons",
-    "person_days",
-    "person_years",
-    "n_events",
-    "ir_100000_pys",
-    "ir_100000_pys_low",
-    "ir_100000_pys_high",
-    "time", "start_time", "end_time",
-    "cohort_obscured",
-    "result_obscured"
-  ) %in%
-    names(inc[["incidence_estimates"]])))
-
-  ## Pop prevalence
-  prev <- computePrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "cohort",
-    confidenceInterval = "binomial"
-  )
-
-  expect_true(class(prev) == "list")
-  expect_true(all(names(prev) %in%
-    c(
-      "prevalence_estimates",
-      "analysis_settings",
-      "person_table",
-      "attrition"
-    )))
-
-  # check analysis settings tibble::tibble
-  expect_true(all(c(
-    "prevalence_analysis_id",
-    "type",
-    "point",
-    "interval",
-    "min_contribution",
-    "full_periods_required",
-    "outcome_id",
-    "denominator_id",
-    "confidence_interval",
-    "min_cell_count"
-  ) %in%
-    names(prev[["analysis_settings"]])))
-
-  # check estimates tibble
-  expect_true(all(c(
-    "prevalence_analysis_id",
-    "time",
-    "numerator", "denominator",
-    "prev",
-    "prev_low",
-    "prev_high",
-    "start_time", "end_time",
-    "cohort_obscured",
-    "result_obscured"
-  ) %in%
-    names(prev[["prevalence_estimates"]])))
-
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })

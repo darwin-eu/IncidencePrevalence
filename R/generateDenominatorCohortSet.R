@@ -399,7 +399,8 @@ generateDenominatorCohortSet <- function(cdm,
   }
   # return results as a cohort_reference class
 
-  attr(studyPops, "settings") <- popSpecs
+  attr(studyPops, "settings") <- popSpecs %>%
+    dplyr::select(!c("min_age", "max_age"))
   attr(studyPops, "attrition") <- dpop$attrition
   sqlQueries <- unlist(sqlQueries)
   class(sqlQueries) <- c("sqlTrace", class(sqlQueries))

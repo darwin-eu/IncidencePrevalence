@@ -8,6 +8,7 @@ test_that("mock db: check output format", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
+    interval = "years"
   )
 
   # check estimates tibble
@@ -37,8 +38,6 @@ test_that("mock db: check output format", {
     "analysis_min_cell_count",
     "denominator_cohort_id",
     "denominator_age_group",
-    "denominator_min_age",
-    "denominator_max_age",
     "denominator_sex",
     "denominator_days_prior_history",
     "denominator_start_date",
@@ -99,6 +98,7 @@ test_that("mock db: checks on working example", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
+    interval = "years",
     minCellCount = 0
   )
   expect_true(nrow(prev) >= 1)
@@ -155,7 +155,7 @@ test_that("mock db: working examples 2", {
                             denominatorTable = "denominator",
                             outcomeTable = "outcome",
                             type = "point",
-                            interval = "days"
+                            interval = "years"
   )
   expect_true(nrow(prev) >= 1)
 
@@ -897,7 +897,8 @@ test_that("mock db: multiple observation periods", {
     strataCohortId = "1"
   )
 
-  # should expect for period prevalence monthly 3 times with n_cases 1, and denominator 1 only at inclusion criteria satisfaction
+  # should expect for period prevalence monthly 3 times with n_cases 1,
+  # and denominator 1 only at inclusion criteria satisfaction
   ppe <- estimatePeriodPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
@@ -908,7 +909,8 @@ test_that("mock db: multiple observation periods", {
   expect_true(sum(ppe$n_cases) == 3)
   expect_true(sum(ppe$n_population) == 8+8+14)
 
-  # same if we look back 1 day, as some repeated events at month 8 disappear but the person still has an outcome then
+  # same if we look back 1 day, as some repeated events at month 8 disappear
+  # but the person still has an outcome then
   ppe <- estimatePeriodPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
@@ -939,16 +941,6 @@ test_that("mock db: multiple observation periods", {
     minCellCount = 0
   )
   expect_true(sum(ppo$n_cases) == 0)
-
-  # we would expect 4 n_cases == 1 at daily calculation
-  ppo <- estimatePointPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "days",
-    minCellCount = 0
-  )
-  expect_true(sum(ppo$n_cases) == 6)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 

@@ -17,27 +17,22 @@ incidence and prevalence using the OMOP common data model.
 
 ## Package installation
 
-You can install the development version of IncidencePrevalence like so:
+You can install the latest version of IncidencePrevalence like so:
 
 ``` r
 install.packages("remotes")
 remotes::install_github("darwin-eu/IncidencePrevalence")
 ```
 
-When working with IncidencePrevalence, you will use CDMConnector to
-manage your connection to the database. If you don´t already have this
-installed then you can install it in the same way:
+## Example usage
 
-``` r
-remotes::install_github("darwin-eu/CDMConnector")
-```
+### Create a reference to data in the OMOP CDM format
 
-## Example
-
-First, we need to create a cdm reference for the data we´ll be using.
-Here we´ll generate an example with simulated data, but to see how you
-would set this up for your database please consult the CDMConnector
-package documentation.
+The IncidencePrevalence package is designed to work with data in the
+OMOP CDM format, so our first step is to create a reference to the data
+using the CDMConnector package. Here we´ll generate an example reference
+with simulated data (to see how you would create a reference to your
+database please consult the CDMConnector package documentation).
 
 ``` r
 library(CDMConnector)
@@ -59,34 +54,57 @@ head(cdm$person)
 #> 6 6         8532                       1960              9           25
 ```
 
-To identify our denominator population we can use the
-`generateDenominatorCohortSet` function. Here for example, we want to
-identify a denominator population for a study period between 2008 and
-2018. To note, other options ave available when defining this population
-which are summarised in the package vignettes.
+### Identify a denominator cohort
+
+To identify a set of denominator cohorts we can use the
+`generateDenominatorCohortSet` function. Here we want to identify
+denominator populations for a study period between 2008 and 2018 and
+with 180 days of prior history (observation time in the database). We
+also wish to consider multiple age groups (from 0 to 64, and 65 to 100)
+and multiple sex criteria (one cohort only males, one only females, and
+one with both sexes included).
 
 ``` r
 cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
-  endDate = as.Date("2018-01-01")
+  endDate = as.Date("2018-01-01"),
+  ageGroups = list(c(0,64),
+                   c(65,100)),
+  sex = c("Male", "Female", "Both"),
+  daysPriorHistory = 180
 )
 # this is what the resulting cohort data looks like
 head(cdm$denominator)
 #> # Source:   SQL [6 x 4]
 #> # Database: DuckDB 0.3.5-dev1410 [eburn@Windows 10 x64:R 4.1.3/:memory:]
 #>   cohort_definition_id subject_id cohort_start_date cohort_end_date
-#>   <chr>                <chr>      <date>            <date>         
-#> 1 1                    1          2013-12-18        2014-12-30     
-#> 2 1                    4          2010-08-25        2011-02-12     
-#> 3 1                    6          2017-10-21        2018-01-01     
-#> 4 1                    8          2008-09-01        2008-10-15     
-#> 5 1                    11         2008-12-18        2010-08-13     
-#> 6 1                    12         2008-05-28        2010-06-13
+#>                  <int> <chr>      <date>            <date>         
+#> 1                    1 14         2010-04-17        2010-11-27     
+#> 2                    1 15         2012-04-20        2012-08-08     
+#> 3                    1 17         2015-03-01        2015-10-06     
+#> 4                    1 25         2010-01-05        2010-02-11     
+#> 5                    1 26         2010-11-03        2012-07-07     
+#> 6                    1 30         2017-05-07        2017-10-30
 ```
 
-We can also see the reasons people in the database did not enter the
-cohort
+This will then give us six denominator cohorts
+
+``` r
+settings(cdm$denominator)
+#> # A tibble: 6 x 6
+#>   age_group sex    days_prior_history start_date end_date   cohort_definition_id
+#>   <chr>     <chr>               <dbl> <date>     <date>                    <int>
+#> 1 0;64      Male                  180 2008-01-01 2018-01-01                    1
+#> 2 0;64      Female                180 2008-01-01 2018-01-01                    2
+#> 3 0;64      Both                  180 2008-01-01 2018-01-01                    3
+#> 4 65;100    Male                  180 2008-01-01 2018-01-01                    4
+#> 5 65;100    Female                180 2008-01-01 2018-01-01                    5
+#> 6 65;100    Both                  180 2008-01-01 2018-01-01                    6
+```
+
+For each of these cohorts, we can see the reasons people in the database
+did not enter a given cohort
 
 ``` r
 attrition(cdm$denominator)
@@ -99,119 +117,183 @@ attrition(cdm$denominator)
 #> 4      5000 Cannot satisfy age criteria during the study period based ~        0
 #> 5      3811 No observation time available during study period               1189
 #> 6      3811 Doesn't satisfy age criteria during the study period               0
-#> 7      3811 Prior history requirement not fullfilled during study peri~        0
+#> 7      3100 Prior history requirement not fullfilled during study peri~      711
 ```
 
+### Estimating incidence and prevalence
+
 Now we have identified our denominator population, we can calculate
-incidence, point prevalence, and period prevalence as below (given that
-our mock cdm reference also has an outcome cohort defined). Again
-further details for each of these functions are provided in the
-vignettes.
+incidence and prevalence as below. Note, in our example cdm reference we
+already have an outcome cohort defined as for this package outcome
+cohorts are required to have been defined externally.
+
+For this example we´ll estimate incidence on a yearly basis, allowing
+individuals to have multiple events but with an outcome washout of 180
+days. We also require that only complete database intervals are
+included, by which we mean that the database must have individuals
+observed throughout a year for that year to be included in the analysis.
 
 ``` r
 inc <- estimateIncidence(
   cdm = cdm,
   denominatorTable = "denominator",
-  outcomeTable = "outcome"
-)
-#> Warning: Missing values are always removed in SQL aggregation functions.
-#> Use `na.rm = TRUE` to silence this warning
-#> This warning is displayed once every 8 hours.
+  outcomeTable = "outcome",
+  interval = "years",
+  repeatedEvents = TRUE,
+  outcomeWashout = 180, 
+  completeDatabaseIntervals = TRUE
+  )
 dplyr::glimpse(inc)
-#> Rows: 120
+#> Rows: 60
 #> Columns: 13
 #> $ analysis_id        <chr> "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "~
-#> $ n_persons          <int> 513, 480, 465, 441, 423, 395, 371, 366, 354, 345, 3~
-#> $ person_days        <dbl> 14427, 12892, 13012, 12352, 11782, 10564, 10635, 10~
-#> $ n_events           <int> 33, 30, 22, 28, 34, 29, 21, 25, 28, 25, 27, 27, 30,~
-#> $ time               <chr> "2008_01", "2008_02", "2008_03", "2008_04", "2008_0~
-#> $ start_time         <date> 2008-01-01, 2008-02-01, 2008-03-01, 2008-04-01, 20~
-#> $ end_time           <date> 2008-01-31, 2008-02-29, 2008-03-31, 2008-04-30, 20~
-#> $ person_years       <dbl> 39.49897, 35.29637, 35.62491, 33.81793, 32.25736, 2~
-#> $ ir_100000_pys      <dbl> 83546.48, 84994.57, 61754.53, 82796.31, 105402.31, ~
-#> $ ir_100000_pys_low  <dbl> 55414.04, 55024.79, 36489.44, 52614.60, 70420.16, 6~
-#> $ ir_100000_pys_high <dbl> 114368.67, 117997.50, 90107.53, 116161.99, 143670.3~
+#> $ n_persons          <int> 194, 156, 174, 185, 192, 156, 165, 156, 141, 143, 1~
+#> $ person_days        <dbl> 29026, 21658, 23094, 30744, 27909, 23477, 25845, 23~
+#> $ n_events           <int> 60, 62, 54, 62, 70, 51, 60, 53, 54, 40, 56, 70, 50,~
+#> $ time               <chr> "2008", "2009", "2010", "2011", "2012", "2013", "20~
+#> $ start_time         <date> 2008-01-01, 2009-01-01, 2010-01-01, 2011-01-01, 20~
+#> $ end_time           <date> 2008-12-31, 2009-12-31, 2010-12-31, 2011-12-31, 20~
+#> $ person_years       <dbl> 79.46886, 59.29637, 63.22793, 84.17248, 76.41068, 6~
+#> $ ir_100000_pys      <dbl> 75501.27, 104559.52, 85405.30, 73658.27, 91610.23, ~
+#> $ ir_100000_pys_low  <dbl> 57615.43, 80165.18, 64159.09, 56473.38, 71414.67, 5~
+#> $ ir_100000_pys_high <dbl> 97185.11, 134040.58, 111435.39, 94426.58, 115744.02~
 #> $ cohort_obscured    <chr> "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", "FALSE~
 #> $ result_obscured    <chr> "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", "FALSE~
 ```
+
+We could also estimate point prevalence, as of the start of each
+calendar year like so:
 
 ``` r
 prev_point <- estimatePointPrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
-  interval = "months"
+  interval = "years",
+  timePoint = "start"
 )
 dplyr::glimpse(prev_point)
-#> Rows: 121
-#> Columns: 11
-#> $ analysis_id     <chr> "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1",~
-#> $ time            <chr> "2008_01", "2008_02", "2008_03", "2008_04", "2008_05",~
-#> $ numerator       <dbl> 8, 6, 11, NA, 7, 7, 6, 6, 7, 9, 5, 7, 8, 9, 7, 9, 11, ~
-#> $ denominator     <dbl> 488, 481, 486, 492, 488, 475, 466, 465, 460, 453, 458,~
-#> $ prev            <dbl> 0.01639344, 0.01247401, 0.02263374, NA, 0.01434426, 0.~
-#> $ prev_low        <dbl> 0.005127074, 0.002555355, 0.009410537, NA, 0.003794567~
-#> $ prev_high       <dbl> 0.02765981, 0.02239267, 0.03585695, NA, 0.02489396, 0.~
-#> $ start_time      <date> 2008-01-01, 2008-02-01, 2008-03-01, 2008-04-01, 2008-~
-#> $ end_time        <date> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, N~
-#> $ cohort_obscured <chr> "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", ~
-#> $ result_obscured <chr> "FALSE", "FALSE", "FALSE", "TRUE", "FALSE", "FALSE", "~
+#> Rows: 66
+#> Columns: 10
+#> $ analysis_id           <chr> "1", "1", "1", "1", "1", "1", "1", "1", "1", "1"~
+#> $ prevalence_start_date <date> 2008-01-01, 2009-01-01, 2010-01-01, 2011-01-01,~
+#> $ prevalence_end_date   <date> 2008-01-01, 2009-01-01, 2010-01-01, 2011-01-01,~
+#> $ n_cases               <dbl> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+#> $ n_population          <dbl> 125, 102, 84, 103, 122, 86, 97, 102, 87, 86, 83,~
+#> $ prevalence            <dbl> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+#> $ prevalence_95CI_lower <dbl> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+#> $ prevalence_95CI_upper <dbl> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, ~
+#> $ cohort_obscured       <chr> "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", "FA~
+#> $ result_obscured       <chr> "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", "TRUE", ~
 ```
+
+And annual period prevalence where we again require complete database
+intervals and, in addition, only include those people who are observed
+in the data for the full year:
 
 ``` r
 prev_period <- estimatePeriodPrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
-  interval = "months"
+  interval = "years",
+  completeDatabaseIntervals = TRUE, 
+  fullContribution = TRUE
 )
 dplyr::glimpse(prev_period)
-#> Rows: 120
-#> Columns: 11
-#> $ analysis_id     <chr> "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1",~
-#> $ time            <chr> "2008_01", "2008_02", "2008_03", "2008_04", "2008_05",~
-#> $ numerator       <dbl> 39, 36, 31, 32, 41, 34, 27, 30, 33, 33, 32, 32, 36, 36~
-#> $ denominator     <dbl> 513, 509, 521, 513, 515, 505, 492, 493, 484, 483, 493,~
-#> $ prev            <dbl> 0.07602339, 0.07072692, 0.05950096, 0.06237817, 0.0796~
-#> $ prev_low        <dbl> 0.05308867, 0.04845522, 0.03918813, 0.04145056, 0.0562~
-#> $ prev_high       <dbl> 0.09895812, 0.09299861, 0.07981379, 0.08330577, 0.1029~
-#> $ start_time      <date> 2008-01-01, 2008-02-01, 2008-03-01, 2008-04-01, 2008-~
-#> $ end_time        <date> 2008-01-31, 2008-02-29, 2008-03-31, 2008-04-30, 2008-~
-#> $ cohort_obscured <chr> "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", ~
-#> $ result_obscured <chr> "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", ~
+#> Rows: 60
+#> Columns: 10
+#> $ analysis_id           <chr> "1", "1", "1", "1", "1", "1", "1", "1", "1", "1"~
+#> $ prevalence_start_date <date> 2008-01-01, 2009-01-01, 2010-01-01, 2011-01-01,~
+#> $ prevalence_end_date   <date> 2008-12-31, 2009-12-31, 2010-12-31, 2011-12-31,~
+#> $ n_cases               <dbl> 11, 9, 8, 19, 9, 9, 19, 11, 10, 10, 14, 22, 22, ~
+#> $ n_population          <dbl> 33, 22, 20, 42, 26, 27, 35, 24, 26, 21, 33, 38, ~
+#> $ prevalence            <dbl> 0.3333333, 0.4090909, 0.4000000, 0.4523810, 0.34~
+#> $ prevalence_95CI_lower <dbl> 0.1975023, 0.2325582, 0.2188065, 0.3122339, 0.19~
+#> $ prevalence_95CI_upper <dbl> 0.5039211, 0.6126518, 0.6134185, 0.6005088, 0.53~
+#> $ cohort_obscured       <chr> "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", "FA~
+#> $ result_obscured       <chr> "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", "FA~
 ```
 
-For a result set we can also obtain extra related information.
+### Combining and exporting results
 
-We can see the attrition
+After running different analyses We can use `gatherResults()` to bring
+together the results, adding outcome names and the database name to the
+output.
 
 ``` r
-attrition(prev_period)
-#> # A tibble: 1 x 2
-#>   analysis_id attrition
-#>   <chr>       <chr>    
-#> 1 1           attrition
+study_results <- gatherResults(resultList=list(inc, prev_point, prev_period),
+                    outcomeCohortId = 1,
+                    outcomeCohortName = "example_outcome",
+                    databaseName = "example_data")
+dplyr::glimpse(study_results$incidence_estimates)
+#> Rows: 60
+#> Columns: 27
+#> Groups: analysis_id, analysis_outcome_washout, analysis_repeated_events, analysis_interval, analysis_complete_database_intervals, analysis_min_cell_count, denominator_cohort_id, denominator_age_group, denominator_sex, denominator_days_prior_history, denominator_start_date, denominator_end_date, outcome_cohort_id [6]
+#> $ analysis_id                          <int> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, ~
+#> $ n_persons                            <int> 194, 156, 174, 185, 192, 156, 165~
+#> $ person_days                          <dbl> 29026, 21658, 23094, 30744, 27909~
+#> $ n_events                             <int> 60, 62, 54, 62, 70, 51, 60, 53, 5~
+#> $ time                                 <chr> "2008", "2009", "2010", "2011", "~
+#> $ start_time                           <date> 2008-01-01, 2009-01-01, 2010-01-~
+#> $ end_time                             <date> 2008-12-31, 2009-12-31, 2010-12-~
+#> $ person_years                         <dbl> 79.46886, 59.29637, 63.22793, 84.~
+#> $ ir_100000_pys                        <dbl> 75501.27, 104559.52, 85405.30, 73~
+#> $ ir_100000_pys_low                    <dbl> 57615.43, 80165.18, 64159.09, 564~
+#> $ ir_100000_pys_high                   <dbl> 97185.11, 134040.58, 111435.39, 9~
+#> $ cohort_obscured                      <chr> "FALSE", "FALSE", "FALSE", "FALSE~
+#> $ result_obscured                      <chr> "FALSE", "FALSE", "FALSE", "FALSE~
+#> $ analysis_outcome_washout             <dbl> 180, 180, 180, 180, 180, 180, 180~
+#> $ analysis_repeated_events             <lgl> TRUE, TRUE, TRUE, TRUE, TRUE, TRU~
+#> $ analysis_interval                    <chr> "years", "years", "years", "years~
+#> $ analysis_complete_database_intervals <lgl> TRUE, TRUE, TRUE, TRUE, TRUE, TRU~
+#> $ outcome_cohort_id                    <dbl> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ~
+#> $ denominator_cohort_id                <int> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, ~
+#> $ analysis_min_cell_count              <dbl> 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, ~
+#> $ denominator_age_group                <chr> "0;64", "0;64", "0;64", "0;64", "~
+#> $ denominator_sex                      <chr> "Male", "Male", "Male", "Male", "~
+#> $ denominator_days_prior_history       <dbl> 180, 180, 180, 180, 180, 180, 180~
+#> $ denominator_start_date               <date> 2008-01-01, 2008-01-01, 2008-01-~
+#> $ denominator_end_date                 <date> 2018-01-01, 2018-01-01, 2018-01-~
+#> $ database_name                        <chr> "example_data", "example_data", "~
+#> $ outcome_cohort_name                  <chr> "example_outcome", "example_outco~
+dplyr::glimpse(study_results$prevalence_estimates)
+#> Rows: 126
+#> Columns: 26
+#> Groups: analysis_id, analysis_outcome_lookback_days, analysis_type, analysis_interval, analysis_complete_database_intervals, analysis_time_point, analysis_full_contribution, analysis_min_cell_count, denominator_cohort_id, denominator_age_group, denominator_sex, denominator_days_prior_history, denominator_start_date, denominator_end_date, outcome_cohort_id [12]
+#> $ analysis_id                          <int> 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, ~
+#> $ prevalence_start_date                <date> 2008-01-01, 2009-01-01, 2010-01-~
+#> $ prevalence_end_date                  <date> 2008-01-01, 2009-01-01, 2010-01-~
+#> $ n_cases                              <dbl> NA, NA, NA, NA, NA, NA, NA, NA, N~
+#> $ n_population                         <dbl> 125, 102, 84, 103, 122, 86, 97, 1~
+#> $ prevalence                           <dbl> NA, NA, NA, NA, NA, NA, NA, NA, N~
+#> $ prevalence_95CI_lower                <dbl> NA, NA, NA, NA, NA, NA, NA, NA, N~
+#> $ prevalence_95CI_upper                <dbl> NA, NA, NA, NA, NA, NA, NA, NA, N~
+#> $ cohort_obscured                      <chr> "FALSE", "FALSE", "FALSE", "FALSE~
+#> $ result_obscured                      <chr> "TRUE", "TRUE", "TRUE", "TRUE", "~
+#> $ outcome_cohort_id                    <dbl> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ~
+#> $ denominator_cohort_id                <int> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ~
+#> $ analysis_outcome_lookback_days       <dbl> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, ~
+#> $ analysis_type                        <chr> "point", "point", "point", "point~
+#> $ analysis_interval                    <chr> "years", "years", "years", "years~
+#> $ analysis_complete_database_intervals <lgl> FALSE, FALSE, FALSE, FALSE, FALSE~
+#> $ analysis_time_point                  <chr> "start", "start", "start", "start~
+#> $ analysis_full_contribution           <lgl> FALSE, FALSE, FALSE, FALSE, FALSE~
+#> $ analysis_min_cell_count              <dbl> 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, ~
+#> $ denominator_age_group                <chr> "0;64", "0;64", "0;64", "0;64", "~
+#> $ denominator_sex                      <chr> "Male", "Male", "Male", "Male", "~
+#> $ denominator_days_prior_history       <dbl> 180, 180, 180, 180, 180, 180, 180~
+#> $ denominator_start_date               <date> 2008-01-01, 2008-01-01, 2008-01-~
+#> $ denominator_end_date                 <date> 2018-01-01, 2018-01-01, 2018-01-~
+#> $ outcome_cohort_name                  <chr> "example_outcome", "example_outco~
+#> $ database_name                        <chr> "example_data", "example_data", "~
 ```
 
-We can also have a reference to the study participants that informed the
-analysis
+After gathering results, we can export them as CSVs in a zip folder
+using the `writeResultToDisk()` function.
 
 ``` r
-participants(prev_period)
-#> $study_population_analyis_1
-#> # Source:   SQL [?? x 3]
-#> # Database: DuckDB 0.3.5-dev1410 [eburn@Windows 10 x64:R 4.1.3/:memory:]
-#>    analysis_id subject_id cohort_start_date
-#>    <chr>       <chr>      <date>           
-#>  1 1           1          2013-12-18       
-#>  2 1           4          2010-08-25       
-#>  3 1           6          2017-10-21       
-#>  4 1           8          2008-09-01       
-#>  5 1           11         2008-12-18       
-#>  6 1           12         2008-05-28       
-#>  7 1           14         2009-10-19       
-#>  8 1           15         2011-10-23       
-#>  9 1           16         2010-01-30       
-#> 10 1           17         2014-09-02       
-#> # ... with more rows
+writeResultToDisk(result=study_results, 
+                  zipName="example_results",
+                  outputFolder=here::here()) 
 ```

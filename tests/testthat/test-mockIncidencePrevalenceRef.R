@@ -126,6 +126,7 @@ test_that("outcome varies by gender and age option", {
   expect_true(outcomeNamesCheck)
 
   DBI::dbDisconnect(attr(db, "dbcon"), shutdown = TRUE)
+  DBI::dbDisconnect(attr(db2, "dbcon"), shutdown = TRUE)
 })
 
 test_that("multiple outcomes", {
@@ -209,40 +210,43 @@ test_that("multiple outcomes", {
   expect_true(outcomeNamesCheck)
 
   DBI::dbDisconnect(attr(db, "dbcon"), shutdown = TRUE)
+  DBI::dbDisconnect(attr(db2, "dbcon"), shutdown = TRUE)
+  DBI::dbDisconnect(attr(db3, "dbcon"), shutdown = TRUE)
+  DBI::dbDisconnect(attr(db4, "dbcon"), shutdown = TRUE)
 })
 
 test_that("check expected errors", {
-  testthat::expect_error(
+  expect_error(
     mockIncidencePrevalenceRef(personTable = "x")
   )
-  testthat::expect_error(
+  expect_error(
     mockIncidencePrevalenceRef(observationPeriodTable = "x")
   )
-  testthat::expect_error(
+  expect_error(
     mockIncidencePrevalenceRef(outcomeTable = "x")
   )
-  testthat::expect_error(
+  expect_error(
     mockIncidencePrevalenceRef(sampleSize = -1)
   )
-  testthat::expect_error(
+  expect_error(
     mockIncidencePrevalenceRef(
       sampleSize = 100,
       outPre = -0.2
     )
   )
-  testthat::expect_error(
+  expect_error(
     mockIncidencePrevalenceRef(
       earliestDateOfBirth = as.Date("2000-01-01"),
       latestDateOfBirth = as.Date("1999-01-01")
     )
   )
-  testthat::expect_error(
+  expect_error(
     mockIncidencePrevalenceRef(
       earliestObservationStartDate = as.Date("2000-01-01"),
       latestObservationStartDate = as.Date("1999-01-01")
     )
   )
-  testthat::expect_error(
+  expect_error(
     mockIncidencePrevalenceRef(
       minDaysToObservationEnd = 10,
       maxDaysToObservationEnd = 1

@@ -28,20 +28,16 @@ IncidencePrevalence contains functions for estimating population-level incidence
 
 ## Package installation
 
-You can install the development version of IncidencePrevalence like so:
+You can install the latest version of IncidencePrevalence like so:
 
 ```{r, eval=FALSE}
 install.packages("remotes")
 remotes::install_github("darwin-eu/IncidencePrevalence")
 ```
 
-When working with IncidencePrevalence, you will use CDMConnector to manage your connection to the database. If you don´t already have this installed then you can install it in the same way:
-```{r, eval=FALSE}
-remotes::install_github("darwin-eu/CDMConnector")
-```
-
-## Example
-First, we need to create a cdm reference for the data we´ll be using. Here we´ll generate an example with simulated data, but to see how you would set this up for your database please consult the CDMConnector package documentation.
+## Example usage
+### Create a reference to data in the OMOP CDM format 
+The IncidencePrevalence package is designed to work with data in the OMOP CDM format, so our first step is to create a reference to the data using the CDMConnector package. Here we´ll generate an example reference with simulated data (to see how you would create a reference to your database please consult the CDMConnector package documentation).
 
 ```{r}
 library(CDMConnector)
@@ -53,65 +49,94 @@ cdm<-mockIncidencePrevalenceRef(sampleSize=5000)
 head(cdm$person)
 ```
 
-To identify our denominator population we can use the `generateDenominatorCohortSet` function. Here for example, we want to identify a denominator population for a study period between 2008 and 2018. To note, other options ave available when defining this population which are summarised in the package vignettes. 
+### Identify a denominator cohort
+To identify a set of denominator cohorts we can use the `generateDenominatorCohortSet` function. Here we want to identify denominator populations for a study period between 2008 and 2018 and with 180 days of prior history (observation time in the database). We also wish to consider multiple age groups (from 0 to 64, and 65 to 100) and multiple sex criteria (one cohort only males, one only females, and one with both sexes included).  
 
 ```{r}
 cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
-  endDate = as.Date("2018-01-01")
+  endDate = as.Date("2018-01-01"),
+  ageGroups = list(c(0,64),
+                   c(65,100)),
+  sex = c("Male", "Female", "Both"),
+  daysPriorHistory = 180
 )
 # this is what the resulting cohort data looks like
 head(cdm$denominator)
 ```
 
-We can also see the reasons people in the database did not enter the cohort 
+This will then give us six denominator cohorts
+```{r}
+settings(cdm$denominator)
+```
+
+For each of these cohorts, we can see the reasons people in the database did not enter a given cohort 
 ```{r}
 attrition(cdm$denominator)
 ```
 
-Now we have identified our denominator population, we can calculate incidence, point prevalence, and period prevalence as below (given that our mock cdm reference also has an outcome cohort defined). Again further details for each of these functions are provided in the vignettes.
+### Estimating incidence and prevalence
+Now we have identified our denominator population, we can calculate incidence and prevalence as below. Note, in our example cdm reference we already have an outcome cohort defined as for this package outcome cohorts are required to have been defined externally.
+
+For this example we´ll estimate incidence on a yearly basis, allowing individuals to have multiple events but with an outcome washout of 180 days. We also require that only complete database intervals are included, by which we mean that the database must have individuals observed throughout a year for that year to be included in the analysis. Note, we also specify a minimum cell count of 5, under which estimates will be obscured.
 
 ```{r}
 inc <- estimateIncidence(
   cdm = cdm,
   denominatorTable = "denominator",
-  outcomeTable = "outcome"
-)
+  outcomeTable = "outcome",
+  interval = "years",
+  repeatedEvents = TRUE,
+  outcomeWashout = 180, 
+  completeDatabaseIntervals = TRUE,
+  minCellCount = 5
+  )
 dplyr::glimpse(inc)
 ```
 
+We could also estimate point prevalence, as of the start of each calendar year like so:
 ```{r}
 prev_point <- estimatePointPrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
-  interval = "months"
+  interval = "years",
+  timePoint = "start",
+  minCellCount = 5
 )
 dplyr::glimpse(prev_point)
 ```
+
+And annual period prevalence where we again require complete database intervals and, in addition, only include those people who are observed in the data for the full year:
 
 ```{r}
 prev_period <- estimatePeriodPrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
-  interval = "months"
+  interval = "years",
+  completeDatabaseIntervals = TRUE, 
+  fullContribution = TRUE,
+  minCellCount = 5
 )
 dplyr::glimpse(prev_period)
 ```
 
-For a result set we can also obtain extra related information. 
-
-We can see the attrition
+### Combining and exporting results
+After running different analyses We can use `gatherResults()` to bring together the results, adding outcome names and the database name to the output.
 ```{r}
-attrition(prev_period)
+study_results <- gatherResults(resultList=list(inc, prev_point, prev_period),
+                    outcomeCohortId = 1,
+                    outcomeCohortName = "example_outcome",
+                    databaseName = "example_data")
+dplyr::glimpse(study_results$incidence_estimates)
+dplyr::glimpse(study_results$prevalence_estimates)
 ```
 
-We can also have a reference to the study participants that informed the analysis
-```{r}
-participants(prev_period)
+After gathering results, we can export them as CSVs in a zip folder using the `writeResultToDisk()` function. 
+```{r, eval=FALSE}
+writeResultToDisk(result=study_results, 
+                  zipName="example_results",
+                  outputFolder=here::here()) 
 ```
-
-
-

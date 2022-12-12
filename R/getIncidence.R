@@ -77,9 +77,10 @@ getIncidence <- function(cdm,
       dplyr::mutate(outcome_prev_end_date = dplyr::if_else(
         is.na(.data$outcome_prev_end_date),
         .data$outcome_prev_end_date,
-        as.Date(.data$outcome_prev_end_date +
-          lubridate::days(.env$outcomeWashoutPlusOne))
-      )) %>%
+        as.Date(!!CDMConnector::dateadd("outcome_prev_end_date",
+                                {{outcomeWashoutPlusOne}},
+                                interval = "day"))
+        )) %>%
       dplyr::mutate(cohort_start_date = dplyr::if_else(
         is.na(.data$outcome_prev_end_date) |
           (.data$cohort_start_date > .data$outcome_prev_end_date),
@@ -104,7 +105,7 @@ getIncidence <- function(cdm,
           dplyr::filter(.data$events_post>=1) %>%
           dplyr::group_by(.data$subject_id) %>%
           dplyr::filter(.data$cohort_start_date ==
-                          min(.data$cohort_start_date)) %>%
+                          min(.data$cohort_start_date, na.rm = TRUE)) %>%
           dplyr::ungroup()) %>%
           dplyr::select(!"events_post")
     }
@@ -193,11 +194,10 @@ getIncidence <- function(cdm,
       # compute working days
       workingPop <- workingPop %>%
         dplyr::mutate(workingDays = as.numeric(difftime(
-          .data$tEnd +
-            lubridate::days(1),
+          .data$tEnd,
           .data$tStart,
           units = "days"
-        )))
+        ))+1)
 
       # erase outcome_start_date if not during period
       workingPop <- workingPop %>%
@@ -215,8 +215,8 @@ getIncidence <- function(cdm,
           n_events = sum(!is.na(.data$outcome_start_date))
         ) %>%
         dplyr::mutate(time = .env$workingTime) %>%
-        dplyr::mutate(start_time = .env$workingStartTime) %>%
-        dplyr::mutate(end_time = .env$workingEndTime)
+        dplyr::mutate(incidence_start_date = .env$workingStartTime) %>%
+        dplyr::mutate(incidence_end_date = .env$workingEndTime)
     }
   }
 

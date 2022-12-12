@@ -9,8 +9,7 @@ db <- DBI::dbConnect(RPostgres::Postgres(),
                   user = Sys.getenv("DB_USER"),
                   password = Sys.getenv("DB_PASSWORD"))
 cdm <- CDMConnector::cdm_from_con(con = db,
-                                    cdm_schema = "public",
-                                    write_schema = "results")
+                                  cdm_schema = "public")
 cdm$denominator <- generateDenominatorCohortSet(cdm = cdm,
                                                 daysPriorHistory = c(0,180),
                                                 sample = 1000,
