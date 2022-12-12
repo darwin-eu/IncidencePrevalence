@@ -132,6 +132,8 @@ individuals to have multiple events but with an outcome washout of 180
 days. We also require that only complete database intervals are
 included, by which we mean that the database must have individuals
 observed throughout a year for that year to be included in the analysis.
+Note, we also specify a minimum cell count of 5, under which estimates
+will be obscured.
 
 ``` r
 inc <- estimateIncidence(
@@ -141,24 +143,25 @@ inc <- estimateIncidence(
   interval = "years",
   repeatedEvents = TRUE,
   outcomeWashout = 180, 
-  completeDatabaseIntervals = TRUE
+  completeDatabaseIntervals = TRUE,
+  minCellCount = 5
   )
 dplyr::glimpse(inc)
 #> Rows: 60
 #> Columns: 13
-#> $ analysis_id        <chr> "1", "1", "1", "1", "1", "1", "1", "1", "1", "1", "~
-#> $ n_persons          <int> 194, 156, 174, 185, 192, 156, 165, 156, 141, 143, 1~
-#> $ person_days        <dbl> 29026, 21658, 23094, 30744, 27909, 23477, 25845, 23~
-#> $ n_events           <int> 60, 62, 54, 62, 70, 51, 60, 53, 54, 40, 56, 70, 50,~
-#> $ time               <chr> "2008", "2009", "2010", "2011", "2012", "2013", "20~
-#> $ start_time         <date> 2008-01-01, 2009-01-01, 2010-01-01, 2011-01-01, 20~
-#> $ end_time           <date> 2008-12-31, 2009-12-31, 2010-12-31, 2011-12-31, 20~
-#> $ person_years       <dbl> 79.46886, 59.29637, 63.22793, 84.17248, 76.41068, 6~
-#> $ ir_100000_pys      <dbl> 75501.27, 104559.52, 85405.30, 73658.27, 91610.23, ~
-#> $ ir_100000_pys_low  <dbl> 57615.43, 80165.18, 64159.09, 56473.38, 71414.67, 5~
-#> $ ir_100000_pys_high <dbl> 97185.11, 134040.58, 111435.39, 94426.58, 115744.02~
-#> $ cohort_obscured    <chr> "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", "FALSE~
-#> $ result_obscured    <chr> "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", "FALSE~
+#> $ analysis_id              <chr> "1", "1", "1", "1", "1", "1", "1", "1", "1", ~
+#> $ n_persons                <int> 194, 156, 174, 185, 192, 156, 165, 156, 141, ~
+#> $ person_days              <dbl> 29026, 21658, 23094, 30744, 27909, 23477, 258~
+#> $ n_events                 <int> 60, 62, 54, 62, 70, 51, 60, 53, 54, 40, 56, 7~
+#> $ time                     <chr> "2008", "2009", "2010", "2011", "2012", "2013~
+#> $ incidence_start_date     <date> 2008-01-01, 2009-01-01, 2010-01-01, 2011-01-~
+#> $ incidence_end_date       <date> 2008-12-31, 2009-12-31, 2010-12-31, 2011-12-~
+#> $ person_years             <dbl> 79.46886, 59.29637, 63.22793, 84.17248, 76.41~
+#> $ ir_100000_pys            <dbl> 75501.27, 104559.52, 85405.30, 73658.27, 9161~
+#> $ ir_100000_pys_95CI_lower <dbl> 57615.43, 80165.18, 64159.09, 56473.38, 71414~
+#> $ ir_100000_pys_95CI_upper <dbl> 97185.11, 134040.58, 111435.39, 94426.58, 115~
+#> $ cohort_obscured          <chr> "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", ~
+#> $ result_obscured          <chr> "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", ~
 ```
 
 We could also estimate point prevalence, as of the start of each
@@ -170,7 +173,8 @@ prev_point <- estimatePointPrevalence(
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "years",
-  timePoint = "start"
+  timePoint = "start",
+  minCellCount = 5
 )
 dplyr::glimpse(prev_point)
 #> Rows: 66
@@ -198,7 +202,8 @@ prev_period <- estimatePeriodPrevalence(
   outcomeTable = "outcome",
   interval = "years",
   completeDatabaseIntervals = TRUE, 
-  fullContribution = TRUE
+  fullContribution = TRUE,
+  minCellCount = 5
 )
 dplyr::glimpse(prev_period)
 #> Rows: 60
@@ -217,12 +222,13 @@ dplyr::glimpse(prev_period)
 
 ### Combining and exporting results
 
-After running different analyses We can use `gatherResults()` to bring
-together the results, adding outcome names and the database name to the
-output.
+After running different analyses We can use
+`gatherIncidencePrevalenceResults()` to bring together the results,
+adding outcome names and the database name to the output.
 
 ``` r
-study_results <- gatherResults(resultList=list(inc, prev_point, prev_period),
+study_results <- gatherIncidencePrevalenceResults(
+                    resultList=list(inc, prev_point, prev_period),
                     outcomeCohortId = 1,
                     outcomeCohortName = "example_outcome",
                     databaseName = "example_data")
@@ -235,12 +241,12 @@ dplyr::glimpse(study_results$incidence_estimates)
 #> $ person_days                          <dbl> 29026, 21658, 23094, 30744, 27909~
 #> $ n_events                             <int> 60, 62, 54, 62, 70, 51, 60, 53, 5~
 #> $ time                                 <chr> "2008", "2009", "2010", "2011", "~
-#> $ start_time                           <date> 2008-01-01, 2009-01-01, 2010-01-~
-#> $ end_time                             <date> 2008-12-31, 2009-12-31, 2010-12-~
+#> $ incidence_start_date                 <date> 2008-01-01, 2009-01-01, 2010-01-~
+#> $ incidence_end_date                   <date> 2008-12-31, 2009-12-31, 2010-12-~
 #> $ person_years                         <dbl> 79.46886, 59.29637, 63.22793, 84.~
 #> $ ir_100000_pys                        <dbl> 75501.27, 104559.52, 85405.30, 73~
-#> $ ir_100000_pys_low                    <dbl> 57615.43, 80165.18, 64159.09, 564~
-#> $ ir_100000_pys_high                   <dbl> 97185.11, 134040.58, 111435.39, 9~
+#> $ ir_100000_pys_95CI_lower             <dbl> 57615.43, 80165.18, 64159.09, 564~
+#> $ ir_100000_pys_95CI_upper             <dbl> 97185.11, 134040.58, 111435.39, 9~
 #> $ cohort_obscured                      <chr> "FALSE", "FALSE", "FALSE", "FALSE~
 #> $ result_obscured                      <chr> "FALSE", "FALSE", "FALSE", "FALSE~
 #> $ analysis_outcome_washout             <dbl> 180, 180, 180, 180, 180, 180, 180~
@@ -290,10 +296,10 @@ dplyr::glimpse(study_results$prevalence_estimates)
 ```
 
 After gathering results, we can export them as CSVs in a zip folder
-using the `writeResultToDisk()` function.
+using the `exportIncidencePrevalenceResults()` function.
 
 ``` r
-writeResultToDisk(result=study_results, 
+exportIncidencePrevalenceResults(result=study_results, 
                   zipName="example_results",
                   outputFolder=here::here()) 
 ```
