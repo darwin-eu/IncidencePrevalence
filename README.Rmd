@@ -124,9 +124,10 @@ dplyr::glimpse(prev_period)
 ```
 
 ### Combining and exporting results
-After running different analyses We can use `gatherResults()` to bring together the results, adding outcome names and the database name to the output.
+After running different analyses We can use `gatherIncidencePrevalenceResults()` to bring together the results, adding outcome names and the database name to the output.
 ```{r}
-study_results <- gatherResults(resultList=list(inc, prev_point, prev_period),
+study_results <- gatherIncidencePrevalenceResults(
+                    resultList=list(inc, prev_point, prev_period),
                     outcomeCohortId = 1,
                     outcomeCohortName = "example_outcome",
                     databaseName = "example_data")
@@ -134,9 +135,9 @@ dplyr::glimpse(study_results$incidence_estimates)
 dplyr::glimpse(study_results$prevalence_estimates)
 ```
 
-After gathering results, we can export them as CSVs in a zip folder using the `writeResultToDisk()` function. 
+After gathering results, we can export them as CSVs in a zip folder using the `exportIncidencePrevalenceResults()` function. 
 ```{r, eval=FALSE}
-writeResultToDisk(result=study_results, 
+exportIncidencePrevalenceResults(result=study_results, 
                   zipName="example_results",
                   outputFolder=here::here()) 
 ```

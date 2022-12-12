@@ -9,7 +9,7 @@
 #' @export
 #'
 #' @examples
-writeResultToDisk <- function(result, zipName, outputFolder) {
+exportIncidencePrevalenceResults <- function(result, zipName, outputFolder) {
 
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(

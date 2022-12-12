@@ -31,30 +31,30 @@ test_that("check gathering of restuls", {
   )
 
   # with both types of results
-  g1<-gatherResults(resultList=list(prev1, prev2, inc1, inc2))
+  g1<-gatherIncidencePrevalenceResults(resultList=list(prev1, prev2, inc1, inc2))
   expect_true(is.list(g1))
   expect_true(inherits(g1, "IncidencePrevalenceGatheredResult"))
   expect_true(length(g1)==4)
   expect_true(all(names(g1)==c("prevalence_estimates","prevalence_attrition",
                                "incidence_estimates","incidence_attrition")))
   # with only prevalence
-  g2<-gatherResults(resultList=list(prev1, prev2))
+  g2<-gatherIncidencePrevalenceResults(resultList=list(prev1, prev2))
   expect_true(is.list(g2))
   expect_true(length(g2)==2)
   expect_true(all(names(g2)==c("prevalence_estimates","prevalence_attrition")))
   # with only incidence
-  g3<-gatherResults(resultList=list(inc1))
+  g3<-gatherIncidencePrevalenceResults(resultList=list(inc1))
   expect_true(is.list(g3))
   expect_true(length(g3)==2)
   expect_true(all(names(g3)==c("incidence_estimates","incidence_attrition")))
 
   # with database name
-  g4<-gatherResults(resultList=list(prev1, prev2, inc1, inc2),
+  g4<-gatherIncidencePrevalenceResults(resultList=list(prev1, prev2, inc1, inc2),
                     databaseName = "test_database")
   expect_true(all(g4$prevalence_estimates$database_name=="test_database"))
 
   # adding outcome name
-  g5<-gatherResults(resultList=list(prev1, prev2, inc1, inc2),
+  g5<-gatherIncidencePrevalenceResults(resultList=list(prev1, prev2, inc1, inc2),
                     outcomeCohortId = 1,
                     outcomeCohortName = "test_cohort",
                     databaseName = "test_database")
@@ -80,7 +80,7 @@ test_that("expected errors", {
     outcomeTable = "outcome",
     outcomeWashout = 0
   )
-expect_error(gatherResults(resultList=list(prev, "a")))
+expect_error(gatherIncidencePrevalenceResults(resultList=list(prev, "a")))
 
 DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
