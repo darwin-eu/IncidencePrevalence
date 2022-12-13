@@ -1035,7 +1035,7 @@ test_that("mock db: check expected errors", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
-test_that("mock db: check attrition table", {
+test_that("mock db: check attrition table logic", {
   # 7 person, 1 observation periods
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3", "4", "5", "6", "7"),
@@ -1134,6 +1134,75 @@ test_that("mock db: check attrition table", {
   )
   dpop <- generateDenominatorCohortSet(cdm = cdm)
   expect_true(all(attrition(dpop)$current_n == 1))
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
+test_that("mock db: check attrition with multiple cohorts", {
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
+
+  cdm$dpop <- generateDenominatorCohortSet(cdm,
+                                           startDate = NULL,
+                                           endDate = NULL,
+                                           sex=c("Male", "Female", "Both"),
+                                           verbose = TRUE
+  )
+  # for male cohort we should have a row for those excluded for not being male
+  expect_true(any("Not Male" == settings(cdm$dpop) %>%
+    dplyr::filter(sex == "Male") %>%
+    dplyr::inner_join(attrition(cdm$dpop),
+                      by = "cohort_definition_id") %>%
+    dplyr::pull(.data$reason)) == TRUE)
+  expect_true(any("Not Female" == settings(cdm$dpop) %>%
+        dplyr::filter(sex == "Male") %>%
+        dplyr::inner_join(attrition(cdm$dpop),
+                          by = "cohort_definition_id") %>%
+        dplyr::pull(.data$reason)) == FALSE)
+  # for female cohort we should have a row for those excluded for not being male
+  expect_true(any("Not Male" == settings(cdm$dpop) %>%
+                    dplyr::filter(sex == "Female") %>%
+                    dplyr::inner_join(attrition(cdm$dpop),
+                                      by = "cohort_definition_id") %>%
+                    dplyr::pull(.data$reason)) == FALSE)
+  expect_true(any("Not Female" == settings(cdm$dpop) %>%
+                    dplyr::filter(sex == "Female") %>%
+                    dplyr::inner_join(attrition(cdm$dpop),
+                                      by = "cohort_definition_id") %>%
+                    dplyr::pull(.data$reason)) == TRUE)
+  # for both cohort we should have a row for those excluded for not being male
+  expect_true(any("Not Male" == settings(cdm$dpop) %>%
+                    dplyr::filter(sex == "Both") %>%
+                    dplyr::inner_join(attrition(cdm$dpop),
+                                      by = "cohort_definition_id") %>%
+                    dplyr::pull(.data$reason)) == FALSE)
+  expect_true(any("Not Female" == settings(cdm$dpop) %>%
+                    dplyr::filter(sex == "Both") %>%
+                    dplyr::inner_join(attrition(cdm$dpop),
+                                      by = "cohort_definition_id") %>%
+                    dplyr::pull(.data$reason)) == FALSE)
+
+  cdm$dpop <- generateDenominatorCohortSet(cdm,
+                                           startDate = NULL,
+                                           endDate = NULL,
+                                           daysPriorHistory = c(0,365),
+                                           verbose = TRUE
+  )
+
+# nobody dropped for prior hist when req is 0
+  expect_true(settings(cdm$dpop) %>%
+    dplyr::inner_join(attrition(cdm$dpop),
+                      by = "cohort_definition_id") %>%
+    dplyr::filter(days_prior_history == 0 ) %>%
+    dplyr::filter(reason=="No observation time available after applying age and prior history criteria") %>%
+    dplyr::pull(.data$excluded) == 0)
+  # some people dropped for prior hist when req is 365
+  expect_true(settings(cdm$dpop) %>%
+                dplyr::inner_join(attrition(cdm$dpop),
+                                  by = "cohort_definition_id") %>%
+                dplyr::filter(days_prior_history == 365 ) %>%
+                dplyr::filter(reason=="No observation time available after applying age and prior history criteria") %>%
+                dplyr::pull(.data$excluded) > 0)
+
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
