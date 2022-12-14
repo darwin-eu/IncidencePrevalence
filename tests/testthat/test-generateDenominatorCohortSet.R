@@ -1007,10 +1007,6 @@ test_that("mock db: check expected errors", {
 
   testthat::expect_error(generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(10, 10))
-  ))
-  testthat::expect_error(generateDenominatorCohortSet(
-    cdm = cdm,
     ageGroups = list(c(-2, 1))
   ))
   testthat::expect_error(generateDenominatorCohortSet(
