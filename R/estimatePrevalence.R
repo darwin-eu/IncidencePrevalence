@@ -389,6 +389,18 @@ estimatePrevalence <- function(cdm,
                        function(x){paste0("denominator_", x)}),
   by = "denominator_cohort_id")
 
+  # attrition
+  # combine analysis attrition with the previous attrition for
+  # the denominator cohort used
+  for(i in seq_along(studySpecs)){
+    prsList[names(prsList) == "attrition"][[i]] <- dplyr::bind_rows(
+  attrition(cdm[[denominatorTable]]) %>%
+    dplyr::rename("denominator_cohort_id" ="cohort_definition_id") %>%
+    dplyr::filter(.data$denominator_cohort_id == studySpecs[[i]]$denominatorCohortId) %>%
+    dplyr::mutate(analysis_id=  studySpecs[[i]]$analysis_id) ,
+    prsList[names(prsList) == "attrition"][[i]] %>%
+    dplyr::mutate(step = "Estimating prevalence"))
+  }
 
   # study population
   personTable <- prsList[stringr::str_detect(names(prsList),
@@ -424,7 +436,8 @@ estimatePrevalence <- function(cdm,
   # to tibble
   attrition <- dplyr::bind_rows(attrition,
     .id = NULL
-  )
+  ) %>%
+    dplyr::select(!"denominator_cohort_id")
 
   # return results as an IncidencePrevalenceResult class
   attr(prs, "settings") <- analysisSettings

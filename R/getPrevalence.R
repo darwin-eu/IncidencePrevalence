@@ -44,6 +44,12 @@ getPrevalence <- function(cdm,
     by="subject_id") %>%
     dplyr::compute()
 
+  attrition <- recordAttrition(
+    table = studyPop,
+    id = "subject_id",
+    reason = "Starting analysis population"
+  )
+
   if (interval == "days") {
     type <- "point"
   }
@@ -69,7 +75,29 @@ getPrevalence <- function(cdm,
   if (nrow(studyDays) == 0) {
     # if no study days we´ll return an empty tibble
     pr <- tibble::tibble()
+
+    attrition <- recordAttrition(
+      table = tibble::tibble(subject_id=integer()) ,
+      id = "subject_id",
+      reason = "Not observed during the complete database interval",
+      existingAttrition = attrition
+    )
+
   } else {
+    # drop for complete database intervals requirement
+    min_start_date <- min(studyDays$start_time)
+    max_start_date <- max(studyDays$end_time)
+    studyPop <- studyPop %>%
+      dplyr::filter(.data$cohort_end_date >= min_start_date) %>%
+      dplyr::filter(.data$cohort_start_date <= max_start_date)
+
+    attrition <- recordAttrition(
+      table = studyPop,
+      id = "subject_id",
+      reason = "Not observed during the complete database interval",
+      existingAttrition = attrition
+    )
+
   # fetch prevalence
   # looping through each time interval
   pr <- list()
@@ -166,7 +194,7 @@ getPrevalence <- function(cdm,
   results <- list()
   results[["pr"]] <- pr
   results[["person_table"]] <- studyPop
-  results[["attrition"]] <- tibble::tibble(attrition = "attrition")
+  results[["attrition"]] <- attrition
 
   return(results)
 }
