@@ -21,7 +21,7 @@ attrition.IncidencePrevalenceDenominator <- function(result) {
 attrition.IncidencePrevalenceResult <- function(result, analysisId=NULL) {
  attr <- attr(result, "attrition")
   if(!is.null(analysisId)){
-    attr<-attr %>% dplyr::filter(..data$analysis_id==.env$analysisId)
+    attr<-attr %>% dplyr::filter(.data$analysis_id==.env$analysisId)
   }
  return(attr)
 }
