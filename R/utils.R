@@ -13,7 +13,7 @@ attrition <- function(result, analysisId=NULL) {
 }
 
 #' @export
-attrition.IncidencePrevalenceDenominator <- function(result) {
+attrition.IncidencePrevalenceDenominator <- function(result, analysisId=NULL) {
   attr(result, "attrition")
 }
 

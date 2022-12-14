@@ -136,7 +136,7 @@ gatherIncidencePrevalenceResults <- function(resultList, outcomeCohortId = NULL,
       )))) %>%
       dplyr::mutate(analysis_id = dplyr::cur_group_id()) %>%
       dplyr::mutate(database_name = .env$databaseName)
-    # combine prevalence attrition
+    # combine incidence attrition
     incidence_attrition <- dplyr::bind_rows(
       attrition[resultType == "Incidence"]
     ) %>%
