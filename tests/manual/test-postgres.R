@@ -10,6 +10,19 @@ db <- DBI::dbConnect(RPostgres::Postgres(),
                   password = Sys.getenv("DB_PASSWORD"))
 cdm <- CDMConnector::cdm_from_con(con = db,
                                   cdm_schema = "public")
+
+cdm$denominator <- generateDenominatorCohortSet(
+  cdm = cdm,
+  startDate = as.Date("2007-01-01"),
+  ageGroups =list(
+    c(40, 150),
+    c(40, 64)
+  ),
+  sex = c("Male", "Female"),
+  daysPriorHistory = 365,
+  verbose = TRUE
+)
+
 cdm$denominator <- generateDenominatorCohortSet(cdm = cdm,
                                                 daysPriorHistory = c(0,180),
                                                 sample = 1000,

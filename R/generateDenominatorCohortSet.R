@@ -299,10 +299,11 @@ generateDenominatorCohortSet <- function(cdm,
     studyPops <- dpop$denominator_population
 
     # attrition is the same for each group
-    dpop$attrition <- cbind(dpop$attrition,
-          cohort_definition_id = rep(popSpecs$cohort_definition_id,
-                                     each = nrow(dpop$attrition))) %>%
-      dplyr::group_split(.data$cohort_definition_id)
+    dpop$attrition <- Map(cbind,
+                          lapply(popSpecs$cohort_definition_id,
+                                 function(x) dpop$attrition),
+                          cohort_definition_id =
+                            length(popSpecs$cohort_definition_id))
 
   } else if (denominator_population_nrows > 0) {
     # first, if all cohorts are Male or Female get number that will be excluded
@@ -326,10 +327,11 @@ generateDenominatorCohortSet <- function(cdm,
     }
 
     # attrition so far is the same for each group
-    dpop$attrition <- cbind(dpop$attrition,
-          cohort_definition_id = rep(popSpecs$cohort_definition_id,
-                                     each = nrow(dpop$attrition))) %>%
-         dplyr::group_split(.data$cohort_definition_id)
+    dpop$attrition <- Map(cbind,
+                          lapply(popSpecs$cohort_definition_id,
+                                 function(x) dpop$attrition),
+                          cohort_definition_id =
+                            length(popSpecs$cohort_definition_id))
 
     studyPops <- list()
 
@@ -430,7 +432,8 @@ generateDenominatorCohortSet <- function(cdm,
   attr(studyPops, "settings") <- popSpecs %>%
     dplyr::select(!c("min_age", "max_age"))
   attr(studyPops, "attrition") <- dplyr::bind_rows(dpop$attrition) %>%
-    dplyr::mutate(step = "Generating denominator cohort set")
+    dplyr::mutate(step = "Generating denominator cohort set") %>%
+    dplyr::as_tibble()
   sqlQueries <- unlist(sqlQueries)
   class(sqlQueries) <- c("sqlTrace", class(sqlQueries))
   attr(studyPops, "sql") <- sqlQueries
