@@ -735,6 +735,46 @@ test_that("mock db: check example with restriction on age", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
+test_that("mock db: check age edge cases", {
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
+
+  # same min and max
+  # one person, born in 2000
+  personTable <- tibble::tibble(
+    person_id = "1",
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 06,
+    day_of_birth = 01
+  )
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id = "1",
+    person_id = "1",
+    observation_period_start_date = as.Date("2010-01-01"),
+    observation_period_end_date = as.Date("2015-06-01")
+  )
+
+  # mock database
+  cdm <- mockIncidencePrevalenceRef(personTable = personTable,
+                                    observationPeriodTable = observationPeriodTable)
+
+  # entry once they reach the min age criteria
+  cdm$dpop <- generateDenominatorCohortSet(
+    cdm = cdm,
+    ageGroups = list(c(10, 10))
+  )
+  # start date is now date of 10th birthday
+  expect_true(cdm$dpop %>%
+                dplyr::collect() %>%
+                dplyr::pull(cohort_start_date) == as.Date("2010-06-01"))
+  # end date is the day before their 11th birthday
+  expect_true(cdm$dpop %>%
+                dplyr::collect() %>%
+                dplyr::pull(cohort_end_date) == as.Date("2011-05-31"))
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
 test_that("mock db check age strata entry and exit", {
   personTable <- tibble::tibble(
     person_id = "1",

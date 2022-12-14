@@ -128,14 +128,14 @@ generateDenominatorCohortSet <- function(cdm,
       checkmate::assert_numeric(ageGroups[[i]][2],
         add = errorMessage
       )
-      ageCheck <- ageGroups[[i]][1] <
+      ageCheck <- ageGroups[[i]][1] <=
         ageGroups[[i]][2]
       checkmate::assertTRUE(ageCheck,
         add = errorMessage
       )
       if (!isTRUE(ageCheck)) {
         errorMessage$push(
-          "- upper age value must be higher than lower age value"
+          "- upper age value must be equal or higher than lower age value"
         )
       }
       checkmate::assertTRUE(ageGroups[[i]][1] >= 0,
