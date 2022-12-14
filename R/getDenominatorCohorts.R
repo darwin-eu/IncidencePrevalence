@@ -207,9 +207,11 @@ getDenominatorCohorts <- function(cdm,
   upperAgeLimit <- max(maxAge)
 
   studyPopDb <- studyPopDb %>%
-    dplyr::mutate(lower_age_check = as.Date(!!CDMConnector::dateadd("dob", {{lowerAgeLimit}},
+    dplyr::mutate(lower_age_check = as.Date(!!CDMConnector::dateadd("dob",
+                                              {{lowerAgeLimit}},
                                               interval = "year"))) %>%
-    dplyr::mutate(upper_age_check = as.Date(!!CDMConnector::dateadd("dob", {{upperAgeLimit}},
+    dplyr::mutate(upper_age_check = as.Date(!!CDMConnector::dateadd("dob",
+                                              {{upperAgeLimit}},
                                               interval = "year"))) %>%
     # drop people too old even at study start
     dplyr::filter(.data$upper_age_check >= .env$startDate) %>%

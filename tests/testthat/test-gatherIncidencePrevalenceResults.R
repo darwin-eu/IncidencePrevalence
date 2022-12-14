@@ -61,6 +61,20 @@ test_that("check gathering of restuls", {
   expect_true(all(g5$prevalence_estimates$outcome_cohort_name == "test_cohort"))
   expect_true(all(g5$incidence_estimates$outcome_cohort_name == "test_cohort"))
 
+
+
+  g6 <- gatherIncidencePrevalenceResults(resultList=list(inc1),
+                                   outcomeCohortId = 1,
+                                   outcomeCohortName = "test_cohort",
+                                   databaseName = "test_database")
+  expect_true(all(names(g6)==c( "incidence_estimates","incidence_attrition")))
+
+  g7 <- gatherIncidencePrevalenceResults(resultList=list(prev1),
+                                         outcomeCohortId = 1,
+                                         outcomeCohortName = "test_cohort",
+                                         databaseName = "test_database")
+  expect_true(all(names(g7)==c("prevalence_estimates","prevalence_attrition")))
+
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
   })
 

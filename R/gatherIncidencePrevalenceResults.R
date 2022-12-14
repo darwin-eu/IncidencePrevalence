@@ -136,7 +136,7 @@ gatherIncidencePrevalenceResults <- function(resultList, outcomeCohortId = NULL,
       )))) %>%
       dplyr::mutate(analysis_id = dplyr::cur_group_id()) %>%
       dplyr::mutate(database_name = .env$databaseName)
-    # combine prevalence attrition
+    # combine incidence attrition
     incidence_attrition <- dplyr::bind_rows(
       attrition[resultType == "Incidence"]
     ) %>%
@@ -149,7 +149,7 @@ gatherIncidencePrevalenceResults <- function(resultList, outcomeCohortId = NULL,
     if (!is.null(outcomeCohortId)) {
       incidence_estimates <- incidence_estimates %>%
         dplyr::left_join(outcomeRef, by = "outcome_cohort_id")
-      prevalence_attrition <- prevalence_attrition %>%
+      incidence_estimates <- incidence_attrition %>%
         dplyr::left_join(outcomeRef, by = "outcome_cohort_id")
     }
     if (!is.null(databaseName)) {

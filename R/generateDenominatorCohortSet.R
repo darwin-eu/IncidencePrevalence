@@ -261,7 +261,7 @@ generateDenominatorCohortSet <- function(cdm,
   if (verbose == TRUE) {
     message("Progress: Run get_denominator_pop to get overall population")
     start <- Sys.time()
-  }; #browser()
+  }
 
   dpop <- getDenominatorCohorts(
     cdm = cdm,
@@ -284,7 +284,9 @@ generateDenominatorCohortSet <- function(cdm,
   }
 
   sqlQueries <- dpop$sql_queries
-  denominator_population_nrows <- dpop$denominator_population %>% dplyr::count() %>% dplyr::pull(.data$n)
+  denominator_population_nrows <- dpop$denominator_population %>%
+    dplyr::count() %>%
+    dplyr::pull(.data$n)
 
   # build each of the cohorts of interest
   if (verbose == TRUE) {
@@ -295,6 +297,12 @@ generateDenominatorCohortSet <- function(cdm,
   if (denominator_population_nrows == 0) {
     message("- No people found for any denominator population")
     studyPops <- dpop$denominator_population
+
+    # attrition is the same for each group
+    dpop$attrition <- cbind(dpop$attrition,
+          cohort_definition_id = rep(popSpecs$cohort_definition_id,
+                                     each = nrow(dpop$attrition))) %>%
+      dplyr::group_split(.data$cohort_definition_id)
 
   } else if (denominator_population_nrows > 0) {
     # first, if all cohorts are Male or Female get number that will be excluded
@@ -317,15 +325,26 @@ generateDenominatorCohortSet <- function(cdm,
       )
     }
 
+    # attrition so far is the same for each group
+    dpop$attrition <- cbind(dpop$attrition,
+          cohort_definition_id = rep(popSpecs$cohort_definition_id,
+                                     each = nrow(dpop$attrition))) %>%
+         dplyr::group_split(.data$cohort_definition_id)
+
     studyPops <- list()
 
     for (i in seq_along(popSpecs$cohort_definition_id)) {
       workingDpop <- dpop$denominator_population
 
       if (popSpecs$sex[[i]] %in% c("Male", "Female")) {
-
         workingDpop <- workingDpop %>%
           dplyr::filter(.data$sex == local(popSpecs$sex[[i]]))
+        dpop$attrition[[i]] <- recordAttrition(
+          table = workingDpop,
+          id = "person_id",
+          reason = glue::glue("Not {popSpecs$sex[[i]]}"),
+          existingAttrition = dpop$attrition[[i]]
+        )
       }
 
       # cohort start
@@ -347,6 +366,15 @@ generateDenominatorCohortSet <- function(cdm,
         dplyr::rename("subject_id" = "person_id") %>%
         dplyr::select("subject_id", "cohort_start_date", "cohort_end_date") %>%
         dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
+
+      dpop$attrition[[i]] <- recordAttrition(
+        table = workingDpop,
+        id = "subject_id",
+        reason = glue::glue("No observation time available after applying age and prior history criteria"),
+        existingAttrition = dpop$attrition[[i]]
+      )
+      dpop$attrition[[i]]$cohort_definition_id <- popSpecs$cohort_definition_id[[i]]
+
 
       studyPops[[i]] <- workingDpop %>%
         dplyr::mutate(cohort_definition_id =
@@ -401,7 +429,8 @@ generateDenominatorCohortSet <- function(cdm,
 
   attr(studyPops, "settings") <- popSpecs %>%
     dplyr::select(!c("min_age", "max_age"))
-  attr(studyPops, "attrition") <- dpop$attrition
+  attr(studyPops, "attrition") <- dplyr::bind_rows(dpop$attrition) %>%
+    dplyr::mutate(step = "Generating denominator cohort set")
   sqlQueries <- unlist(sqlQueries)
   class(sqlQueries) <- c("sqlTrace", class(sqlQueries))
   attr(studyPops, "sql") <- sqlQueries

@@ -4,10 +4,12 @@
 \alias{attrition}
 \title{Cohort attrition}
 \usage{
-attrition(x)
+attrition(result, analysisId = NULL)
 }
 \arguments{
-\item{x}{Cohort set for which to get attrition}
+\item{result}{Result for which to get attrition}
+
+\item{analysisId}{ID of a specific analysis to return attrition for}
 }
 \value{
 tibble with counts and reasons for attrition.

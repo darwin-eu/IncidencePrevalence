@@ -108,16 +108,20 @@ did not enter a given cohort
 
 ``` r
 attrition(cdm$denominator)
-#> # A tibble: 7 x 3
-#>   current_n reason                                                      excluded
-#>       <dbl> <chr>                                                          <dbl>
-#> 1      5000 Starting population                                               NA
-#> 2      5000 Missing year of birth                                              0
-#> 3      5000 Missing sex                                                        0
-#> 4      5000 Cannot satisfy age criteria during the study period based ~        0
-#> 5      3811 No observation time available during study period               1189
-#> 6      3811 Doesn't satisfy age criteria during the study period               0
-#> 7      3100 Prior history requirement not fullfilled during study peri~      711
+#> # A tibble: 52 x 4
+#>    current_n reason                                    excluded cohort_definiti~
+#>        <dbl> <chr>                                        <dbl>            <int>
+#>  1      5000 Starting population                             NA                1
+#>  2      5000 Missing year of birth                            0                1
+#>  3      5000 Missing sex                                      0                1
+#>  4      5000 Cannot satisfy age criteria during the s~        0                1
+#>  5      3811 No observation time available during stu~     1189                1
+#>  6      3811 Doesn't satisfy age criteria during the ~        0                1
+#>  7      3100 Prior history requirement not fullfilled~      711                1
+#>  8      1548 Not Male                                      1552                1
+#>  9      1012 No observation time available after appl~      536                1
+#> 10      5000 Starting population                             NA                2
+#> # ... with 42 more rows
 ```
 
 ### Estimating incidence and prevalence

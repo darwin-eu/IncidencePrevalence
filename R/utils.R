@@ -1,24 +1,29 @@
 
 #' Cohort attrition
 #'
-#' @param x Cohort set for which to get attrition
+#' @param result Result for which to get attrition
+#' @param analysisId ID of a specific analysis to return attrition for
 #'
 #' @return tibble with counts and reasons for attrition.
 #' @export
 #'
 #' @examples
-attrition <- function(x) {
+attrition <- function(result, analysisId=NULL) {
   UseMethod("attrition")
 }
 
 #' @export
-attrition.IncidencePrevalenceDenominator <- function(x) {
-  attr(x, "attrition")
+attrition.IncidencePrevalenceDenominator <- function(result, analysisId=NULL) {
+  attr(result, "attrition")
 }
 
 #' @export
-attrition.IncidencePrevalenceResult <- function(x) {
-  attr(x, "attrition")
+attrition.IncidencePrevalenceResult <- function(result, analysisId=NULL) {
+ attr <- attr(result, "attrition")
+  if(!is.null(analysisId)){
+    attr<-attr %>% dplyr::filter(.data$analysis_id==.env$analysisId)
+  }
+ return(attr)
 }
 
 

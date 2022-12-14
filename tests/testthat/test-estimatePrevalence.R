@@ -45,6 +45,15 @@ test_that("mock db: check output format", {
   ) %in%
     names(settings(prev))))
 
+  expect_true(all(c(
+    "analysis_id",
+    "step",
+    "current_n",
+    "reason",
+    "excluded"
+  ) %in%
+  names(attrition(prev))))
+
   # check we can get the reference to participants who contributed
   expect_true(is.list(participants(prev))) # list of references to participants
   expect_true(tibble::is_tibble(participants(prev,1) %>%
@@ -968,6 +977,98 @@ test_that("mock db: check confidence intervals", {
                tolerance = 1e-2)
   expect_equal(prev$prevalence_95CI_upper, hmisc_ci$Upper,
                tolerance = 1e-2)
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
+test_that("mock db: check attrition", {
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm,
+    sex = c("Male", "Female")
+  )
+  prev <- estimatePrevalence(cdm,
+                             denominatorTable = "denominator",
+                             outcomeTable = "outcome",
+                             type = "point",
+                             interval = "years",
+                             minCellCount = 0
+  )
+
+  # for female cohort we should have a row for those excluded for not being male
+  expect_true(any("Not Female" == settings(prev) %>%
+                    dplyr::filter(denominator_sex == "Female") %>%
+                    dplyr::inner_join(attrition(prev),
+                                      by = "analysis_id") %>%
+                    dplyr::pull(.data$reason)))
+  # for male, the opposite
+  expect_true(any("Not Male" == settings(prev) %>%
+                    dplyr::filter(denominator_sex == "Male") %>%
+                    dplyr::inner_join(attrition(prev),
+                                      by = "analysis_id") %>%
+                    dplyr::pull(.data$reason)))
+
+  # check we can pick out specific analysis attrition
+  expect_true(unique(attrition(result=prev, analysisId = 1)$analysis_id) == 1)
+  expect_true(unique(attrition(result=prev, analysisId = 2)$analysis_id) == 2)
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
+test_that("mock db: check attrition with complete database intervals", {
+  personTable <- tibble::tibble(
+    person_id = c("1","2"),
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id =c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2000-06-01"),
+                                      as.Date("2000-06-01")),
+      observation_period_end_date = c(as.Date("2000-07-01"),
+                                      as.Date("2012-06-01"))
+  )
+  outcomeTable <- tibble::tibble(
+    cohort_definition_id = 1,
+    subject_id = "1",
+    cohort_start_date = c(
+      as.Date("2008-02-05"),
+      as.Date("2010-02-08"),
+      as.Date("2010-02-20")
+    ),
+    cohort_end_date = c(
+      as.Date("2008-02-05"),
+      as.Date("2010-02-08"),
+      as.Date("2010-02-20")
+    )
+  )
+
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    outcomeTable = outcomeTable
+  )
+
+  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm
+  )
+  prev <- estimatePrevalence(cdm,
+                             denominatorTable = "denominator",
+                             outcomeTable = "outcome",
+                             type = "point",
+                             interval = "years",
+                             completeDatabaseIntervals = TRUE,
+                             minCellCount = 0
+  )
+
+  expect_true(attrition(prev) %>%
+    dplyr::filter(reason =="Not observed during the complete database interval") %>%
+    dplyr::pull(excluded)== 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
