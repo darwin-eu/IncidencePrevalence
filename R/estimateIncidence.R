@@ -392,7 +392,7 @@ estimateIncidence <- function(cdm,
         dplyr::filter(.data$denominator_cohort_id == studySpecs[[i]]$denominator_cohort_id) %>%
         dplyr::mutate(analysis_id=  studySpecs[[i]]$analysis_id) ,
       irsList[names(irsList) == "attrition"][[i]] %>%
-        dplyr::mutate(step = "Estimating prevalence"))
+        dplyr::mutate(step = "Estimating incidence"))
   }
   attrition <- irsList[names(irsList) == "attrition"]
   attrition <- dplyr::bind_rows(attrition,

@@ -94,6 +94,35 @@ getPrevalence <- function(cdm,
       existingAttrition = attrition
     )
 
+    # drop people who never fulfill fullContribution if required
+    if(fullContribution==TRUE){
+
+      studyPop<-studyPop %>% dplyr::mutate(has_full_contribution=0)
+      # update if they do have a full contribution
+      for (i in seq_along(studyDays$time)) {
+        studyPop <- studyPop %>%
+             dplyr::mutate(has_full_contribution=
+                             dplyr::if_else(
+                               .data$has_full_contribution==1 ||
+                                (.data$cohort_end_date >= local(studyDays$end_time[i]) &
+                                    .data$cohort_start_date <= local(studyDays$start_time[i])),
+                               1, 0
+                             ))
+      }
+      studyPop<-studyPop %>%
+        dplyr::filter(.data$has_full_contribution==1) %>%
+        dplyr::select(!"has_full_contribution") %>%
+        dplyr::compute()
+
+      attrition <- recordAttrition(
+        table = studyPop,
+        id = "subject_id",
+        reason = "Do not satisfy full contribution requirement for an interval",
+        existingAttrition = attrition
+      )
+
+    }
+
   # fetch prevalence
   # looping through each time interval
   pr <- list()

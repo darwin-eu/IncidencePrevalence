@@ -430,17 +430,20 @@ test_that("mock db: check study time periods", {
 
 test_that("mock db: check fullContribution requirement", {
   personTable <- tibble::tibble(
-    person_id = c("1","2"),
+    person_id = c("1","2", "3"),
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
   observationPeriodTable <- tibble::tibble(
-    observation_period_id =  c("1","2"),
-    person_id =  c("1","2"),
-    observation_period_start_date = as.Date("2010-01-01"),
+    observation_period_id =  c("1","2", "3"),
+    person_id =  c("1","2", "3"),
+    observation_period_start_date = c(as.Date("2010-01-01"),
+                                      as.Date("2010-01-01"),
+                                      as.Date("2012-04-01")),
     observation_period_end_date = c(as.Date("2011-06-01"),
+                                    as.Date("2012-06-01"),
                                     as.Date("2012-06-01"))
   )
   outcomeTable <- tibble::tibble(
@@ -472,9 +475,10 @@ test_that("mock db: check fullContribution requirement", {
                             type = "period",
                             interval = "years",
                             fullContribution = FALSE,
+                            completeDatabaseIntervals = FALSE,
                             minCellCount = 0
   )
-  expect_true(all(prev[["denominator"]] == 2))
+  expect_true(all(prev$n_population == 2))
 
   prev <- estimatePrevalence(cdm,
                             denominatorTable = "denominator",
@@ -482,9 +486,15 @@ test_that("mock db: check fullContribution requirement", {
                             type = "period",
                             interval = "years",
                             fullContribution = TRUE,
+                            completeDatabaseIntervals = FALSE,
                             minCellCount = 0
   )
-  expect_true(all(prev[["denominator"]] == c(2,1)))
+
+  expect_true(all(prev$n_population == c(2,1,1)))
+
+  expect_true(attrition(prev) %>%
+    dplyr::filter(reason=="Do not satisfy full contribution requirement for an interval") %>%
+    dplyr::pull(excluded) == 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
