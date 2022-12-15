@@ -20,3 +20,26 @@ zip folder of results saved in the outputFolder
 \description{
 Export IncidencePrevalence results
 }
+\examples{
+\dontrun{
+db <- DBI::dbConnect(" Your database connection here ")
+cdm <- CDMConnector::cdm_from_con(
+  con = db,
+  cdm_schema = "cdm schema name"
+)
+dpop <- generateDenominatorCohortSet(
+  cdm = cdm,
+  startDate = as.Date("2008-01-01"),
+  endDate = as.Date("2018-01-01")
+)
+cdm$denominator <- dpop$denominator_population
+prev <- estimatePointPrevalence(
+cdm = cdm,
+denominatorTable = "denominator",
+outcomeTable = "outcome"
+)
+ results <- gatherIncidencePrevalenceResults(resultList=list(prev))
+ exportIncidencePrevalenceResults(result=results, zipName="test",
+                                  outputFolder=tempdir())
+}
+}

@@ -255,7 +255,7 @@ estimateIncidence <- function(cdm,
     dplyr::ungroup() %>%
     dplyr::compute()
 
-  # add to cdm_reference
+  # add to cdm reference
   cdm[[outcomeTable]] <- outcome %>%
     dplyr::select(-"outcome_end_date") %>%
     dplyr::full_join(
@@ -372,17 +372,34 @@ estimateIncidence <- function(cdm,
 
   # analysis settings
   analysisSettings <- irsList[names(irsList) == "analysis_settings"]
-  # to tibble
   analysisSettings <- dplyr::bind_rows(analysisSettings,
     .id = NULL
   )
-
   analysisSettings <- analysisSettings %>%
     dplyr::left_join(settings(cdm[[denominatorTable]]) %>%
                        dplyr::rename("cohort_id" ="cohort_definition_id") %>%
                        dplyr::rename_with(.cols = tidyselect::everything(),
                                           function(x){paste0("denominator_", x)}),
                      by = "denominator_cohort_id")
+
+  # attrition
+  # combine analysis attrition with the previous attrition for
+  # the denominator cohort used
+  for(i in seq_along(studySpecs)){
+    irsList[names(irsList) == "attrition"][[i]] <- dplyr::bind_rows(
+      attrition(cdm[[denominatorTable]]) %>%
+        dplyr::rename("denominator_cohort_id" ="cohort_definition_id") %>%
+        dplyr::filter(.data$denominator_cohort_id == studySpecs[[i]]$denominator_cohort_id) %>%
+        dplyr::mutate(analysis_id=  studySpecs[[i]]$analysis_id) ,
+      irsList[names(irsList) == "attrition"][[i]] %>%
+        dplyr::mutate(step = "Estimating prevalence"))
+  }
+  attrition <- irsList[names(irsList) == "attrition"]
+  attrition <- dplyr::bind_rows(attrition,
+                                .id = NULL
+  ) %>%
+    dplyr::select(!"denominator_cohort_id")
+
 
   # incidence estimates
   irs <- irsList[names(irsList) == "ir"]
@@ -404,13 +421,6 @@ estimateIncidence <- function(cdm,
   # person_table summary
   personTable <- irsList[stringr::str_detect(names(irsList),
                                              "study_population")]
-
-  # attrition summary
-  attrition <- irsList[names(irsList) == "attrition"]
-  # to tibble
-  attrition <- dplyr::bind_rows(attrition,
-    .id = NULL
-  )
 
   # return results as an IncidencePrevalenceResult class
   attr(irs, "settings") <- analysisSettings

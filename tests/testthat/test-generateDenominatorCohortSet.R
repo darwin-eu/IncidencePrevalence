@@ -66,7 +66,7 @@ test_that("mock db: checks on working example", {
   cdm$dpop <- generateDenominatorCohortSet(cdm,
     startDate = NULL,
     endDate = NULL,
-    ageGroups = list(c(0, 59), c(60, 69)),
+    ageGroup = list(c(0, 59), c(60, 69)),
     sex = c("Female", "Male", "Both"),
     verbose = TRUE
   )
@@ -78,7 +78,7 @@ test_that("mock db: checks on working example", {
   expect_message(cdm$dpop <- generateDenominatorCohortSet(cdm,
     startDate = NULL,
     endDate = NULL,
-    ageGroups = list(c(50, 59), c(60, 69)),
+    ageGroup = list(c(50, 59), c(60, 69)),
     daysPriorHistory = c(0, 365)
   ))
   expect_true(cdm$dpop %>%
@@ -200,7 +200,7 @@ test_that("mock db: check another example we expect to work", {
 
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(10, 100))
+    ageGroup = list(c(10, 100))
   )
   # check min age change cohort start date
   # check imputation
@@ -229,7 +229,7 @@ test_that("mock db: check another example we expect to work", {
   # check imputation
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(0, 10))
+    ageGroup = list(c(0, 10))
   )
   expect_true(cdm$dpop %>%
     dplyr::collect() %>%
@@ -275,7 +275,7 @@ test_that("mock db: mock example 1000", {
   cdm$dpop <- generateDenominatorCohortSet(cdm,
     startDate = NULL,
     endDate = NULL,
-    ageGroups = list(c(0, 5),c(6, 10),
+    ageGroup = list(c(0, 5),c(6, 10),
                      c(11, 15),c(16, 20),
                      c(21, 25),c(26, 30),
                      c(31, 35),c(36, 40),
@@ -293,7 +293,7 @@ test_that("mock db: mock example 1000", {
   cdm$dpop <- generateDenominatorCohortSet(cdm,
     startDate = as.Date("2011-01-01"),
     endDate = as.Date("2013-06-15"),
-    ageGroups = list(c(0, 59), c(60, 69)),
+    ageGroup = list(c(0, 59), c(60, 69)),
     sex = c("Female", "Male", "Both"),
     daysPriorHistory = c(0, 180),
     verbose = TRUE
@@ -670,19 +670,19 @@ test_that("mock db: check example with restriction on age", {
   # check min_age
   cdm$dpop1 <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(0, 150))
+    ageGroup = list(c(0, 150))
   )
   cdm$dpop2 <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(8, 150))
+    ageGroup = list(c(8, 150))
   )
   cdm$dpop3 <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(12, 150))
+    ageGroup = list(c(12, 150))
   )
   cdm$dpop4 <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(40, 150))
+    ageGroup = list(c(40, 150))
   )
 
   expect_true(nrow(cdm$dpop1 %>% dplyr::collect()) == 3)
@@ -714,7 +714,7 @@ test_that("mock db: check example with restriction on age", {
   # entry once they reach the min age criteria
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(10, 150))
+    ageGroup = list(c(10, 150))
   )
   # start date is now date of 10th birthday
   expect_true(cdm$dpop %>%
@@ -725,7 +725,7 @@ test_that("mock db: check example with restriction on age", {
   # exit once they reach the max age criteria
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(0, 10))
+    ageGroup = list(c(0, 10))
   )
   # end date is the day before their 11th birthday
   expect_true(cdm$dpop %>%
@@ -761,7 +761,7 @@ test_that("mock db: check age edge cases", {
   # entry once they reach the min age criteria
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(10, 10))
+    ageGroup = list(c(10, 10))
   )
   # start date is now date of 10th birthday
   expect_true(cdm$dpop %>%
@@ -801,7 +801,7 @@ test_that("mock db check age strata entry and exit", {
   # up to the day before their 15th birthday
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(
+    ageGroup = list(
       c(11, 12),
       c(13, 14)
     )
@@ -910,7 +910,7 @@ test_that("mock db: check imputation of date of birth", {
 
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(10, 100))
+    ageGroup = list(c(10, 100))
   )
   expect_true(nrow(cdm$dpop %>%
                      dplyr::collect()) == 4)
@@ -974,7 +974,7 @@ test_that("mock db: check edge cases (zero results expected)", {
 
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(155, 200))
+    ageGroup = list(c(155, 200))
   )
   expect_true(nrow(cdm$dpop %>% dplyr::collect()) == 0)
 
@@ -982,13 +982,13 @@ test_that("mock db: check edge cases (zero results expected)", {
   # but given observation period, here we would expect a null
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(0, 1))
+    ageGroup = list(c(0, 1))
   )
   expect_true(nrow(cdm$dpop %>% dplyr::collect()) == 0)
 
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(0, 15)),
+    ageGroup = list(c(0, 15)),
     daysPriorHistory = 365000,
     verbose = FALSE
   )
@@ -1007,11 +1007,11 @@ test_that("mock db: check expected errors", {
 
   testthat::expect_error(generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(-2, 1))
+    ageGroup = list(c(-2, 1))
   ))
   testthat::expect_error(generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(0, -1))
+    ageGroup = list(c(0, -1))
   ))
 
   testthat::expect_error(generateDenominatorCohortSet(
@@ -1119,7 +1119,7 @@ test_that("mock db: check attrition table logic", {
   # check age criteria
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(24, 25))
+    ageGroup = list(c(24, 25))
   )
   expect_true(attrition(cdm$dpop)$excluded[3] == 1)
 

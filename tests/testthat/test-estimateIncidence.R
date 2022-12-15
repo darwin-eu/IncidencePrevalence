@@ -381,7 +381,7 @@ test_that("mock db: check person days", {
 
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(20, 30))
+    ageGroup = list(c(20, 30))
   )
 
   inc <- estimateIncidence(
@@ -658,7 +658,7 @@ test_that("mock db: check events overlapping with start of a period", {
 
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(20, 30))
+    ageGroup = list(c(20, 30))
   )
 
   inc <- estimateIncidence(
@@ -706,7 +706,7 @@ test_that("mock db: check events overlapping with start of a period", {
 
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(20, 30))
+    ageGroup = list(c(20, 30))
   )
 
   inc2 <- estimateIncidence(
@@ -886,7 +886,7 @@ test_that("mock db: cohort start overlaps with the outcome", {
 
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(20, 30))
+    ageGroup = list(c(20, 30))
   )
 
   inc <- estimateIncidence(
@@ -1387,7 +1387,7 @@ test_that("mock db: check full period requirement - year", {
 
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(20, 30))
+    ageGroup = list(c(20, 30))
   )
 
   inc <- estimateIncidence(
@@ -1435,7 +1435,7 @@ test_that("mock db: check full period requirement - year", {
 
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(20, 30))
+    ageGroup = list(c(20, 30))
   )
 
   inc <- estimateIncidence(
@@ -1485,7 +1485,7 @@ test_that("mock db: check full period requirement - month", {
 
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(20, 30))
+    ageGroup = list(c(20, 30))
   )
 
   inc <- estimateIncidence(
@@ -1533,7 +1533,7 @@ test_that("mock db: check full period requirement - month", {
 
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
-    ageGroups = list(c(20, 30))
+    ageGroup = list(c(20, 30))
   )
 
   inc <- estimateIncidence(
@@ -2669,5 +2669,90 @@ test_that("mock db: check confidence intervals", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
+test_that("mock db: check attrition", {
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm,
+    sex = c("Male", "Female")
+  )
+  inc <- estimateIncidence(cdm,
+                            denominatorTable = "denominator",
+                            outcomeTable = "outcome",
+                            interval = "years"
+  )
+  # for female cohort we should have a row for those excluded for not being male
+  expect_true(any("Not Female" == settings(inc) %>%
+                    dplyr::filter(denominator_sex == "Female") %>%
+                    dplyr::inner_join(attrition(inc),
+                                      by = "analysis_id") %>%
+                    dplyr::pull(.data$reason)))
+  # for male, the opposite
+  expect_true(any("Not Male" == settings(inc) %>%
+                    dplyr::filter(denominator_sex == "Male") %>%
+                    dplyr::inner_join(attrition(inc),
+                                      by = "analysis_id") %>%
+                    dplyr::pull(.data$reason)))
+
+  # check we can pick out specific analysis attrition
+  expect_true(unique(attrition(result=inc, analysisId = 1)$analysis_id) == 1)
+  expect_true(unique(attrition(result=inc, analysisId = 2)$analysis_id) == 2)
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
+test_that("mock db: check attrition with complete database intervals", {
+  personTable <- tibble::tibble(
+    person_id = c("1","2"),
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id =c("1","2"),
+    person_id = c("1","2"),
+    observation_period_start_date = c(as.Date("2000-06-01"),
+                                      as.Date("2000-06-01")),
+    observation_period_end_date = c(as.Date("2000-07-01"),
+                                    as.Date("2012-06-01"))
+  )
+  outcomeTable <- tibble::tibble(
+    cohort_definition_id = 1,
+    subject_id = "1",
+    cohort_start_date = c(
+      as.Date("2008-02-05"),
+      as.Date("2010-02-08"),
+      as.Date("2010-02-20")
+    ),
+    cohort_end_date = c(
+      as.Date("2008-02-05"),
+      as.Date("2010-02-08"),
+      as.Date("2010-02-20")
+    )
+  )
+
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    outcomeTable = outcomeTable
+  )
+
+  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm
+  )
+  inc <- estimateIncidence(cdm,
+                           denominatorTable = "denominator",
+                           outcomeTable = "outcome",
+                           interval = "years"
+  )
+
+  expect_true(attrition(inc) %>%
+                dplyr::filter(reason =="Not observed during the complete database interval") %>%
+                dplyr::pull(excluded)== 1)
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
 
 

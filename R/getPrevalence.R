@@ -50,10 +50,6 @@ getPrevalence <- function(cdm,
     reason = "Starting analysis population"
   )
 
-  if (interval == "days") {
-    type <- "point"
-  }
-
   # start date
   start <- studyPop %>%
     dplyr::summarise(min(.data$cohort_start_date, na.rm=TRUE)) %>%

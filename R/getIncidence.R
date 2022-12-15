@@ -47,6 +47,12 @@ getIncidence <- function(cdm,
                             "cohort_end_date")) %>%
     dplyr::compute()
 
+  attrition <- recordAttrition(
+    table = studyPop,
+    id = "subject_id",
+    reason = "Starting analysis population"
+  )
+
   # participants without an outcome
   studyPopNoOutcome <- studyPop %>%
     dplyr::filter(is.na(.data$outcome_start_date) &
@@ -128,6 +134,13 @@ getIncidence <- function(cdm,
   studyPop <- studyPopDb %>%
     dplyr::collect()
 
+  attrition <- recordAttrition(
+    table = studyPop,
+    id = "subject_id",
+    reason = "Excluded due to prior event (do not pass outcome washout during study period)",
+    existingAttrition = attrition
+  )
+
   # study dates
   # based on the earliest start and latest end of those
   # in the relevant denominator
@@ -157,10 +170,32 @@ getIncidence <- function(cdm,
   if (nrow(studyDays) == 0) {
     # if no study days we´ll return an empty tibble
     ir <- tibble::tibble()
+
+    attrition <- recordAttrition(
+      table = tibble::tibble(subject_id=integer()) ,
+      id = "subject_id",
+      reason = "Not observed during the complete database interval",
+      existingAttrition = attrition
+    )
   }
 
   if (nrow(studyDays) > 0) {
-  # otherwise fetch incidence rates
+
+    # drop for complete database intervals requirement
+    min_start_date <- min(studyDays$start_time)
+    max_start_date <- max(studyDays$end_time)
+    studyPop <- studyPop %>%
+      dplyr::filter(.data$cohort_end_date >= min_start_date) %>%
+      dplyr::filter(.data$cohort_start_date <= max_start_date)
+
+    attrition <- recordAttrition(
+      table = studyPop,
+      id = "subject_id",
+      reason = "Not observed during the complete database interval",
+      existingAttrition = attrition
+    )
+
+  # fetch incidence rates
   # looping through each time interval
   ir <- list()
   for (i in seq_len(nrow(studyDays))) {
@@ -243,7 +278,7 @@ getIncidence <- function(cdm,
   results[["ir"]] <- ir
   results[["analysis_settings"]] <- analysisSettings
   results[["person_table"]] <- studyPopDb
-  results[["attrition"]] <- tibble::tibble(attrition = "attrition")
+  results[["attrition"]] <- attrition
 
   return(results)
 }

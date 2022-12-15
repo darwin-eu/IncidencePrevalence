@@ -14,19 +14,16 @@ cdm <- CDMConnector::cdm_from_con(con = db,
 cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2007-01-01"),
-  ageGroups =list(
+  ageGroup =list(
     c(40, 150),
     c(40, 64)
   ),
   sex = c("Male", "Female"),
   daysPriorHistory = 365,
+  sample = 1000,
   verbose = TRUE
 )
 
-cdm$denominator <- generateDenominatorCohortSet(cdm = cdm,
-                                                daysPriorHistory = c(0,180),
-                                                sample = 1000,
-                                                verbose = TRUE)
 cdm$outcome <- cdm$denominator %>% head(100)
 
 pont_prev <- estimatePointPrevalence(

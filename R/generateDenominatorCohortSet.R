@@ -30,7 +30,7 @@
 #' @param endDate A date indicating the end of the study
 #' period. If NULL, the latest observation end date in the observation period
 #' table will be used.
-#' @param ageGroups A list of age groups for which cohorts will be generated. A
+#' @param ageGroup A list of age groups for which cohorts will be generated. A
 #' value of `list(c(0,17), c(18,30))` would, for example, lead to the creation of
 #' cohorts for those aged from 0 to 17 (up to the day before their 18th
 #' birthday), and from 18 (starting the day of their 18th birthday) to 30 (up
@@ -71,7 +71,7 @@
 generateDenominatorCohortSet <- function(cdm,
                                startDate = NULL,
                                endDate = NULL,
-                               ageGroups = list(c(0, 150)),
+                               ageGroup = list(c(0, 150)),
                                sex = "Both",
                                daysPriorHistory = 0,
                                strataTable = NULL,
@@ -116,20 +116,20 @@ generateDenominatorCohortSet <- function(cdm,
     add = errorMessage,
     null.ok = TRUE
   )
-  checkmate::assert_list(ageGroups,
+  checkmate::assert_list(ageGroup,
     add = errorMessage
   )
-  if (!is.null(ageGroups)) {
-    for (i in seq_along(ageGroups)) {
-      checkmate::assertTRUE(length(ageGroups[[i]]) == 2)
-      checkmate::assert_numeric(ageGroups[[i]][1],
+  if (!is.null(ageGroup)) {
+    for (i in seq_along(ageGroup)) {
+      checkmate::assertTRUE(length(ageGroup[[i]]) == 2)
+      checkmate::assert_numeric(ageGroup[[i]][1],
         add = errorMessage
       )
-      checkmate::assert_numeric(ageGroups[[i]][2],
+      checkmate::assert_numeric(ageGroup[[i]][2],
         add = errorMessage
       )
-      ageCheck <- ageGroups[[i]][1] <=
-        ageGroups[[i]][2]
+      ageCheck <- ageGroup[[i]][1] <=
+        ageGroup[[i]][2]
       checkmate::assertTRUE(ageCheck,
         add = errorMessage
       )
@@ -138,10 +138,10 @@ generateDenominatorCohortSet <- function(cdm,
           "- upper age value must be equal or higher than lower age value"
         )
       }
-      checkmate::assertTRUE(ageGroups[[i]][1] >= 0,
+      checkmate::assertTRUE(ageGroup[[i]][1] >= 0,
         add = errorMessage
       )
-      checkmate::assertTRUE(ageGroups[[i]][2] >= 0,
+      checkmate::assertTRUE(ageGroup[[i]][2] >= 0,
         add = errorMessage
       )
     }
@@ -229,7 +229,7 @@ generateDenominatorCohortSet <- function(cdm,
   }
 
   # summarise combinations of inputs
-  ageGrDf <- data.frame(do.call(rbind, ageGroups)) %>%
+  ageGrDf <- data.frame(do.call(rbind, ageGroup)) %>%
     dplyr::mutate(age_group = paste0(.data$X1, ";", .data$X2))
   popSpecs <- tidyr::expand_grid(
     age_group = ageGrDf$age_group,

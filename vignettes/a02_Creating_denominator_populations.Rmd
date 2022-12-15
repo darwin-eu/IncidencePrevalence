@@ -96,7 +96,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = NULL,
   endDate = NULL,
-  ageGroups = list(c(0, 150)),
+  ageGroup = list(c(0, 150)),
   sex = "Both",
   daysPriorHistory = 0
 )
@@ -152,7 +152,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
-  ageGroups = list(c(0, 150)),
+  ageGroup = list(c(0, 150)),
   sex = "Both",
   daysPriorHistory = 0
 )
@@ -213,7 +213,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
-  ageGroups = list(c(0, 150)),
+  ageGroup = list(c(0, 150)),
   sex = "Both",
   daysPriorHistory = 365
 )
@@ -273,7 +273,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
-  ageGroups = list(c(18, 65)),
+  ageGroup = list(c(18, 65)),
   sex = "Female",
   daysPriorHistory = 365
 )
@@ -317,7 +317,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
-  ageGroups = list(
+  ageGroup = list(
     c(0, 40),
     c(41, 100)
   ),
@@ -358,7 +358,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
-  ageGroups = list(
+  ageGroup = list(
     c(0, 40),
     c(41, 100)
   ),
@@ -399,7 +399,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
-  ageGroups = list(
+  ageGroup = list(
     c(0, 40),
     c(41, 100)
   ),
@@ -441,7 +441,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
-  ageGroups = list(
+  ageGroup = list(
     c(0, 40),
     c(41, 100)
   ),
@@ -461,7 +461,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
-  ageGroups = list(
+  ageGroup = list(
     c(0, 18),
     c(19, 100)
   ),
@@ -640,7 +640,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   strataCohortId = "3",
   startDate = as.Date("2014-01-01"),
   endDate = as.Date("2016-01-01"),
-  ageGroups = list(c(0, 150)),
+  ageGroup = list(c(0, 150)),
   sex = "Female",
   daysPriorHistory = 0
 )
