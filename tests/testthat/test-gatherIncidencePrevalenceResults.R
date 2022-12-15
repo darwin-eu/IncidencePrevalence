@@ -1,4 +1,4 @@
-test_that("check gathering of restuls", {
+test_that("check gathering of results", {
   cdm <- mockIncidencePrevalenceRef()
 
   cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
@@ -77,6 +77,44 @@ test_that("check gathering of restuls", {
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
   })
+
+test_that("multiple cohorts to rename", {
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+
+  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+
+  cdm$outcome <- dplyr::union_all(cdm$denominator %>%
+                                    dplyr::slice_sample(n =  100) %>%
+                                    dplyr::mutate(cohort_definition_id =1),
+                                  cdm$denominator %>%
+                                    dplyr::slice_sample(n =  100) %>%
+                                    dplyr::mutate(cohort_definition_id =2)) %>%
+    dplyr::compute()
+
+  prev <- estimatePointPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years"
+  )
+  inc <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years"
+  )
+
+  # adding outcome name
+  g<-gatherIncidencePrevalenceResults(resultList=list(prev, inc),
+                                       outcomeCohortId = c(1,2),
+                                       outcomeCohortName = c("test_cohort_1",
+                                                             "test_cohort_2"),
+                                       databaseName = "test_database")
+
+  expect_true(all(unique(g$prevalence_estimates$outcome_cohort_id)==c(1,2)))
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
 
 test_that("expected errors", {
   cdm <- mockIncidencePrevalenceRef()
