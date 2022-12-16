@@ -11,10 +11,9 @@ estimatePeriodPrevalence(
   denominatorCohortId = NULL,
   outcomeCohortId = NULL,
   outcomeLookbackDays = 0,
-  interval = "months",
+  interval = "years",
   completeDatabaseIntervals = TRUE,
   fullContribution = FALSE,
-  confidenceInterval = "binomial",
   minCellCount = 5,
   verbose = FALSE
 )
@@ -47,7 +46,7 @@ ISO weeks will be used for weeks. Calendar months, quarters, or
 years can be used as the period. If more than one option
 is chosen then results will be estimated for each chosen interval.}
 
-\item{completeDatabaseIntervals}{TRUE/ FALSE. Where TRUE, incidence will
+\item{completeDatabaseIntervals}{TRUE/ FALSE. Where TRUE, prevalence will
 only be estimated for those intervals where the database
 captures all the interval (based on the earliest and latest observation
 period start dates, respectively).}
@@ -56,11 +55,6 @@ period start dates, respectively).}
 included if they in the database for the entire interval of interest. If
 FALSE they are only required to present for one day of the interval in
 order to contribute.}
-
-\item{confidenceInterval}{The method used for calculating confidence
-intervals. Options are "binomial" or "none" (in which case no estimates
-will
-be calculated).}
 
 \item{minCellCount}{Minimum number of events to report- results
 lower than this will be obscured. If NULL all results will be reported.}

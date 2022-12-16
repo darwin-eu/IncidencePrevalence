@@ -11,10 +11,8 @@ estimatePointPrevalence(
   denominatorCohortId = NULL,
   outcomeCohortId = NULL,
   outcomeLookbackDays = 0,
-  interval = "months",
-  completeDatabaseIntervals = TRUE,
+  interval = "years",
   timePoint = "start",
-  confidenceInterval = "binomial",
   minCellCount = 5,
   verbose = FALSE
 )
@@ -47,14 +45,7 @@ be used for weeks. Calendar months, quarters, or years can be used as
 the period. If more than one option is chosen then results will
 be estimated for each chosen interval.}
 
-\item{completeDatabaseIntervals}{TRUE/ FALSE. Where TRUE, incidence will
-only be estimated for those intervals where the database
-captures all the interval (based on the earliest and latest observation
-period start dates, respectively).}
-
 \item{timePoint}{where to compute the point prevalence}
-
-\item{confidenceInterval}{Method for confidence intervals}
 
 \item{minCellCount}{Minimum number of events to report- results
 lower than this will be obscured. If NULL all results will be reported.}

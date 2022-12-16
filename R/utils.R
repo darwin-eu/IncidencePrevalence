@@ -1,24 +1,29 @@
 
 #' Cohort attrition
 #'
-#' @param x Cohort set for which to get attrition
+#' @param result Result for which to get attrition
+#' @param analysisId ID of a specific analysis to return attrition for
 #'
 #' @return tibble with counts and reasons for attrition.
 #' @export
 #'
 #' @examples
-attrition <- function(x) {
+attrition <- function(result, analysisId=NULL) {
   UseMethod("attrition")
 }
 
 #' @export
-attrition.IncidencePrevalenceDenominator <- function(x) {
-  attr(x, "attrition")
+attrition.IncidencePrevalenceDenominator <- function(result, analysisId=NULL) {
+  attr(result, "attrition")
 }
 
 #' @export
-attrition.IncidencePrevalenceResult <- function(x) {
-  attr(x, "attrition")
+attrition.IncidencePrevalenceResult <- function(result, analysisId=NULL) {
+ attr <- attr(result, "attrition")
+  if(!is.null(analysisId)){
+    attr<-attr %>% dplyr::filter(.data$analysis_id==.env$analysisId)
+  }
+ return(attr)
 }
 
 
@@ -69,20 +74,25 @@ sqlTrace.IncidencePrevalenceResult <- function(x) {
 
 #'  Participants contributing to an analysis
 #'
-#' @param x Result object
+#' @param result Result object
+#' @param analysisId ID of a specific analysis to return participants for
 #'
 #' @return References to tables with the study participants contributing to
 #' a given analysis
 #' @export
 #'
 #' @examples
-participants <- function(x) {
+participants <- function(result, analysisId=NULL) {
   UseMethod("participants")
 }
 
 #' @export
-participants.IncidencePrevalenceResult <- function(x) {
-  attr(x, "participants")
+participants.IncidencePrevalenceResult <- function(result, analysisId=NULL) {
+  included<-attr(result, "participants")
+  if(!is.null(analysisId)){
+    included<-included[[paste0("study_population_analyis_",analysisId)]]
+  }
+ return(included)
 }
 
 

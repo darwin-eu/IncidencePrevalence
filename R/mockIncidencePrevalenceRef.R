@@ -77,8 +77,8 @@
 #'   observation_period_end_date = as.Date("2015-06-01")
 #' )
 #' db <- mockIncidencePrevalenceRef(
-#'   person = person_example,
-#'   observation_period = observation_period_example
+#'   personTable = person_example,
+#'   observationPeriodTable = observation_period_example)
 #' )
 #' }
 #'

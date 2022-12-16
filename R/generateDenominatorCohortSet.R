@@ -30,7 +30,7 @@
 #' @param endDate A date indicating the end of the study
 #' period. If NULL, the latest observation end date in the observation period
 #' table will be used.
-#' @param ageGroups A list of age groups for which cohorts will be generated. A
+#' @param ageGroup A list of age groups for which cohorts will be generated. A
 #' value of `list(c(0,17), c(18,30))` would, for example, lead to the creation of
 #' cohorts for those aged from 0 to 17 (up to the day before their 18th
 #' birthday), and from 18 (starting the day of their 18th birthday) to 30 (up
@@ -71,7 +71,7 @@
 generateDenominatorCohortSet <- function(cdm,
                                startDate = NULL,
                                endDate = NULL,
-                               ageGroups = list(c(0, 150)),
+                               ageGroup = list(c(0, 150)),
                                sex = "Both",
                                daysPriorHistory = 0,
                                strataTable = NULL,
@@ -116,32 +116,32 @@ generateDenominatorCohortSet <- function(cdm,
     add = errorMessage,
     null.ok = TRUE
   )
-  checkmate::assert_list(ageGroups,
+  checkmate::assert_list(ageGroup,
     add = errorMessage
   )
-  if (!is.null(ageGroups)) {
-    for (i in seq_along(ageGroups)) {
-      checkmate::assertTRUE(length(ageGroups[[i]]) == 2)
-      checkmate::assert_numeric(ageGroups[[i]][1],
+  if (!is.null(ageGroup)) {
+    for (i in seq_along(ageGroup)) {
+      checkmate::assertTRUE(length(ageGroup[[i]]) == 2)
+      checkmate::assert_numeric(ageGroup[[i]][1],
         add = errorMessage
       )
-      checkmate::assert_numeric(ageGroups[[i]][2],
+      checkmate::assert_numeric(ageGroup[[i]][2],
         add = errorMessage
       )
-      ageCheck <- ageGroups[[i]][1] <
-        ageGroups[[i]][2]
+      ageCheck <- ageGroup[[i]][1] <=
+        ageGroup[[i]][2]
       checkmate::assertTRUE(ageCheck,
         add = errorMessage
       )
       if (!isTRUE(ageCheck)) {
         errorMessage$push(
-          "- upper age value must be higher than lower age value"
+          "- upper age value must be equal or higher than lower age value"
         )
       }
-      checkmate::assertTRUE(ageGroups[[i]][1] >= 0,
+      checkmate::assertTRUE(ageGroup[[i]][1] >= 0,
         add = errorMessage
       )
-      checkmate::assertTRUE(ageGroups[[i]][2] >= 0,
+      checkmate::assertTRUE(ageGroup[[i]][2] >= 0,
         add = errorMessage
       )
     }
@@ -229,7 +229,7 @@ generateDenominatorCohortSet <- function(cdm,
   }
 
   # summarise combinations of inputs
-  ageGrDf <- data.frame(do.call(rbind, ageGroups)) %>%
+  ageGrDf <- data.frame(do.call(rbind, ageGroup)) %>%
     dplyr::mutate(age_group = paste0(.data$X1, ";", .data$X2))
   popSpecs <- tidyr::expand_grid(
     age_group = ageGrDf$age_group,
@@ -245,7 +245,7 @@ generateDenominatorCohortSet <- function(cdm,
     ) %>%
     dplyr::mutate(min_age = as.numeric(.data$min_age)) %>%
     dplyr::mutate(max_age = as.numeric(.data$max_age)) %>%
-    dplyr::mutate(cohort_definition_id = as.character(dplyr::row_number()))
+    dplyr::mutate(cohort_definition_id = dplyr::row_number())
 
 
   if (verbose == TRUE) {
@@ -261,7 +261,7 @@ generateDenominatorCohortSet <- function(cdm,
   if (verbose == TRUE) {
     message("Progress: Run get_denominator_pop to get overall population")
     start <- Sys.time()
-  }; #browser()
+  }
 
   dpop <- getDenominatorCohorts(
     cdm = cdm,
@@ -284,7 +284,9 @@ generateDenominatorCohortSet <- function(cdm,
   }
 
   sqlQueries <- dpop$sql_queries
-  denominator_population_nrows <- dpop$denominator_population %>% dplyr::count() %>% dplyr::pull(.data$n)
+  denominator_population_nrows <- dpop$denominator_population %>%
+    dplyr::count() %>%
+    dplyr::pull(.data$n)
 
   # build each of the cohorts of interest
   if (verbose == TRUE) {
@@ -295,6 +297,13 @@ generateDenominatorCohortSet <- function(cdm,
   if (denominator_population_nrows == 0) {
     message("- No people found for any denominator population")
     studyPops <- dpop$denominator_population
+
+    # attrition is the same for each group
+    dpop$attrition <- Map(cbind,
+                          lapply(popSpecs$cohort_definition_id,
+                                 function(x) dpop$attrition),
+                          cohort_definition_id =
+                            length(popSpecs$cohort_definition_id))
 
   } else if (denominator_population_nrows > 0) {
     # first, if all cohorts are Male or Female get number that will be excluded
@@ -317,15 +326,27 @@ generateDenominatorCohortSet <- function(cdm,
       )
     }
 
+    # attrition so far is the same for each group
+    dpop$attrition <- Map(cbind,
+                          lapply(popSpecs$cohort_definition_id,
+                                 function(x) dpop$attrition),
+                          cohort_definition_id =
+                            length(popSpecs$cohort_definition_id))
+
     studyPops <- list()
 
     for (i in seq_along(popSpecs$cohort_definition_id)) {
       workingDpop <- dpop$denominator_population
 
       if (popSpecs$sex[[i]] %in% c("Male", "Female")) {
-
         workingDpop <- workingDpop %>%
           dplyr::filter(.data$sex == local(popSpecs$sex[[i]]))
+        dpop$attrition[[i]] <- recordAttrition(
+          table = workingDpop,
+          id = "person_id",
+          reason = glue::glue("Not {popSpecs$sex[[i]]}"),
+          existingAttrition = dpop$attrition[[i]]
+        )
       }
 
       # cohort start
@@ -347,6 +368,15 @@ generateDenominatorCohortSet <- function(cdm,
         dplyr::rename("subject_id" = "person_id") %>%
         dplyr::select("subject_id", "cohort_start_date", "cohort_end_date") %>%
         dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
+
+      dpop$attrition[[i]] <- recordAttrition(
+        table = workingDpop,
+        id = "subject_id",
+        reason = glue::glue("No observation time available after applying age and prior history criteria"),
+        existingAttrition = dpop$attrition[[i]]
+      )
+      dpop$attrition[[i]]$cohort_definition_id <- popSpecs$cohort_definition_id[[i]]
+
 
       studyPops[[i]] <- workingDpop %>%
         dplyr::mutate(cohort_definition_id =
@@ -399,8 +429,11 @@ generateDenominatorCohortSet <- function(cdm,
   }
   # return results as a cohort_reference class
 
-  attr(studyPops, "settings") <- popSpecs
-  attr(studyPops, "attrition") <- dpop$attrition
+  attr(studyPops, "settings") <- popSpecs %>%
+    dplyr::select(!c("min_age", "max_age"))
+  attr(studyPops, "attrition") <- dplyr::bind_rows(dpop$attrition) %>%
+    dplyr::mutate(step = "Generating denominator cohort set") %>%
+    dplyr::as_tibble()
   sqlQueries <- unlist(sqlQueries)
   class(sqlQueries) <- c("sqlTrace", class(sqlQueries))
   attr(studyPops, "sql") <- sqlQueries

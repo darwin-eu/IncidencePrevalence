@@ -48,11 +48,6 @@
 #' present in an outcome cohort and any subsequent washout will be
 #' excluded). If FALSE, an individual will only contribute time up to their
 #' first event during the study period.
-#' @param confidenceInterval The method used for calculating confidence
-#' intervals. Options are "poisson" or "none" (in which case no estimates will
-#' be calculated).
-#' @param returnAnalysisCohort TRUE/ FALSE. If TRUE the population contributing
-#' to an analysis will be returned.
 #' @param minCellCount The minimum number of events to reported, below which
 #' results will be obscured. If 0, all results will be reported.
 #' @param verbose Either TRUE or FALSE. If TRUE, progress will be reported.
@@ -84,12 +79,10 @@ estimateIncidence <- function(cdm,
                               outcomeTable,
                               denominatorCohortId = NULL,
                               outcomeCohortId = NULL,
-                              interval = "months",
+                              interval = "years",
                               completeDatabaseIntervals = TRUE,
                               outcomeWashout = 0,
                               repeatedEvents = FALSE,
-                              confidenceInterval = "poisson",
-                              returnAnalysisCohort = TRUE,
                               minCellCount = 5,
                               verbose = FALSE) {
   if (verbose == TRUE) {
@@ -97,19 +90,8 @@ estimateIncidence <- function(cdm,
     message("Progress: Checking inputs")
   }
   # help to avoid formatting errors
-  if (!is.null(denominatorCohortId) &&
-    is.numeric(denominatorCohortId)) {
-    denominatorCohortId <- as.character(denominatorCohortId)
-  }
-  if (!is.null(outcomeCohortId) &&
-    is.numeric(outcomeCohortId)) {
-    outcomeCohortId <- as.character(outcomeCohortId)
-  }
   if (is.character(interval)) {
     interval <- tolower(interval)
-  }
-  if (is.character(confidenceInterval)) {
-    confidenceInterval <- tolower(confidenceInterval)
   }
 
   ## check for standard types of user error
@@ -132,7 +114,7 @@ estimateIncidence <- function(cdm,
       "- `denominatorTable` is not found in cdm"
     )
   }
-  checkmate::assert_character(denominatorCohortId,
+  checkmate::assertIntegerish(denominatorCohortId,
     add = errorMessage,
     null.ok = TRUE
   )
@@ -145,9 +127,9 @@ estimateIncidence <- function(cdm,
       "- `outcomeTable` is not found in cdm"
     )
   }
-  checkmate::assert_character(outcomeCohortId,
-    add = errorMessage,
-    null.ok = TRUE
+  checkmate::assertIntegerish(outcomeCohortId,
+                              add = errorMessage,
+                              null.ok = TRUE
   )
   checkmate::assert_choice(interval,
     choices = c(
@@ -165,11 +147,6 @@ estimateIncidence <- function(cdm,
   )
   checkmate::assert_logical(repeatedEvents,
     add = errorMessage
-  )
-  checkmate::assert_choice(confidenceInterval,
-    choices = c("none", "poisson"),
-    add = errorMessage,
-    null.ok = TRUE
   )
   checkmate::assert_number(minCellCount)
   checkmate::assert_logical(verbose,
@@ -278,7 +255,7 @@ estimateIncidence <- function(cdm,
     dplyr::ungroup() %>%
     dplyr::compute()
 
-  # add to cdm_reference
+  # add to cdm reference
   cdm[[outcomeTable]] <- outcome %>%
     dplyr::select(-"outcome_end_date") %>%
     dplyr::full_join(
@@ -311,8 +288,7 @@ estimateIncidence <- function(cdm,
     interval = interval,
     complete_database_intervals = completeDatabaseIntervals,
     outcome_washout = outcomeWashout,
-    repeated_events = repeatedEvents,
-    confidence_interval = confidenceInterval
+    repeated_events = repeatedEvents
   )
   if (is.null(outcomeWashout)) {
     studySpecs$outcome_washout <- NA
@@ -326,6 +302,13 @@ estimateIncidence <- function(cdm,
 
   # get irs
   irsList <- lapply(studySpecs, function(x) {
+
+    if (verbose == TRUE) {
+      message(glue::glue(
+        "Getting incidence for {x$analysis_id} of {length(studySpecs)}"
+      ))
+    }
+
     workingInc <- getIncidence(
       cdm = cdm,
       denominatorTable = denominatorTable,
@@ -336,18 +319,16 @@ estimateIncidence <- function(cdm,
       completeDatabaseIntervals = x$complete_database_intervals,
       outcomeWashout = x$outcome_washout,
       repeatedEvents = x$repeated_events,
-      returnAnalysisCohort = returnAnalysisCohort,
       verbose = verbose
     )
 
     workingIncIr <- workingInc[["ir"]] %>%
       dplyr::mutate(analysis_id = x$analysis_id) %>%
       dplyr::relocate("analysis_id")
-    if (returnAnalysisCohort == TRUE) {
+
       workingIncPersonTable <- workingInc[["person_table"]] %>%
-        dplyr::mutate(analysis_id = x$analysis_id) %>%
+        dplyr::mutate(analysis_id = !!x$analysis_id) %>%
         dplyr::relocate("analysis_id")
-    }
 
     workingIncAnalysisSettings <- workingInc[["analysis_settings"]] %>%
       dplyr::mutate(
@@ -356,7 +337,6 @@ estimateIncidence <- function(cdm,
         analysis_interval = x$interval,
         analysis_outcome_washout = x$outcome_washout,
         analysis_repeated_events = x$repeated_events,
-        analysis_confidence_interval = .env$confidenceInterval,
         analysis_min_cell_count = .env$minCellCount,
         analysis_id = x$analysis_id
       ) %>%
@@ -369,9 +349,8 @@ estimateIncidence <- function(cdm,
     result <- list()
     result[["ir"]] <- workingIncIr
     result[["analysis_settings"]] <- workingIncAnalysisSettings
-    if (returnAnalysisCohort == TRUE) {
-      result[["person_table"]] <- workingIncPersonTable
-    }
+    result[[paste0("study_population_analyis_",
+                   x$analysis_id)]] <- workingIncPersonTable
     result[["attrition"]] <- workingIncAttrition
 
 
@@ -393,17 +372,34 @@ estimateIncidence <- function(cdm,
 
   # analysis settings
   analysisSettings <- irsList[names(irsList) == "analysis_settings"]
-  # to tibble
   analysisSettings <- dplyr::bind_rows(analysisSettings,
     .id = NULL
   )
-
   analysisSettings <- analysisSettings %>%
     dplyr::left_join(settings(cdm[[denominatorTable]]) %>%
                        dplyr::rename("cohort_id" ="cohort_definition_id") %>%
                        dplyr::rename_with(.cols = tidyselect::everything(),
                                           function(x){paste0("denominator_", x)}),
                      by = "denominator_cohort_id")
+
+  # attrition
+  # combine analysis attrition with the previous attrition for
+  # the denominator cohort used
+  for(i in seq_along(studySpecs)){
+    irsList[names(irsList) == "attrition"][[i]] <- dplyr::bind_rows(
+      attrition(cdm[[denominatorTable]]) %>%
+        dplyr::rename("denominator_cohort_id" ="cohort_definition_id") %>%
+        dplyr::filter(.data$denominator_cohort_id == studySpecs[[i]]$denominator_cohort_id) %>%
+        dplyr::mutate(analysis_id=  studySpecs[[i]]$analysis_id) ,
+      irsList[names(irsList) == "attrition"][[i]] %>%
+        dplyr::mutate(step = "Estimating incidence"))
+  }
+  attrition <- irsList[names(irsList) == "attrition"]
+  attrition <- dplyr::bind_rows(attrition,
+                                .id = NULL
+  ) %>%
+    dplyr::select(!"denominator_cohort_id")
+
 
   # incidence estimates
   irs <- irsList[names(irsList) == "ir"]
@@ -414,29 +410,17 @@ estimateIncidence <- function(cdm,
 
   # get confidence intervals
   if (nrow(irs) > 0) {
-    irs <- getCiIncidence(irs, confidenceInterval) %>%
-      dplyr::relocate("ir_100000_pys_low", .after = "ir_100000_pys") %>%
-      dplyr::relocate("ir_100000_pys_high", .after = "ir_100000_pys_low")
+    irs <-irs %>%
+      dplyr::bind_cols(IncRateCiExact(irs$n_events,
+                                   irs$person_years))
 
     # obscure counts
     irs <- obscureCounts(irs, minCellCount = minCellCount, substitute = NA)
   }
 
   # person_table summary
-  if (returnAnalysisCohort == TRUE) {
-    personTable <- irsList[names(irsList) == "person_table"]
-    # to tibble
-    personTable <- dplyr::bind_rows(personTable,
-      .id = NULL
-    )
-  }
-
-  # attrition summary
-  attrition <- irsList[names(irsList) == "attrition"]
-  # to tibble
-  attrition <- dplyr::bind_rows(attrition,
-    .id = NULL
-  )
+  personTable <- irsList[stringr::str_detect(names(irsList),
+                                             "study_population")]
 
   # return results as an IncidencePrevalenceResult class
   attr(irs, "settings") <- analysisSettings
@@ -455,7 +439,6 @@ estimateIncidence <- function(cdm,
     ))
   }
 
-
   if (verbose == TRUE) {
     duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
@@ -463,4 +446,15 @@ estimateIncidence <- function(cdm,
     ))
   }
   return(irs)
+}
+
+
+
+IncRateCiExact<-function(ev, pt){
+
+return(tibble::tibble(
+  ir_100000_pys_95CI_lower = ((stats::qchisq(p = 0.025, df = 2 * ev) / 2) / pt)*100000,
+  ir_100000_pys_95CI_upper = ((stats::qchisq(p = 0.975, df = 2 * (ev + 1)) / 2) / pt)*100000)
+    )
+
 }

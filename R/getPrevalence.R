@@ -44,9 +44,11 @@ getPrevalence <- function(cdm,
     by="subject_id") %>%
     dplyr::compute()
 
-  if (interval == "days") {
-    type <- "point"
-  }
+  attrition <- recordAttrition(
+    table = studyPop,
+    id = "subject_id",
+    reason = "Starting analysis population"
+  )
 
   # start date
   start <- studyPop %>%
@@ -69,7 +71,58 @@ getPrevalence <- function(cdm,
   if (nrow(studyDays) == 0) {
     # if no study days we´ll return an empty tibble
     pr <- tibble::tibble()
+
+    attrition <- recordAttrition(
+      table = tibble::tibble(subject_id=integer()) ,
+      id = "subject_id",
+      reason = "Not observed during the complete database interval",
+      existingAttrition = attrition
+    )
+
   } else {
+    # drop for complete database intervals requirement
+    min_start_date <- min(studyDays$start_time)
+    max_start_date <- max(studyDays$end_time)
+    studyPop <- studyPop %>%
+      dplyr::filter(.data$cohort_end_date >= min_start_date) %>%
+      dplyr::filter(.data$cohort_start_date <= max_start_date)
+
+    attrition <- recordAttrition(
+      table = studyPop,
+      id = "subject_id",
+      reason = "Not observed during the complete database interval",
+      existingAttrition = attrition
+    )
+
+    # drop people who never fulfill fullContribution if required
+    if(fullContribution==TRUE){
+
+      studyPop<-studyPop %>% dplyr::mutate(has_full_contribution=0)
+      # update if they do have a full contribution
+      for (i in seq_along(studyDays$time)) {
+        studyPop <- studyPop %>%
+             dplyr::mutate(has_full_contribution=
+                             dplyr::if_else(
+                               .data$has_full_contribution==1 ||
+                                (.data$cohort_end_date >= local(studyDays$end_time[i]) &
+                                    .data$cohort_start_date <= local(studyDays$start_time[i])),
+                               1, 0
+                             ))
+      }
+      studyPop<-studyPop %>%
+        dplyr::filter(.data$has_full_contribution==1) %>%
+        dplyr::select(!"has_full_contribution") %>%
+        dplyr::compute()
+
+      attrition <- recordAttrition(
+        table = studyPop,
+        id = "subject_id",
+        reason = "Do not satisfy full contribution requirement for an interval",
+        existingAttrition = attrition
+      )
+
+    }
+
   # fetch prevalence
   # looping through each time interval
   pr <- list()
@@ -121,14 +174,14 @@ getPrevalence <- function(cdm,
           )
       )
 
-    denominator <- workingPop %>%
+    n_population <- workingPop %>%
       dplyr::select("subject_id") %>%
       dplyr::distinct() %>%
       dplyr::count() %>%
       dplyr::pull()
 
     if(!is.null(outcomeLookbackDays)){
-      numerator <- workingPop %>%
+      n_cases <- workingPop %>%
         dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
         dplyr::filter(.data$outcome_end_date >= (
           !!CDMConnector::dateadd("t_start_date", -{{outcomeLookbackDays}},
@@ -138,7 +191,7 @@ getPrevalence <- function(cdm,
         dplyr::count() %>%
         dplyr::pull()
     } else {
-      numerator <- workingPop %>%
+      n_cases <- workingPop %>%
         dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
         dplyr::select("subject_id") %>%
         dplyr::distinct() %>%
@@ -147,33 +200,26 @@ getPrevalence <- function(cdm,
     }
 
     pr[[paste0(i)]] <- studyDays[i, ] %>%
-      dplyr::mutate(numerator = .env$numerator) %>%
-      dplyr::mutate(denominator = .env$denominator) %>%
-      dplyr::mutate(prev = .env$numerator / .env$denominator) %>%
-      dplyr::select("time", "numerator", "denominator",
-                    "prev", "start_time", "end_time")
+      dplyr::mutate(n_cases = .env$n_cases) %>%
+      dplyr::mutate(n_population = .env$n_population) %>%
+      dplyr::mutate(prevalence = .env$n_cases / .env$n_population) %>%
+      dplyr::select("n_cases", "n_population",
+                    "prevalence", "start_time", "end_time") %>%
+      dplyr::rename( "prevalence_start_date" = "start_time") %>%
+      dplyr::rename( "prevalence_end_date" = "end_time")
   }
 
   pr <- dplyr::bind_rows(pr)
   }
 
-  # study design related variables
-  analysisSettings <- tibble::tibble(
-    type = .env$type,
-    time_point = .env$timePoint,
-    interval = .env$interval,
-    full_contribution = .env$fullContribution,
-    full_periods_required = .env$completeDatabaseIntervals
-  )
-
   studyPop <- studyPop %>%
-    dplyr::select("subject_id", "cohort_start_date", "cohort_end_date")
+    dplyr::select("subject_id", "cohort_start_date") %>%
+    dplyr::distinct()
 
   results <- list()
   results[["pr"]] <- pr
-  results[["analysis_settings"]] <- analysisSettings
   results[["person_table"]] <- studyPop
-  results[["attrition"]] <- tibble::tibble(attrition = "attrition")
+  results[["attrition"]] <- attrition
 
   return(results)
 }

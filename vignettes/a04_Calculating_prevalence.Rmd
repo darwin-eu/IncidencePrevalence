@@ -1,0 +1,306 @@
+---
+title: "Calculating prevalence"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{a05_Calculating_prevalence}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5,
+  eval = Sys.getenv("$RUNNER_OS") != "macOS"
+)
+```
+
+```{r, message= FALSE, warning=FALSE, echo=FALSE}
+library(here)
+library(ggplot2)
+library(DBI)
+library(dbplyr)
+library(dplyr)
+library(tibble)
+library(tidyr)
+library(knitr)
+library(IncidencePrevalence)
+```
+
+# Introduction
+Prevalence is the total number of people with an ongoing health-related event, such as a medical condition or medication use, at a particular time or during a given period divided by the population at risk. In the previous vignettes we have seen how we can identify a denominator population and define and instantiate an outcome cohort. Prevalence then can be calculated to describe the proportion of people in the denominator population who are in the outcome cohort at a specified time point (point prevalence) or over a given time interval (period prevalence).
+
+In the first plot below, we can We can see at time t+2 that 2 out of 5 people were in an outcome cohort, giving a point prevalence of 40%. In the second figure, period prevalence between t+2 and t+3 was also 40%. However for period prevalence between t and t+1, what do we do with those people who only contributed some time during the period? If we included them we´ll have a period prevalence of 20%, whereas if we require that everyone is observed for the full period to contribute then we´ll have a period prevalence of 33%.  
+
+```{r,echo=FALSE, out.width="80%"}
+knitr::include_graphics(here("vignettes/point_prev.png"))
+```
+
+```{r,echo=FALSE, out.width="80%"}
+knitr::include_graphics(here("vignettes/period_prev.png"))
+```
+
+# Outcome definition
+General information on how to define outcome cohorts can be found in the vignette "Creating outcome cohorts". The most important recommendations for defining an outcome cohort for calculating incidence are:
+
+1. Decide whether to restrict events to the first occurrence
+2. Set an appropriate cohort exit strategy
+3. Do not add further restrictions on sex, age and prior history requirements. Theses can be specified when identifying the denominator cohort using `generateDenominatorCohortSet()`.
+
+Adequate use of the first two features above need to reflect the nature of the proposed outcome (e.g., whether it is an acute or chronic condition) and the research question being investigated. 
+
+# Using estimatePointPrevalence() and estimatePeriodPrevalence()
+`estimatePointPrevalence()` and `estimatePeriodPrevalence()` are the functions we use to estimate prevalence. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `mockIncidencePrevalenceRef()` function, from whom we´ll create a denominator population without adding any restrictions other than a study period.
+
+```{r setup}
+library(IncidencePrevalence)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+
+cdm <- mockIncidencePrevalenceRef(
+  sampleSize = 50000,
+  outPre = 0.5
+)
+
+cdm$denominator <- generateDenominatorCohortSet(
+  cdm = cdm,
+  startDate = as.Date("2008-01-01"),
+  endDate = as.Date("2012-01-01"),
+  ageGroup = list(c(0, 150)),
+  sex = "Both",
+  daysPriorHistory = 0
+)
+
+cdm$denominator %>%
+  glimpse()
+```
+
+## Using estimatePointPrevalence()
+Let´s first calculate point prevalence on a yearly basis. 
+```{r, message= FALSE, warning=FALSE}
+prev <- estimatePointPrevalence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = "Years",
+  minCellCount = 0
+)
+
+prev %>%
+  glimpse()
+
+prev %>%
+  ggplot(aes(x = prevalence_start_date, y=prevalence,
+             ymin = prevalence_95CI_lower,
+             ymax = prevalence_95CI_upper)) +
+  geom_point() +
+  geom_errorbar(width=0) +
+  scale_y_continuous(
+    labels = scales::percent,
+    limits = c(0, NA)
+  ) +
+  theme_minimal()
+```
+
+We can also calculate point prevalence by calendar month.
+```{r, message= FALSE, warning=FALSE}
+prev <- estimatePointPrevalence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = "Months",
+  minCellCount = 0
+)
+
+prev %>%
+  glimpse()
+
+prev %>%
+  ggplot(aes(x = prevalence_start_date, y=prevalence,
+             ymin = prevalence_95CI_lower,
+             ymax = prevalence_95CI_upper)) +
+  geom_point() +
+  geom_errorbar(width=0) +
+  scale_y_continuous(
+    labels = scales::percent,
+    limits = c(0, NA)
+  ) +
+  theme_minimal()
+```
+
+By using the estimatePointPrevalence() function, we can further specify where to compute point prevalence in each time interval (start, middle, end). By default, this parameter is set to start. But we can use middle instead like so:
+
+```{r, message= FALSE, warning=FALSE}
+prev <- estimatePointPrevalence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = "Years",
+  timePoint = "middle",
+  minCellCount = 0
+)
+
+prev %>%
+  glimpse()
+
+prev %>%
+  ggplot(aes(x = prevalence_start_date, y=prevalence,
+             ymin = prevalence_95CI_lower,
+             ymax = prevalence_95CI_upper)) +
+  geom_point() +
+  geom_errorbar(width=0) +
+  scale_y_continuous(
+    labels = scales::percent,
+    limits = c(0, NA)
+  ) +   
+  theme_minimal()
+```
+
+## Using estimatePeriodPrevalence()
+To calculate period prevalence by year (i.e. each period is a calendar year)
+```{r, message= FALSE, warning=FALSE}
+prev <- estimatePeriodPrevalence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = "Years",
+  minCellCount = 0
+)
+
+prev %>%
+  glimpse()
+
+prev %>%
+  ggplot(aes(x = prevalence_start_date, y=prevalence,
+             ymin = prevalence_95CI_lower,
+             ymax = prevalence_95CI_upper)) +
+  geom_point() +
+  geom_errorbar(width=0) +
+  scale_y_continuous(
+    labels = scales::percent,
+    limits = c(0, NA)
+  ) +
+  theme_minimal()
+```
+
+
+To calculate period prevalence by month (i.e. each period is a calendar month)
+```{r, message= FALSE, warning=FALSE}
+prev <- estimatePeriodPrevalence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = "Months",
+  minCellCount = 0
+)
+
+prev %>%
+  glimpse()
+
+prev %>%
+  ggplot(aes(x = prevalence_start_date, y=prevalence,
+             ymin = prevalence_95CI_lower,
+             ymax = prevalence_95CI_upper)) +
+  geom_point() +
+  geom_errorbar(width=0) +
+  scale_y_continuous(
+    labels = scales::percent,
+    limits = c(0, NA)
+  ) +
+  theme_minimal()
+```
+
+When using the estimatePeriodPrevalence() function, we can set the fullContribution parameter to decide whether individuals are required to be present in the database throughout the interval of interest in order to be included (fullContribution=TRUE). If not, individuals will only be required to be present for one day of the interval to contribute (fullContribution=FALSE), which would be specified like so:  
+
+```{r, message= FALSE, warning=FALSE}
+prev <- estimatePeriodPrevalence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = "Months",
+  fullContribution= FALSE,
+  minCellCount = 0
+)
+
+prev %>%
+  glimpse()
+
+prev %>%
+  ggplot(aes(x = prevalence_start_date, y=prevalence,
+             ymin = prevalence_95CI_lower,
+             ymax = prevalence_95CI_upper)) +
+  geom_point() +
+  geom_errorbar(width=0) +
+  scale_y_continuous(
+    labels = scales::percent,
+    limits = c(0, NA)
+  ) +
+  theme_minimal()
+```
+
+## Other parameters
+For both functions, we can also specify a look-back window to consider an outcome as prevalent if it was ongoing in some previous amount of days relative to the current time point/ period. If NULL, any prior outcome will be considered prevalent. If 0, only ongoing outcomes will be considered prevalent. This can be a useful option if, for example, outcome cohorts simply included people only for the day in which a relevant code was seen and prevalence is to be based on some prior time window (e.g. including outcomes as prevalent if they were seen in the last 30 days). 
+
+```{r, message= FALSE, warning=FALSE}
+prev <- estimatePointPrevalence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = "Years",
+  outcomeLookbackDays = c(0, 30),
+  minCellCount = 0
+)
+
+prev %>%
+  glimpse()
+
+prev %>%
+  left_join(attributes(prev)$settings)%>%
+  mutate(analysis_outcome_lookback_days= as.character(analysis_outcome_lookback_days))%>%
+  ggplot(aes(x = prevalence_start_date, y=prevalence,
+             ymin = prevalence_95CI_lower,
+             ymax = prevalence_95CI_upper, 
+             colour=analysis_outcome_lookback_days)) +
+  geom_point() +
+  geom_errorbar(width=0) +
+  scale_y_continuous(
+    labels = scales::percent,
+    limits = c(0, NA)
+  ) +
+  theme_minimal()
+```
+
+In the examples above, we have used calculated prevalence by months and years, but it can be also calculated by weeks, months or for the entire time period observed (overall). In addition, the user can decide whether to include time intervals that are not fully captured in the database (e.g., having data up to June for the last study year when computing period prevalence rates). By default, incidence will only be estimated for those intervals where the database captures all the interval (completeDatabaseIntervals=TRUE).
+
+Given that we can set `estimtePointPrevalence()` and `estimtePeriorPrevalence()` to exclude individuals based on certain parameters (e.g., fullContribution), it is important to note that the denominator population used to compute prevalence rates might differ from the one calculated with `generateDenominatorCohortSet()`. 
+
+The user can also set the minimum number of events to be reported, below which results will be obscured. By default, results with <5 occurrences are blinded, but if minCellCount=0, all results will be reported. 95 % confidence intervals are calculated using the Wilson Score method. In addition, we can set verbose=TRUE to report progress as code is running. By default, no progress is reported (verbose=FALSE). 
+
+## Output
+`estimtePointPrevalence()` and `estimtePeriorPrevalence()` will generate a table with point and period prevalence rates for each of the time intervals studied and for each combination of the parameters set, respectively. Similar to the output obtained by `generateDenominatorCohortSet()`, the table generated will also include attributes, including tibbles with information on settings and attrition.
+```{r, message= FALSE, warning=FALSE}
+prev <- estimatePeriodPrevalence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = "Years",
+  fullContribution= c(TRUE, FALSE),
+  minCellCount = 0
+)
+settings(prev)
+attrition(prev)
+```
+
+In addition, we can identify the individuals who contributed to the prevalence rate analysis by using `participants(), along with the start and end date of their contribution. 
+```{r, message= FALSE, warning=FALSE}
+participants(prev)
+```
+
+We can find the median year of cohort entry of those people contributing to analysis 1 for example by
+```{r, message= FALSE, warning=FALSE}
+participants(prev, analysisId = 1) %>% 
+  summarise(median_start = median(year(cohort_start_date)))
+```

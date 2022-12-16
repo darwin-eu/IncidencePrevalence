@@ -1,8 +1,8 @@
 ---
-title: "Creating denominator populations"
+title: "Creating denominator cohorts"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{a02_Creating_denominator_populations}
+  %\VignetteIndexEntry{a02_Creating_denominator_cohorts}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -18,41 +18,37 @@ knitr::opts_chunk$set(
 ```
 
 ```{r, message= FALSE, warning=FALSE, echo=FALSE}
-library(here)
-library(ggplot2)
-library(DBI)
+library(IncidencePrevalence)
 library(dbplyr)
 library(dplyr)
 library(tibble)
 library(tidyr)
-library(duckdb)
-library(knitr)
-library(IncidencePrevalence)
+library(ggplot2)
 ```
 
 # Introduction
-Calculating incidence or prevalence requires first identifying an appropriate denominator population. To find such a denominator population (or multiple denominator populations) we can use the `generateDenominatorCohortSet()` function. This function will identify the time that people satisfy a set of criteria related to the study period and individuals´ age, sex, and amount of prior observed history. 
+Calculating incidence or prevalence requires first identifying an appropriate denominator population. To find such a denominator population (or multiple denominator populations) we can use the `generateDenominatorCohortSet()` function. This function will identify the time that people in the database satisfy a set of criteria related to the study period and individuals´ age, sex, and amount of prior observed history. 
 
-The `generateDenominatorCohortSet()` function is designed to be used with data mapped to the OMOP CDM format. Unless otherwise specified (see the next vignette "Creating denominator population using a cohort"), it will use information from the person and observation_period tables of the OMOP CDM to identify denominator populations. To note, identifying the denominator population does not require any information on specific outcome occurrences. 
-
-When using `generateDenominatorCohortSet()`, individuals will enter a denominator population on the respective date of the latest of the following: 
+When using `generateDenominatorCohortSet()`, and in the absence of a strata cohort (see below), individuals will enter a denominator population on the respective date of the latest of the following: 
 
 1. Study start date
 2. Date at which they have sufficient prior history (if there is no requirement for prior history, this date will coincide with the date at which their observation period starts)  
 3. Date at which they reach a minimum age
 
 They will then exit on the respective date of the earliest of the following: 
+
 1. Study end date
 2. Date at which their observation period ends
 3. The last day in which they have the maximum age
 
-
-Let´s go through a few examples to make this a little more concrete.
+Let´s go through a few examples to make this logic a little more concrete.
 
 ### No specific requirements
 The simplest case is that no study start and end dates are specified, no prior history requirement is imposed, nor any age or sex criteria. In this case individuals will enter the denominator population once they have entered the database (start of observation period) and will leave when they exit the database (end of observation period). Note that in some databases a person can have multiple observation periods, in which case their contribution of person time would look like the the last person below.
 
-```{r,echo=FALSE, out.width="80%"}
+```{r,echo=FALSE, message=FALSE, out.width="80%"}
+library(knitr)
+library(here)
 knitr::include_graphics(here("vignettes/dpop1.png"))
 ```
 
@@ -100,7 +96,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = NULL,
   endDate = NULL,
-  ageGroups = list(c(0, 150)),
+  ageGroup = list(c(0, 150)),
   sex = "Both",
   daysPriorHistory = 0
 )
@@ -156,7 +152,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
-  ageGroups = list(c(0, 150)),
+  ageGroup = list(c(0, 150)),
   sex = "Both",
   daysPriorHistory = 0
 )
@@ -164,10 +160,13 @@ cdm$denominator %>%
   glimpse()
 
 cdm$denominator %>%
+  tally()
+
+cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5"))
 ```
 
-Now we can see the person "2", "4" and "5" haven´t been included as they don´t have any observation time during the study period. Indeed, we´re now including 328 of the original 500 simulated patients.
+Now we can see the person "2", "4" and "5" haven´t been included as they don´t have any observation time during the study period.  Indeed, we´re now including 106 of the original 500 simulated patients.
 
 ```{r, message=FALSE, warning=FALSE}
 cdm$denominator %>%
@@ -214,7 +213,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
-  ageGroups = list(c(0, 150)),
+  ageGroup = list(c(0, 150)),
   sex = "Both",
   daysPriorHistory = 365
 )
@@ -222,10 +221,13 @@ cdm$denominator %>%
   glimpse()
 
 cdm$denominator %>%
+  tally()
+
+cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5"))
 ```
 
-Now we only include patient "1" of the original first five and we´re now including 178 of the original 500 simulated patients.
+Now we only include patient "1" of the original first five and we´re now including 57 of the original 500 simulated patients.
 
 ```{r, message=FALSE, warning=FALSE}
 cdm$denominator %>%
@@ -271,7 +273,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
-  ageGroups = list(c(18, 65)),
+  ageGroup = list(c(18, 65)),
   sex = "Female",
   daysPriorHistory = 365
 )
@@ -279,10 +281,13 @@ cdm$denominator %>%
   glimpse()
 
 cdm$denominator %>%
+  tally()
+
+cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5"))
 ```
 
-Now none of the original first five are included and we´re including 48 of the original 500 simulated patients.
+Now none of the original first five are included and we´re including 20 of the original 500 simulated patients.
 
 The histograms of start and end dates now looking like
 ```{r, message=FALSE, warning=FALSE}
@@ -312,7 +317,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
-  ageGroups = list(
+  ageGroup = list(
     c(0, 40),
     c(41, 100)
   ),
@@ -337,6 +342,7 @@ dpop %>%
     "cohort_start_date",
     "cohort_end_date"
   )) %>%
+  mutate(cohort_definition_id=as.character(cohort_definition_id)) %>% 
   ggplot(aes(x = subject_id, y = value, colour = cohort_definition_id)) +
   geom_point(position = position_dodge(width = 0.5)) +
   geom_line(position = position_dodge(width = 0.5)) +
@@ -352,7 +358,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
-  ageGroups = list(
+  ageGroup = list(
     c(0, 40),
     c(41, 100)
   ),
@@ -375,6 +381,7 @@ dpop %>%
     "cohort_start_date",
     "cohort_end_date"
   )) %>%
+  mutate(cohort_definition_id=as.character(cohort_definition_id)) %>% 
   ggplot(aes(x = subject_id, y = value, colour = cohort_definition_id)) +
   facet_grid(sex ~ ., space = "free_y") +
   geom_point(position = position_dodge(width = 0.5)) +
@@ -392,7 +399,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
-  ageGroups = list(
+  ageGroup = list(
     c(0, 40),
     c(41, 100)
   ),
@@ -415,6 +422,7 @@ dpop %>%
     "cohort_start_date",
     "cohort_end_date"
   )) %>%
+  mutate(cohort_definition_id=as.character(cohort_definition_id)) %>% 
   ggplot(aes(x = subject_id, y = value, colour = cohort_definition_id)) +
   facet_grid(sex + days_prior_history ~ ., space = "free_y") +
   geom_point(position = position_dodge(width = 0.5)) +
@@ -433,7 +441,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
-  ageGroups = list(
+  ageGroup = list(
     c(0, 40),
     c(41, 100)
   ),
@@ -444,13 +452,7 @@ cdm$denominator <- generateDenominatorCohortSet(
 ```
 
 ### Output 
-The output of this function consists on a list of three tibbles.
-
-1) Denominator population
-2) Denominator settings
-3) Attrition
-
-The denominator population includes the information on all the individuals who fulfill the given criteria at any point during the study period. It also includes information on the specific start and end dates in which individuals contributed to the denominator population (cohort_start_date and cohort_end_date). Each patient is recorded in a different row. For those databases that allow individuals to have multiple non-overlapping observation periods, one row for each patient and observation period is considered.
+`generateDenominatorCohortSet()` will generate a table with the denominator population, which includes the information on all the individuals who fulfill the given criteria at any point during the study period. It also includes information on the specific start and end dates in which individuals contributed to the denominator population (cohort_start_date and cohort_end_date). Each patient is recorded in a different row. For those databases that allow individuals to have multiple non-overlapping observation periods, one row for each patient and observation period is considered.
 
 Considering the following example, we can see:
 
@@ -459,7 +461,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2010-01-01"),
-  ageGroups = list(
+  ageGroup = list(
     c(0, 18),
     c(19, 100)
   ),
@@ -470,24 +472,183 @@ cdm$denominator <- generateDenominatorCohortSet(
 head(cdm$denominator, 8)
 ```
 
-The denominator settings will report the characteristics of the denominator populations created as a result of running this function. More than one age, sex and prior history requirements can be specified at the same time. Therefore, each combination of these variables will result in a different cohort, which be analyzed and identified with a unique cohort_definition_id. This tibble includes information on the study start and end dates, and its characteristics in terms of age and sex groups and the amount of prior history required.
-
-In this example, we have 8 different cohorts.
+The output table will have several attributes. With `settings()` we can see the options used when defining the set of denominator populations. More than one age, sex and prior history requirements can be specified at the same time and each combination of these variables will result in a different cohort, each of which has a corresponding cohort_definition_id. In the above example, we identified 8 different cohorts:
 
 ```{r, message=TRUE, warning=FALSE}
 settings(cdm$denominator)
 ```
 
-The attrition list includes information on the number of individuals who are excluded of the denominator population and the reason behind its exclusion, such as missing crucial information or not satisfying the sex or age criteria required, among others. 
-
-In this example we only show the attrition list for the first cohort, but it's generated for every cohort of our analysis (in this case, eight).
+With `attrition()` we can see the number of individuals in the database who were excluded from entering a given denominator population along with the reaso (such as missing crucial information or not satisfying the sex or age criteria required, among others):
 
 ```{r, message=TRUE, warning=FALSE}
 attrition(cdm$denominator)
 ```
 
+# Using generateDenominatorCohortSet() with a cohort
+The `generateDenominatorCohortSet()` function can also be run for a subset of the population with a particular characteristic recorded in our database, which could be time-invariant (e.g. ethnicity), or time-varying (e.g. taking a certain medication). When using `generateDenominatorCohortSet()`, a stratifying cohort must be in the format of an OMOP CDM cohort.
 
-To do: Add information about attrition for incidence 
+To provide an example its use, let´s generate 5 example patients.
 
-### Creating a denominator population using a cohort
-The `generateDenominatorCohortSet()` function can also be run for a subset of the population with a particular characteristic recorded in our database, such as sociodemographic groups (ethnicity, socioeconomic status...), conditions or users of a particular medication, among others. This feature is further explained in the next vignette (see the vignette "Creating denominator population using a cohort"). 
+```{r, message=FALSE, warning=FALSE}
+personTable <- tibble(
+  person_id = c("1", "2", "3", "4", "5"),
+  gender_concept_id = c(rep("8507", 2), rep("8532", 3)),
+  year_of_birth = 2000,
+  month_of_birth = 06,
+  day_of_birth = 01
+)
+observationPeriodTable <- tibble(
+  observation_period_id = "1",
+  person_id = c("1", "2", "3", "4", "5"),
+  observation_period_start_date = c(
+    as.Date("2010-12-19"),
+    as.Date("2005-04-01"),
+    as.Date("2009-04-10"),
+    as.Date("2010-08-20"),
+    as.Date("2010-01-01")
+  ),
+  observation_period_end_date = c(
+    as.Date("2011-06-19"),
+    as.Date("2005-11-29"),
+    as.Date("2016-01-02"),
+    as.Date("2011-12-11"),
+    as.Date("2015-06-01")
+  )
+)
+```
+
+Here we generate a simulated strata table with 5 individuals and 3 different cohort stratas to illustrate the following examples.
+
+```{r, message=FALSE, warning=FALSE, results='hide'}
+conditionX <- tibble(
+  cohort_definition_id = c(rep("1", 3), rep("2", 3), rep("3", 5)),
+  subject_id = c("1", "2", "4", "3", "5", "2", "3", "3", "5", "5", "2"),
+  cohort_start_date = c(
+    as.Date("2010-12-19"),
+    as.Date("2005-04-01"),
+    as.Date("2010-08-20"),
+    as.Date("2012-01-01"),
+    as.Date("2010-06-01"),
+    as.Date("2005-08-20"),
+    as.Date("2012-01-01"),
+    as.Date("2015-06-01"),
+    as.Date("2014-10-01"),
+    as.Date("2010-06-01"),
+    as.Date("2005-08-20")
+  ),
+  cohort_end_date = c(
+    as.Date("2011-06-19"),
+    as.Date("2005-11-29"),
+    as.Date("2011-12-11"),
+    as.Date("2013-01-01"),
+    as.Date("2012-03-01"),
+    as.Date("2005-11-29"),
+    as.Date("2013-01-01"),
+    as.Date("2015-12-31"),
+    as.Date("2015-04-01"),
+    as.Date("2010-06-01"),
+    as.Date("2005-08-20")
+  )
+)
+
+# mock database
+cdm <- mockIncidencePrevalenceRef(
+  personTable = personTable,
+  observationPeriodTable = observationPeriodTable,
+  strataTable = conditionX
+)
+```
+
+
+We can get a denominator population without including any particular subset like so
+```{r, message=FALSE, warning=FALSE}
+cdm$denominator <- generateDenominatorCohortSet(
+  cdm = cdm
+)
+cdm$denominator
+```
+As we did not specify any study start and end date, the cohort start and end date of our 5 patients correspond to the same registered as observation period. 
+
+```{r, message=FALSE, warning=FALSE}
+observationPeriodTable
+```
+
+Let's suppose we want to subset our population based on a non-time varying characteristic such as ethnicity, which corresponds to strataCohortId "1" in our simulated strata table.
+
+```{r, message=FALSE, warning=FALSE}
+cdm$denominator <- generateDenominatorCohortSet(
+  cdm = cdm,
+  strataTable = "strata",
+  strataCohortId = "1",
+)
+cdm$denominator 
+```
+
+We have obtained the 3 patients with the particular ethnicity we were interested in. Moreover, because ethnicity does not change during the study period, the cohort start and end date correspond to same dates of their observation period. Therefore, the obtained denominator population cohort is the same as the one observed in the first example but limited to the individuals that have our characteristic of interest.
+
+```{r, message=FALSE, warning=FALSE}
+library(dplyr)
+observationPeriodTable %>%
+  filter(person_id %in% c("1", "2", "4"))
+```
+
+Now say we want to subset our population based on a time varying characteristic such a particular condition (strataCohortId "2" in our simulated strata table).
+
+```{r, message=FALSE, warning=FALSE}
+cdm$denominator <- generateDenominatorCohortSet(
+  cdm = cdm,
+  strataTable = "strata",
+  strataCohortId = "2",
+)
+cdm$denominator
+```
+
+We have obtained a denominator population with 3 individuals who have experienced this event during their observation period. In this case, the cohort start and end dates correspond to the cohort start and end date of our strata table, and not to their observation period. Therefore, individuals only contribute time while they are experiencing this particular condition. 
+
+```{r, message=FALSE, warning=FALSE}
+conditionX %>%
+  filter(cohort_definition_id == "2") %>%
+  filter(subject_id %in% c("2", "3", "5"))
+```
+
+Depending in which condition we're interested in, people might experience the same condition multiple times. Let's use strataCohortId "3" to illustrate this example. 
+
+```{r, message=FALSE, warning=FALSE}
+cdm$denominator <- generateDenominatorCohortSet(
+  cdm = cdm,
+  strataTable = "strata",
+  strataCohortId = "3",
+)
+cdm$denominator
+```
+
+We can see that person "3" and "5" experienced this condition in two different occasions. Therefore, they only contribute time to the denominator population during the time periods they had this condition. As before, cohort start and end date correspond to the start and end date of this condition.
+
+```{r, message=FALSE, warning=FALSE}
+conditionX %>%
+  filter(cohort_definition_id == "3") %>%
+  filter(subject_id %in% c("2", "3", "5"))
+```
+
+In both examples, the study period can be restricted to a particular period of interest. Similarly, age and sex stratification and prior history requirements can be further applied.
+
+
+```{r, message=FALSE, warning=FALSE}
+cdm$denominator <- generateDenominatorCohortSet(
+  cdm = cdm,
+  strataTable = "strata",
+  strataCohortId = "3",
+  startDate = as.Date("2014-01-01"),
+  endDate = as.Date("2016-01-01"),
+  ageGroup = list(c(0, 150)),
+  sex = "Female",
+  daysPriorHistory = 0
+)
+cdm$denominator
+```
+
+In this case we have used the same strata than before, but we have restricted our analysis to females and we have limited our study period. As we can see, using this period of time we don't capture patient "2" (who was a man) and we only observe one time period for individuals "3" and "5" (who had multiple contributing time periods in the prior example).
+
+```{r, message=FALSE, warning=FALSE}
+settings(cdm$denominator)
+```

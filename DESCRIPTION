@@ -33,9 +33,10 @@ Imports:
     purrr,
     tidyr,
     tidyselect,
-    CDMConnector,
+    CDMConnector (>= 0.3.0),
     SqlRender (>= 1.10.0),
-    stringr
+    stringr,
+    zip
 Suggests: 
     knitr,
     rmarkdown,
@@ -46,10 +47,10 @@ Suggests:
     duckdb,
     odbc,
     here,
+    Hmisc,
+    epitools,
     testthat (>= 3.0.0),
     spelling
-Remotes:  
-    OdyOSG/CDMConnector
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Language: en-US

@@ -10,12 +10,10 @@ estimateIncidence(
   outcomeTable,
   denominatorCohortId = NULL,
   outcomeCohortId = NULL,
-  interval = "months",
+  interval = "years",
   completeDatabaseIntervals = TRUE,
   outcomeWashout = 0,
   repeatedEvents = FALSE,
-  confidenceInterval = "poisson",
-  returnAnalysisCohort = TRUE,
   minCellCount = 5,
   verbose = FALSE
 )
@@ -60,13 +58,6 @@ contribute multiple events during the study period (time while they are
 present in an outcome cohort and any subsequent washout will be
 excluded). If FALSE, an individual will only contribute time up to their
 first event during the study period.}
-
-\item{confidenceInterval}{The method used for calculating confidence
-intervals. Options are "poisson" or "none" (in which case no estimates will
-be calculated).}
-
-\item{returnAnalysisCohort}{TRUE/ FALSE. If TRUE the population contributing
-to an analysis will be returned.}
 
 \item{minCellCount}{The minimum number of events to reported, below which
 results will be obscured. If 0, all results will be reported.}
