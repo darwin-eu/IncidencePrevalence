@@ -1089,7 +1089,7 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
     cdm = cdm,
     startDate = as.Date("2010-01-01"),
     endDate = as.Date("2010-12-31"),
-    ageGroups = list(
+    ageGroup = list(
       c(0, 50),
       c(51, 100)
     ),
