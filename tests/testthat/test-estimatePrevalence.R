@@ -1082,3 +1082,243 @@ test_that("mock db: check attrition with complete database intervals", {
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
+
+test_that("mock db: multiple denominators and outcomes, lookback and time point arguments", {
+
+  # create data for hypothetical people to test
+  personTable <- tibble::tibble(
+    person_id = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"),
+    gender_concept_id = c("8507","8507","8507","8507","8507","8507","8507","8532","8532","8532","8532"),
+    year_of_birth = c(1943,1955,1956,1958,1976,1987,1989,1954,1968,1968,1991),
+    month_of_birth = c(02,06,01,03,12,11,10,10,09,04,04),
+    day_of_birth = c(07,06,23,10,13,24,05,17,19,05,23)
+  )
+
+  # one observation period per person.
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"),
+    person_id = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"),
+    observation_period_start_date = c(
+      as.Date("2005-04-02"),
+      as.Date("2009-04-10"),
+      as.Date("1990-08-20"),
+      as.Date("1977-04-01"),
+      as.Date("2001-04-10"),
+      as.Date("2000-08-20"),
+      as.Date("2002-04-01"),
+      as.Date("1972-04-10"),
+      as.Date("1967-08-20"),
+      as.Date("2001-04-01"),
+      as.Date("2009-11-01")
+    ),
+    observation_period_end_date = c(
+      as.Date("2006-04-01"),
+      as.Date("2020-04-10"),
+      as.Date("2021-08-20"),
+      as.Date("2021-04-01"),
+      as.Date("2021-04-10"),
+      as.Date("2018-08-20"),
+      as.Date("2011-04-01"),
+      as.Date("2013-04-10"),
+      as.Date("2019-08-20"),
+      as.Date("2022-04-01"),
+      as.Date("2022-01-01")
+    )
+  )
+
+  # all outcomes in 2010 but two. Also two types.
+  outcomeTable <- tibble::tibble(
+    cohort_definition_id = c("1","1","1","1","1","1","1","1","2","2","2","2","2"),
+    subject_id = c("1","2","2","5","6","9","10","11","4","7","8","10","11"),
+    cohort_start_date = c(
+      as.Date("2005-07-01"),
+      as.Date("2010-05-10"),
+      as.Date("2010-01-20"),
+      as.Date("2010-11-06"),
+      as.Date("2010-12-11"),
+      as.Date("2010-07-12"),
+      as.Date("2010-03-03"),
+      as.Date("2010-03-22"),
+      as.Date("2010-06-17"),
+      as.Date("2010-06-05"),
+      as.Date("2010-09-02"),
+      as.Date("2010-10-26"),
+      as.Date("2009-04-01")
+    ),
+    cohort_end_date = c(
+      as.Date("2005-07-01"),
+      as.Date("2010-05-10"),
+      as.Date("2010-01-20"),
+      as.Date("2010-11-06"),
+      as.Date("2010-12-11"),
+      as.Date("2010-07-12"),
+      as.Date("2010-03-03"),
+      as.Date("2010-03-22"),
+      as.Date("2010-06-17"),
+      as.Date("2010-06-05"),
+      as.Date("2010-09-02"),
+      as.Date("2010-10-26"),
+      as.Date("2009-04-01")
+
+    )
+  )
+
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    outcomeTable = outcomeTable
+  )
+
+  # 8 (2**3) denominator groups.
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm,
+    startDate = as.Date("2010-01-01"),
+    endDate = as.Date("2010-12-31"),
+    ageGroup = list(
+      c(0, 50),
+      c(51, 100)
+    ),
+    sex = c("Male", "Female"),
+    daysPriorHistory = c(0, 365)
+  )
+
+  ppe_fullC <- estimatePeriodPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years",
+    fullContribution = TRUE,
+    minCellCount = 0
+  )
+  expect_true(sum(ppe_fullC$numerator) == 18)
+  expect_true(all(ppe_fullC$prev == c(2/3,1/3,1/3,1/2,1/3,1/2,1,1,2/3,1,1,1/3,0,0,0,1/3))) # the order of the analysis is 1 -> 10 -> 11 -> ... -> 16 -> 2 -> ... -> 9
+
+  ppe_nofullC <- estimatePeriodPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years",
+    minCellCount = 0
+  )
+  expect_true(sum(ppe_nofullC$numerator) == 19)
+  expect_true(all(ppe_nofullC$prev == c(2/3,1/3,1/3,1/3,1/3,1/3,1,1,2/3,1,2/3,1/3,1/3,0,0,1/3))) # the order of the analysis is 1 -> 10 -> 11 -> ... -> 16 -> 2 -> ... -> 9
+
+  ppe_fullC_m <- estimatePeriodPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    fullContribution = TRUE,
+    minCellCount = 0
+  )
+  expect_true(sum(ppe_fullC_m$numerator) == 20)
+  expect_true(ppe_fullC_m$numerator[111] == 2)
+  expect_true(ppe_fullC_m$numerator[115] == 1)
+  expect_true(ppe_fullC_m$denominator[148] == 2)
+
+  ppe_nofullC_m <- estimatePeriodPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    fullContribution = FALSE,
+    minCellCount = 0
+  )
+  expect_true(sum(ppe_nofullC_m$numerator) == 20)
+  expect_true(ppe_nofullC_m$numerator[111] == 2)
+  expect_true(ppe_nofullC_m$numerator[115] == 1)
+  expect_true(ppe_nofullC_m$denominator[148] == 3)
+
+
+  # do point prevalence too
+  ppo_start <- estimatePointPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years",
+    outcomeLookbackDays = c(0,30),
+    timePoint = "start",
+    minCellCount = 0
+  )
+  expect_true(sum(ppo_start$numerator) == 0) # no events, either with look back or not
+
+  pop_middle <- estimatePointPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years",
+    outcomeLookbackDays = c(0,30),
+    timePoint = "middle",
+    minCellCount = 0
+  )
+  expect_true(sum(pop_middle$numerator) == 4) # mid point is 2010-07-01 so look back 30 days will show two events. As the two people have enough past data, they both are in two cohorts.
+
+  pop_end <- estimatePointPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years",
+    outcomeLookbackDays = c(0,30),
+    timePoint = "end",
+    minCellCount = 0
+  )
+  expect_true(sum(pop_end$numerator) == 2) # only sees one event (both for 0 or 365 days of previous observation)
+
+  ppo_start_m <- estimatePointPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    outcomeLookbackDays = c(0,30),
+    timePoint = "start",
+    minCellCount = 0
+  )
+  expect_true(sum(ppo_start_m$numerator) == 18) # no events without look back and all events with look back 30 (except from the one in December)
+
+  ppo_start_m_lb10 <- estimatePointPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    outcomeLookbackDays = 10,
+    timePoint = "start",
+    minCellCount = 0
+  )
+  expect_true(sum(ppo_start_m_lb10$numerator) == 3) # two events with look back 10, one of them from a person not contributing when we ask for 365d of previous obvs
+
+  ppo_start_m_lb12 <- estimatePointPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    outcomeLookbackDays = 12,
+    timePoint = "start",
+    minCellCount = 0
+  )
+  expect_true(sum(ppo_start_m_lb12$numerator) == 4) # one event at day 2010-01-20 added, from a person only contirbuting when we don't ask for previous obvs
+
+  ppo_middle_m_lb10 <- estimatePointPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    outcomeLookbackDays = 10,
+    timePoint = "middle",
+    minCellCount = 0
+  )
+  expect_true(sum(ppo_middle_m_lb10$numerator) == 10) # five events with look back 10 (days of the month 06 to 15)
+
+  ppo_middle_m_lb9 <- estimatePointPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    outcomeLookbackDays = 9,
+    timePoint = "middle",
+    minCellCount = 0
+  )
+  expect_true(sum(ppo_middle_m_lb9$numerator) == 8) # lost the event at 2010-01-06
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+})
