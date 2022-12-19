@@ -52,13 +52,13 @@ test_that("mock db: check output format", {
     "reason",
     "excluded"
   ) %in%
-  names(attrition(prev))))
+    names(attrition(prev))))
 
   # check we can get the reference to participants who contributed
   expect_true(is.list(participants(prev))) # list of references to participants
-  expect_true(tibble::is_tibble(participants(prev,1) %>%
-                                  dplyr::collect()))
-  expect_true(participants(prev,1) %>%
+  expect_true(tibble::is_tibble(participants(prev, 1) %>%
+    dplyr::collect()))
+  expect_true(participants(prev, 1) %>%
     dplyr::collect() %>%
     dplyr::select("subject_id") %>%
     dplyr::pull() == 1)
@@ -107,7 +107,7 @@ test_that("mock db: checks on working example", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    interval = "years",
+    interval = c("months", "years"),
     minCellCount = 0
   )
   expect_true(nrow(prev) >= 1)
@@ -156,15 +156,15 @@ test_that("mock db: working examples 2", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     type = "point",
-    interval = "months"
+    interval = c("months", "years")
   )
   expect_true(nrow(prev) >= 1)
 
   prev <- estimatePrevalence(cdm,
-                            denominatorTable = "denominator",
-                            outcomeTable = "outcome",
-                            type = "point",
-                            interval = "years"
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    type = "point",
+    interval = c("months", "years")
   )
   expect_true(nrow(prev) >= 1)
 
@@ -202,9 +202,11 @@ test_that("mock db: check outcome lookback", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm,
-                                       startDate = as.Date("2006-01-01"),
-                                       endDate = as.Date("2010-12-31"))
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm,
+    startDate = as.Date("2006-01-01"),
+    endDate = as.Date("2010-12-31")
+  )
 
   # without look back we´ll only include ongoing outcomes
   # of which none are at the start of a year
@@ -230,21 +232,21 @@ test_that("mock db: check outcome lookback", {
     minCellCount = 0
   )
   expect_true((prev %>%
-                 dplyr::filter(lubridate::year(prevalence_start_date)=="2008") %>%
-                 dplyr::select(n_cases) %>%
-                 dplyr::pull() == 0))
+    dplyr::filter(lubridate::year(prevalence_start_date) == "2008") %>%
+    dplyr::select(n_cases) %>%
+    dplyr::pull() == 0))
   expect_true((prev %>%
-                 dplyr::filter(lubridate::year(prevalence_start_date)=="2009") %>%
-                 dplyr::select(n_cases) %>%
-                 dplyr::pull() == 1))
+    dplyr::filter(lubridate::year(prevalence_start_date) == "2009") %>%
+    dplyr::select(n_cases) %>%
+    dplyr::pull() == 1))
   expect_true((prev %>%
-                 dplyr::filter(lubridate::year(prevalence_start_date)=="2010") %>%
-                 dplyr::select(n_cases) %>%
-                 dplyr::pull() == 0))
+    dplyr::filter(lubridate::year(prevalence_start_date) == "2010") %>%
+    dplyr::select(n_cases) %>%
+    dplyr::pull() == 0))
 
   # with a NULL lookback
   # where any prior outcome is used
-  # the person would be considered as a prevalent case at the start of 2009 and 2010
+  # the person would be a prevalent case at the start of 2009 and 2010
   prev <- estimatePrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
@@ -255,17 +257,17 @@ test_that("mock db: check outcome lookback", {
     minCellCount = 0
   )
   expect_true((prev %>%
-                 dplyr::filter(lubridate::year(prevalence_start_date)=="2008") %>%
-                 dplyr::select(n_cases) %>%
-                 dplyr::pull() == 0))
+    dplyr::filter(lubridate::year(prevalence_start_date) == "2008") %>%
+    dplyr::select(n_cases) %>%
+    dplyr::pull() == 0))
   expect_true((prev %>%
-                 dplyr::filter(lubridate::year(prevalence_start_date)=="2009") %>%
-                 dplyr::select(n_cases) %>%
-                 dplyr::pull() == 1))
+    dplyr::filter(lubridate::year(prevalence_start_date) == "2009") %>%
+    dplyr::select(n_cases) %>%
+    dplyr::pull() == 1))
   expect_true((prev %>%
-                 dplyr::filter(lubridate::year(prevalence_start_date)=="2010") %>%
-                 dplyr::select(n_cases) %>%
-                 dplyr::pull() == 1))
+    dplyr::filter(lubridate::year(prevalence_start_date) == "2010") %>%
+    dplyr::select(n_cases) %>%
+    dplyr::pull() == 1))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -430,21 +432,25 @@ test_that("mock db: check study time periods", {
 
 test_that("mock db: check fullContribution requirement", {
   personTable <- tibble::tibble(
-    person_id = c("1","2", "3"),
+    person_id = c("1", "2", "3"),
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
   observationPeriodTable <- tibble::tibble(
-    observation_period_id =  c("1","2", "3"),
-    person_id =  c("1","2", "3"),
-    observation_period_start_date = c(as.Date("2010-01-01"),
-                                      as.Date("2010-01-01"),
-                                      as.Date("2012-04-01")),
-    observation_period_end_date = c(as.Date("2011-06-01"),
-                                    as.Date("2012-06-01"),
-                                    as.Date("2012-06-01"))
+    observation_period_id = c("1", "2", "3"),
+    person_id = c("1", "2", "3"),
+    observation_period_start_date = c(
+      as.Date("2010-01-01"),
+      as.Date("2010-01-01"),
+      as.Date("2012-04-01")
+    ),
+    observation_period_end_date = c(
+      as.Date("2011-06-01"),
+      as.Date("2012-06-01"),
+      as.Date("2012-06-01")
+    )
   )
   outcomeTable <- tibble::tibble(
     cohort_definition_id = 1,
@@ -470,30 +476,31 @@ test_that("mock db: check fullContribution requirement", {
   )
 
   prev <- estimatePrevalence(cdm,
-                            denominatorTable = "denominator",
-                            outcomeTable = "outcome",
-                            type = "period",
-                            interval = "years",
-                            fullContribution = FALSE,
-                            completeDatabaseIntervals = FALSE,
-                            minCellCount = 0
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    type = "period",
+    interval = "years",
+    fullContribution = FALSE,
+    completeDatabaseIntervals = FALSE,
+    minCellCount = 0
   )
   expect_true(all(prev$n_population == 2))
 
   prev <- estimatePrevalence(cdm,
-                            denominatorTable = "denominator",
-                            outcomeTable = "outcome",
-                            type = "period",
-                            interval = "years",
-                            fullContribution = TRUE,
-                            completeDatabaseIntervals = FALSE,
-                            minCellCount = 0
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    type = "period",
+    interval = "years",
+    fullContribution = TRUE,
+    completeDatabaseIntervals = FALSE,
+    minCellCount = 0
   )
 
-  expect_true(all(prev$n_population == c(2,1,1)))
+  expect_true(all(prev$n_population == c(2, 1, 1)))
 
   expect_true(attrition(prev) %>%
-    dplyr::filter(reason=="Do not satisfy full contribution requirement for an interval") %>%
+    dplyr::filter(reason ==
+            "Do not satisfy full contribution requirement for an interval") %>%
     dplyr::pull(excluded) == 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
@@ -555,7 +562,7 @@ test_that("mock db: check periods follow calendar dates", {
   )
   expect_true(nrow(prev1) == 4)
   expect_true(all(lubridate::year(prev1$prevalence_start_date) ==
-                    c("2010", "2011", "2012", "2013")))
+    c("2010", "2011", "2012", "2013")))
 
   prev2 <- estimatePrevalence(cdm,
     denominatorTable = "denominator",
@@ -567,8 +574,8 @@ test_that("mock db: check periods follow calendar dates", {
     completeDatabaseIntervals = TRUE
   )
   expect_true(nrow(prev2) == 2)
-  expect_true(all(lubridate::year(prev2$prevalence_start_date)==
-                    c("2011", "2012")))
+  expect_true(all(lubridate::year(prev2$prevalence_start_date) ==
+    c("2011", "2012")))
 
   # for months
   cdm$denominator <- generateDenominatorCohortSet(
@@ -587,7 +594,7 @@ test_that("mock db: check periods follow calendar dates", {
     completeDatabaseIntervals = FALSE
   )
   expect_true(prev$prevalence_start_date[1] ==
-                as.Date("2011-01-15"))
+    as.Date("2011-01-15"))
   # where we expect the study to start the next month
   prev <- estimatePrevalence(cdm,
     denominatorTable = "denominator",
@@ -606,21 +613,21 @@ test_that("mock db: check periods follow calendar dates", {
 
 test_that("mock db: check multiple outcome ids", {
   personTable <- tibble::tibble(
-    person_id = c("1","2"),
+    person_id = c("1", "2"),
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
   observationPeriodTable <- tibble::tibble(
-    observation_period_id = c("1","2"),
-    person_id = c("1","2"),
+    observation_period_id = c("1", "2"),
+    person_id = c("1", "2"),
     observation_period_start_date = as.Date("2011-01-01"),
     observation_period_end_date = as.Date("2012-06-01")
   )
   outcomeTable <- tibble::tibble(
-    cohort_definition_id = c(1,2), # two different outcome ids
-    subject_id = c("1","2"),
+    cohort_definition_id = c(1, 2), # two different outcome ids
+    subject_id = c("1", "2"),
     cohort_start_date = c(
       as.Date("2011-02-05")
     ),
@@ -638,11 +645,11 @@ test_that("mock db: check multiple outcome ids", {
   )
 
   prev <- estimatePrevalence(cdm,
-                            denominatorTable = "denominator",
-                            outcomeTable = "outcome",
-                            type = "period",
-                            interval = "years",
-                            minCellCount = 0
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    type = "period",
+    interval = "years",
+    minCellCount = 0
   )
   expect_true(all(prev[["n_cases"]] == 1))
 
@@ -651,21 +658,21 @@ test_that("mock db: check multiple outcome ids", {
 
 test_that("mock db: some empty result sets", {
   personTable <- tibble::tibble(
-    person_id = c("1","2"),
+    person_id = c("1", "2"),
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
   observationPeriodTable <- tibble::tibble(
-    observation_period_id = c("1","2"),
-    person_id = c("1","2"),
+    observation_period_id = c("1", "2"),
+    person_id = c("1", "2"),
     observation_period_start_date = as.Date("2012-01-01"),
     observation_period_end_date = as.Date("2012-06-01")
   )
   outcomeTable <- tibble::tibble(
-    cohort_definition_id = c(1,2), # two different outcome ids
-    subject_id = c("1","2"),
+    cohort_definition_id = c(1, 2), # two different outcome ids
+    subject_id = c("1", "2"),
     cohort_start_date = c(
       as.Date("2011-02-05")
     ),
@@ -683,20 +690,20 @@ test_that("mock db: some empty result sets", {
   )
 
   prev <- estimatePrevalence(cdm,
-                            denominatorTable = "denominator",
-                            outcomeTable = "outcome",
-                            type = "period",
-                            interval = "years",
-                            minCellCount = 0
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    type = "period",
+    interval = "years",
+    minCellCount = 0
   )
   expect_true(nrow(prev) == 0)
 
   prev <- estimatePrevalence(cdm,
-                            denominatorTable = "denominator",
-                            outcomeTable = "outcome",
-                            type = "period",
-                            interval = c("months","years"),
-                            minCellCount = 0
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    type = "period",
+    interval = c("months", "years"),
+    minCellCount = 0
   )
   expect_true(nrow(prev) > 0)
 
@@ -799,11 +806,11 @@ test_that("mock db: check user point prevalence function", {
     outcomeTable = "outcome"
   )
 
-  expect_true(all(names(prev)==names(prev_point)))
-  expect_true(all(names(settings(prev))==
-                    names(settings(prev_point))))
-  expect_true(all(names(prev)==
-                    names(prev_point)))
+  expect_true(all(names(prev) == names(prev_point)))
+  expect_true(all(names(settings(prev)) ==
+    names(settings(prev_point))))
+  expect_true(all(names(prev) ==
+    names(prev_point)))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -815,7 +822,7 @@ test_that("mock db: check user period prevalence function", {
 
   prev <- estimatePrevalence(
     cdm = cdm,
-    type="period",
+    type = "period",
     denominatorTable = "denominator",
     outcomeTable = "outcome"
   )
@@ -825,11 +832,11 @@ test_that("mock db: check user period prevalence function", {
     outcomeTable = "outcome"
   )
 
-  expect_true(all(names(prev)==names(prev_period)))
-  expect_true(all(names(settings(prev))==
-                    names(settings(prev_period))))
-  expect_true(all(names(prev)==
-                    names(prev_period)))
+  expect_true(all(names(prev) == names(prev_period)))
+  expect_true(all(names(settings(prev)) ==
+    names(settings(prev_period))))
+  expect_true(all(names(prev) ==
+    names(prev_period)))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -838,15 +845,16 @@ test_that("mock db: multiple observation periods", {
   # create data for hypothetical people to test
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
-    gender_concept_id = c("8507","8507"),
-    year_of_birth = c(1998,1976),
-    month_of_birth = c(02,06),
-    day_of_birth = c(12,01)
+    gender_concept_id = c("8507", "8507"),
+    year_of_birth = c(1998, 1976),
+    month_of_birth = c(02, 06),
+    day_of_birth = c(12, 01)
   )
 
-  # three observation periods for 1 person and a couple of consecutive events lost to washout
+  # three observation periods for 1 person
+  # and a couple of consecutive events lost to washout
   observationPeriodTable <- tibble::tibble(
-    observation_period_id = c("1","2","3","4"),
+    observation_period_id = c("1", "2", "3", "4"),
     person_id = c("1", "1", "1", "2"),
     observation_period_start_date = c(
       as.Date("2005-04-01"),
@@ -863,7 +871,7 @@ test_that("mock db: multiple observation periods", {
   )
 
   conditionX <- tibble::tibble(
-    cohort_definition_id = c(1,1,1,1),
+    cohort_definition_id = c(1, 1, 1, 1),
     subject_id = c("1", "1", "1", "2"),
     cohort_start_date = c(
       as.Date("2005-04-01"),
@@ -880,8 +888,8 @@ test_that("mock db: multiple observation periods", {
   )
 
   outcomeTable <- tibble::tibble(
-    cohort_definition_id = c(1,1,1,1,1,1,1),
-    subject_id = c("1","1","1","1","1","1","2"),
+    cohort_definition_id = c(1, 1, 1, 1, 1, 1, 1),
+    subject_id = c("1", "1", "1", "1", "1", "1", "2"),
     cohort_start_date = c(
       as.Date("2005-08-09"),
       as.Date("2005-08-10"),
@@ -899,7 +907,6 @@ test_that("mock db: multiple observation periods", {
       as.Date("2009-11-21"),
       as.Date("2010-12-21"),
       as.Date("2014-04-04")
-
     )
   )
 
@@ -926,7 +933,7 @@ test_that("mock db: multiple observation periods", {
     minCellCount = 0
   )
   expect_true(sum(ppe$n_cases) == 3)
-  expect_true(sum(ppe$n_population) == 8+8+14)
+  expect_true(sum(ppe$n_population) == 8 + 8 + 14)
 
   # same if we look back 1 day, as some repeated events at month 8 disappear
   # but the person still has an outcome then
@@ -940,7 +947,8 @@ test_that("mock db: multiple observation periods", {
   )
   expect_true(sum(ppe$n_cases) == 3)
 
-  # if we look back 365 days, all outcomes count monthly for a whole year after their onset, so we should see 4+3+14
+  # if we look back 365 days, all outcomes count monthly for a whole year
+  # after their onset, so we should see 4+3+14
   ppe <- estimatePeriodPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
@@ -962,7 +970,6 @@ test_that("mock db: multiple observation periods", {
   expect_true(sum(ppo$n_cases) == 0)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-
 })
 
 test_that("mock db: check confidence intervals", {
@@ -971,22 +978,25 @@ test_that("mock db: check confidence intervals", {
     cdm = cdm
   )
   prev <- estimatePrevalence(cdm,
-                             denominatorTable = "denominator",
-                             outcomeTable = "outcome",
-                             type = "point",
-                             interval = "years",
-                             minCellCount = 0
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    type = "point",
+    interval = "years",
+    minCellCount = 0
   )
 
   # compare our wilson CIs with those from Hmisc
-  hmisc_ci <-  Hmisc::binconf(prev$n_cases, prev$n_population,
-                              alpha=0.05,
-                              method=c("wilson"),
-                              return.df=TRUE)
+  hmisc_ci <- Hmisc::binconf(prev$n_cases, prev$n_population,
+    alpha = 0.05,
+    method = c("wilson"),
+    return.df = TRUE
+  )
   expect_equal(prev$prevalence_95CI_lower, hmisc_ci$Lower,
-               tolerance = 1e-2)
+    tolerance = 1e-2
+  )
   expect_equal(prev$prevalence_95CI_upper, hmisc_ci$Upper,
-               tolerance = 1e-2)
+    tolerance = 1e-2
+  )
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -998,48 +1008,54 @@ test_that("mock db: check attrition", {
     sex = c("Male", "Female")
   )
   prev <- estimatePrevalence(cdm,
-                             denominatorTable = "denominator",
-                             outcomeTable = "outcome",
-                             type = "point",
-                             interval = "years",
-                             minCellCount = 0
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    type = "point",
+    interval = "years",
+    minCellCount = 0
   )
 
   # for female cohort we should have a row for those excluded for not being male
   expect_true(any("Not Female" == settings(prev) %>%
-                    dplyr::filter(denominator_sex == "Female") %>%
-                    dplyr::inner_join(attrition(prev),
-                                      by = "analysis_id") %>%
-                    dplyr::pull(.data$reason)))
+    dplyr::filter(denominator_sex == "Female") %>%
+    dplyr::inner_join(attrition(prev),
+      by = "analysis_id"
+    ) %>%
+    dplyr::pull(.data$reason)))
   # for male, the opposite
   expect_true(any("Not Male" == settings(prev) %>%
-                    dplyr::filter(denominator_sex == "Male") %>%
-                    dplyr::inner_join(attrition(prev),
-                                      by = "analysis_id") %>%
-                    dplyr::pull(.data$reason)))
+    dplyr::filter(denominator_sex == "Male") %>%
+    dplyr::inner_join(attrition(prev),
+      by = "analysis_id"
+    ) %>%
+    dplyr::pull(.data$reason)))
 
   # check we can pick out specific analysis attrition
-  expect_true(unique(attrition(result=prev, analysisId = 1)$analysis_id) == 1)
-  expect_true(unique(attrition(result=prev, analysisId = 2)$analysis_id) == 2)
+  expect_true(unique(attrition(result = prev, analysisId = 1)$analysis_id) == 1)
+  expect_true(unique(attrition(result = prev, analysisId = 2)$analysis_id) == 2)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: check attrition with complete database intervals", {
   personTable <- tibble::tibble(
-    person_id = c("1","2"),
+    person_id = c("1", "2"),
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
   observationPeriodTable <- tibble::tibble(
-    observation_period_id =c("1","2"),
-    person_id = c("1","2"),
-    observation_period_start_date = c(as.Date("2000-06-01"),
-                                      as.Date("2000-06-01")),
-      observation_period_end_date = c(as.Date("2000-07-01"),
-                                      as.Date("2012-06-01"))
+    observation_period_id = c("1", "2"),
+    person_id = c("1", "2"),
+    observation_period_start_date = c(
+      as.Date("2000-06-01"),
+      as.Date("2000-06-01")
+    ),
+    observation_period_end_date = c(
+      as.Date("2000-07-01"),
+      as.Date("2012-06-01")
+    )
   )
   outcomeTable <- tibble::tibble(
     cohort_definition_id = 1,
@@ -1068,35 +1084,37 @@ test_that("mock db: check attrition with complete database intervals", {
     cdm = cdm
   )
   prev <- estimatePrevalence(cdm,
-                             denominatorTable = "denominator",
-                             outcomeTable = "outcome",
-                             type = "point",
-                             interval = "years",
-                             completeDatabaseIntervals = TRUE,
-                             minCellCount = 0
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    type = "point",
+    interval = "years",
+    completeDatabaseIntervals = TRUE,
+    minCellCount = 0
   )
 
   expect_true(attrition(prev) %>%
-    dplyr::filter(reason =="Not observed during the complete database interval") %>%
-    dplyr::pull(excluded)== 1)
+    dplyr::filter(reason == "Not observed during the complete database interval") %>%
+    dplyr::pull(excluded) == 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: multiple denominators and outcomes, lookback and time point arguments", {
-
   # create data for hypothetical people to test
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"),
-    gender_concept_id = c("8507","8507","8507","8507","8507","8507","8507","8532","8532","8532","8532"),
-    year_of_birth = c(1943,1955,1956,1958,1976,1987,1989,1954,1968,1968,1991),
-    month_of_birth = c(02,06,01,03,12,11,10,10,09,04,04),
-    day_of_birth = c(07,06,23,10,13,24,05,17,19,05,23)
+    gender_concept_id = c("8507", "8507", "8507", "8507", "8507",
+                          "8507", "8507", "8532", "8532", "8532", "8532"),
+    year_of_birth = c(1943, 1955, 1956, 1958, 1976,
+                      1987, 1989, 1954, 1968, 1968, 1991),
+    month_of_birth = c(02, 06, 01, 03, 12, 11, 10, 10, 09, 04, 04),
+    day_of_birth = c(07, 06, 23, 10, 13, 24, 05, 17, 19, 05, 23)
   )
 
   # one observation period per person.
   observationPeriodTable <- tibble::tibble(
-    observation_period_id = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"),
+    observation_period_id = c("1", "2", "3", "4", "5",
+                              "6", "7", "8", "9", "10", "11"),
     person_id = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"),
     observation_period_start_date = c(
       as.Date("2005-04-02"),
@@ -1128,8 +1146,8 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
 
   # all outcomes in 2010 but two. Also two types.
   outcomeTable <- tibble::tibble(
-    cohort_definition_id = c("1","1","1","1","1","1","1","1","2","2","2","2","2"),
-    subject_id = c("1","2","2","5","6","9","10","11","4","7","8","10","11"),
+    cohort_definition_id = c("1", "1", "1", "1", "1", "1", "1", "1", "2", "2", "2", "2", "2"),
+    subject_id = c("1", "2", "2", "5", "6", "9", "10", "11", "4", "7", "8", "10", "11"),
     cohort_start_date = c(
       as.Date("2005-07-01"),
       as.Date("2010-05-10"),
@@ -1159,7 +1177,6 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
       as.Date("2010-09-02"),
       as.Date("2010-10-26"),
       as.Date("2009-04-01")
-
     )
   )
 
@@ -1191,7 +1208,7 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
     minCellCount = 0
   )
   expect_true(sum(ppe_fullC$n_cases) == 18)
-  expect_true(all(ppe_fullC$prev == c(2/3,1/3,1/3,1/2,1/3,1/2,1,1,2/3,1,1,1/3,0,0,0,1/3))) # the order of the analysis is 1 -> 10 -> 11 -> ... -> 16 -> 2 -> ... -> 9
+  expect_true(all(ppe_fullC$prevalence == c(2 / 3, 1 / 3, 1 / 3, 1 / 2, 1 / 3, 1 / 2, 1, 1, 2 / 3, 1, 1, 1 / 3, 0, 0, 0, 1 / 3))) # the order of the analysis is 1 -> 10 -> 11 -> ... -> 16 -> 2 -> ... -> 9
 
   ppe_nofullC <- estimatePeriodPrevalence(
     cdm = cdm,
@@ -1201,7 +1218,7 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
     minCellCount = 0
   )
   expect_true(sum(ppe_nofullC$n_cases) == 19)
-  expect_true(all(ppe_nofullC$prev == c(2/3,1/3,1/3,1/3,1/3,1/3,1,1,2/3,1,2/3,1/3,1/3,0,0,1/3))) # the order of the analysis is 1 -> 10 -> 11 -> ... -> 16 -> 2 -> ... -> 9
+  expect_true(all(ppe_nofullC$prevalence == c(2 / 3, 1 / 3, 1 / 3, 1 / 3, 1 / 3, 1 / 3, 1, 1, 2 / 3, 1, 2 / 3, 1 / 3, 1 / 3, 0, 0, 1 / 3))) # the order of the analysis is 1 -> 10 -> 11 -> ... -> 16 -> 2 -> ... -> 9
 
   ppe_fullC_m <- estimatePeriodPrevalence(
     cdm = cdm,
@@ -1236,7 +1253,7 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "years",
-    outcomeLookbackDays = c(0,30),
+    outcomeLookbackDays = c(0, 30),
     timePoint = "start",
     minCellCount = 0
   )
@@ -1247,7 +1264,7 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "years",
-    outcomeLookbackDays = c(0,30),
+    outcomeLookbackDays = c(0, 30),
     timePoint = "middle",
     minCellCount = 0
   )
@@ -1258,7 +1275,7 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "years",
-    outcomeLookbackDays = c(0,30),
+    outcomeLookbackDays = c(0, 30),
     timePoint = "end",
     minCellCount = 0
   )
@@ -1269,7 +1286,7 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "months",
-    outcomeLookbackDays = c(0,30),
+    outcomeLookbackDays = c(0, 30),
     timePoint = "start",
     minCellCount = 0
   )
@@ -1320,5 +1337,4 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
   expect_true(sum(ppo_middle_m_lb9$n_cases) == 8) # lost the event at 2010-01-06
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-
 })

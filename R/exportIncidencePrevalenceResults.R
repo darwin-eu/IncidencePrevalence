@@ -37,7 +37,7 @@ exportIncidencePrevalenceResults <- function(result, zipName, outputFolder) {
     inherits(result, "IncidencePrevalenceGatheredResult"),
                         add = errorMessage
   )
-  checkmate::assertCharacter(zipName,len = 1,
+  checkmate::assertCharacter(zipName, len = 1,
                              add = errorMessage)
   checkmate::assertDirectoryExists(outputFolder,
                               add = errorMessage)

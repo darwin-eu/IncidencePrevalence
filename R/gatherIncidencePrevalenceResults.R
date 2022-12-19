@@ -127,7 +127,8 @@ gatherIncidencePrevalenceResults <- function(resultList, outcomeCohortId = NULL,
         "analysis_", "denominator_",
         "outcome_"
       )))) %>%
-      dplyr::mutate(analysis_id = dplyr::cur_group_id())
+      dplyr::mutate(analysis_id = dplyr::cur_group_id()) %>%
+      dplyr::ungroup()
     # combine prevalence attrition
     prevalence_attrition <- dplyr::bind_rows(
       attrition[resultType == "Prevalence"]
@@ -136,7 +137,8 @@ gatherIncidencePrevalenceResults <- function(resultList, outcomeCohortId = NULL,
         "analysis_", "denominator_",
         "outcome_"
       )))) %>%
-      dplyr::mutate(analysis_id = dplyr::cur_group_id())
+      dplyr::mutate(analysis_id = dplyr::cur_group_id()) %>%
+      dplyr::ungroup()
     if (!is.null(outcomeCohortId)) {
       prevalence_estimates <- prevalence_estimates %>%
         dplyr::left_join(outcomeRef, by = "outcome_cohort_id")
@@ -161,7 +163,8 @@ gatherIncidencePrevalenceResults <- function(resultList, outcomeCohortId = NULL,
         "outcome_"
       )))) %>%
       dplyr::mutate(analysis_id = dplyr::cur_group_id()) %>%
-      dplyr::mutate(database_name = .env$databaseName)
+      dplyr::mutate(database_name = .env$databaseName) %>%
+      dplyr::ungroup()
     # combine incidence attrition
     incidence_attrition <- dplyr::bind_rows(
       attrition[resultType == "Incidence"]
@@ -170,7 +173,8 @@ gatherIncidencePrevalenceResults <- function(resultList, outcomeCohortId = NULL,
         "analysis_", "denominator_",
         "outcome_"
       )))) %>%
-      dplyr::mutate(analysis_id = dplyr::cur_group_id())
+      dplyr::mutate(analysis_id = dplyr::cur_group_id()) %>%
+      dplyr::ungroup()
 
     if (!is.null(outcomeCohortId)) {
       incidence_estimates <- incidence_estimates %>%
@@ -186,7 +190,7 @@ gatherIncidencePrevalenceResults <- function(resultList, outcomeCohortId = NULL,
     }
   }
 
-  if (any(resultType == "Prevalence") & any(resultType == "Incidence")) {
+  if (any(resultType == "Prevalence") && any(resultType == "Incidence")) {
     results <- list(
       prevalence_estimates = prevalence_estimates,
       prevalence_attrition = prevalence_attrition,

@@ -29,8 +29,8 @@ period. If NULL, the latest observation end date in the observation period
 table will be used.}
 
 \item{ageGroup}{A list of age groups for which cohorts will be generated. A
-value of \code{list(c(0,17), c(18,30))} would, for example, lead to the creation of
-cohorts for those aged from 0 to 17 (up to the day before their 18th
+value of \code{list(c(0,17), c(18,30))} would, for example, lead to the creation
+of cohorts for those aged from 0 to 17 (up to the day before their 18th
 birthday), and from 18 (starting the day of their 18th birthday) to 30 (up
 to the day before their 31st birthday).}
 

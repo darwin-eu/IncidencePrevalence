@@ -4,16 +4,39 @@
 \alias{attrition}
 \title{Cohort attrition}
 \usage{
-attrition(result, analysisId = NULL)
+attrition(result, ...)
 }
 \arguments{
 \item{result}{Result for which to get attrition}
 
-\item{analysisId}{ID of a specific analysis to return attrition for}
+\item{...}{Additional arguments. For denominator cohort, cohortDefinitionId
+can be used to specify a particular cohort of interest. For incidence and
+prevalence analyses results, analysisId can be used to specify a
+particular analysis of interest.}
 }
 \value{
 tibble with counts and reasons for attrition.
 }
 \description{
 Cohort attrition
+}
+\examples{
+cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
+cdm$denominator <- generateDenominatorCohortSet(cdm,
+  startDate = NULL,
+  endDate = NULL,
+  ageGroup = list(c(18, 40)),
+  sex = c("Female", "Male"),
+  daysPriorHistory = 120
+)
+attrition(result = cdm$denominator)
+attrition(result = cdm$denominator, cohortDefinitionId = 1)
+incidence <- estimateIncidence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = "overall"
+)
+attrition(result = incidence)
+attrition(result = incidence, analysisId = 1)
 }

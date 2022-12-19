@@ -62,17 +62,16 @@
 #'   con = db,
 #'   cdm_schema = "cdm schema name"
 #' )
-#' dpop <- generateDenominatorCohortSet(
+#' cdm$denominator <- generateDenominatorCohortSet(
 #'   cdm = cdm,
 #'   startDate = as.Date("2008-01-01"),
 #'   endDate = as.Date("2018-01-01")
 #' )
-#' cdm$denominator <- dpop$denominator_population
 #' inc <- estimateIncidence(
-#'  cdm = cdm,
-#'  denominatorTable = "denominator",
-#'  outcomeTable = "outcome"
-#')
+#'   cdm = cdm,
+#'   denominatorTable = "denominator",
+#'   outcomeTable = "outcome"
+#' )
 #' }
 estimateIncidence <- function(cdm,
                               denominatorTable,
@@ -128,14 +127,16 @@ estimateIncidence <- function(cdm,
     )
   }
   checkmate::assertIntegerish(outcomeCohortId,
-                              add = errorMessage,
-                              null.ok = TRUE
+    add = errorMessage,
+    null.ok = TRUE
   )
-  checkmate::assert_choice(interval,
-    choices = c(
-      "weeks", "months", "quarters", "years",
-      "overall"
-    ),
+  checkmate::assertTRUE(
+    all(interval %in%
+      c(
+        "weeks", "months",
+        "quarters", "years",
+        "overall"
+      )),
     add = errorMessage
   )
   checkmate::assert_logical(completeDatabaseIntervals,
@@ -156,11 +157,12 @@ estimateIncidence <- function(cdm,
 
   # if not given, use all denominator and outcome cohorts
   if (is.null(denominatorCohortId)) {
-    denominatorCohortId <- cdm[[denominatorTable]] %>%
-      dplyr::select("cohort_definition_id") %>%
-      dplyr::distinct() %>%
-      dplyr::collect() %>%
-      dplyr::pull()
+    denominatorCohortId <- as.integer(
+      stringr::str_replace_all(
+        names(cdm[[denominatorTable]]),
+        "cohort_definition_id_", ""
+      )
+    )
   }
   if (is.null(outcomeCohortId)) {
     outcomeCohortId <- cdm[[outcomeTable]] %>%
@@ -172,17 +174,16 @@ estimateIncidence <- function(cdm,
 
   # further checks that there are the required data elements
   errorMessage <- checkmate::makeAssertCollection()
-  denomCountCheck <- cdm[[denominatorTable]] %>%
-    dplyr::filter(.data$cohort_definition_id %in%
-      .env$denominatorCohortId) %>%
-    dplyr::count() %>%
-    dplyr::pull() > 0
+  denomCountCheck <- any(as.integer(stringr::str_replace_all(
+    names(cdm[[denominatorTable]]),
+    "cohort_definition_id_", ""
+  )) %in% denominatorCohortId)
   checkmate::assertTRUE(denomCountCheck,
     add = errorMessage
   )
   if (!isTRUE(denomCountCheck)) {
     errorMessage$push(
-      "- nobody found in `denominatorTable` with one of the `denominatorCohortId`"
+      "- nobody in `denominatorTable` with one of the `denominatorCohortId`"
     )
   }
   outcomeCountCheck <- cdm[[outcomeTable]] %>%
@@ -200,9 +201,9 @@ estimateIncidence <- function(cdm,
   checkmate::reportAssertions(collection = errorMessage)
   if (verbose == TRUE) {
     message("Progress: All input checks passed")
-    duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
+    dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
-      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      "Time taken: {floor(dur/60)} mins and {dur %% 60 %/% 1} secs"
     ))
   }
 
@@ -211,70 +212,12 @@ estimateIncidence <- function(cdm,
     message("Progress: limit to relevant outcomes")
     start <- Sys.time()
   }
-  outcome <- cdm[[outcomeTable]] %>%
-    dplyr::filter(.data$cohort_definition_id %in% .env$outcomeCohortId) %>%
-    dplyr::rename("outcome_cohort_id" = "cohort_definition_id") %>%
-    dplyr::rename("outcome_start_date" = "cohort_start_date") %>%
-    dplyr::rename("outcome_end_date" = "cohort_end_date") %>%
-    dplyr::inner_join(
-      cdm[[denominatorTable]] %>%
-        dplyr::filter(.data$cohort_definition_id %in%
-          .env$denominatorCohortId) %>%
-        dplyr::select(-"cohort_definition_id") %>%
-        dplyr::distinct(),
-      by = "subject_id"
-    ) %>%
-    dplyr::compute()
 
-  outcome <- outcome %>%
-    # most recent outcome starting before cohort start per person
-    dplyr::filter(.data$outcome_start_date < .data$cohort_start_date) %>%
-    dplyr::group_by(
-      .data$subject_id,
-      .data$cohort_start_date,
-      .data$outcome_cohort_id
-    ) %>%
-    dplyr::filter(.data$outcome_start_date ==
-      max(.data$outcome_start_date, na.rm = TRUE)) %>%
-    dplyr::union_all(
-      # all starting during cohort period
-      outcome %>%
-        dplyr::filter(.data$outcome_start_date >= .data$cohort_start_date) %>%
-        dplyr::filter(.data$outcome_start_date <= .data$cohort_end_date)
-    ) %>%
-    dplyr::compute()
-
-  outcome <- outcome %>%
-    dplyr::group_by(
-      .data$subject_id,
-      .data$cohort_start_date,
-      .data$outcome_cohort_id
-    ) %>%
-    dbplyr::window_order(.data$outcome_start_date) %>%
-    dplyr::mutate(index = rank()) %>%
-    dplyr::ungroup() %>%
-    dplyr::compute()
-
-  # add to cdm reference
-  cdm[[outcomeTable]] <- outcome %>%
-    dplyr::select(-"outcome_end_date") %>%
-    dplyr::full_join(
-      outcome %>%
-        dplyr::mutate(index = .data$index + 1) %>%
-        dplyr::rename("outcome_prev_end_date" = "outcome_end_date") %>%
-        dplyr::select(-"outcome_start_date"),
-      by = c(
-        "subject_id", "cohort_start_date",
-        "cohort_end_date", "outcome_cohort_id", "index"
-      )
-    ) %>%
-    dplyr::select(-"index") %>%
-    dplyr::compute()
   if (verbose == TRUE) {
     message("Progress: Limited to relevant outcomes")
-    duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
+    dur <- abs(as.numeric(Sys.time() - start, units = "secs"))
     message(glue::glue(
-      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      "Time taken: {floor(dur/60)} mins and {dur %% 60 %/% 1} secs"
     ))
   }
 
@@ -301,11 +244,12 @@ estimateIncidence <- function(cdm,
   )
 
   # get irs
+  counter <- 0
   irsList <- lapply(studySpecs, function(x) {
-
     if (verbose == TRUE) {
+      counter <<- counter + 1
       message(glue::glue(
-        "Getting incidence for {x$analysis_id} of {length(studySpecs)}"
+        "Getting incidence for anlalysis {counter} of {length(studySpecs)}"
       ))
     }
 
@@ -326,9 +270,9 @@ estimateIncidence <- function(cdm,
       dplyr::mutate(analysis_id = x$analysis_id) %>%
       dplyr::relocate("analysis_id")
 
-      workingIncPersonTable <- workingInc[["person_table"]] %>%
-        dplyr::mutate(analysis_id = !!x$analysis_id) %>%
-        dplyr::relocate("analysis_id")
+    workingIncPersonTable <- workingInc[["person_table"]] %>%
+      dplyr::mutate(analysis_id = !!x$analysis_id) %>%
+      dplyr::relocate("analysis_id")
 
     workingIncAnalysisSettings <- workingInc[["analysis_settings"]] %>%
       dplyr::mutate(
@@ -349,8 +293,10 @@ estimateIncidence <- function(cdm,
     result <- list()
     result[["ir"]] <- workingIncIr
     result[["analysis_settings"]] <- workingIncAnalysisSettings
-    result[[paste0("study_population_analyis_",
-                   x$analysis_id)]] <- workingIncPersonTable
+    result[[paste0(
+      "study_population_analyis_",
+      x$analysis_id
+    )]] <- workingIncPersonTable
     result[["attrition"]] <- workingIncAttrition
 
 
@@ -358,9 +304,9 @@ estimateIncidence <- function(cdm,
   })
   if (verbose == TRUE) {
     message("Progress: Incidence fetched for subgroups")
-    duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
+    dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
-      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      "Time taken: {floor(dur/60)} mins and {dur %% 60 %/% 1} secs"
     ))
   }
 
@@ -376,27 +322,35 @@ estimateIncidence <- function(cdm,
     .id = NULL
   )
   analysisSettings <- analysisSettings %>%
-    dplyr::left_join(settings(cdm[[denominatorTable]]) %>%
-                       dplyr::rename("cohort_id" ="cohort_definition_id") %>%
-                       dplyr::rename_with(.cols = tidyselect::everything(),
-                                          function(x){paste0("denominator_", x)}),
-                     by = "denominator_cohort_id")
+    dplyr::left_join(
+      settings(cdm[[denominatorTable]]) %>%
+        dplyr::rename("cohort_id" = "cohort_definition_id") %>%
+        dplyr::rename_with(
+          .cols = tidyselect::everything(),
+          function(x) {
+            paste0("denominator_", x)
+          }
+        ),
+      by = "denominator_cohort_id"
+    )
 
   # attrition
   # combine analysis attrition with the previous attrition for
   # the denominator cohort used
-  for(i in seq_along(studySpecs)){
+  for (i in seq_along(studySpecs)) {
     irsList[names(irsList) == "attrition"][[i]] <- dplyr::bind_rows(
       attrition(cdm[[denominatorTable]]) %>%
-        dplyr::rename("denominator_cohort_id" ="cohort_definition_id") %>%
-        dplyr::filter(.data$denominator_cohort_id == studySpecs[[i]]$denominator_cohort_id) %>%
-        dplyr::mutate(analysis_id=  studySpecs[[i]]$analysis_id) ,
+        dplyr::rename("denominator_cohort_id" = "cohort_definition_id") %>%
+        dplyr::filter(.data$denominator_cohort_id ==
+                      studySpecs[[i]]$denominator_cohort_id) %>%
+        dplyr::mutate(analysis_id = studySpecs[[i]]$analysis_id),
       irsList[names(irsList) == "attrition"][[i]] %>%
-        dplyr::mutate(step = "Estimating incidence"))
+        dplyr::mutate(step = "Estimating incidence")
+    )
   }
   attrition <- irsList[names(irsList) == "attrition"]
   attrition <- dplyr::bind_rows(attrition,
-                                .id = NULL
+    .id = NULL
   ) %>%
     dplyr::select(!"denominator_cohort_id")
 
@@ -410,17 +364,21 @@ estimateIncidence <- function(cdm,
 
   # get confidence intervals
   if (nrow(irs) > 0) {
-    irs <-irs %>%
-      dplyr::bind_cols(IncRateCiExact(irs$n_events,
-                                   irs$person_years))
+    irs <- irs %>%
+      dplyr::bind_cols(incRateCiExact(
+        irs$n_events,
+        irs$person_years
+      ))
 
     # obscure counts
     irs <- obscureCounts(irs, minCellCount = minCellCount, substitute = NA)
   }
 
   # person_table summary
-  personTable <- irsList[stringr::str_detect(names(irsList),
-                                             "study_population")]
+  personTable <- irsList[stringr::str_detect(
+    names(irsList),
+    "study_population"
+  )]
 
   # return results as an IncidencePrevalenceResult class
   attr(irs, "settings") <- analysisSettings
@@ -433,16 +391,16 @@ estimateIncidence <- function(cdm,
 
   if (verbose == TRUE) {
     message("Progress: All incidence results computed")
-    duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
+    dur <- abs(as.numeric(Sys.time() - start, units = "secs"))
     message(glue::glue(
-      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      "Time taken: {floor(dur/60)} mins and {dur %% 60 %/% 1} secs"
     ))
   }
 
   if (verbose == TRUE) {
-    duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
+    dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
-      "Overall time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      "Overall time taken: {floor(dur/60)} mins and {dur %% 60 %/% 1} secs"
     ))
   }
   return(irs)
@@ -450,11 +408,11 @@ estimateIncidence <- function(cdm,
 
 
 
-IncRateCiExact<-function(ev, pt){
-
-return(tibble::tibble(
-  ir_100000_pys_95CI_lower = ((stats::qchisq(p = 0.025, df = 2 * ev) / 2) / pt)*100000,
-  ir_100000_pys_95CI_upper = ((stats::qchisq(p = 0.975, df = 2 * (ev + 1)) / 2) / pt)*100000)
-    )
-
+incRateCiExact <- function(ev, pt) {
+  return(tibble::tibble(
+    ir_100000_pys_95CI_lower =
+      ((stats::qchisq(p = 0.025, df = 2 * ev) / 2) / pt) * 100000,
+    ir_100000_pys_95CI_upper =
+      ((stats::qchisq(p = 0.975, df = 2 * (ev + 1)) / 2) / pt) * 100000
+  ))
 }
