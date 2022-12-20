@@ -83,13 +83,7 @@ These cohorts will be in the typical OMOP CDM structure
 
 ``` r
 cdm$denominator
-#> # Denominator cohort set
-#> # (Number of cohorts: 6)
-#> # (Number of cohorts with n > 0: 6)
-#> 
-#> # Previewing first cohort
-#> [1] "src"        "lazy_query"
-#> # Source:   SQL [?? x 4]
+#> # Source:   table<dbplyr_009> [?? x 4]
 #> # Database: DuckDB 0.6.1 [eburn@Windows 10 x64:R 4.2.1/:memory:]
 #>    cohort_definition_id subject_id cohort_start_date cohort_end_date
 #>                   <int> <chr>      <date>            <date>         
@@ -220,7 +214,6 @@ study_results <- gatherIncidencePrevalenceResults(
 dplyr::glimpse(study_results$incidence_estimates)
 #> Rows: 60
 #> Columns: 26
-#> Groups: analysis_id, analysis_outcome_washout, analysis_repeated_events, analysis_interval, analysis_complete_database_intervals, analysis_min_cell_count, denominator_cohort_id, denominator_age_group, denominator_sex, denominator_days_prior_history, denominator_start_date, denominator_end_date, outcome_cohort_id [6]
 #> $ analysis_id                          <int> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 2, …
 #> $ n_persons                            <int> 194, 156, 174, 185, 192, 156, 165…
 #> $ person_days                          <dbl> 29026, 21658, 23094, 30744, 27909…
@@ -250,7 +243,6 @@ dplyr::glimpse(study_results$incidence_estimates)
 dplyr::glimpse(study_results$prevalence_estimates)
 #> Rows: 126
 #> Columns: 26
-#> Groups: analysis_id, analysis_outcome_lookback_days, analysis_type, analysis_interval, analysis_complete_database_intervals, analysis_time_point, analysis_full_contribution, analysis_min_cell_count, denominator_cohort_id, denominator_age_group, denominator_sex, denominator_days_prior_history, denominator_start_date, denominator_end_date, outcome_cohort_id [12]
 #> $ analysis_id                          <int> 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, …
 #> $ prevalence_start_date                <date> 2008-01-01, 2009-01-01, 2010-01-…
 #> $ prevalence_end_date                  <date> 2008-01-01, 2009-01-01, 2010-01-…

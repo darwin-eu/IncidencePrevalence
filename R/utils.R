@@ -1,29 +1,4 @@
 
-#' Print a CDM reference object
-#'
-#' @param x A cdm_reference object
-#' @param ... Included for compatibility with generic. Not used.
-#'
-#' @return Invisibly returns the input
-#' @export
-print.IncidencePrevalenceDenominator <- function(x, ...) {
-  cli::cat_line(pillar::style_subtle(glue::glue("# Denominator cohort set")))
-  cli::cat_line(pillar::style_subtle(
-    glue::glue("# (Number of cohorts: {nrow(cohortCount(x))})")
-  ))
-  cli::cat_line(pillar::style_subtle(
-    glue::glue("# (Number of cohorts with n > 0: {length(names(x))})")
-  ))
-  cli::cat_line("")
-  cli::cat_line(pillar::style_subtle(glue::glue("# Previewing first cohort")))
-  print(names(x[[1]]))
-  print(x[[1]])
-
-  invisible(x)
-}
-
-
-
 #' Cohort attrition
 #'
 #' @param result Result for which to get attrition

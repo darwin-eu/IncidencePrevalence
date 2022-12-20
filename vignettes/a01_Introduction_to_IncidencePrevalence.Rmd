@@ -79,11 +79,7 @@ cdm$denominator <- generateDenominatorCohortSet(
 
 We can see that each of our denominator cohorts is in the format of an OMOP CDM cohort:
 ```{r}
-cdm$denominator$cohort_definition_id_1 %>%
-  glimpse()
-cdm$denominator$cohort_definition_id_2 %>%
-  glimpse()
-cdm$denominator$cohort_definition_id_3 %>%
+cdm$denominator %>%
   glimpse()
 ```
 

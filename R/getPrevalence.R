@@ -31,9 +31,9 @@ getPrevalence <- function(cdm,
 
   # keeping outcome of interest
   # of people in the denominator of interest
-  studyPop <- cdm[[denominatorTable]][[
-    paste0("cohort_definition_id_", denominatorCohortId)
-  ]] %>%
+  studyPop <- cdm[[denominatorTable]] %>%
+    dplyr::filter(.data$cohort_definition_id ==
+                    .env$denominatorCohortId) %>%
     dplyr::left_join(
       cdm[[outcomeTable]] %>%
         dplyr::filter(.data$cohort_definition_id == .env$outcomeCohortId) %>%
@@ -96,7 +96,10 @@ getPrevalence <- function(cdm,
       existingAttrition = attrition
     )
 
-    # drop people who never fulfill fullContribution if required
+    # drop people who never fulfill fullContribution
+    # go period by period
+    # note we´re doing this out of the main loop below so that we can fill in
+    # the attrition table
     if (fullContribution == TRUE) {
       studyPop <- studyPop %>% dplyr::mutate(has_full_contribution = 0)
       # update if they do have a full contribution
@@ -105,15 +108,14 @@ getPrevalence <- function(cdm,
           dplyr::mutate(
             has_full_contribution =
               dplyr::if_else(
-                .data$has_full_contribution == 1 ||
-                  (.data$cohort_end_date >= local(studyDays$end_time[i]) &
-                    .data$cohort_start_date <= local(studyDays$start_time[i])),
-                1, 0
+                    .data$cohort_end_date >= local(studyDays$end_time[i]) &
+                    .data$cohort_start_date <= local(studyDays$start_time[i]),
+                .data$has_full_contribution+1, .data$has_full_contribution
               )
           )
       }
       studyPop <- studyPop %>%
-        dplyr::filter(.data$has_full_contribution == 1) %>%
+        dplyr::filter(.data$has_full_contribution >= 1) %>%
         dplyr::select(!"has_full_contribution") %>%
         dplyr::compute()
 

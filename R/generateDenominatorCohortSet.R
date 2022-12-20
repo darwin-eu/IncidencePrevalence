@@ -80,9 +80,7 @@ generateDenominatorCohortSet <- function(cdm,
                                verbose = FALSE) {
   if (verbose == TRUE) {
     startCollect <- Sys.time()
-    message("Progress: Checking inputs")
   }
-
   ## check for standard types of user error
   errorMessage <- checkmate::makeAssertCollection()
   cdmCheck <- inherits(cdm, "cdm_reference")
@@ -194,19 +192,8 @@ generateDenominatorCohortSet <- function(cdm,
     add = errorMessage
   )
   checkmate::reportAssertions(collection = errorMessage)
-  if (verbose == TRUE) {
-    message("Progress: All input checks passed")
-    duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
-    message(glue::glue(
-  "Time taken: {floor(duration/60)} mins and {duration %% 60 %/% 1} secs"
-    ))
-  }
 
   # add broadest possible age group if no age strata were given
-  if (verbose == TRUE) {
-    message("Progress: Prepare inputs for creating denominator populations")
-    start <- Sys.time()
-  }
   if (is.null(startDate)) {
     startDate <- cdm$observation_period %>%
       dplyr::summarise(
@@ -247,19 +234,10 @@ generateDenominatorCohortSet <- function(cdm,
     dplyr::mutate(max_age = as.numeric(.data$max_age)) %>%
     dplyr::mutate(cohort_definition_id = dplyr::row_number())
 
-
-  if (verbose == TRUE) {
-    message("Progress: Inputs prepared for creating denominator populations")
-    duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
-    message(glue::glue(
-  "Time taken: {floor(duration/60)} mins and {duration %% 60 %/% 1} secs"
-    ))
-  }
-
   # get the overall contributing population (without stratification)
   # we need to the output the corresponding dates when getting the denominator
   if (verbose == TRUE) {
-    message("Progress: Run get_denominator_pop to get overall population")
+    message("Progress: Gettng overall denominator population")
     start <- Sys.time()
   }
 
@@ -277,9 +255,9 @@ generateDenominatorCohortSet <- function(cdm,
 
   if (verbose == TRUE) {
     message("Progress: Overall denominator population identified")
-    duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
+    dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
-      "Time taken: {floor(duration/60)} mins and {duration %% 60 %/% 1} secs"
+      "Time taken: {floor(dur/60)} min and {dur %% 60 %/% 1} sec"
     ))
   }
 
@@ -289,7 +267,7 @@ generateDenominatorCohortSet <- function(cdm,
 
   # build each of the cohorts of interest
   if (verbose == TRUE) {
-    message("Progress: Create each denominator population of interest")
+    message("Progress: Creating each denominator cohort of interest")
     start <- Sys.time()
   }
 
@@ -337,8 +315,12 @@ generateDenominatorCohortSet <- function(cdm,
 
     studyPops <- list()
     cohortCount <- list()
-
+    cli::cli_progress_bar(total = length(popSpecs$cohort_definition_id),
+      format = " -- getting cohort dates for {cli::pb_bar} {cli::pb_current} of {cli::pb_total} cohorts")
     for (i in seq_along(popSpecs$cohort_definition_id)) {
+      if (verbose == TRUE) {
+        cli::cli_progress_update()
+      }
       workingDpop <- dpop$denominator_population
 
       if (popSpecs$sex[[i]] %in% c("Male", "Female")) {
@@ -390,22 +372,55 @@ generateDenominatorCohortSet <- function(cdm,
                           local(popSpecs$cohort_definition_id[[i]])) %>%
           dplyr::relocate("cohort_definition_id")
       }
-
     }
-  }
+    cli::cli_progress_done()
+    if (length(studyPops) != 0 && length(studyPops) < 20) {
+      if (verbose == TRUE) {
+        message(glue::glue("Progress: unioning cohorts"))
+      }
+      studyPops <- Reduce(dplyr::union_all, studyPops) %>%
+        dplyr::compute()
+    }
+    if (length(studyPops) >= 20) {
+        # if 20 or more
+        # combine in batches in case of many subgroups
+        nBatches <- 20 # number in a batch
+        studyPopsBatches <- split(
+          studyPops,
+          ceiling(seq_along(studyPops) / nBatches)
+        )
+        cli::cli_progress_bar(total = length(studyPopsBatches),
+                              format = " -- unioning {cli::pb_bar} {cli::pb_current} of {cli::pb_total} batched cohorts")
+
+        for (i in seq_along(studyPopsBatches)) {
+          if (verbose == TRUE) {
+            cli::cli_progress_update()
+          }
+          studyPopsBatches[[i]] <- Reduce(dplyr::union_all,
+                                          studyPopsBatches[[i]]) %>%
+            dplyr::compute()
+        }
+        cli::cli_progress_done()
+
+        if (verbose == TRUE) {
+        message(glue::glue("Progress: unioning batches cohorts")) }
+        studyPops <- Reduce(dplyr::union_all, studyPopsBatches) %>%
+          dplyr::compute()
+      }
+    }
 
   if (verbose == TRUE) {
     message("Progress: Each denominator population of interest created")
-    duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
+    dur <- abs(as.numeric(Sys.time() - start, units = "secs"))
     message(glue::glue(
-      "Time taken: {floor(duration/60)} mins and {duration %% 60 %/% 1} secs"
+      "Time taken: {floor(dur/60)} min and {dur %% 60 %/% 1} sec"
     ))
   }
 
   if (verbose == TRUE) {
-    duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
+    dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
-      "Overall time taken: {floor(duration/60)} mins and {duration %% 60 %/% 1} secs"
+      "Time taken to get denominator cohorts: {floor(dur/60)} min and {dur %% 60 %/% 1} sec"
     ))
   }
   # return results as a cohort_reference class

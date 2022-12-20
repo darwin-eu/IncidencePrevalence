@@ -31,72 +31,16 @@ getIncidence <- function(cdm,
   }
 
   ## Analysis code
-  outcome <- cdm[[outcomeTable]] %>%
-    dplyr::filter(.data$cohort_definition_id %in% .env$outcomeCohortId) %>%
-    dplyr::rename("outcome_cohort_id" = "cohort_definition_id") %>%
-    dplyr::rename("outcome_start_date" = "cohort_start_date") %>%
-    dplyr::rename("outcome_end_date" = "cohort_end_date") %>%
-    dplyr::inner_join(
-      cdm[[denominatorTable]][[
-        paste0("cohort_definition_id_", denominatorCohortId)
-      ]] %>%
-        dplyr::select(-"cohort_definition_id") %>%
-        dplyr::distinct(),
-      by = "subject_id"
-    ) %>%
-    dplyr::compute()
-
-  outcome <- outcome %>%
-    # most recent outcome starting before cohort start per person
-    dplyr::filter(.data$outcome_start_date < .data$cohort_start_date) %>%
-    dplyr::group_by(
-      .data$subject_id,
-      .data$cohort_start_date,
-      .data$outcome_cohort_id
-    ) %>%
-    dplyr::filter(.data$outcome_start_date ==
-      max(.data$outcome_start_date, na.rm = TRUE)) %>%
-    dplyr::union_all(
-      # all starting during cohort period
-      outcome %>%
-        dplyr::filter(.data$outcome_start_date >= .data$cohort_start_date) %>%
-        dplyr::filter(.data$outcome_start_date <= .data$cohort_end_date)
-    ) %>%
-    dplyr::compute()
-
-  outcome <- outcome %>%
-    dplyr::group_by(
-      .data$subject_id,
-      .data$cohort_start_date,
-      .data$outcome_cohort_id
-    ) %>%
-    dbplyr::window_order(.data$outcome_start_date) %>%
-    dplyr::mutate(index = rank()) %>%
-    dplyr::ungroup() %>%
-    dplyr::compute()
-
-  outcome <- outcome %>%
-    dplyr::select(-"outcome_end_date") %>%
-    dplyr::full_join(
-      outcome %>%
-        dplyr::mutate(index = .data$index + 1) %>%
-        dplyr::rename("outcome_prev_end_date" = "outcome_end_date") %>%
-        dplyr::select(-"outcome_start_date"),
-      by = c(
-        "subject_id", "cohort_start_date",
-        "cohort_end_date", "outcome_cohort_id", "index"
-      )
-    ) %>%
-    dplyr::select(-"index") %>%
-    dplyr::compute()
-
   # people in the relevant denominator
   # along with their outcomes
-  studyPop <- cdm[[denominatorTable]][[
-    paste0("cohort_definition_id_", denominatorCohortId)
-  ]] %>%
+  studyPop <- cdm[[denominatorTable]] %>%
+    dplyr::filter(.data$cohort_definition_id ==
+                    .env$denominatorCohortId) %>%
     dplyr::select(-"cohort_definition_id") %>%
-    dplyr::left_join(outcome %>% dplyr::select(-"outcome_cohort_id"),
+    dplyr::left_join(cdm[[outcomeTable]] %>%
+                       dplyr::filter(.data$outcome_cohort_id ==
+                                       .env$outcomeCohortId) %>%
+                       dplyr::select(-"outcome_cohort_id"),
       by = c(
         "subject_id",
         "cohort_start_date",

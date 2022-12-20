@@ -192,7 +192,6 @@ estimatePrevalence <- function(cdm,
                                verbose = FALSE) {
   if (verbose == TRUE) {
     startCollect <- Sys.time()
-    message("Progress: Checking inputs")
   }
   # help to avoid formatting errors
   if (is.character(type)) {
@@ -277,12 +276,11 @@ estimatePrevalence <- function(cdm,
 
   # if not given, use all denominator and outcome cohorts
   if (is.null(denominatorCohortId)) {
-    denominatorCohortId <- as.integer(
-      stringr::str_replace_all(
-        names(cdm[[denominatorTable]]),
-        "cohort_definition_id_", ""
-      )
-    )
+    denominatorCohortId <- cdm[[denominatorTable]] %>%
+      dplyr::select("cohort_definition_id") %>%
+      dplyr::distinct() %>%
+      dplyr::collect() %>%
+      dplyr::pull()
   }
   if (is.null(outcomeCohortId)) {
     outcomeCohortId <- cdm[[outcomeTable]] %>%
@@ -291,7 +289,6 @@ estimatePrevalence <- function(cdm,
       dplyr::collect() %>%
       dplyr::pull()
   }
-
 
   studySpecs <- tidyr::expand_grid(
     outcomeCohortId = outcomeCohortId,
@@ -315,13 +312,14 @@ estimatePrevalence <- function(cdm,
   )
 
   # get prs
+  counter <- 0
   prsList <- lapply(studySpecs, function(x) {
     if (verbose == TRUE) {
+      counter <<- counter + 1
       message(glue::glue(
-        "Getting prevalence for {x$analysis_id} of {length(studySpecs)}"
+        "Getting prevalence for anlalysis {counter} of {length(studySpecs)}"
       ))
     }
-
     workingPrev <- getPrevalence(
       cdm = cdm,
       denominatorTable = denominatorTable,
@@ -465,7 +463,7 @@ estimatePrevalence <- function(cdm,
   if (verbose == TRUE) {
     dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
-      "Overall time taken: {floor(dur/60)} mins and {dur %% 60 %/% 1} secs"
+      "Time taken to estimate prevalence: {floor(dur/60)} mins and {dur %% 60 %/% 1} secs"
     ))
   }
 

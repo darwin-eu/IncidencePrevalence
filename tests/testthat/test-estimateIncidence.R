@@ -47,6 +47,7 @@ test_that("mock db: check output format", {
     names(inc)))
 
   expect_true(tibble::is_tibble(attrition(inc)))
+  expect_true(tibble::is_tibble(attrition(inc, analysisId = 1)))
 
   expect_true(is.list(participants(inc))) # list of references to participants
   expect_true(tibble::is_tibble(participants(inc, 1) %>%

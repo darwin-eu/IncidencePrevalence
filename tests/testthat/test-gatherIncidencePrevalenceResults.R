@@ -94,10 +94,10 @@ test_that("multiple cohorts to rename", {
   cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
 
   cdm$outcome <- dplyr::union_all(
-    cdm$denominator$cohort_definition_id_1 %>%
+    cdm$denominator %>%
       dplyr::slice_sample(n = 100) %>%
       dplyr::mutate(cohort_definition_id = 1),
-    cdm$denominator$cohort_definition_id_1 %>%
+    cdm$denominator %>%
       dplyr::slice_sample(n = 100) %>%
       dplyr::mutate(cohort_definition_id = 2)
   ) %>%

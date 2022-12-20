@@ -102,14 +102,14 @@ cdm$denominator <- generateDenominatorCohortSet(
 )
 cdm$denominator
 
-cdm$denominator$cohort_definition_id_1 %>%
+cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5"))
 ```
 
 Let´s have a look at the included time of the first five patients
 
 ```{r, message=FALSE, warning=FALSE, echo=FALSE}
-cdm$denominator$cohort_definition_id_1 %>%
+cdm$denominator %>%
   collect() %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5")) %>%
   pivot_longer(cols = c(
@@ -125,7 +125,7 @@ cdm$denominator$cohort_definition_id_1 %>%
 
 We can also plot a histogram of start and end dates of the 500 simulated patients 
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator$cohort_definition_id_1 %>%
+cdm$denominator %>%
   collect() %>%
   ggplot() +
   theme_minimal() +
@@ -135,7 +135,7 @@ cdm$denominator$cohort_definition_id_1 %>%
 ```
 
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator$cohort_definition_id_1 %>%
+cdm$denominator %>%
   collect() %>%
   ggplot() +
   theme_minimal() +
@@ -160,14 +160,14 @@ cdm$denominator
 
 cohortCount(cdm$denominator)
 
-cdm$denominator$cohort_definition_id_1 %>%
+cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5"))
 ```
 
 Now we can see the person "2", "4" and "5" haven´t been included as they don´t have any observation time during the study period.  Indeed, we´re now including 106 of the original 500 simulated patients.
 
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator$cohort_definition_id_1 %>%
+cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5")) %>%
   collect() %>%
   pivot_longer(cols = c(
@@ -183,7 +183,7 @@ cdm$denominator$cohort_definition_id_1 %>%
 
 We can also plot a histogram of start and end dates and we can see that now most people enter at the start of the study period and leave at the end.
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator$cohort_definition_id_1 %>%
+cdm$denominator %>%
   collect() %>%
   ggplot() +
   theme_minimal() +
@@ -193,7 +193,7 @@ cdm$denominator$cohort_definition_id_1 %>%
 ```
 
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator$cohort_definition_id_1 %>%
+cdm$denominator %>%
   collect() %>%
   ggplot() +
   theme_minimal() +
@@ -219,14 +219,14 @@ cdm$denominator
 
 cohortCount(cdm$denominator)
 
-cdm$denominator$cohort_definition_id_1 %>%
+cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5"))
 ```
 
 Now we only include patient "1" of the original first five and we´re now including 57 of the original 500 simulated patients.
 
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator$cohort_definition_id_1 %>%
+cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5")) %>%
   collect() %>%
   pivot_longer(cols = c(
@@ -242,7 +242,7 @@ cdm$denominator$cohort_definition_id_1 %>%
 
 With the histograms of start and end dates now looking like
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator$cohort_definition_id_1 %>%
+cdm$denominator %>%
   collect() %>%
   ggplot() +
   theme_minimal() +
@@ -252,7 +252,7 @@ cdm$denominator$cohort_definition_id_1 %>%
 ```
 
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator$cohort_definition_id_1 %>%
+cdm$denominator %>%
   collect() %>%
   ggplot() +
   theme_minimal() +
@@ -273,12 +273,12 @@ cdm$denominator <- generateDenominatorCohortSet(
   sex = "Female",
   daysPriorHistory = 365
 )
-cdm$denominator$cohort_definition_id_1 %>%
+cdm$denominator %>%
   glimpse()
 
 cohortCount(cdm$denominator)
 
-cdm$denominator$cohort_definition_id_1 %>%
+cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5"))
 ```
 
@@ -286,7 +286,7 @@ Now none of the original first five are included and we´re including 20 of the 
 
 The histograms of start and end dates now looking like
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator$cohort_definition_id_1 %>%
+cdm$denominator %>%
   collect() %>%
   ggplot() +
   theme_minimal() +
@@ -296,7 +296,7 @@ cdm$denominator$cohort_definition_id_1 %>%
 ```
 
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator$cohort_definition_id_1 %>%
+cdm$denominator %>%
   collect() %>%
   ggplot() +
   theme_minimal() +
@@ -319,7 +319,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   sex = "Both",
   daysPriorHistory = 0
 )
-dpop <- cdm$denominator$cohort_definition_id_1 %>%
+dpop <- cdm$denominator %>%
   collect() %>%
   left_join(settings(cdm$denominator))
 
@@ -360,7 +360,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   sex = c("Male", "Female", "Both"),
   daysPriorHistory = 0
 )
-dpop <- cdm$denominator$cohort_definition_id_1 %>%
+dpop <- cdm$denominator %>%
   collect() %>%
   left_join(settings(cdm$denominator))
 
@@ -401,7 +401,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   sex = c("Male", "Female", "Both"),
   daysPriorHistory = c(0, 365)
 )
-dpop <- cdm$denominator$cohort_definition_id_1 %>%
+dpop <- cdm$denominator %>%
   collect() %>%
   left_join(settings(cdm$denominator))
 
@@ -447,7 +447,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   daysPriorHistory = c(0, 365)
 )
 
-head(cdm$denominator$cohort_definition_id_1, 8)
+head(cdm$denominator, 8)
 ```
 
 The output table will have several attributes. With `settings()` we can see the options used when defining the set of denominator populations. More than one age, sex and prior history requirements can be specified at the same time and each combination of these variables will result in a different cohort, each of which has a corresponding cohort_definition_id. In the above example, we identified 8 different cohorts:
@@ -548,7 +548,7 @@ We can get a denominator population without including any particular subset like
 cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm
 )
-cdm$denominator$cohort_definition_id_1
+cdm$denominator
 ```
 As we did not specify any study start and end date, the cohort start and end date of our 5 patients correspond to the same registered as observation period. 
 
@@ -564,7 +564,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   strataTable = "strata",
   strataCohortId = "1",
 )
-cdm$denominator$cohort_definition_id_1
+cdm$denominator
 ```
 
 We have obtained the 3 patients with the particular ethnicity we were interested in. Moreover, because ethnicity does not change during the study period, the cohort start and end date correspond to same dates of their observation period. Therefore, the obtained denominator population cohort is the same as the one observed in the first example but limited to the individuals that have our characteristic of interest.
@@ -583,7 +583,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   strataTable = "strata",
   strataCohortId = "2",
 )
-cdm$denominator$cohort_definition_id_1
+cdm$denominator
 ```
 
 We have obtained a denominator population with 3 individuals who have experienced this event during their observation period. In this case, the cohort start and end dates correspond to the cohort start and end date of our strata table, and not to their observation period. Therefore, individuals only contribute time while they are experiencing this particular condition. 
@@ -627,7 +627,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   sex = "Female",
   daysPriorHistory = 0
 )
-cdm$denominator$cohort_definition_id_1
+cdm$denominator
 ```
 
 In this case we have used the same strata than before, but we have restricted our analysis to females and we have limited our study period. As we can see, using this period of time we don't capture patient "2" (who was a man) and we only observe one time period for individuals "3" and "5" (who had multiple contributing time periods in the prior example).

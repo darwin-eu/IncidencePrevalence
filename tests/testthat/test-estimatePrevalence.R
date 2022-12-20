@@ -46,6 +46,24 @@ test_that("mock db: check output format", {
     names(settings(prev))))
 
   expect_true(all(c(
+    "outcome_cohort_id",
+    "analysis_id",
+    "analysis_type",
+    "analysis_time_point",
+    "analysis_interval",
+    "analysis_full_contribution",
+    "analysis_complete_database_intervals",
+    "analysis_min_cell_count",
+    "denominator_cohort_id",
+    "denominator_age_group",
+    "denominator_sex",
+    "denominator_days_prior_history",
+    "denominator_start_date",
+    "denominator_end_date"
+  ) %in%
+    names(settings(prev, analysisId = 1))))
+
+  expect_true(all(c(
     "analysis_id",
     "step",
     "current_n",
@@ -53,6 +71,15 @@ test_that("mock db: check output format", {
     "excluded"
   ) %in%
     names(attrition(prev))))
+
+  expect_true(all(c(
+    "analysis_id",
+    "step",
+    "current_n",
+    "reason",
+    "excluded"
+  ) %in%
+    names(attrition(prev, analysisId = 1))))
 
   # check we can get the reference to participants who contributed
   expect_true(is.list(participants(prev))) # list of references to participants
@@ -1208,7 +1235,22 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
     minCellCount = 0
   )
   expect_true(sum(ppe_fullC$n_cases) == 18)
-  expect_true(all(ppe_fullC$prevalence == c(2 / 3, 1 / 3, 1 / 3, 1 / 2, 1 / 3, 1 / 2, 1, 1, 2 / 3, 1, 1, 1 / 3, 0, 0, 0, 1 / 3))) # the order of the analysis is 1 -> 10 -> 11 -> ... -> 16 -> 2 -> ... -> 9
+  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==1)] == 2 / 3)
+  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==2)] == 2 / 3)
+  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==3)] == 1)
+  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==4)] == 1)
+  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==5)] == 1 / 3)
+  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==6)] == 0)
+  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==7)] == 0)
+  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==8)] == 0)
+  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==9)] == 1 / 3)
+  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==10)] == 1 / 3)
+  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==11)] == 1 / 3)
+  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==12)] == 1 / 2)
+  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==13)] == 1 / 3)
+  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==14)] == 1 / 2)
+  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==15)] == 1)
+  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==16)] == 1)
 
   ppe_nofullC <- estimatePeriodPrevalence(
     cdm = cdm,
@@ -1218,7 +1260,22 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
     minCellCount = 0
   )
   expect_true(sum(ppe_nofullC$n_cases) == 19)
-  expect_true(all(ppe_nofullC$prevalence == c(2 / 3, 1 / 3, 1 / 3, 1 / 3, 1 / 3, 1 / 3, 1, 1, 2 / 3, 1, 2 / 3, 1 / 3, 1 / 3, 0, 0, 1 / 3))) # the order of the analysis is 1 -> 10 -> 11 -> ... -> 16 -> 2 -> ... -> 9
+  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==1)] == 2 / 3)
+  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==2)] == 2 / 3)
+  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==3)] == 1)
+  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==4)] == 2 / 3)
+  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==5)] == 1 / 3)
+  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==6)] == 1 / 3)
+  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==7)] == 0)
+  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==8)] == 0)
+  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==9)] == 1 / 3)
+  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==10)] == 1 / 3)
+  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==11)] == 1 / 3)
+  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==12)] == 1 / 3)
+  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==13)] == 1 / 3)
+  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==14)] == 1 / 3)
+  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==15)] == 1)
+  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==16)] == 1)
 
   ppe_fullC_m <- estimatePeriodPrevalence(
     cdm = cdm,
@@ -1268,7 +1325,9 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
     timePoint = "middle",
     minCellCount = 0
   )
-  expect_true(sum(pop_middle$n_cases) == 4) # mid point is 2010-07-01 so look back 30 days will show two events. As the two people have enough past data, they both are in two cohorts.
+  # mid point is 2010-07-01 so look back 30 days will show two events.
+  # As the two people have enough past data, they both are in two cohorts.
+  expect_true(sum(pop_middle$n_cases) == 4)
 
   pop_end <- estimatePointPrevalence(
     cdm = cdm,
@@ -1279,7 +1338,8 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
     timePoint = "end",
     minCellCount = 0
   )
-  expect_true(sum(pop_end$n_cases) == 2) # only sees one event (both for 0 or 365 days of previous observation)
+  # only sees one event (both for 0 or 365 days of previous observation)
+  expect_true(sum(pop_end$n_cases) == 2)
 
   ppo_start_m <- estimatePointPrevalence(
     cdm = cdm,
@@ -1290,7 +1350,8 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
     timePoint = "start",
     minCellCount = 0
   )
-  expect_true(sum(ppo_start_m$n_cases) == 18) # no events without look back and all events with look back 30 (except from the one in December)
+  # no events without look back and all events with look back 30 (except from the one in December)
+  expect_true(sum(ppo_start_m$n_cases) == 18)
 
   ppo_start_m_lb10 <- estimatePointPrevalence(
     cdm = cdm,
@@ -1301,8 +1362,8 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
     timePoint = "start",
     minCellCount = 0
   )
-  expect_true(sum(ppo_start_m_lb10$n_cases) == 3) # two events with look back 10, one of them from a person not contributing when we ask for 365d of previous obvs
-
+  # two events with look back 10, one of them from a person not contributing when we ask for 365d of previous obvs
+  expect_true(sum(ppo_start_m_lb10$n_cases) == 3)
   ppo_start_m_lb12 <- estimatePointPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
@@ -1312,7 +1373,8 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
     timePoint = "start",
     minCellCount = 0
   )
-  expect_true(sum(ppo_start_m_lb12$n_cases) == 4) # one event at day 2010-01-20 added, from a person only contirbuting when we don't ask for previous obvs
+  # one event at day 2010-01-20 added, from a person only contirbuting when we don't ask for previous obvs
+  expect_true(sum(ppo_start_m_lb12$n_cases) == 4)
 
   ppo_middle_m_lb10 <- estimatePointPrevalence(
     cdm = cdm,
@@ -1323,7 +1385,8 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
     timePoint = "middle",
     minCellCount = 0
   )
-  expect_true(sum(ppo_middle_m_lb10$n_cases) == 10) # five events with look back 10 (days of the month 06 to 15)
+  # five events with look back 10 (days of the month 06 to 15)
+  expect_true(sum(ppo_middle_m_lb10$n_cases) == 10)
 
   ppo_middle_m_lb9 <- estimatePointPrevalence(
     cdm = cdm,
@@ -1334,7 +1397,8 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
     timePoint = "middle",
     minCellCount = 0
   )
-  expect_true(sum(ppo_middle_m_lb9$n_cases) == 8) # lost the event at 2010-01-06
+  # lost the event at 2010-01-06
+  expect_true(sum(ppo_middle_m_lb9$n_cases) == 8)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })

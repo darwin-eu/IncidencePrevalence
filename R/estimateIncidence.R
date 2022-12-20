@@ -86,7 +86,6 @@ estimateIncidence <- function(cdm,
                               verbose = FALSE) {
   if (verbose == TRUE) {
     startCollect <- Sys.time()
-    message("Progress: Checking inputs")
   }
   # help to avoid formatting errors
   if (is.character(interval)) {
@@ -157,12 +156,11 @@ estimateIncidence <- function(cdm,
 
   # if not given, use all denominator and outcome cohorts
   if (is.null(denominatorCohortId)) {
-    denominatorCohortId <- as.integer(
-      stringr::str_replace_all(
-        names(cdm[[denominatorTable]]),
-        "cohort_definition_id_", ""
-      )
-    )
+    denominatorCohortId <- cdm[[denominatorTable]] %>%
+      dplyr::select("cohort_definition_id") %>%
+      dplyr::distinct() %>%
+      dplyr::collect() %>%
+      dplyr::pull()
   }
   if (is.null(outcomeCohortId)) {
     outcomeCohortId <- cdm[[outcomeTable]] %>%
@@ -174,13 +172,11 @@ estimateIncidence <- function(cdm,
 
   # further checks that there are the required data elements
   errorMessage <- checkmate::makeAssertCollection()
-  denomCountCheck <- any(as.integer(stringr::str_replace_all(
-    names(cdm[[denominatorTable]]),
-    "cohort_definition_id_", ""
-  )) %in% denominatorCohortId)
-  checkmate::assertTRUE(denomCountCheck,
-    add = errorMessage
-  )
+  denomCountCheck <- cdm[[denominatorTable]] %>%
+    dplyr::filter(.data$cohort_definition_id %in%
+                    .env$denominatorCohortId) %>%
+    dplyr::count() %>%
+    dplyr::pull() > 0
   if (!isTRUE(denomCountCheck)) {
     errorMessage$push(
       "- nobody in `denominatorTable` with one of the `denominatorCohortId`"
@@ -195,7 +191,7 @@ estimateIncidence <- function(cdm,
   )
   if (!isTRUE(outcomeCountCheck)) {
     errorMessage$push(
-      "- nobody found in `outcomeTable` with one of the `outcomeCohortId`"
+      "- nobody in `outcomeTable` with one of the `outcomeCohortId`"
     )
   }
   checkmate::reportAssertions(collection = errorMessage)
@@ -212,6 +208,65 @@ estimateIncidence <- function(cdm,
     message("Progress: limit to relevant outcomes")
     start <- Sys.time()
   }
+  outcome <- cdm[[outcomeTable]] %>%
+    dplyr::filter(.data$cohort_definition_id %in% .env$outcomeCohortId) %>%
+    dplyr::rename("outcome_cohort_id" = "cohort_definition_id") %>%
+    dplyr::rename("outcome_start_date" = "cohort_start_date") %>%
+    dplyr::rename("outcome_end_date" = "cohort_end_date") %>%
+    dplyr::inner_join(
+      cdm[[denominatorTable]] %>%
+        dplyr::filter(.data$cohort_definition_id %in%
+                        .env$denominatorCohortId) %>%
+        dplyr::select(-"cohort_definition_id") %>%
+        dplyr::distinct(),
+      by = "subject_id"
+    ) %>%
+    dplyr::compute()
+
+  outcome <- outcome %>%
+    # most recent outcome starting before cohort start per person
+    dplyr::filter(.data$outcome_start_date < .data$cohort_start_date) %>%
+    dplyr::group_by(
+      .data$subject_id,
+      .data$cohort_start_date,
+      .data$outcome_cohort_id
+    ) %>%
+    dplyr::filter(.data$outcome_start_date ==
+                    max(.data$outcome_start_date, na.rm = TRUE)) %>%
+    dplyr::union_all(
+      # all starting during cohort period
+      outcome %>%
+        dplyr::filter(.data$outcome_start_date >= .data$cohort_start_date) %>%
+        dplyr::filter(.data$outcome_start_date <= .data$cohort_end_date)
+    ) %>%
+    dplyr::compute()
+
+  outcome <- outcome %>%
+    dplyr::group_by(
+      .data$subject_id,
+      .data$cohort_start_date,
+      .data$outcome_cohort_id
+    ) %>%
+    dbplyr::window_order(.data$outcome_start_date) %>%
+    dplyr::mutate(index = rank()) %>%
+    dplyr::ungroup() %>%
+    dplyr::compute()
+
+  # add to cdm reference
+  cdm[[outcomeTable]] <- outcome %>%
+    dplyr::select(-"outcome_end_date") %>%
+    dplyr::full_join(
+      outcome %>%
+        dplyr::mutate(index = .data$index + 1) %>%
+        dplyr::rename("outcome_prev_end_date" = "outcome_end_date") %>%
+        dplyr::select(-"outcome_start_date"),
+      by = c(
+        "subject_id", "cohort_start_date",
+        "cohort_end_date", "outcome_cohort_id", "index"
+      )
+    ) %>%
+    dplyr::select(-"index") %>%
+    dplyr::compute()
 
   if (verbose == TRUE) {
     message("Progress: Limited to relevant outcomes")
