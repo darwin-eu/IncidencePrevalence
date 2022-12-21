@@ -8,6 +8,7 @@ test_that("mock db: check output format", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
+    outcomeCohortName = "test_outcome",
     interval = "months"
   )
 
@@ -20,12 +21,15 @@ test_that("mock db: check output format", {
     "analysis_complete_database_intervals",
     "analysis_min_cell_count",
     "outcome_cohort_id",
+    "outcome_cohort_name",
     "denominator_cohort_id",
     "denominator_age_group",
     "denominator_sex",
     "denominator_days_prior_history",
     "denominator_start_date",
-    "denominator_end_date"
+    "denominator_end_date",
+    "denominator_strata_cohort_definition_id",
+    "denominator_strata_cohort_name"
   ) %in%
     names(settings(inc))))
 
@@ -2406,7 +2410,7 @@ test_that("mock db: multiple observation periods", {
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
-    strataCohortId = "1"
+    strataCohortId = 1
   )
 
   incW0 <- estimateIncidence(cdm,
@@ -2450,7 +2454,7 @@ test_that("mock db: multiple observation periods", {
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
-    strataCohortId = "1"
+    strataCohortId = 1
   )
 
   incW10 <- estimateIncidence(cdm,
@@ -2497,7 +2501,7 @@ test_that("mock db: multiple observation periods", {
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
-    strataCohortId = "1"
+    strataCohortId = 1
   )
   inc_PreWashout <- estimateIncidence(cdm,
     denominatorTable = "denominator",
@@ -2537,7 +2541,7 @@ test_that("mock db: multiple observation periods", {
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
-    strataCohortId = "1"
+    strataCohortId = 1
   )
 
   inc_Mult1_W0 <- estimateIncidence(cdm,
@@ -2591,7 +2595,7 @@ test_that("mock db: multiple observation periods", {
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
-    strataCohortId = "1"
+    strataCohortId = 1
   )
 
   inc_PreWashEv <- estimateIncidence(cdm,
@@ -2676,7 +2680,7 @@ test_that("mock db: multiple observation periods", {
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
-    strataCohortId = "1"
+    strataCohortId = 1
   )
 
   inc_3op <- estimateIncidence(cdm,

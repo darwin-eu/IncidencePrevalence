@@ -562,7 +562,8 @@ Let's suppose we want to subset our population based on a non-time varying chara
 cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   strataTable = "strata",
-  strataCohortId = "1",
+  strataCohortId = 1,
+  strataCohortName = "strata_cohort_1"
 )
 cdm$denominator
 ```
@@ -581,7 +582,8 @@ Now say we want to subset our population based on a time varying characteristic 
 cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   strataTable = "strata",
-  strataCohortId = "2",
+  strataCohortId = 2,
+  strataCohortName = "strata_cohort_2"
 )
 cdm$denominator
 ```
@@ -590,7 +592,7 @@ We have obtained a denominator population with 3 individuals who have experience
 
 ```{r, message=FALSE, warning=FALSE}
 conditionX %>%
-  filter(cohort_definition_id == "2") %>%
+  filter(cohort_definition_id == 2) %>%
   filter(subject_id %in% c("2", "3", "5"))
 ```
 
@@ -600,7 +602,8 @@ Depending in which condition we're interested in, people might experience the sa
 cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   strataTable = "strata",
-  strataCohortId = "3",
+  strataCohortId = 3,
+  strataCohortName = "strata_cohort_2"
 )
 cdm$denominator
 ```
@@ -609,7 +612,7 @@ We can see that person "3" and "5" experienced this condition in two different o
 
 ```{r, message=FALSE, warning=FALSE}
 conditionX %>%
-  filter(cohort_definition_id == "3") %>%
+  filter(cohort_definition_id == 3) %>%
   filter(subject_id %in% c("2", "3", "5"))
 ```
 
@@ -620,7 +623,7 @@ In both examples, the study period can be restricted to a particular period of i
 cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   strataTable = "strata",
-  strataCohortId = "3",
+  strataCohortId = 3,
   startDate = as.Date("2014-01-01"),
   endDate = as.Date("2016-01-01"),
   ageGroup = list(c(0, 150)),

@@ -29,6 +29,7 @@
 #' @param outcomeCohortId The cohort definition ids of the outcome
 #' cohorts of interest. If NULL all cohorts will be considered in the
 #' analysis.
+#' @param outcomeCohortName Corresponding names for each outcomeCohortId.
 #' @param outcomeLookbackDays Days lookback when considering an outcome
 #' as prevalent. If NULL any prior outcome will be considered as prevalent. If
 #' 0, only ongoing outcomes will be considered as prevalent.
@@ -69,6 +70,7 @@ estimatePointPrevalence <- function(cdm,
                                     outcomeTable,
                                     denominatorCohortId = NULL,
                                     outcomeCohortId = NULL,
+                                    outcomeCohortName = NULL,
                                     outcomeLookbackDays = 0,
                                     interval = "years",
                                     timePoint = "start",
@@ -80,6 +82,7 @@ estimatePointPrevalence <- function(cdm,
     outcomeTable = outcomeTable,
     denominatorCohortId = denominatorCohortId,
     outcomeCohortId = outcomeCohortId,
+    outcomeCohortName = outcomeCohortName,
     outcomeLookbackDays = outcomeLookbackDays,
     type = "point",
     interval = interval,
@@ -106,6 +109,7 @@ estimatePointPrevalence <- function(cdm,
 #' @param outcomeCohortId The cohort definition ids of the outcome
 #' cohorts of interest. If NULL all cohorts will be considered in the
 #' analysis.
+#' @param outcomeCohortName Corresponding names for each outcomeCohortId.
 #' @param outcomeLookbackDays Days lookback when considering an outcome
 #' as prevalent. If NULL any prior outcome will be considered as prevalent. If
 #' 0, only ongoing outcomes will be considered as prevalent.
@@ -154,6 +158,7 @@ estimatePeriodPrevalence <- function(cdm,
                                      outcomeTable,
                                      denominatorCohortId = NULL,
                                      outcomeCohortId = NULL,
+                                     outcomeCohortName = NULL,
                                      outcomeLookbackDays = 0,
                                      interval = "years",
                                      completeDatabaseIntervals = TRUE,
@@ -166,6 +171,7 @@ estimatePeriodPrevalence <- function(cdm,
     outcomeTable = outcomeTable,
     denominatorCohortId = denominatorCohortId,
     outcomeCohortId = outcomeCohortId,
+    outcomeCohortName = outcomeCohortName,
     outcomeLookbackDays = outcomeLookbackDays,
     type = "period",
     interval = interval,
@@ -182,6 +188,7 @@ estimatePrevalence <- function(cdm,
                                outcomeTable,
                                denominatorCohortId = NULL,
                                outcomeCohortId = NULL,
+                               outcomeCohortName = NULL,
                                outcomeLookbackDays = 0,
                                type = "point",
                                interval = "months",
@@ -241,6 +248,11 @@ estimatePrevalence <- function(cdm,
     add = errorMessage,
     null.ok = TRUE
   )
+  checkmate::assertCharacter(outcomeCohortName,
+                             len = 1,
+                             add = errorMessage,
+                             null.ok = TRUE
+  )
   checkmate::assert_numeric(outcomeLookbackDays,
     add = errorMessage,
     null.ok = TRUE
@@ -289,6 +301,13 @@ estimatePrevalence <- function(cdm,
       dplyr::collect() %>%
       dplyr::pull()
   }
+  if (is.null(outcomeCohortName)) {
+    outcomeCohortName <- NA
+  }
+  outcomeRef <- tibble::tibble(
+    outcome_cohort_id = .env$outcomeCohortId,
+    outcome_cohort_name = .env$outcomeCohortName
+  )
 
   studySpecs <- tidyr::expand_grid(
     outcomeCohortId = outcomeCohortId,
@@ -453,7 +472,10 @@ estimatePrevalence <- function(cdm,
     dplyr::select(!"denominator_cohort_id")
 
   # return results as an IncidencePrevalenceResult class
-  attr(prs, "settings") <- analysisSettings
+  attr(prs, "settings") <- analysisSettings%>%
+    dplyr::left_join(outcomeRef, by = "outcome_cohort_id") %>%
+    dplyr::relocate("outcome_cohort_name", .after = "outcome_cohort_id") %>%
+    dplyr::relocate("denominator_cohort_id", .after = "analysis_min_cell_count")
   attr(prs, "attrition") <- attrition
   attr(prs, "participants") <- personTable
   attr(prs, "sql") <- tibble::tibble() # placeholder

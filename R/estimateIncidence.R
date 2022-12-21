@@ -29,6 +29,7 @@
 #' @param outcomeCohortId The cohort definition ids of the outcome
 #' cohorts of interest. If NULL all cohorts will be considered in the
 #' analysis.
+#' @param outcomeCohortName Corresponding names for each outcomeCohortId.
 #' @param interval Time intervals over which incidence is estimated. Can
 #' be "weeks", "months", "quarters", "years", or "overall". ISO weeks will
 #' be used for weeks. Calendar months, quarters, or years can be used, or an
@@ -78,6 +79,7 @@ estimateIncidence <- function(cdm,
                               outcomeTable,
                               denominatorCohortId = NULL,
                               outcomeCohortId = NULL,
+                              outcomeCohortName = NULL,
                               interval = "years",
                               completeDatabaseIntervals = TRUE,
                               outcomeWashout = 0,
@@ -129,6 +131,11 @@ estimateIncidence <- function(cdm,
     add = errorMessage,
     null.ok = TRUE
   )
+  checkmate::assertCharacter(outcomeCohortName,
+                             len = 1,
+                             add = errorMessage,
+                             null.ok = TRUE
+  )
   checkmate::assertTRUE(
     all(interval %in%
       c(
@@ -169,6 +176,13 @@ estimateIncidence <- function(cdm,
       dplyr::collect() %>%
       dplyr::pull()
   }
+  if (is.null(outcomeCohortName)) {
+    outcomeCohortName <- NA
+  }
+   outcomeRef <- tibble::tibble(
+      outcome_cohort_id = .env$outcomeCohortId,
+      outcome_cohort_name = .env$outcomeCohortName
+    )
 
   # further checks that there are the required data elements
   errorMessage <- checkmate::makeAssertCollection()
@@ -436,10 +450,12 @@ estimateIncidence <- function(cdm,
   )]
 
   # return results as an IncidencePrevalenceResult class
-  attr(irs, "settings") <- analysisSettings
+  attr(irs, "settings") <- analysisSettings %>%
+    dplyr::left_join(outcomeRef, by = "outcome_cohort_id") %>%
+    dplyr::relocate("outcome_cohort_id", .after = "analysis_id") %>%
+    dplyr::relocate("outcome_cohort_name", .after = "outcome_cohort_id")
   attr(irs, "attrition") <- attrition
   attr(irs, "participants") <- personTable
-  attr(irs, "sql") <- tibble::tibble() # placeholder
 
   class(irs) <- c("IncidencePrevalenceResult", class(irs))
 
