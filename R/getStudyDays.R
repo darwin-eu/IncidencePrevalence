@@ -116,21 +116,26 @@ getStudyDays <- function(startDate,
       ) %>%
       dplyr::ungroup()
     if (completeDatabaseIntervals == TRUE) {
-      studyDays <- studyDays %>%
-        dplyr::filter(.data$start_time ==
-                        lubridate::floor_date(.data$start_time,
-                                              unit = timeInterval) +
-                        weekCorrection) %>%
-        dplyr::filter(.data$end_time == lubridate::floor_date(
-          .data$end_time,
-          unit = timeInterval
-        ) + weekCorrection + switch(timeInterval,
-          "weeks" = lubridate::days(6),
-          "months" = months(1) - lubridate::days(1),
-          "quarters" = months(3) - lubridate::days(1),
-          "years" = lubridate::years(1) - lubridate::days(1)
-        ))
+      if(timeInterval == "weeks"){
+        studyDays<- studyDays %>%
+          dplyr::filter(difftime(studyDays$end_time,
+                                 studyDays$start_time) == 6)
+      } else {
+        studyDays <- studyDays %>%
+          dplyr::filter(.data$start_time ==
+                          lubridate::floor_date(.data$start_time,
+                                                unit = timeInterval) +
+                          weekCorrection) %>%
+          dplyr::filter(.data$end_time == lubridate::floor_date(
+            .data$end_time,
+            unit = timeInterval
+          ) + weekCorrection + switch(timeInterval,
+                                      "months" = months(1) - lubridate::days(1),
+                                      "quarters" = months(3) - lubridate::days(1),
+                                      "years" = lubridate::years(1) - lubridate::days(1)
+          ))
+      }
+      }
     }
-  }
   return(studyDays)
 }

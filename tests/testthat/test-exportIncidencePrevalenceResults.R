@@ -6,7 +6,7 @@ test_that("writing results", {
     denominatorTable = "denominator",
     outcomeTable = "outcome"
   )
-  results <- gatherIncidencePrevalenceResults(resultList = list(prev))
+  results <- gatherIncidencePrevalenceResults(cdm=cdm, resultList = list(prev))
   exportIncidencePrevalenceResults(
     result = results, zipName = "test",
     outputFolder = tempdir()
@@ -24,7 +24,7 @@ test_that("writing results- expected errors", {
     denominatorTable = "denominator",
     outcomeTable = "outcome"
   )
-  results <- gatherIncidencePrevalenceResults(resultList = list(prev))
+  results <- gatherIncidencePrevalenceResults(cdm=cdm, resultList = list(prev))
   # not a gathered result
   expect_error(exportIncidencePrevalenceResults(
     result = "a",

@@ -814,6 +814,83 @@ test_that("mock db: compare results from months and years", {
     sum(incMonths$person_years),
     sum(incYears$person_years)
   )
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm,
+    startDate = as.Date("2010-01-01"),
+    endDate = as.Date("2011-12-31")
+  )
+
+  incWeeks <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = c("weeks"),
+    completeDatabaseIntervals =FALSE,
+    minCellCount = 0
+  )
+  incQuarters <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = c("quarters"),
+    completeDatabaseIntervals =FALSE,
+    minCellCount = 0
+  )
+  incMonths <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = c("months"),
+    completeDatabaseIntervals =FALSE,
+    minCellCount = 0
+  )
+  incYears <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = c("years"),
+    completeDatabaseIntervals =FALSE,
+    minCellCount = 0
+  )
+
+  # consistent results for months and years
+  expect_true(sum(incWeeks$n_events) ==
+                sum(incYears$n_events))
+  expect_true(sum(incQuarters$n_events) ==
+                sum(incYears$n_events))
+  expect_true(sum(incMonths$n_events) ==
+                sum(incYears$n_events))
+
+  expect_equal(
+    sum(incWeeks$person_days),
+    sum(incYears$person_days)
+  )
+  expect_equal(
+    sum(incQuarters$person_days),
+    sum(incYears$person_days)
+  )
+  expect_equal(
+    sum(incMonths$person_days),
+    sum(incYears$person_days)
+  )
+
+  expect_equal(
+    sum(incWeeks$person_years),
+    sum(incYears$person_years)
+  )
+  expect_equal(
+    sum(incQuarters$person_years),
+    sum(incYears$person_years)
+  )
+  expect_equal(
+    sum(incMonths$person_years),
+    sum(incYears$person_years)
+  )
+
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
