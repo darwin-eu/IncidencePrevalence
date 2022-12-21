@@ -33,7 +33,6 @@ Imports:
     glue,
     magrittr,
     rlang,
-    pillar,
     purrr,
     tidyr,
     tidyselect,
@@ -57,4 +56,4 @@ Suggests:
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Language: en-US
-License: Apache License (>= 2)  + file LICENSE 
+License: Apache License (>= 2)

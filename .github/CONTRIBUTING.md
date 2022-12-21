@@ -48,3 +48,4 @@ Before opening any pull request please make sure to run:
 devtools::check() 
 ```
 No warnings should be seen. 
+
