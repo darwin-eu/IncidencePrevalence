@@ -1,5 +1,6 @@
 #' Gather incidence and prevalence results
 #'
+#' @param cdm A CDM reference object
 #' @param resultList List of incididence and prevalence results
 #' @param databaseName A database name to add to to the results
 #'
@@ -36,8 +37,17 @@
 #'  )
 #'  results <- gatherIncidencePrevalenceResults(resultList=list(prev, inc))
 #' }
-gatherIncidencePrevalenceResults <- function(resultList, databaseName = NULL) {
+gatherIncidencePrevalenceResults <- function(cdm, resultList, databaseName = NULL) {
   errorMessage <- checkmate::makeAssertCollection()
+  cdmCheck <- inherits(cdm, "cdm_reference")
+  checkmate::assertTRUE(cdmCheck,
+                        add = errorMessage
+  )
+  if (!isTRUE(cdmCheck)) {
+    errorMessage$push(
+    "- cdm must be a CDMConnector CDM reference object"
+    )
+  }
   objClass <- list()
   for (i in seq_along(resultList)) {
     objClass[[i]] <- inherits(resultList[[i]], "IncidencePrevalenceResult")
@@ -169,6 +179,10 @@ gatherIncidencePrevalenceResults <- function(resultList, databaseName = NULL) {
       incidence_attrition = incidence_attrition
     )
   }
+
+  # add cdm snapshot to output
+  results$cdm_snapshot <-  dplyr::as_tibble(do.call(cbind.data.frame,
+                                                  CDMConnector::snapshot(cdm)))
 
   class(results) <- c("IncidencePrevalenceGatheredResult", class(results))
 

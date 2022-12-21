@@ -31,27 +31,33 @@ test_that("check gathering of results", {
   )
 
   # with both types of results
-  g1 <- gatherIncidencePrevalenceResults(resultList = list(prev1, prev2, inc1, inc2))
+  g1 <- gatherIncidencePrevalenceResults(cdm = cdm,
+                                         resultList = list(prev1, prev2, inc1, inc2))
   expect_true(is.list(g1))
   expect_true(inherits(g1, "IncidencePrevalenceGatheredResult"))
-  expect_true(length(g1) == 4)
+  expect_true(length(g1) == 5)
   expect_true(all(names(g1) == c(
     "prevalence_estimates", "prevalence_attrition",
-    "incidence_estimates", "incidence_attrition"
+    "incidence_estimates", "incidence_attrition",
+    "cdm_snapshot"
   )))
   # with only prevalence
-  g2 <- gatherIncidencePrevalenceResults(resultList = list(prev1, prev2))
+  g2 <- gatherIncidencePrevalenceResults(cdm = cdm,
+                                         resultList = list(prev1, prev2))
   expect_true(is.list(g2))
-  expect_true(length(g2) == 2)
-  expect_true(all(names(g2) == c("prevalence_estimates", "prevalence_attrition")))
+  expect_true(length(g2) == 3)
+  expect_true(all(names(g2) == c("prevalence_estimates", "prevalence_attrition",
+                                 "cdm_snapshot")))
   # with only incidence
-  g3 <- gatherIncidencePrevalenceResults(resultList = list(inc1))
+  g3 <- gatherIncidencePrevalenceResults(cdm = cdm,
+                                         resultList = list(inc1))
   expect_true(is.list(g3))
-  expect_true(length(g3) == 2)
-  expect_true(all(names(g3) == c("incidence_estimates", "incidence_attrition")))
+  expect_true(length(g3) == 3)
+  expect_true(all(names(g3) == c("incidence_estimates", "incidence_attrition",
+                                 "cdm_snapshot")))
 
   # with database name
-  g4 <- gatherIncidencePrevalenceResults(
+  g4 <- gatherIncidencePrevalenceResults(cdm = cdm,
     resultList = list(prev1, prev2, inc1, inc2),
     databaseName = "test_database"
   )
@@ -76,7 +82,8 @@ test_that("expected errors", {
     outcomeTable = "outcome",
     outcomeWashout = 0
   )
-  expect_error(gatherIncidencePrevalenceResults(resultList = list(prev, "a")))
+  expect_error(gatherIncidencePrevalenceResults(cdm = "a",
+                                                resultList = list(prev, "b")))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })

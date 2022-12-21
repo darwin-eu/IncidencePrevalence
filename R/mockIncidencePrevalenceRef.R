@@ -218,7 +218,20 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
         gender_concept_id = genderId,
         year_of_birth = dobYear,
         month_of_birth = dobMonth,
-        day_of_birth = dobDay
+        day_of_birth = dobDay,
+        birth_datetime = NA,
+        race_concept_id = NA,
+        ethnicity_concept_id = NA,
+        location_id = NA,
+        provider_id = NA,
+        care_site_id = NA,
+        person_source_value = NA,
+        gender_source_value = NA,
+        gender_source_concept_id = NA,
+        race_source_value = NA,
+        race_source_concept_id = NA,
+        ethnicity_source_value = NA,
+        ethnicity_source_concept_id = NA
       )
     }
 
@@ -227,7 +240,8 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
         observation_period_id = id,
         person_id = id,
         observation_period_start_date = obsStartDate,
-        observation_period_end_date = obsEndDate
+        observation_period_end_date = obsEndDate,
+        period_type_concept_id=NA
       )
     }
   }
@@ -421,9 +435,41 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
     )
   })
 
+
+  # add other tables required for snapshot
+  cdmSource <- tibble::tibble(cdm_source_name="test database",
+                              cdm_source_abbreviation = NA,
+                              cdm_holder = NA,
+                              source_description = NA,
+                              source_documentation_reference = NA,
+                              cdm_etl_reference = NA,
+                              source_release_date = NA,
+                              cdm_release_date = NA,
+                              cdm_version = NA,
+                              vocabulary_version = NA)
+  DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "cdm_source",
+                      cdmSource,
+                      overwrite = TRUE
+    )
+  })
+
+  vocabulary <- tibble::tibble(vocabulary_id = "None",
+                               vocabulary_name=NA,
+                               vocabulary_reference=NA,
+                               vocabulary_version ="test",
+                               vocabulary_concept_id=NA)
+  DBI::dbWithTransaction(db, {
+    DBI::dbWriteTable(db, "vocabulary",
+                      vocabulary,
+                      overwrite = TRUE
+    )
+  })
+
   cdm <- CDMConnector::cdm_from_con(
     db,
-    cdm_tables = c("person", "observation_period"),
+    cdm_tables = c("person", "observation_period",
+                   "cdm_source","vocabulary"),
     cohort_tables = c("strata", "outcome")
   )
 
