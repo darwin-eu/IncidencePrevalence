@@ -45,6 +45,7 @@
 #' cohort when they are contibuting to the cohort in the stata table).
 #' @param strataCohortId The cohort definition id for the cohort of interest
 #'  in the strata table. Only one stratifying cohort is supported.
+#' @param strataCohortName Corresponding name for the strata cohort.
 #' @param sample An integer for which to take a random sample, using
 #' `dplyr::slice_sample()`, of the people in the person table eligible to be
 #' included in the cohort set.
@@ -76,6 +77,7 @@ generateDenominatorCohortSet <- function(cdm,
                                daysPriorHistory = 0,
                                strataTable = NULL,
                                strataCohortId = NULL,
+                               strataCohortName = NULL,
                                sample = NULL,
                                verbose = FALSE) {
   if (verbose == TRUE) {
@@ -184,6 +186,16 @@ generateDenominatorCohortSet <- function(cdm,
       )
     }
   }
+  checkmate::assertIntegerish(strataCohortId,
+                              len = 1,
+                              add = errorMessage,
+                              null.ok = TRUE
+  )
+  checkmate::assertCharacter(strataCohortName,
+                              len = 1,
+                              add = errorMessage,
+                              null.ok = TRUE
+  )
   checkmate::assertNumeric(sample,
     add = errorMessage,
     null.ok = TRUE
@@ -423,8 +435,19 @@ generateDenominatorCohortSet <- function(cdm,
       "Time taken to get denominator cohorts: {floor(dur/60)} min and {dur %% 60 %/% 1} sec"
     ))
   }
+
+  # add strata info to settings
+  if(is.null(strataCohortId)){
+    strataCohortId <- NA
+  }
+  if(is.null(strataCohortName)){
+    strataCohortName <- NA
+  }
+
   # return results as a cohort_reference class
   attr(studyPops, "settings") <- popSpecs %>%
+    dplyr::mutate(strata_cohort_definition_id = .env$strataCohortId) %>%
+    dplyr::mutate(strata_cohort_name = .env$strataCohortName) %>%
     dplyr::select(!c("min_age", "max_age")) %>%
     dplyr::relocate("cohort_definition_id")
   attr(studyPops, "attrition") <- dplyr::bind_rows(dpop$attrition) %>%

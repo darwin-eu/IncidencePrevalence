@@ -8,6 +8,7 @@ test_that("mock db: check output format", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
+    outcomeCohortName = "test_outcome",
     interval = "years"
   )
 
@@ -28,8 +29,9 @@ test_that("mock db: check output format", {
 
   # check analysis settings tibble::tibble
   expect_true(all(c(
-    "outcome_cohort_id",
     "analysis_id",
+    "outcome_cohort_id",
+    "outcome_cohort_name",
     "analysis_type",
     "analysis_time_point",
     "analysis_interval",
@@ -947,7 +949,7 @@ test_that("mock db: multiple observation periods", {
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
-    strataCohortId = "1"
+    strataCohortId = 1
   )
 
   # should expect for period prevalence monthly 3 times with n_cases 1,

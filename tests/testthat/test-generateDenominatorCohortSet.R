@@ -99,7 +99,7 @@ test_that("mock db: checks on working example", {
   # using cohort strata
   # add stratifying cohort
   strataTable <- tibble::tibble(
-    cohort_definition_id = "1",
+    cohort_definition_id = 1,
     subject_id = c("1", "2"),
     cohort_start_date = as.Date("2010-03-15"),
     cohort_end_date = as.Date("2012-03-15")
@@ -114,7 +114,7 @@ test_that("mock db: checks on working example", {
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
-    strataCohortId = "1"
+    strataCohortId = 1
   )
   expect_true(cdm$dpop %>%
     dplyr::select(cohort_start_date) %>%
@@ -342,10 +342,10 @@ test_that("mock db: subset denominator by cohort", {
     observation_period_end_date = as.Date("2015-06-01")
   )
   strataTable <- tibble::tibble(
-    cohort_definition_id = "1",
-    subject_id = c("1", "2"),
-    cohort_start_date = as.Date("2012-06-06"),
-    cohort_end_date = as.Date("2013-06-06")
+    cohort_definition_id = c(1,1,2),
+    subject_id = c("1", "2", "2"),
+    cohort_start_date = as.Date(c("2012-06-06", "2012-06-06", "2012-09-01")),
+    cohort_end_date = as.Date(c("2013-06-06", "2013-06-06", "2013-02-01"))
   )
 
   # mock database
@@ -370,11 +370,12 @@ test_that("mock db: subset denominator by cohort", {
     dplyr::pull(cohort_end_date) ==
     "2015-06-01"))
 
-  # using strata cohort
+  # using strata cohort id 1
   dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
-    strataCohortId = "1",
+    strataCohortId = 1,
+    strataCohortName="test_strata"
   )
   expect_true(all(dpop %>%
     dplyr::collect() %>%
@@ -393,6 +394,28 @@ test_that("mock db: subset denominator by cohort", {
     dplyr::pull(cohort_end_date) ==
     "2013-06-06"))
 
+  # using strata cohort id 2
+  dpop <- generateDenominatorCohortSet(
+    cdm = cdm,
+    strataTable = "strata",
+    strataCohortId = 2,
+  )
+  expect_true(all(dpop %>%
+                    dplyr::collect() %>%
+                    dplyr::pull(subject_id) %in%
+                    c("2")))
+  expect_true(all(!dpop %>%
+                    dplyr::collect() %>%
+                    dplyr::pull(subject_id) %in%
+                    c("1")))
+  expect_true(all(dpop %>%
+                    dplyr::collect() %>%
+                    dplyr::pull(cohort_start_date) ==
+                    "2012-09-01"))
+  expect_true(all(dpop %>%
+                    dplyr::collect() %>%
+                    dplyr::pull(cohort_end_date) ==
+                    "2013-02-01"))
 
   # stratifying cohort multiple events per person
   strataTable <- tibble::tibble(
@@ -421,7 +444,7 @@ test_that("mock db: subset denominator by cohort", {
   dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
-    strataCohortId = "1",
+    strataCohortId = 1,
   )
   expect_true(all(dpop %>%
     dplyr::collect() %>%
@@ -473,7 +496,7 @@ test_that("mock db: subset denominator by cohort", {
   )
   # add stratifying cohort
   strataTable <- tibble::tibble(
-    cohort_definition_id = "1",
+    cohort_definition_id = 1,
     subject_id = c("1", "1", "1"),
     cohort_start_date = c(
       as.Date("2008-02-01"),
@@ -498,7 +521,7 @@ test_that("mock db: subset denominator by cohort", {
   dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
-    strataCohortId = "1",
+    strataCohortId = 1,
   )
   expect_true(sum(dpop %>%
     dplyr::collect() %>%
@@ -521,7 +544,7 @@ test_that("mock db: subset denominator by cohort", {
   dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "condition_cohort",
-    strataCohortId = "1",
+    strataCohortId = 1,
   )
   expect_true(sum(dpop %>%
     dplyr::collect() %>%
@@ -1049,6 +1072,11 @@ test_that("mock db: check expected errors", {
   cdm1$observation_period <- NULL
   testthat::expect_error(generateDenominatorCohortSet(
     cdm = cdm1
+  ))
+  testthat::expect_error(generateDenominatorCohortSet(
+    cdm = cdm,
+    strataTable = "strata",
+    strataCohortId = c(1, 2)
   ))
   # no strata table
   cdm1 <- cdm

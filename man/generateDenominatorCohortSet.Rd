@@ -13,6 +13,7 @@ generateDenominatorCohortSet(
   daysPriorHistory = 0,
   strataTable = NULL,
   strataCohortId = NULL,
+  strataCohortName = NULL,
   sample = NULL,
   verbose = FALSE
 )
@@ -47,6 +48,8 @@ cohort when they are contibuting to the cohort in the stata table).}
 
 \item{strataCohortId}{The cohort definition id for the cohort of interest
 in the strata table. Only one stratifying cohort is supported.}
+
+\item{strataCohortName}{Corresponding name for the strata cohort.}
 
 \item{sample}{An integer for which to take a random sample, using
 \code{dplyr::slice_sample()}, of the people in the person table eligible to be

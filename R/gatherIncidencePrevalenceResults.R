@@ -1,9 +1,7 @@
 #' Gather incidence and prevalence results
 #'
+#' @param cdm A CDM reference object
 #' @param resultList List of incididence and prevalence results
-#' @param outcomeCohortId Vector of cohort id for outcomes cohort
-#' @param outcomeCohortName Vector of names for outcomes cohort corresponding to
-#' the outcomeCohortId
 #' @param databaseName A database name to add to to the results
 #'
 #' @return A list of up to two tibbles, one with prevalence results and one
@@ -39,9 +37,17 @@
 #'  )
 #'  results <- gatherIncidencePrevalenceResults(resultList=list(prev, inc))
 #' }
-gatherIncidencePrevalenceResults <- function(resultList, outcomeCohortId = NULL,
-                          outcomeCohortName = NULL, databaseName = NULL) {
+gatherIncidencePrevalenceResults <- function(cdm, resultList, databaseName = NULL) {
   errorMessage <- checkmate::makeAssertCollection()
+  cdmCheck <- inherits(cdm, "cdm_reference")
+  checkmate::assertTRUE(cdmCheck,
+                        add = errorMessage
+  )
+  if (!isTRUE(cdmCheck)) {
+    errorMessage$push(
+    "- cdm must be a CDMConnector CDM reference object"
+    )
+  }
   objClass <- list()
   for (i in seq_along(resultList)) {
     objClass[[i]] <- inherits(resultList[[i]], "IncidencePrevalenceResult")
@@ -59,28 +65,6 @@ gatherIncidencePrevalenceResults <- function(resultList, outcomeCohortId = NULL,
     add = errorMessage
   )
   checkmate::reportAssertions(collection = errorMessage)
-
-  errorMessage <- checkmate::makeAssertCollection()
-  checkmate::assertCharacter(outcomeCohortName,
-    null.ok = TRUE,
-    add = errorMessage
-  )
-  checkmate::assertIntegerish(outcomeCohortId,
-    add = errorMessage,
-    null.ok = TRUE
-  )
-  if (!is.null(outcomeCohortId)) {
-    checkmate::assertTRUE(length(outcomeCohortId) == length(outcomeCohortName))
-  }
-  checkmate::reportAssertions(collection = errorMessage)
-
-  # create outcome ref
-  if (!is.null(outcomeCohortId)) {
-    outcomeRef <- tibble::tibble(
-      outcome_cohort_id = .env$outcomeCohortId,
-      outcome_cohort_name = .env$outcomeCohortName
-    )
-  }
 
   # add analysis settings to results
   estimates <- list()
@@ -139,12 +123,6 @@ gatherIncidencePrevalenceResults <- function(resultList, outcomeCohortId = NULL,
       )))) %>%
       dplyr::mutate(analysis_id = dplyr::cur_group_id()) %>%
       dplyr::ungroup()
-    if (!is.null(outcomeCohortId)) {
-      prevalence_estimates <- prevalence_estimates %>%
-        dplyr::left_join(outcomeRef, by = "outcome_cohort_id")
-      prevalence_attrition <- prevalence_attrition %>%
-        dplyr::left_join(outcomeRef, by = "outcome_cohort_id")
-    }
     if (!is.null(databaseName)) {
       prevalence_estimates <- prevalence_estimates %>%
         dplyr::mutate(database_name = .env$databaseName)
@@ -175,13 +153,6 @@ gatherIncidencePrevalenceResults <- function(resultList, outcomeCohortId = NULL,
       )))) %>%
       dplyr::mutate(analysis_id = dplyr::cur_group_id()) %>%
       dplyr::ungroup()
-
-    if (!is.null(outcomeCohortId)) {
-      incidence_estimates <- incidence_estimates %>%
-        dplyr::left_join(outcomeRef, by = "outcome_cohort_id")
-      incidence_attrition <- incidence_attrition %>%
-        dplyr::left_join(outcomeRef, by = "outcome_cohort_id")
-    }
     if (!is.null(databaseName)) {
       incidence_estimates <- incidence_estimates %>%
         dplyr::mutate(database_name = .env$databaseName)
@@ -208,6 +179,10 @@ gatherIncidencePrevalenceResults <- function(resultList, outcomeCohortId = NULL,
       incidence_attrition = incidence_attrition
     )
   }
+
+  # add cdm snapshot to output
+  results$cdm_snapshot <-  dplyr::as_tibble(do.call(cbind.data.frame,
+                                                  CDMConnector::snapshot(cdm)))
 
   class(results) <- c("IncidencePrevalenceGatheredResult", class(results))
 

@@ -8,6 +8,7 @@ test_that("mock db: check output format", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
+    outcomeCohortName = "test_outcome",
     interval = "months"
   )
 
@@ -20,12 +21,15 @@ test_that("mock db: check output format", {
     "analysis_complete_database_intervals",
     "analysis_min_cell_count",
     "outcome_cohort_id",
+    "outcome_cohort_name",
     "denominator_cohort_id",
     "denominator_age_group",
     "denominator_sex",
     "denominator_days_prior_history",
     "denominator_start_date",
-    "denominator_end_date"
+    "denominator_end_date",
+    "denominator_strata_cohort_definition_id",
+    "denominator_strata_cohort_name"
   ) %in%
     names(settings(inc))))
 
@@ -810,6 +814,83 @@ test_that("mock db: compare results from months and years", {
     sum(incMonths$person_years),
     sum(incYears$person_years)
   )
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm,
+    startDate = as.Date("2010-01-01"),
+    endDate = as.Date("2011-12-31")
+  )
+
+  incWeeks <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = c("weeks"),
+    completeDatabaseIntervals =FALSE,
+    minCellCount = 0
+  )
+  incQuarters <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = c("quarters"),
+    completeDatabaseIntervals =FALSE,
+    minCellCount = 0
+  )
+  incMonths <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = c("months"),
+    completeDatabaseIntervals =FALSE,
+    minCellCount = 0
+  )
+  incYears <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = c("years"),
+    completeDatabaseIntervals =FALSE,
+    minCellCount = 0
+  )
+
+  # consistent results for months and years
+  expect_true(sum(incWeeks$n_events) ==
+                sum(incYears$n_events))
+  expect_true(sum(incQuarters$n_events) ==
+                sum(incYears$n_events))
+  expect_true(sum(incMonths$n_events) ==
+                sum(incYears$n_events))
+
+  expect_equal(
+    sum(incWeeks$person_days),
+    sum(incYears$person_days)
+  )
+  expect_equal(
+    sum(incQuarters$person_days),
+    sum(incYears$person_days)
+  )
+  expect_equal(
+    sum(incMonths$person_days),
+    sum(incYears$person_days)
+  )
+
+  expect_equal(
+    sum(incWeeks$person_years),
+    sum(incYears$person_years)
+  )
+  expect_equal(
+    sum(incQuarters$person_years),
+    sum(incYears$person_years)
+  )
+  expect_equal(
+    sum(incMonths$person_years),
+    sum(incYears$person_years)
+  )
+
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -2406,7 +2487,7 @@ test_that("mock db: multiple observation periods", {
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
-    strataCohortId = "1"
+    strataCohortId = 1
   )
 
   incW0 <- estimateIncidence(cdm,
@@ -2450,7 +2531,7 @@ test_that("mock db: multiple observation periods", {
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
-    strataCohortId = "1"
+    strataCohortId = 1
   )
 
   incW10 <- estimateIncidence(cdm,
@@ -2497,7 +2578,7 @@ test_that("mock db: multiple observation periods", {
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
-    strataCohortId = "1"
+    strataCohortId = 1
   )
   inc_PreWashout <- estimateIncidence(cdm,
     denominatorTable = "denominator",
@@ -2537,7 +2618,7 @@ test_that("mock db: multiple observation periods", {
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
-    strataCohortId = "1"
+    strataCohortId = 1
   )
 
   inc_Mult1_W0 <- estimateIncidence(cdm,
@@ -2591,7 +2672,7 @@ test_that("mock db: multiple observation periods", {
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
-    strataCohortId = "1"
+    strataCohortId = 1
   )
 
   inc_PreWashEv <- estimateIncidence(cdm,
@@ -2676,7 +2757,7 @@ test_that("mock db: multiple observation periods", {
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
-    strataCohortId = "1"
+    strataCohortId = 1
   )
 
   inc_3op <- estimateIncidence(cdm,
