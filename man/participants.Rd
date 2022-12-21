@@ -18,3 +18,21 @@ a given analysis
 \description{
 Participants contributing to an analysis
 }
+\examples{
+cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
+cdm$denominator <- generateDenominatorCohortSet(cdm,
+  startDate = NULL,
+  endDate = NULL,
+  ageGroup = list(c(18, 40)),
+  sex = c("Female", "Male"),
+  daysPriorHistory = 120
+)
+incidence <- estimateIncidence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = "overall"
+)
+participants(result = incidence)
+participants(result = incidence, analysisId = 1)
+}

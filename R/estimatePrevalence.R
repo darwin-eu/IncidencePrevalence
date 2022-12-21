@@ -52,12 +52,11 @@
 #'   con = db,
 #'   cdm_schema = "cdm schema name"
 #' )
-#' dpop <- generateDenominatorCohortSet(
+#' cdm$denominator <- generateDenominatorCohortSet(
 #'   cdm = cdm,
 #'   startDate = as.Date("2008-01-01"),
 #'   endDate = as.Date("2018-01-01")
 #' )
-#' cdm$denominator <- dpop$denominator_population
 #' estimatePointPrevalence(
 #'   cdm = cdm,
 #'   denominatorTable = "denominator",
@@ -75,20 +74,21 @@ estimatePointPrevalence <- function(cdm,
                                     timePoint = "start",
                                     minCellCount = 5,
                                     verbose = FALSE) {
-
-  estimatePrevalence(cdm = cdm,
-                     denominatorTable = denominatorTable,
-                     outcomeTable = outcomeTable,
-                     denominatorCohortId = denominatorCohortId,
-                     outcomeCohortId = outcomeCohortId,
-                     outcomeLookbackDays = outcomeLookbackDays,
-                     type = "point",
-                     interval = interval,
-                     completeDatabaseIntervals = FALSE,
-                     fullContribution = FALSE,
-                     timePoint = timePoint,
-                     minCellCount = minCellCount,
-                     verbose = verbose)
+  estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = denominatorTable,
+    outcomeTable = outcomeTable,
+    denominatorCohortId = denominatorCohortId,
+    outcomeCohortId = outcomeCohortId,
+    outcomeLookbackDays = outcomeLookbackDays,
+    type = "point",
+    interval = interval,
+    completeDatabaseIntervals = FALSE,
+    fullContribution = FALSE,
+    timePoint = timePoint,
+    minCellCount = minCellCount,
+    verbose = verbose
+  )
 }
 
 
@@ -150,30 +150,31 @@ estimatePointPrevalence <- function(cdm,
 #' )
 #' }
 estimatePeriodPrevalence <- function(cdm,
-                                    denominatorTable,
-                                    outcomeTable,
-                                    denominatorCohortId = NULL,
-                                    outcomeCohortId = NULL,
-                                    outcomeLookbackDays = 0,
-                                    interval = "years",
-                                    completeDatabaseIntervals = TRUE,
-                                    fullContribution = FALSE,
-                                    minCellCount = 5,
-                                    verbose = FALSE) {
-
-estimatePrevalence(cdm = cdm,
-                     denominatorTable = denominatorTable,
-                     outcomeTable = outcomeTable,
-                     denominatorCohortId = denominatorCohortId,
-                     outcomeCohortId = outcomeCohortId,
-                     outcomeLookbackDays = outcomeLookbackDays,
-                     type = "period",
-                     interval = interval,
-                     completeDatabaseIntervals = completeDatabaseIntervals,
-                     fullContribution = fullContribution,
-                     timePoint = "start",
-                     minCellCount = minCellCount,
-                     verbose = verbose)
+                                     denominatorTable,
+                                     outcomeTable,
+                                     denominatorCohortId = NULL,
+                                     outcomeCohortId = NULL,
+                                     outcomeLookbackDays = 0,
+                                     interval = "years",
+                                     completeDatabaseIntervals = TRUE,
+                                     fullContribution = FALSE,
+                                     minCellCount = 5,
+                                     verbose = FALSE) {
+  estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = denominatorTable,
+    outcomeTable = outcomeTable,
+    denominatorCohortId = denominatorCohortId,
+    outcomeCohortId = outcomeCohortId,
+    outcomeLookbackDays = outcomeLookbackDays,
+    type = "period",
+    interval = interval,
+    completeDatabaseIntervals = completeDatabaseIntervals,
+    fullContribution = fullContribution,
+    timePoint = "start",
+    minCellCount = minCellCount,
+    verbose = verbose
+  )
 }
 
 estimatePrevalence <- function(cdm,
@@ -191,7 +192,6 @@ estimatePrevalence <- function(cdm,
                                verbose = FALSE) {
   if (verbose == TRUE) {
     startCollect <- Sys.time()
-    message("Progress: Checking inputs")
   }
   # help to avoid formatting errors
   if (is.character(type)) {
@@ -238,12 +238,12 @@ estimatePrevalence <- function(cdm,
     )
   }
   checkmate::assertIntegerish(outcomeCohortId,
-                              add = errorMessage,
-                              null.ok = TRUE
+    add = errorMessage,
+    null.ok = TRUE
   )
   checkmate::assert_numeric(outcomeLookbackDays,
-                            add = errorMessage,
-                            null.ok = TRUE
+    add = errorMessage,
+    null.ok = TRUE
   )
   checkmate::assert_choice(type,
     choices = c("point", "period"),
@@ -290,7 +290,6 @@ estimatePrevalence <- function(cdm,
       dplyr::pull()
   }
 
-
   studySpecs <- tidyr::expand_grid(
     outcomeCohortId = outcomeCohortId,
     outcomeLookbackDays = outcomeLookbackDays,
@@ -313,21 +312,21 @@ estimatePrevalence <- function(cdm,
   )
 
   # get prs
+  counter <- 0
   prsList <- lapply(studySpecs, function(x) {
-
     if (verbose == TRUE) {
+      counter <<- counter + 1
       message(glue::glue(
-        "Getting prevalence for {x$analysis_id} of {length(studySpecs)}"
+        "Getting prevalence for anlalysis {counter} of {length(studySpecs)}"
       ))
     }
-
     workingPrev <- getPrevalence(
       cdm = cdm,
       denominatorTable = denominatorTable,
       denominatorCohortId = x$denominatorCohortId,
       outcomeTable = outcomeTable,
       outcomeCohortId = x$outcomeCohortId,
-      outcomeLookbackDays= x$outcomeLookbackDays,
+      outcomeLookbackDays = x$outcomeLookbackDays,
       type = type,
       interval = x$interval,
       completeDatabaseIntervals = x$completeDatabaseIntervals,
@@ -344,17 +343,17 @@ estimatePrevalence <- function(cdm,
     }
 
     workingPrevAnalysisSettings <- tibble::tibble(
-        analysis_id = x$analysis_id,
-        outcome_cohort_id = x$outcomeCohortId,
-        denominator_cohort_id = x$denominatorCohortId,
-        analysis_outcome_lookback_days  = x$outcomeLookbackDays,
-        analysis_type = type,
-        analysis_interval = x$interval,
-        analysis_complete_database_intervals = x$completeDatabaseIntervals,
-        analysis_time_point = x$timePoint,
-        analysis_full_contribution = x$fullContribution,
-        analysis_min_cell_count = minCellCount
-      )
+      analysis_id = x$analysis_id,
+      outcome_cohort_id = x$outcomeCohortId,
+      denominator_cohort_id = x$denominatorCohortId,
+      analysis_outcome_lookback_days = x$outcomeLookbackDays,
+      analysis_type = type,
+      analysis_interval = x$interval,
+      analysis_complete_database_intervals = x$completeDatabaseIntervals,
+      analysis_time_point = x$timePoint,
+      analysis_full_contribution = x$fullContribution,
+      analysis_min_cell_count = minCellCount
+    )
 
     workingPrevAttrition <- workingPrev[["attrition"]] %>%
       dplyr::mutate(analysis_id = x$analysis_id) %>%
@@ -367,8 +366,10 @@ estimatePrevalence <- function(cdm,
     result <- list()
     result[["pr"]] <- workingPrevPr
     result[["analysis_settings"]] <- workingPrevAnalysisSettings
-    result[[paste0("study_population_analyis_",
-                   x$analysis_id)]] <- workingPrevPersonTable
+    result[[paste0(
+      "study_population_analyis_",
+      x$analysis_id
+    )]] <- workingPrevPersonTable
     result[["attrition"]] <- workingPrevAttrition
 
     return(result)
@@ -383,28 +384,38 @@ estimatePrevalence <- function(cdm,
   )
 
   analysisSettings <- analysisSettings %>%
-    dplyr::left_join(settings(cdm[[denominatorTable]]) %>%
-    dplyr::rename("cohort_id" ="cohort_definition_id") %>%
-    dplyr::rename_with(.cols = tidyselect::everything(),
-                       function(x){paste0("denominator_", x)}),
-  by = "denominator_cohort_id")
+    dplyr::left_join(
+      settings(cdm[[denominatorTable]]) %>%
+        dplyr::rename("cohort_id" = "cohort_definition_id") %>%
+        dplyr::rename_with(
+          .cols = tidyselect::everything(),
+          function(x) {
+            paste0("denominator_", x)
+          }
+        ),
+      by = "denominator_cohort_id"
+    )
 
   # attrition
   # combine analysis attrition with the previous attrition for
   # the denominator cohort used
-  for(i in seq_along(studySpecs)){
+  for (i in seq_along(studySpecs)) {
     prsList[names(prsList) == "attrition"][[i]] <- dplyr::bind_rows(
-  attrition(cdm[[denominatorTable]]) %>%
-    dplyr::rename("denominator_cohort_id" ="cohort_definition_id") %>%
-    dplyr::filter(.data$denominator_cohort_id == studySpecs[[i]]$denominatorCohortId) %>%
-    dplyr::mutate(analysis_id=  studySpecs[[i]]$analysis_id) ,
-    prsList[names(prsList) == "attrition"][[i]] %>%
-    dplyr::mutate(step = "Estimating prevalence"))
+      attrition(cdm[[denominatorTable]]) %>%
+        dplyr::rename("denominator_cohort_id" = "cohort_definition_id") %>%
+        dplyr::filter(.data$denominator_cohort_id ==
+                        studySpecs[[i]]$denominatorCohortId) %>%
+        dplyr::mutate(analysis_id = studySpecs[[i]]$analysis_id),
+      prsList[names(prsList) == "attrition"][[i]] %>%
+        dplyr::mutate(step = "Estimating prevalence")
+    )
   }
 
   # study population
-  personTable <- prsList[stringr::str_detect(names(prsList),
-                                             "study_population")]
+  personTable <- prsList[stringr::str_detect(
+    names(prsList),
+    "study_population"
+  )]
 
   # prevalence estimates
   prs <- prsList[names(prsList) == "pr"]
@@ -419,8 +430,10 @@ estimatePrevalence <- function(cdm,
       dplyr::relocate("prevalence_end_date", .after = "prevalence_start_date")
 
     prs <- prs %>%
-      dplyr::bind_cols(binomialCiWilson(prs$n_cases,
-                                          prs$n_population)) %>%
+      dplyr::bind_cols(binomialCiWilson(
+        prs$n_cases,
+        prs$n_population
+      )) %>%
       dplyr::relocate("prevalence_95CI_lower", .after = "prevalence") %>%
       dplyr::relocate("prevalence_95CI_upper", .after = "prevalence_95CI_lower")
 
@@ -448,9 +461,9 @@ estimatePrevalence <- function(cdm,
   class(prs) <- c("IncidencePrevalenceResult", class(prs))
 
   if (verbose == TRUE) {
-    duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
+    dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
-      "Overall time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      "Time taken to estimate prevalence: {floor(dur/60)} mins and {dur %% 60 %/% 1} secs"
     ))
   }
 
@@ -461,11 +474,13 @@ estimatePrevalence <- function(cdm,
 
 binomialCiWilson <- function(x, n) {
   alpha <- 0.05
-  p <- x/n
+  p <- x / n
   q <- 1 - p
-  z <- stats::qnorm(1-alpha/2)
-  t_1 <- (x + z^2/2)/(n + z^2)
-  t_2 <- z*sqrt(n)/(n + z^2)*sqrt(p*q + z^2/(4*n))
-  return(tibble::tibble(prevalence_95CI_lower = t_1 - t_2,
-                        prevalence_95CI_upper = t_1 + t_2))
+  z <- stats::qnorm(1 - alpha / 2)
+  t1 <- (x + z^2 / 2) / (n + z^2)
+  t2 <- z * sqrt(n) / (n + z^2) * sqrt(p * q + z^2 / (4 * n))
+  return(tibble::tibble(
+    prevalence_95CI_lower = t1 - t2,
+    prevalence_95CI_upper = t1 + t2
+  ))
 }

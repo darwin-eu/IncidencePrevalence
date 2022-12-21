@@ -31,8 +31,8 @@
 #' period. If NULL, the latest observation end date in the observation period
 #' table will be used.
 #' @param ageGroup A list of age groups for which cohorts will be generated. A
-#' value of `list(c(0,17), c(18,30))` would, for example, lead to the creation of
-#' cohorts for those aged from 0 to 17 (up to the day before their 18th
+#' value of `list(c(0,17), c(18,30))` would, for example, lead to the creation
+#' of cohorts for those aged from 0 to 17 (up to the day before their 18th
 #' birthday), and from 18 (starting the day of their 18th birthday) to 30 (up
 #' to the day before their 31st birthday).
 #' @param sex Sex of the cohorts. This can be one or more of: `"Male"`,
@@ -80,9 +80,7 @@ generateDenominatorCohortSet <- function(cdm,
                                verbose = FALSE) {
   if (verbose == TRUE) {
     startCollect <- Sys.time()
-    message("Progress: Checking inputs")
   }
-
   ## check for standard types of user error
   errorMessage <- checkmate::makeAssertCollection()
   cdmCheck <- inherits(cdm, "cdm_reference")
@@ -194,19 +192,8 @@ generateDenominatorCohortSet <- function(cdm,
     add = errorMessage
   )
   checkmate::reportAssertions(collection = errorMessage)
-  if (verbose == TRUE) {
-    message("Progress: All input checks passed")
-    duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
-    message(glue::glue(
-  "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
-    ))
-  }
 
   # add broadest possible age group if no age strata were given
-  if (verbose == TRUE) {
-    message("Progress: Prepare inputs for creating denominator populations")
-    start <- Sys.time()
-  }
   if (is.null(startDate)) {
     startDate <- cdm$observation_period %>%
       dplyr::summarise(
@@ -247,19 +234,10 @@ generateDenominatorCohortSet <- function(cdm,
     dplyr::mutate(max_age = as.numeric(.data$max_age)) %>%
     dplyr::mutate(cohort_definition_id = dplyr::row_number())
 
-
-  if (verbose == TRUE) {
-    message("Progress: Inputs prepared for creating denominator populations")
-    duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
-    message(glue::glue(
-  "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
-    ))
-  }
-
   # get the overall contributing population (without stratification)
   # we need to the output the corresponding dates when getting the denominator
   if (verbose == TRUE) {
-    message("Progress: Run get_denominator_pop to get overall population")
+    message("Progress: Gettng overall denominator population")
     start <- Sys.time()
   }
 
@@ -277,24 +255,23 @@ generateDenominatorCohortSet <- function(cdm,
 
   if (verbose == TRUE) {
     message("Progress: Overall denominator population identified")
-    duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
+    dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
-      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      "Time taken: {floor(dur/60)} min and {dur %% 60 %/% 1} sec"
     ))
   }
 
-  sqlQueries <- dpop$sql_queries
-  denominator_population_nrows <- dpop$denominator_population %>%
+  denominatorPopulationNrows <- dpop$denominator_population %>%
     dplyr::count() %>%
     dplyr::pull(.data$n)
 
   # build each of the cohorts of interest
   if (verbose == TRUE) {
-    message("Progress: Create each denominator population of interest")
+    message("Progress: Creating each denominator cohort of interest")
     start <- Sys.time()
   }
 
-  if (denominator_population_nrows == 0) {
+  if (denominatorPopulationNrows == 0) {
     message("- No people found for any denominator population")
     studyPops <- dpop$denominator_population
 
@@ -305,7 +282,10 @@ generateDenominatorCohortSet <- function(cdm,
                           cohort_definition_id =
                             length(popSpecs$cohort_definition_id))
 
-  } else if (denominator_population_nrows > 0) {
+    cohortCount <- tibble::tibble(cohort_definition_id = popSpecs$cohort_definition_id,
+                                  n = 0)
+
+  } else if (denominatorPopulationNrows > 0) {
     # first, if all cohorts are Male or Female get number that will be excluded
     if (all(popSpecs$sex == "Female")) {
       dpop$attrition <- recordAttrition(
@@ -334,8 +314,13 @@ generateDenominatorCohortSet <- function(cdm,
                             length(popSpecs$cohort_definition_id))
 
     studyPops <- list()
-
+    cohortCount <- list()
+    cli::cli_progress_bar(total = length(popSpecs$cohort_definition_id),
+      format = " -- getting cohort dates for {cli::pb_bar} {cli::pb_current} of {cli::pb_total} cohorts")
     for (i in seq_along(popSpecs$cohort_definition_id)) {
+      if (verbose == TRUE) {
+        cli::cli_progress_update()
+      }
       workingDpop <- dpop$denominator_population
 
       if (popSpecs$sex[[i]] %in% c("Male", "Female")) {
@@ -375,69 +360,77 @@ generateDenominatorCohortSet <- function(cdm,
         reason = glue::glue("No observation time available after applying age and prior history criteria"),
         existingAttrition = dpop$attrition[[i]]
       )
+
       dpop$attrition[[i]]$cohort_definition_id <- popSpecs$cohort_definition_id[[i]]
-
-
-      studyPops[[i]] <- workingDpop %>%
-        dplyr::mutate(cohort_definition_id =
-                        local(popSpecs$cohort_definition_id[[i]])) %>%
-        dplyr::relocate("cohort_definition_id")
+      workingCount <- workingDpop %>% dplyr::count() %>% dplyr::pull()
+      cohortCount[[i]] <- tibble::tibble(
+        cohort_definition_id = popSpecs$cohort_definition_id[[i]],
+        n = workingCount)
+      if(workingCount > 0) {
+        studyPops[[paste0("cohort_definition_id_", i)]] <- workingDpop %>%
+          dplyr::mutate(cohort_definition_id =
+                          local(popSpecs$cohort_definition_id[[i]])) %>%
+          dplyr::relocate("cohort_definition_id")
+      }
     }
+    cli::cli_progress_done()
+    if (length(studyPops) != 0 && length(studyPops) < 20) {
+      if (verbose == TRUE) {
+        message(glue::glue("Progress: unioning cohorts"))
+      }
+      studyPops <- Reduce(dplyr::union_all, studyPops) %>%
+        dplyr::compute()
+    }
+    if (length(studyPops) >= 20) {
+        # if 20 or more
+        # combine in batches in case of many subgroups
+        nBatches <- 20 # number in a batch
+        studyPopsBatches <- split(
+          studyPops,
+          ceiling(seq_along(studyPops) / nBatches)
+        )
+        cli::cli_progress_bar(total = length(studyPopsBatches),
+                              format = " -- unioning {cli::pb_bar} {cli::pb_current} of {cli::pb_total} batched cohorts")
 
+        for (i in seq_along(studyPopsBatches)) {
+          if (verbose == TRUE) {
+            cli::cli_progress_update()
+          }
+          studyPopsBatches[[i]] <- Reduce(dplyr::union_all,
+                                          studyPopsBatches[[i]]) %>%
+            dplyr::compute()
+        }
+        cli::cli_progress_done()
 
-    if (length(studyPops) > 20) {
-      # combine in batches in case of many subgroups
-      nBatches <- 20 # number in a batch
-      studyPopsBatches <- split(
-        studyPops,
-        ceiling(seq_along(studyPops) / nBatches)
-      )
-      for (i in seq_along(studyPopsBatches)) {
-        studyPopsBatches[[i]] <- Reduce(dplyr::union_all, studyPopsBatches[[i]])
-        sqlQueries[[paste0("combine_cohorts_batch_", i)]] <-
-          studyPopsBatches[[i]] %>%
-          extractQuery(description = paste0("combine_cohorts_batch_", i))
-        studyPopsBatches[[i]] <- studyPopsBatches[[i]] %>%
+        if (verbose == TRUE) {
+        message(glue::glue("Progress: unioning batches cohorts")) }
+        studyPops <- Reduce(dplyr::union_all, studyPopsBatches) %>%
           dplyr::compute()
       }
-      studyPops <- Reduce(dplyr::union_all, studyPopsBatches)
-      sqlQueries[["combine_cohorts_batch"]] <- studyPops %>%
-        extractQuery(description = "combine_cohorts_batch")
-      studyPops <- studyPops %>% dplyr::compute()
-    } else {
-      # otherwise combine all at once
-      studyPops <- Reduce(dplyr::union_all, studyPops)
-      sqlQueries[["combine_cohorts"]] <- studyPops %>%
-        extractQuery(description = "combine_cohorts")
-      studyPops <- studyPops %>% dplyr::compute()
     }
-  }
 
   if (verbose == TRUE) {
     message("Progress: Each denominator population of interest created")
-    duration <- abs(as.numeric(Sys.time() - start, units = "secs"))
+    dur <- abs(as.numeric(Sys.time() - start, units = "secs"))
     message(glue::glue(
-      "Time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      "Time taken: {floor(dur/60)} min and {dur %% 60 %/% 1} sec"
     ))
   }
 
   if (verbose == TRUE) {
-    duration <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
+    dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
-      "Overall time taken: {floor(duration/60)} minutes and {duration %% 60 %/% 1} seconds"
+      "Time taken to get denominator cohorts: {floor(dur/60)} min and {dur %% 60 %/% 1} sec"
     ))
   }
   # return results as a cohort_reference class
-
   attr(studyPops, "settings") <- popSpecs %>%
-    dplyr::select(!c("min_age", "max_age"))
+    dplyr::select(!c("min_age", "max_age")) %>%
+    dplyr::relocate("cohort_definition_id")
   attr(studyPops, "attrition") <- dplyr::bind_rows(dpop$attrition) %>%
     dplyr::mutate(step = "Generating denominator cohort set") %>%
     dplyr::as_tibble()
-  sqlQueries <- unlist(sqlQueries)
-  class(sqlQueries) <- c("sqlTrace", class(sqlQueries))
-  attr(studyPops, "sql") <- sqlQueries
-  attr(studyPops, "nrow") <- denominator_population_nrows
+  attr(studyPops, "cohortCount") <- dplyr::bind_rows(cohortCount)
 
   class(studyPops) <- c("IncidencePrevalenceDenominator", "cohort_reference", class(studyPops))
 

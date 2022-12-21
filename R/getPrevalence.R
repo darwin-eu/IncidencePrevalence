@@ -15,17 +15,16 @@
 # limitations under the License.
 
 getPrevalence <- function(cdm,
-                             denominatorTable,
-                             denominatorCohortId,
-                             outcomeTable,
-                             outcomeCohortId,
-                             outcomeLookbackDays,
-                             type,
-                             interval,
-                             completeDatabaseIntervals,
-                             timePoint,
-                             fullContribution) {
-
+                          denominatorTable,
+                          denominatorCohortId,
+                          outcomeTable,
+                          outcomeCohortId,
+                          outcomeLookbackDays,
+                          type,
+                          interval,
+                          completeDatabaseIntervals,
+                          timePoint,
+                          fullContribution) {
   if (is.na(outcomeLookbackDays)) {
     outcomeLookbackDays <- NULL
   }
@@ -33,15 +32,19 @@ getPrevalence <- function(cdm,
   # keeping outcome of interest
   # of people in the denominator of interest
   studyPop <- cdm[[denominatorTable]] %>%
-    dplyr::filter(.data$cohort_definition_id == .env$denominatorCohortId) %>%
+    dplyr::filter(.data$cohort_definition_id ==
+                    .env$denominatorCohortId) %>%
     dplyr::left_join(
-    cdm[[outcomeTable]] %>%
-    dplyr::filter(.data$cohort_definition_id == .env$outcomeCohortId) %>%
-    dplyr::rename("outcome_start_date" = "cohort_start_date") %>%
-    dplyr::rename("outcome_end_date" = "cohort_end_date") %>%
-    dplyr::select("subject_id", "outcome_start_date",
-                  "outcome_end_date"),
-    by="subject_id") %>%
+      cdm[[outcomeTable]] %>%
+        dplyr::filter(.data$cohort_definition_id == .env$outcomeCohortId) %>%
+        dplyr::rename("outcome_start_date" = "cohort_start_date") %>%
+        dplyr::rename("outcome_end_date" = "cohort_end_date") %>%
+        dplyr::select(
+          "subject_id", "outcome_start_date",
+          "outcome_end_date"
+        ),
+      by = "subject_id"
+    ) %>%
     dplyr::compute()
 
   attrition <- recordAttrition(
@@ -52,11 +55,11 @@ getPrevalence <- function(cdm,
 
   # start date
   start <- studyPop %>%
-    dplyr::summarise(min(.data$cohort_start_date, na.rm=TRUE)) %>%
+    dplyr::summarise(min(.data$cohort_start_date, na.rm = TRUE)) %>%
     dplyr::pull()
   # end date
   end <- studyPop %>%
-    dplyr::summarise(max(.data$cohort_end_date, na.rm=TRUE)) %>%
+    dplyr::summarise(max(.data$cohort_end_date, na.rm = TRUE)) %>%
     dplyr::pull()
   # get studyDays as a function of inputs
   studyDays <- getStudyDays(
@@ -73,19 +76,18 @@ getPrevalence <- function(cdm,
     pr <- tibble::tibble()
 
     attrition <- recordAttrition(
-      table = tibble::tibble(subject_id=integer()) ,
+      table = tibble::tibble(subject_id = integer()),
       id = "subject_id",
       reason = "Not observed during the complete database interval",
       existingAttrition = attrition
     )
-
   } else {
     # drop for complete database intervals requirement
-    min_start_date <- min(studyDays$start_time)
-    max_start_date <- max(studyDays$end_time)
+    minStartDate <- min(studyDays$start_time)
+    maxStartDate <- max(studyDays$end_time)
     studyPop <- studyPop %>%
-      dplyr::filter(.data$cohort_end_date >= min_start_date) %>%
-      dplyr::filter(.data$cohort_start_date <= max_start_date)
+      dplyr::filter(.data$cohort_end_date >= minStartDate) %>%
+      dplyr::filter(.data$cohort_start_date <= maxStartDate)
 
     attrition <- recordAttrition(
       table = studyPop,
@@ -94,23 +96,26 @@ getPrevalence <- function(cdm,
       existingAttrition = attrition
     )
 
-    # drop people who never fulfill fullContribution if required
-    if(fullContribution==TRUE){
-
-      studyPop<-studyPop %>% dplyr::mutate(has_full_contribution=0)
+    # drop people who never fulfill fullContribution
+    # go period by period
+    # note we´re doing this out of the main loop below so that we can fill in
+    # the attrition table
+    if (fullContribution == TRUE) {
+      studyPop <- studyPop %>% dplyr::mutate(has_full_contribution = 0)
       # update if they do have a full contribution
       for (i in seq_along(studyDays$time)) {
         studyPop <- studyPop %>%
-             dplyr::mutate(has_full_contribution=
-                             dplyr::if_else(
-                               .data$has_full_contribution==1 ||
-                                (.data$cohort_end_date >= local(studyDays$end_time[i]) &
-                                    .data$cohort_start_date <= local(studyDays$start_time[i])),
-                               1, 0
-                             ))
+          dplyr::mutate(
+            has_full_contribution =
+              dplyr::if_else(
+                    .data$cohort_end_date >= local(studyDays$end_time[i]) &
+                    .data$cohort_start_date <= local(studyDays$start_time[i]),
+                .data$has_full_contribution+1, .data$has_full_contribution
+              )
+          )
       }
-      studyPop<-studyPop %>%
-        dplyr::filter(.data$has_full_contribution==1) %>%
+      studyPop <- studyPop %>%
+        dplyr::filter(.data$has_full_contribution >= 1) %>%
         dplyr::select(!"has_full_contribution") %>%
         dplyr::compute()
 
@@ -120,96 +125,98 @@ getPrevalence <- function(cdm,
         reason = "Do not satisfy full contribution requirement for an interval",
         existingAttrition = attrition
       )
-
     }
 
-  # fetch prevalence
-  # looping through each time interval
-  pr <- list()
-  for (i in seq_along(studyDays$time)) {
-    workingStart <- studyDays$start_time[i]
-    if (type == "period") {
-      workingEnd <- studyDays$end_time[i]
-      workingPeriod <- as.numeric(workingEnd - workingStart) + 1
-    } else {
-      workingEnd <- workingStart
-      workingPeriod <- 1
-    }
+    # fetch prevalence
+    # looping through each time interval
+    pr <- list()
+    for (i in seq_along(studyDays$time)) {
+      workingStart <- studyDays$start_time[i]
+      if (type == "period") {
+        workingEnd <- studyDays$end_time[i]
+        workingPeriod <- as.numeric(workingEnd - workingStart) + 1
+      } else {
+        workingEnd <- workingStart
+        workingPeriod <- 1
+      }
 
-    if(fullContribution==TRUE){
-      # require presence for all of period
-      # drop people with end_date not after workingEnd
-      # and start_date not before workingStart
-      workingPop <- studyPop %>%
-        dplyr::filter(.data$cohort_end_date >= .env$workingEnd &
-                      .data$cohort_start_date <= .env$workingStart)
-    } else {
-      # otherwise include people if they can contribute a day
-      # drop people with end_date prior to workingStart
-      # and start_date after workingEnd
-      workingPop <- studyPop %>%
-        dplyr::filter(.data$cohort_end_date >= .env$workingStart &
-                      .data$cohort_start_date <= .env$workingEnd)
-    }
+      if (fullContribution == TRUE) {
+        # require presence for all of period
+        # drop people with end_date not after workingEnd
+        # and start_date not before workingStart
+        workingPop <- studyPop %>%
+          dplyr::filter(.data$cohort_end_date >= .env$workingEnd &
+            .data$cohort_start_date <= .env$workingStart)
+      } else {
+        # otherwise include people if they can contribute a day
+        # drop people with end_date prior to workingStart
+        # and start_date after workingEnd
+        workingPop <- studyPop %>%
+          dplyr::filter(.data$cohort_end_date >= .env$workingStart &
+            .data$cohort_start_date <= .env$workingEnd)
+      }
 
-    # individuals start date for this period
-    # which could be start of the period or later
-    workingPop <- workingPop %>%
-      dplyr::mutate(
-        t_start_date =
-          dplyr::if_else(.data$cohort_start_date <= .env$workingStart,
-            .env$workingStart,
-            .data$cohort_start_date
-          )
-      )
+      # individuals start date for this period
+      # which could be start of the period or later
+      workingPop <- workingPop %>%
+        dplyr::mutate(
+          t_start_date =
+            dplyr::if_else(.data$cohort_start_date <= .env$workingStart,
+              .env$workingStart,
+              .data$cohort_start_date
+            )
+        )
 
-    # individuals end date for this period
-    # end of the period or earlier
-    workingPop <- workingPop %>%
-      dplyr::mutate(
-        t_end_date =
-          dplyr::if_else(.data$cohort_end_date >= .env$workingEnd,
-            .env$workingEnd,
-            .data$cohort_end_date
-          )
-      )
+      # individuals end date for this period
+      # end of the period or earlier
+      workingPop <- workingPop %>%
+        dplyr::mutate(
+          t_end_date =
+            dplyr::if_else(.data$cohort_end_date >= .env$workingEnd,
+              .env$workingEnd,
+              .data$cohort_end_date
+            )
+        )
 
-    n_population <- workingPop %>%
-      dplyr::select("subject_id") %>%
-      dplyr::distinct() %>%
-      dplyr::count() %>%
-      dplyr::pull()
-
-    if(!is.null(outcomeLookbackDays)){
-      n_cases <- workingPop %>%
-        dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
-        dplyr::filter(.data$outcome_end_date >= (
-          !!CDMConnector::dateadd("t_start_date", -{{outcomeLookbackDays}},
-                                  interval = "day"))) %>%
+      nPopulation <- workingPop %>%
         dplyr::select("subject_id") %>%
         dplyr::distinct() %>%
         dplyr::count() %>%
         dplyr::pull()
-    } else {
-      n_cases <- workingPop %>%
-        dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
-        dplyr::select("subject_id") %>%
-        dplyr::distinct() %>%
-        dplyr::count() %>%
-        dplyr::pull()
+
+      if (!is.null(outcomeLookbackDays)) {
+        nCases <- workingPop %>%
+          dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
+          dplyr::filter(.data$outcome_end_date >= (
+            !!CDMConnector::dateadd("t_start_date", -{{ outcomeLookbackDays }},
+              interval = "day"
+            ))) %>%
+          dplyr::select("subject_id") %>%
+          dplyr::distinct() %>%
+          dplyr::count() %>%
+          dplyr::pull()
+      } else {
+        nCases <- workingPop %>%
+          dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
+          dplyr::select("subject_id") %>%
+          dplyr::distinct() %>%
+          dplyr::count() %>%
+          dplyr::pull()
+      }
+
+      pr[[paste0(i)]] <- studyDays[i, ] %>%
+        dplyr::mutate(n_cases = .env$nCases) %>%
+        dplyr::mutate(n_population = .env$nPopulation) %>%
+        dplyr::mutate(prevalence = .env$nCases / .env$nPopulation) %>%
+        dplyr::select(
+          "n_cases", "n_population",
+          "prevalence", "start_time", "end_time"
+        ) %>%
+        dplyr::rename("prevalence_start_date" = "start_time") %>%
+        dplyr::rename("prevalence_end_date" = "end_time")
     }
 
-    pr[[paste0(i)]] <- studyDays[i, ] %>%
-      dplyr::mutate(n_cases = .env$n_cases) %>%
-      dplyr::mutate(n_population = .env$n_population) %>%
-      dplyr::mutate(prevalence = .env$n_cases / .env$n_population) %>%
-      dplyr::select("n_cases", "n_population",
-                    "prevalence", "start_time", "end_time") %>%
-      dplyr::rename( "prevalence_start_date" = "start_time") %>%
-      dplyr::rename( "prevalence_end_date" = "end_time")
-  }
-
-  pr <- dplyr::bind_rows(pr)
+    pr <- dplyr::bind_rows(pr)
   }
 
   studyPop <- studyPop %>%

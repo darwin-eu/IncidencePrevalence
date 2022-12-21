@@ -123,7 +123,7 @@ inc %>%
              ymin = ir_100000_pys_95CI_lower,
              ymax = ir_100000_pys_95CI_upper)) +
   geom_point() +
-  geom_errorbar(width=0) +
+  geom_errorbar(width = 0) +
   scale_y_continuous(limits = c(0, NA)) +
   theme_minimal()
 ```
@@ -147,7 +147,7 @@ inc %>%
              ymin = ir_100000_pys_95CI_lower,
              ymax = ir_100000_pys_95CI_upper)) +
   geom_point() +
-  geom_errorbar(width=0) +
+  geom_errorbar(width = 0) +
   scale_y_continuous(limits = c(0, NA)) +
   theme_minimal()
 ```
@@ -171,7 +171,7 @@ inc %>%
              ymin = ir_100000_pys_95CI_lower,
              ymax = ir_100000_pys_95CI_upper)) +
   geom_point() +
-  geom_errorbar(width=0) +
+  geom_errorbar(width = 0) +
   scale_y_continuous(limits = c(0, NA)) +
   theme_minimal()
 ```
@@ -195,7 +195,7 @@ inc %>%
              ymin = ir_100000_pys_95CI_lower,
              ymax = ir_100000_pys_95CI_upper)) +
   geom_point() +
-  geom_errorbar(width=0) +
+  geom_errorbar(width = 0) +
   scale_y_continuous(limits = c(0, NA)) +
   theme_minimal()
 ```
@@ -231,7 +231,7 @@ inc <- estimateIncidence(
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = c("Years"),
-  outcomeWashout = c(0,180),
+  outcomeWashout = c(0, 180),
   repeatedEvents = TRUE
 )
 attrition(inc)
@@ -245,6 +245,6 @@ participants(inc)
 
 We can find the median year of cohort entry of those people contributing to analysis 1 for example by
 ```{r, message= FALSE, warning=FALSE}
-participants(inc, analysisId = 1) %>% 
+participants(inc, analysisId = 1) %>%
   summarise(median_start = median(year(cohort_start_date)))
 ```

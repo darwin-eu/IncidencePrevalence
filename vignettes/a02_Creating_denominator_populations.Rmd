@@ -100,7 +100,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   sex = "Both",
   daysPriorHistory = 0
 )
-cdm$denominator %>% glimpse()
+cdm$denominator
 
 cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5"))
@@ -108,8 +108,8 @@ cdm$denominator %>%
 
 Let´s have a look at the included time of the first five patients
 
-```{r, message=FALSE, warning=FALSE}
-cdm$denominator%>%
+```{r, message=FALSE, warning=FALSE, echo=FALSE}
+cdm$denominator %>%
   collect() %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5")) %>%
   pivot_longer(cols = c(
@@ -156,11 +156,9 @@ cdm$denominator <- generateDenominatorCohortSet(
   sex = "Both",
   daysPriorHistory = 0
 )
-cdm$denominator %>%
-  glimpse()
+cdm$denominator
 
-cdm$denominator %>%
-  tally()
+cohortCount(cdm$denominator)
 
 cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5"))
@@ -217,11 +215,9 @@ cdm$denominator <- generateDenominatorCohortSet(
   sex = "Both",
   daysPriorHistory = 365
 )
-cdm$denominator %>%
-  glimpse()
+cdm$denominator
 
-cdm$denominator %>%
-  tally()
+cohortCount(cdm$denominator)
 
 cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5"))
@@ -280,8 +276,7 @@ cdm$denominator <- generateDenominatorCohortSet(
 cdm$denominator %>%
   glimpse()
 
-cdm$denominator %>%
-  tally()
+cohortCount(cdm$denominator)
 
 cdm$denominator %>%
   filter(subject_id %in% c("1", "2", "3", "4", "5"))
@@ -342,7 +337,7 @@ dpop %>%
     "cohort_start_date",
     "cohort_end_date"
   )) %>%
-  mutate(cohort_definition_id=as.character(cohort_definition_id)) %>% 
+  mutate(cohort_definition_id = as.character(cohort_definition_id)) %>%
   ggplot(aes(x = subject_id, y = value, colour = cohort_definition_id)) +
   geom_point(position = position_dodge(width = 0.5)) +
   geom_line(position = position_dodge(width = 0.5)) +
@@ -381,7 +376,7 @@ dpop %>%
     "cohort_start_date",
     "cohort_end_date"
   )) %>%
-  mutate(cohort_definition_id=as.character(cohort_definition_id)) %>% 
+  mutate(cohort_definition_id = as.character(cohort_definition_id)) %>%
   ggplot(aes(x = subject_id, y = value, colour = cohort_definition_id)) +
   facet_grid(sex ~ ., space = "free_y") +
   geom_point(position = position_dodge(width = 0.5)) +
@@ -422,7 +417,7 @@ dpop %>%
     "cohort_start_date",
     "cohort_end_date"
   )) %>%
-  mutate(cohort_definition_id=as.character(cohort_definition_id)) %>% 
+  mutate(cohort_definition_id = as.character(cohort_definition_id)) %>%
   ggplot(aes(x = subject_id, y = value, colour = cohort_definition_id)) +
   facet_grid(sex + days_prior_history ~ ., space = "free_y") +
   geom_point(position = position_dodge(width = 0.5)) +
@@ -433,23 +428,6 @@ dpop %>%
   coord_flip()
 ```
 
-### Verbose
-We can set verbose=TRUE to report progress as code is running. By default, no progress is reported (verbose=FALSE). 
-
-```{r, message=TRUE, warning=FALSE}
-cdm$denominator <- generateDenominatorCohortSet(
-  cdm = cdm,
-  startDate = as.Date("2008-01-01"),
-  endDate = as.Date("2010-01-01"),
-  ageGroup = list(
-    c(0, 40),
-    c(41, 100)
-  ),
-  sex = c("Male", "Female", "Both"),
-  daysPriorHistory = c(0, 365),
-  verbose = TRUE
-)
-```
 
 ### Output 
 `generateDenominatorCohortSet()` will generate a table with the denominator population, which includes the information on all the individuals who fulfill the given criteria at any point during the study period. It also includes information on the specific start and end dates in which individuals contributed to the denominator population (cohort_start_date and cohort_end_date). Each patient is recorded in a different row. For those databases that allow individuals to have multiple non-overlapping observation periods, one row for each patient and observation period is considered.
@@ -478,7 +456,12 @@ The output table will have several attributes. With `settings()` we can see the 
 settings(cdm$denominator)
 ```
 
-With `attrition()` we can see the number of individuals in the database who were excluded from entering a given denominator population along with the reaso (such as missing crucial information or not satisfying the sex or age criteria required, among others):
+With `cohortCount()` we can see the number of individuals who entered each study cohort
+```{r, message=TRUE, warning=FALSE}
+cohortCount(cdm$denominator)
+```
+
+With `attrition()` we can see the number of individuals in the database who were excluded from entering a given denominator population along with the reason (such as missing crucial information or not satisfying the sex or age criteria required, among others):
 
 ```{r, message=TRUE, warning=FALSE}
 attrition(cdm$denominator)
@@ -581,7 +564,7 @@ cdm$denominator <- generateDenominatorCohortSet(
   strataTable = "strata",
   strataCohortId = "1",
 )
-cdm$denominator 
+cdm$denominator
 ```
 
 We have obtained the 3 patients with the particular ethnicity we were interested in. Moreover, because ethnicity does not change during the study period, the cohort start and end date correspond to same dates of their observation period. Therefore, the obtained denominator population cohort is the same as the one observed in the first example but limited to the individuals that have our characteristic of interest.

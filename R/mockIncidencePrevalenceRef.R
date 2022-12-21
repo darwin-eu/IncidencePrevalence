@@ -352,7 +352,7 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
                           lubridate::days(sample(minOutcomeDays:maxOutcomeDays,
                                                  1)))
 
-        # randomly select which subject to have extra outcome                                                                                                                                           )))
+        # randomly select which subject to have extra outcome                                                                                                                        )))
         dupOutcome <-
           sample(0:1, nrow(outcomeTable), replace = TRUE)
         # linking the id from outcome table for extra outcome

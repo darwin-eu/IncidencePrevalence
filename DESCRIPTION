@@ -10,16 +10,19 @@ Authors@R: c(
     comment = c(ORCID = "0000-0003-3308-9905")),
     person("Mike", "Du", email = "mike.du@ndorms.ox.ac.uk", role = c("aut"), 
     comment = c(ORCID = "0000-0002-9517-8834")),
-    person("Adam", "Black", email = "black@ohdsi.org", role = c("aut"),
+    person("Yuchen", "Guo", email = "yuchen.guo@ndorms.ox.ac.uk", role = c("ctb"), 
+           comment = c(ORCID = "0000-0002-0847-4855")),
+    person("Adam", "Black", email = "black@ohdsi.org", role = c("ctb"),
     comment = c(ORCID = "0000-0001-5576-8701")),
-    person("Ger", "Inberg", email = "g.inberg@erasmusmc.nl", role = c("aut"),
-    comment = c(ORCID = "0000-0001-8993-8748"))
+    person("Ger", "Inberg", email = "g.inberg@erasmusmc.nl", role = c("ctb"),
+    comment = c(ORCID = "0000-0001-8993-8748")),
+    person("Kim", "Lopez", email = "kim.lopez@spc.ox.ac.uk", role = c("ctb"),
+    comment = c(ORCID = "0000-0002-8462-8668"))
     )
 Description: Calculate population incidence and prevalence using data mapped to the OMOP common data model.
-License: Apache License (>= 2)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.1
+RoxygenNote: 7.2.3
 Imports: 
     checkmate,
     cli,
@@ -34,7 +37,6 @@ Imports:
     tidyr,
     tidyselect,
     CDMConnector (>= 0.3.0),
-    SqlRender (>= 1.10.0),
     stringr,
     zip
 Suggests: 
@@ -54,3 +56,4 @@ Suggests:
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Language: en-US
+License: Apache License (>= 2)

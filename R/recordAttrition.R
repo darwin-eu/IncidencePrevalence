@@ -16,7 +16,8 @@ recordAttrition <- function(table,
   checkmate::assert_character(id, add = errorMessage)
   checkmate::assert_character(reason, null.ok = TRUE, add = errorMessage)
   if (!is.null(existingAttrition)) {
-    checkmate::assertTRUE(any(class(existingAttrition) %in% c( "data.frame","tbl")))
+    checkmate::assertTRUE(any(class(existingAttrition) %in%
+                                c("data.frame", "tbl")))
   }
   checkmate::reportAssertions(collection = errorMessage)
 

@@ -93,11 +93,11 @@ prev %>%
   glimpse()
 
 prev %>%
-  ggplot(aes(x = prevalence_start_date, y=prevalence,
+  ggplot(aes(x = prevalence_start_date, y = prevalence,
              ymin = prevalence_95CI_lower,
              ymax = prevalence_95CI_upper)) +
   geom_point() +
-  geom_errorbar(width=0) +
+  geom_errorbar(width = 0) +
   scale_y_continuous(
     labels = scales::percent,
     limits = c(0, NA)
@@ -119,11 +119,11 @@ prev %>%
   glimpse()
 
 prev %>%
-  ggplot(aes(x = prevalence_start_date, y=prevalence,
+  ggplot(aes(x = prevalence_start_date, y = prevalence,
              ymin = prevalence_95CI_lower,
              ymax = prevalence_95CI_upper)) +
   geom_point() +
-  geom_errorbar(width=0) +
+  geom_errorbar(width = 0) +
   scale_y_continuous(
     labels = scales::percent,
     limits = c(0, NA)
@@ -147,15 +147,15 @@ prev %>%
   glimpse()
 
 prev %>%
-  ggplot(aes(x = prevalence_start_date, y=prevalence,
+  ggplot(aes(x = prevalence_start_date, y = prevalence,
              ymin = prevalence_95CI_lower,
              ymax = prevalence_95CI_upper)) +
   geom_point() +
-  geom_errorbar(width=0) +
+  geom_errorbar(width = 0) +
   scale_y_continuous(
     labels = scales::percent,
     limits = c(0, NA)
-  ) +   
+  ) + 
   theme_minimal()
 ```
 
@@ -174,11 +174,11 @@ prev %>%
   glimpse()
 
 prev %>%
-  ggplot(aes(x = prevalence_start_date, y=prevalence,
+  ggplot(aes(x = prevalence_start_date, y = prevalence,
              ymin = prevalence_95CI_lower,
              ymax = prevalence_95CI_upper)) +
   geom_point() +
-  geom_errorbar(width=0) +
+  geom_errorbar(width = 0) +
   scale_y_continuous(
     labels = scales::percent,
     limits = c(0, NA)
@@ -201,11 +201,11 @@ prev %>%
   glimpse()
 
 prev %>%
-  ggplot(aes(x = prevalence_start_date, y=prevalence,
+  ggplot(aes(x = prevalence_start_date, y = prevalence,
              ymin = prevalence_95CI_lower,
              ymax = prevalence_95CI_upper)) +
   geom_point() +
-  geom_errorbar(width=0) +
+  geom_errorbar(width = 0) +
   scale_y_continuous(
     labels = scales::percent,
     limits = c(0, NA)
@@ -221,7 +221,7 @@ prev <- estimatePeriodPrevalence(
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "Months",
-  fullContribution= FALSE,
+  fullContribution = FALSE,
   minCellCount = 0
 )
 
@@ -229,11 +229,11 @@ prev %>%
   glimpse()
 
 prev %>%
-  ggplot(aes(x = prevalence_start_date, y=prevalence,
+  ggplot(aes(x = prevalence_start_date, y = prevalence,
              ymin = prevalence_95CI_lower,
              ymax = prevalence_95CI_upper)) +
   geom_point() +
-  geom_errorbar(width=0) +
+  geom_errorbar(width = 0) +
   scale_y_continuous(
     labels = scales::percent,
     limits = c(0, NA)
@@ -258,14 +258,14 @@ prev %>%
   glimpse()
 
 prev %>%
-  left_join(attributes(prev)$settings)%>%
-  mutate(analysis_outcome_lookback_days= as.character(analysis_outcome_lookback_days))%>%
-  ggplot(aes(x = prevalence_start_date, y=prevalence,
+  left_join(attributes(prev)$settings) %>%
+  mutate(analysis_outcome_lookback_days = as.character(analysis_outcome_lookback_days)) %>%
+  ggplot(aes(x = prevalence_start_date, y = prevalence,
              ymin = prevalence_95CI_lower,
-             ymax = prevalence_95CI_upper, 
-             colour=analysis_outcome_lookback_days)) +
+             ymax = prevalence_95CI_upper,
+             colour = analysis_outcome_lookback_days)) +
   geom_point() +
-  geom_errorbar(width=0) +
+  geom_errorbar(width = 0) +
   scale_y_continuous(
     labels = scales::percent,
     limits = c(0, NA)
@@ -287,7 +287,7 @@ prev <- estimatePeriodPrevalence(
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "Years",
-  fullContribution= c(TRUE, FALSE),
+  fullContribution = c(TRUE, FALSE),
   minCellCount = 0
 )
 settings(prev)
@@ -301,6 +301,6 @@ participants(prev)
 
 We can find the median year of cohort entry of those people contributing to analysis 1 for example by
 ```{r, message= FALSE, warning=FALSE}
-participants(prev, analysisId = 1) %>% 
+participants(prev, analysisId = 1) %>%
   summarise(median_start = median(year(cohort_start_date)))
 ```

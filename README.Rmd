@@ -13,7 +13,7 @@ out.width = "100%"
 )
 ```
 
-# IncidencePrevalence
+# IncidencePrevalence <a href='https://github.com/darwin-eu-dev/IncidencePrevalence'><img src='man/figures/hexsticker.png' align="right" height="145" /></a>
 
 <!-- badges: start -->
 [![codecov.io](https://codecov.io/github/darwin-eu/IncidencePrevalence/coverage.svg?branch=main)](https://codecov.io/github/darwin-eu/IncidencePrevalence?branch=main)
@@ -45,8 +45,6 @@ library(IncidencePrevalence)
 
 # We first need to create a cdm_reference 
 cdm<-mockIncidencePrevalenceRef(sampleSize=5000)
-# this is what the person table for this example data looks like
-head(cdm$person)
 ```
 
 ### Identify a denominator cohort
@@ -62,8 +60,6 @@ cdm$denominator <- generateDenominatorCohortSet(
   sex = c("Male", "Female", "Both"),
   daysPriorHistory = 180
 )
-# this is what the resulting cohort data looks like
-head(cdm$denominator)
 ```
 
 This will then give us six denominator cohorts
@@ -71,9 +67,9 @@ This will then give us six denominator cohorts
 settings(cdm$denominator)
 ```
 
-For each of these cohorts, we can see the reasons people in the database did not enter a given cohort 
+These cohorts will be in the typical OMOP CDM structure
 ```{r}
-attrition(cdm$denominator)
+cdm$denominator
 ```
 
 ### Estimating incidence and prevalence
