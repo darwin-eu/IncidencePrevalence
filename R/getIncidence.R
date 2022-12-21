@@ -260,7 +260,7 @@ getIncidence <- function(cdm,
     ir <- dplyr::bind_rows(ir) %>%
       dplyr::mutate(person_years = .data$person_days / 365.25) %>%
       dplyr::mutate(
-        ir_100000_pys =
+        incidence_100000_pys =
           (.data$n_events / .data$person_years) * 100000
       )
   }

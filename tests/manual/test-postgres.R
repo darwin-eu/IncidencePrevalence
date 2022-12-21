@@ -22,11 +22,11 @@ test_that("postgres test", {
     ),
     sex = c("Male", "Female"),
     daysPriorHistory = 365,
-    sample = 1000,
+    sample = 1000000,
     verbose = TRUE
   )
 
-  cdm$outcome <- cdm$denominator %>% head(100)
+  cdm$outcome <- cdm$denominator %>% head(10000) %>% compute()
 
   pont_prev <- estimatePointPrevalence(
     cdm = cdm,
@@ -54,7 +54,7 @@ test_that("postgres test", {
     verbose = TRUE
   )
 
-  results <- gatherResults(
+  results <- gatherIncidencePrevalenceResults(
     resultList = list(pont_prev, period_prev, inc, inc2),
     outcomeCohortName = "test_sample",
     outcomeCohortId = 1,

@@ -145,9 +145,9 @@ inc %>%
 inc %>%
   left_join(settings(inc),
             by = "analysis_id") %>%
-  ggplot(aes(x = incidence_start_date, y = ir_100000_pys,
-             ymin = ir_100000_pys_95CI_lower,
-             ymax = ir_100000_pys_95CI_upper,
+  ggplot(aes(x = incidence_start_date, y = incidence_100000_pys,
+             ymin = incidence_100000_pys_95CI_lower,
+             ymax = incidence_100000_pys_95CI_upper,
              colour = denominator_sex)) +
   geom_point(position = position_dodge(50) ) +
   geom_errorbar(width = 0,position = position_dodge(50)) +

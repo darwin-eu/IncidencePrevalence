@@ -36,9 +36,9 @@ test_that("mock db: check output format", {
     "person_days",
     "person_years",
     "n_events",
-    "ir_100000_pys",
-    "ir_100000_pys_95CI_lower",
-    "ir_100000_pys_95CI_upper",
+    "incidence_100000_pys",
+    "incidence_100000_pys_95CI_lower",
+    "incidence_100000_pys_95CI_upper",
     "incidence_start_date",
     "incidence_end_date",
     "cohort_obscured",
@@ -1187,12 +1187,12 @@ test_that("mock db: check minimum counts", {
   expect_true(!is.na(inc$person_years[2]))
   expect_true(inc$n_events[1] == 17)
   expect_true(inc$n_events[2] == 3)
-  expect_true(!is.na(inc$ir_100000_pys[1]))
-  expect_true(!is.na(inc$ir_100000_pys[2]))
-  expect_true(!is.na(inc$ir_100000_pys_95CI_lower[1]))
-  expect_true(!is.na(inc$ir_100000_pys_95CI_lower[2]))
-  expect_true(!is.na(inc$ir_100000_pys_95CI_upper[1]))
-  expect_true(!is.na(inc$ir_100000_pys_95CI_upper[2]))
+  expect_true(!is.na(inc$incidence_100000_pys[1]))
+  expect_true(!is.na(inc$incidence_100000_pys[2]))
+  expect_true(!is.na(inc$incidence_100000_pys_95CI_lower[1]))
+  expect_true(!is.na(inc$incidence_100000_pys_95CI_lower[2]))
+  expect_true(!is.na(inc$incidence_100000_pys_95CI_upper[1]))
+  expect_true(!is.na(inc$incidence_100000_pys_95CI_upper[2]))
 
   inc <- estimateIncidence(
     cdm = cdm,
@@ -1211,12 +1211,12 @@ test_that("mock db: check minimum counts", {
   expect_true(is.na(inc$person_years[2]))
   expect_true(inc$n_events[1] == 17)
   expect_true(is.na(inc$n_events[2]))
-  expect_true(!is.na(inc$ir_100000_pys[1]))
-  expect_true(is.na(inc$ir_100000_pys[2]))
-  expect_true(!is.na(inc$ir_100000_pys_95CI_lower[1]))
-  expect_true(is.na(inc$ir_100000_pys_95CI_lower[2]))
-  expect_true(!is.na(inc$ir_100000_pys_95CI_upper[1]))
-  expect_true(is.na(inc$ir_100000_pys_95CI_upper[2]))
+  expect_true(!is.na(inc$incidence_100000_pys[1]))
+  expect_true(is.na(inc$incidence_100000_pys[2]))
+  expect_true(!is.na(inc$incidence_100000_pys_95CI_lower[1]))
+  expect_true(is.na(inc$incidence_100000_pys_95CI_lower[2]))
+  expect_true(!is.na(inc$incidence_100000_pys_95CI_upper[1]))
+  expect_true(is.na(inc$incidence_100000_pys_95CI_upper[2]))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -2024,11 +2024,11 @@ test_that("mock db: check study start and end date 10000", {
       dplyr::pull())
   expect_true(inc1A %>%
     dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-    dplyr::select("ir_100000_pys") %>%
+    dplyr::select("incidence_100000_pys") %>%
     dplyr::pull() ==
     inc2A %>%
       dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-      dplyr::select("ir_100000_pys") %>%
+      dplyr::select("incidence_100000_pys") %>%
       dplyr::pull())
 
   # 365 washout, repetitive events
@@ -2078,11 +2078,11 @@ test_that("mock db: check study start and end date 10000", {
       dplyr::pull())
   expect_true(inc1B %>%
     dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-    dplyr::select("ir_100000_pys") %>%
+    dplyr::select("incidence_100000_pys") %>%
     dplyr::pull() ==
     inc1B %>%
       dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-      dplyr::select("ir_100000_pys") %>%
+      dplyr::select("incidence_100000_pys") %>%
       dplyr::pull())
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
@@ -2151,11 +2151,11 @@ test_that("mock db: check study start and end date 10000", {
       dplyr::pull())
   expect_true(inc1A %>%
     dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-    dplyr::select("ir_100000_pys") %>%
+    dplyr::select("incidence_100000_pys") %>%
     dplyr::pull() ==
     inc2A %>%
       dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-      dplyr::select("ir_100000_pys") %>%
+      dplyr::select("incidence_100000_pys") %>%
       dplyr::pull())
 
   # 365 washout, repetitive events
@@ -2204,11 +2204,11 @@ test_that("mock db: check study start and end date 10000", {
       dplyr::pull())
   expect_true(inc1B %>%
     dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-    dplyr::select("ir_100000_pys") %>%
+    dplyr::select("incidence_100000_pys") %>%
     dplyr::pull() ==
     inc2B %>%
       dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-      dplyr::select("ir_100000_pys") %>%
+      dplyr::select("incidence_100000_pys") %>%
       dplyr::pull())
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
@@ -2728,11 +2728,11 @@ test_that("mock db: check confidence intervals", {
     completeDatabaseIntervals = TRUE
   )
 
-  expect_equal(inc$ir_100000_pys_95CI_lower,
+  expect_equal(inc$incidence_100000_pys_95CI_lower,
     epitools::pois.exact(inc$n_events, inc$person_years)$lower * 100000,
     tolerance = 1e-2
   )
-  expect_equal(inc$ir_100000_pys_95CI_upper,
+  expect_equal(inc$incidence_100000_pys_95CI_upper,
     epitools::pois.exact(inc$n_events, inc$person_years)$upper * 100000,
     tolerance = 1e-2
   )

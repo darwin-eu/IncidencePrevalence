@@ -465,9 +465,9 @@ estimateIncidence <- function(cdm,
 
 incRateCiExact <- function(ev, pt) {
   return(tibble::tibble(
-    ir_100000_pys_95CI_lower =
+    incidence_100000_pys_95CI_lower =
       ((stats::qchisq(p = 0.025, df = 2 * ev) / 2) / pt) * 100000,
-    ir_100000_pys_95CI_upper =
+    incidence_100000_pys_95CI_upper =
       ((stats::qchisq(p = 0.975, df = 2 * (ev + 1)) / 2) / pt) * 100000
   ))
 }

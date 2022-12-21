@@ -109,7 +109,7 @@ gatherIncidencePrevalenceResults <- function(resultList, outcomeCohortId = NULL,
   # combine results of same type (incidence or prevalence)
   resultType <- list()
   for (i in seq_along(resultList)) {
-    if ("ir_100000_pys" %in% names(resultList[[i]])) {
+    if ("incidence_100000_pys" %in% names(resultList[[i]])) {
       resultType[[i]] <- "Incidence"
     } else {
       resultType[[i]] <- "Prevalence"

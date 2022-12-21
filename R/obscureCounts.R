@@ -24,7 +24,7 @@ obscureCounts <- function(x,
     add = errorMessage
   )
   checkmate::assertTRUE(
-    all(c("n_events", "ir_100000_pys") %in% names(x)) ||
+    all(c("n_events", "incidence_100000_pys") %in% names(x)) ||
       all(c("n_cases", "prevalence") %in% names(x))
   )
   checkmate::assertFALSE(
@@ -50,9 +50,9 @@ obscureCounts <- function(x,
                                          "person_days",
                                          "person_years")] <- substitute
     x[x$n_events < minCellCount, c("result_obscured")] <- "TRUE"
-    x[x$n_events < minCellCount, c("n_events", "ir_100000_pys",
-                                     "ir_100000_pys_95CI_lower",
-                                     "ir_100000_pys_95CI_upper")] <- substitute
+    x[x$n_events < minCellCount, c("n_events", "incidence_100000_pys",
+                                     "incidence_100000_pys_95CI_lower",
+                                     "incidence_100000_pys_95CI_upper")] <- substitute
   }
   if (c("n_cases") %in% names(x)) {
     x[x$n_population < minCellCount, c("cohort_obscured")] <- "TRUE"
