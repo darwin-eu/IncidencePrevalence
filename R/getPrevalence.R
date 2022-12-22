@@ -81,6 +81,12 @@ getPrevalence <- function(cdm,
       reason = "Not observed during the complete database interval",
       existingAttrition = attrition
     )
+    attrition <- recordAttrition(
+      table = tibble::tibble(subject_id = integer()),
+      id = "subject_id",
+      reason = "Do not satisfy full contribution requirement for an interval",
+      existingAttrition = attrition
+    )
   } else {
     # drop for complete database intervals requirement
     minStartDate <- min(studyDays$start_time)
@@ -121,6 +127,13 @@ getPrevalence <- function(cdm,
 
       attrition <- recordAttrition(
         table = studyPop,
+        id = "subject_id",
+        reason = "Do not satisfy full contribution requirement for an interval",
+        existingAttrition = attrition
+      )
+    } else { # otherwise nobody excluded
+      attrition <- recordAttrition(
+        table = tibble::tibble(subject_id = integer()),
         id = "subject_id",
         reason = "Do not satisfy full contribution requirement for an interval",
         existingAttrition = attrition
