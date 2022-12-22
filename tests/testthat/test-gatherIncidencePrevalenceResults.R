@@ -61,6 +61,11 @@ test_that("check gathering of results", {
     resultList = list(prev1, prev2, inc1, inc2),
     databaseName = "test_database"
   )
+  expect_true(all(names(g4) == c(
+    "prevalence_estimates_test_database", "prevalence_attrition_test_database",
+    "incidence_estimates_test_database", "incidence_attrition_test_database",
+    "cdm_snapshot_test_database"
+  )))
   expect_true(all(g4$prevalence_estimates$database_name == "test_database"))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)

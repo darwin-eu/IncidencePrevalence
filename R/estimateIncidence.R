@@ -134,7 +134,6 @@ estimateIncidence <- function(cdm,
     null.ok = TRUE
   )
   checkmate::assertCharacter(outcomeCohortName,
-                             len = 1,
                              add = errorMessage,
                              null.ok = TRUE
   )

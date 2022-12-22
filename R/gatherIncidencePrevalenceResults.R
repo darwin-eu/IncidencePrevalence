@@ -161,27 +161,24 @@ gatherIncidencePrevalenceResults <- function(cdm, resultList, databaseName = NUL
     }
   }
 
-  if (any(resultType == "Prevalence") && any(resultType == "Incidence")) {
-    results <- list(
-      prevalence_estimates = prevalence_estimates,
-      prevalence_attrition = prevalence_attrition,
-      incidence_estimates = incidence_estimates,
-      incidence_attrition = incidence_attrition
-    )
-  } else if (any(resultType == "Prevalence")) {
-    results <- list(
-      prevalence_estimates = prevalence_estimates,
-      prevalence_attrition = prevalence_attrition
-    )
-  } else {
-    results <- list(
-      incidence_estimates = incidence_estimates,
-      incidence_attrition = incidence_attrition
-    )
+
+  results<-list()
+  if (any(resultType == "Prevalence")) {
+    results[[paste0(c("prevalence_estimates", databaseName),
+           collapse = "_")]] <- prevalence_estimates
+    results[[paste0(c("prevalence_attrition", databaseName),
+                    collapse = "_")]] <- prevalence_attrition
+  }
+  if (any(resultType == "Incidence")) {
+    results[[paste0(c("incidence_estimates", databaseName),
+                    collapse = "_")]] <- incidence_estimates
+    results[[paste0(c("incidence_attrition", databaseName),
+                    collapse = "_")]] <- incidence_attrition
   }
 
   # add cdm snapshot to output
-  results$cdm_snapshot <-  dplyr::as_tibble(do.call(cbind.data.frame,
+  results[[paste0(c("cdm_snapshot", databaseName),
+                  collapse = "_")]]<-  dplyr::as_tibble(do.call(cbind.data.frame,
                                                   CDMConnector::snapshot(cdm)))
 
   class(results) <- c("IncidencePrevalenceGatheredResult", class(results))
