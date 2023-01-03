@@ -210,19 +210,9 @@ estimateIncidence <- function(cdm,
     )
   }
   checkmate::reportAssertions(collection = errorMessage)
-  if (verbose == TRUE) {
-    message("Progress: All input checks passed")
-    dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
-    message(glue::glue(
-      "Time taken: {floor(dur/60)} mins and {dur %% 60 %/% 1} secs"
-    ))
-  }
+
 
   # get outcomes + cohort_start_date & cohort_end_date
-  if (verbose == TRUE) {
-    message("Progress: limit to relevant outcomes")
-    start <- Sys.time()
-  }
   outcome <- cdm[[outcomeTable]] %>%
     dplyr::filter(.data$cohort_definition_id %in% .env$outcomeCohortId) %>%
     dplyr::rename("outcome_cohort_id" = "cohort_definition_id") %>%
@@ -283,18 +273,6 @@ estimateIncidence <- function(cdm,
     dplyr::select(-"index") %>%
     dplyr::compute()
 
-  if (verbose == TRUE) {
-    message("Progress: Limited to relevant outcomes")
-    dur <- abs(as.numeric(Sys.time() - start, units = "secs"))
-    message(glue::glue(
-      "Time taken: {floor(dur/60)} mins and {dur %% 60 %/% 1} secs"
-    ))
-  }
-
-  if (verbose == TRUE) {
-    message("Progress: Get incidence for subgroups")
-    start <- Sys.time()
-  }
   studySpecs <- tidyr::expand_grid(
     outcome_cohort_id = outcomeCohortId,
     denominator_cohort_id = denominatorCohortId,
@@ -319,7 +297,7 @@ estimateIncidence <- function(cdm,
     if (verbose == TRUE) {
       counter <<- counter + 1
       message(glue::glue(
-        "Getting incidence for anlalysis {counter} of {length(studySpecs)}"
+        "Getting incidence for analysis {counter} of {length(studySpecs)}"
       ))
     }
 
@@ -372,18 +350,7 @@ estimateIncidence <- function(cdm,
 
     return(result)
   })
-  if (verbose == TRUE) {
-    message("Progress: Incidence fetched for subgroups")
-    dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
-    message(glue::glue(
-      "Time taken: {floor(dur/60)} mins and {dur %% 60 %/% 1} secs"
-    ))
-  }
 
-  if (verbose == TRUE) {
-    message("Progress: Combining results")
-    start <- Sys.time()
-  }
   irsList <- purrr::flatten(irsList)
 
   # analysis settings
@@ -459,15 +426,6 @@ estimateIncidence <- function(cdm,
   attr(irs, "participants") <- personTable
 
   class(irs) <- c("IncidencePrevalenceResult", class(irs))
-
-
-  if (verbose == TRUE) {
-    message("Progress: All incidence results computed")
-    dur <- abs(as.numeric(Sys.time() - start, units = "secs"))
-    message(glue::glue(
-      "Time taken: {floor(dur/60)} mins and {dur %% 60 %/% 1} secs"
-    ))
-  }
 
   if (verbose == TRUE) {
     dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))

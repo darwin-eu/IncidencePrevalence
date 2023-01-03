@@ -275,7 +275,7 @@ generateDenominatorCohortSet <- function(cdm,
 
   denominatorPopulationNrows <- dpop$denominator_population %>%
     dplyr::count() %>%
-    dplyr::pull(.data$n)
+    dplyr::pull()
 
   # build each of the cohorts of interest
   if (verbose == TRUE) {
@@ -346,23 +346,18 @@ generateDenominatorCohortSet <- function(cdm,
         )
       }
 
-      # cohort start
       workingDpop <- workingDpop %>%
         dplyr::rename(
+          # cohort start
           "cohort_start_date" =
-            glue::glue("date_min_age{popSpecs$min_age[[i]]}prior_history{popSpecs$days_prior_history[[i]]}")
-        )
-      # cohort end
-      workingDpop <- workingDpop %>%
-        dplyr::rename(
-          cohort_end_date =
+            glue::glue("date_min_age{popSpecs$min_age[[i]]}prior_history{popSpecs$days_prior_history[[i]]}"),
+          # cohort end
+          "cohort_end_date" =
             glue::glue(
               "date_max_age{popSpecs$max_age[[i]]}"
-            )
-        )
-
-      workingDpop <- workingDpop %>%
-        dplyr::rename("subject_id" = "person_id") %>%
+            ),
+          "subject_id" = "person_id"
+        ) %>%
         dplyr::select("subject_id", "cohort_start_date", "cohort_end_date") %>%
         dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
 
@@ -386,9 +381,18 @@ generateDenominatorCohortSet <- function(cdm,
       }
     }
     cli::cli_progress_done()
+    if (verbose == TRUE) {
+      message("Progress: got all cohort dates")
+      dur <- abs(as.numeric(Sys.time() - start, units = "secs"))
+      message(glue::glue(
+        "Time taken: {floor(dur/60)} min and {dur %% 60 %/% 1} sec"
+      ))
+    }
+
     if (length(studyPops) != 0 && length(studyPops) < 20) {
       if (verbose == TRUE) {
         message(glue::glue("Progress: unioning cohorts"))
+        start <- Sys.time()
       }
       studyPops <- Reduce(dplyr::union_all, studyPops) %>%
         dplyr::compute()

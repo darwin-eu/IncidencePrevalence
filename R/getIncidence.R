@@ -138,7 +138,6 @@ getIncidence <- function(cdm,
 
   studyPop <- studyPopDb %>%
     dplyr::collect()
-
   attrition <- recordAttrition(
     table = studyPop,
     id = "subject_id",
@@ -149,6 +148,7 @@ getIncidence <- function(cdm,
   # study dates
   # based on the earliest start and latest end of those
   # in the relevant denominator
+  if(nrow(studyPop) > 0){
   startEnd <- studyPop %>%
     dplyr::summarise(
       min = min(.data$cohort_start_date, na.rm = TRUE),
@@ -170,6 +170,9 @@ getIncidence <- function(cdm,
       timeInterval = interval,
       completeDatabaseIntervals = completeDatabaseIntervals
     )
+  }
+  } else {
+    studyDays <-tibble::tibble()
   }
 
   if (nrow(studyDays) == 0) {
@@ -199,6 +202,7 @@ getIncidence <- function(cdm,
       existingAttrition = attrition
     )
 
+    studyPop <- arrow::arrow_table(studyPop)
     # fetch incidence rates
     # looping through each time interval
     ir <- list()
@@ -211,7 +215,7 @@ getIncidence <- function(cdm,
         dplyr::filter(.data$cohort_end_date >= .env$workingStartTime &
           .data$cohort_start_date <= .env$workingEndTime)
 
-      if (nrow(workingPop > 0)) {
+      if (nrow(workingPop %>% dplyr::collect() > 0)) {
         # individuals start date for this period
         # which could be start of the period or later
         workingPop <- workingPop %>%
@@ -231,6 +235,7 @@ getIncidence <- function(cdm,
 
         # compute working days
         workingPop <- workingPop %>%
+          dplyr::collect() %>%
           dplyr::mutate(workingDays = as.numeric(difftime(
             .data$tEnd,
             .data$tStart,

@@ -335,7 +335,7 @@ estimatePrevalence <- function(cdm,
     if (verbose == TRUE) {
       counter <<- counter + 1
       message(glue::glue(
-        "Getting prevalence for anlalysis {counter} of {length(studySpecs)}"
+        "Getting prevalence for analysis {counter} of {length(studySpecs)}"
       ))
     }
     workingPrev <- getPrevalence(

@@ -104,9 +104,7 @@ getDenominatorCohorts <- function(cdm,
             .data$cohort_start_date,
           .data$cohort_start_date,
           .data$observation_period_start_date
-          )
-      ) %>%
-      dplyr::mutate(
+          ),
         observation_period_end_date =
           dplyr::if_else(.data$observation_period_end_date >=
             .data$cohort_end_date,
@@ -161,24 +159,16 @@ getDenominatorCohorts <- function(cdm,
   # ie to impute to the center of the period
   studyPopDb <- studyPopDb %>%
     dplyr::mutate(
-      year_of_birth1 =
-        as.character(as.integer(.data$year_of_birth))
-    ) %>%
-    dplyr::mutate(
-      month_of_birth1 =
-        as.character(as.integer(
+      year_of_birth1 = as.character(as.integer(.data$year_of_birth)),
+      month_of_birth1 = as.character(as.integer(
           dplyr::if_else(is.na(.data$month_of_birth),
             "01", .data$month_of_birth
           )
-        ))
-    ) %>%
-    dplyr::mutate(
-      day_of_birth1 =
-        as.character(as.integer(
+        )),
+      day_of_birth1 = as.character(as.integer(
           dplyr::if_else(is.na(.data$day_of_birth),
             "01", .data$day_of_birth
-          )
-        ))
+          )))
     ) %>%
     dplyr::mutate(dob = as.Date(paste0(
       .data$year_of_birth1, "/",
@@ -195,14 +185,15 @@ getDenominatorCohorts <- function(cdm,
   studyPopDb <- studyPopDb %>%
     dplyr::mutate(lower_age_check = as.Date(!!CDMConnector::dateadd("dob",
                                               {{lowerAgeLimit}},
-                                              interval = "year"))) %>%
-    dplyr::mutate(upper_age_check = as.Date(!!CDMConnector::dateadd("dob",
+                                              interval = "year")),
+     upper_age_check = as.Date(!!CDMConnector::dateadd("dob",
                                               {{upperAgeLimit}},
                                               interval = "year"))) %>%
+    dplyr::filter(
     # drop people too old even at study start
-    dplyr::filter(.data$upper_age_check >= .env$startDate) %>%
+    .data$upper_age_check >= .env$startDate,
     # drop people too young even at study end
-    dplyr::filter(.data$lower_age_check <= .env$endDate) %>%
+    .data$lower_age_check <= .env$endDate) %>%
     dplyr::select(!c("lower_age_check", "upper_age_check")) %>%
     dplyr::compute()
 
@@ -214,10 +205,11 @@ getDenominatorCohorts <- function(cdm,
   )
 
   studyPopDb <- studyPopDb %>%
+    dplyr::filter(
     # drop people with observation_period_start_date after study end
-    dplyr::filter(.data$observation_period_start_date <= .env$endDate) %>%
+    .data$observation_period_start_date <= .env$endDate &
     # drop people with observation_period_end_date before study start
-    dplyr::filter(.data$observation_period_end_date >= .env$startDate) %>%
+    .data$observation_period_end_date >= .env$startDate) %>%
     dplyr::compute()
 
   attrition <- recordAttrition(
@@ -231,43 +223,1279 @@ getDenominatorCohorts <- function(cdm,
   if ((studyPopDb %>% dplyr::count() %>% dplyr::pull()) > 0) {
     # only if we have found people
 
+    # add min ages
+    # batch to more than one at a time
+    minAgeBatches <- split(
+      minAge,
+      ceiling(seq_along(minAge) / 15)
+    )
     # for each min age, add the date at which they reach it
-    for (i in seq_along(minAge)) {
-      workingMin <- minAge[[i]]
-      variableName <- glue::glue("date_min_age{workingMin}")
+    for (i in seq_along(minAgeBatches)) {
+      if(length(minAgeBatches[[i]]) == 15){
+        studyPopDb <- studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[1]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[2]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[3]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[4]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[5]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[6]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[7]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[8]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[9]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[10]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[10]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[11]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[11]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[12]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[12]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[13]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[13]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[14]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[14]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[15]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[15]]}},
+                                              interval = "year"))
+          ) %>% dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 14){
+        studyPopDb <- studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[1]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[2]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[3]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[4]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[5]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[6]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[7]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[8]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[9]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[10]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[10]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[11]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[11]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[12]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[12]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[13]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[13]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[14]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[14]]}},
+                                              interval = "year"))
+          ) %>% dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 13){
+        studyPopDb <- studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[1]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[2]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[3]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[4]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[5]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[6]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[7]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[8]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[9]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[10]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[10]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[11]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[11]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[12]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[12]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[13]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[13]]}},
+                                              interval = "year"))
+          ) %>% dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 12){
+        studyPopDb <- studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[1]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[2]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[3]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[4]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[5]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[6]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[7]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[8]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[9]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[10]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[10]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[11]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[11]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[12]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[12]]}},
+                                              interval = "year"))
+          ) %>% dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 11){
+        studyPopDb <- studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[1]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[2]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[3]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[4]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[5]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[6]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[7]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[8]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[9]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[10]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[10]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[11]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[11]]}},
+                                              interval = "year"))
+          ) %>% dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 10){
       studyPopDb <- studyPopDb %>%
-        dplyr::mutate("date_min_age{{workingMin}}" :=
-                        as.Date(!!CDMConnector::dateadd("dob",
-                                                        {{workingMin}},
-                                                        interval = "year")))
+        dplyr::mutate(
+         !!glue::glue("date_min_age{minAgeBatches[[i]][[1]]}") :=
+            as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[1]]}},
+                                            interval = "year")),
+         !!glue::glue("date_min_age{minAgeBatches[[i]][[2]]}") :=
+            as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[2]]}},
+                                            interval = "year")),
+         !!glue::glue("date_min_age{minAgeBatches[[i]][[3]]}") :=
+           as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[3]]}},
+                                           interval = "year")),
+         !!glue::glue("date_min_age{minAgeBatches[[i]][[4]]}") :=
+           as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[4]]}},
+                                           interval = "year")),
+         !!glue::glue("date_min_age{minAgeBatches[[i]][[5]]}") :=
+           as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[5]]}},
+                                           interval = "year")),
+         !!glue::glue("date_min_age{minAgeBatches[[i]][[6]]}") :=
+           as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[6]]}},
+                                           interval = "year")),
+         !!glue::glue("date_min_age{minAgeBatches[[i]][[7]]}") :=
+           as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[7]]}},
+                                           interval = "year")),
+         !!glue::glue("date_min_age{minAgeBatches[[i]][[8]]}") :=
+           as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[8]]}},
+                                           interval = "year")),
+         !!glue::glue("date_min_age{minAgeBatches[[i]][[9]]}") :=
+           as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[9]]}},
+                                           interval = "year")),
+         !!glue::glue("date_min_age{minAgeBatches[[i]][[10]]}") :=
+           as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[10]]}},
+                                           interval = "year"))
+                      ) %>% dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 9){
+        studyPopDb <- studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[1]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[2]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[3]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[4]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[5]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[6]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[7]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[8]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[9]]}},
+                                              interval = "year"))
+          ) %>% dplyr::compute()
+      }  else if(length(minAgeBatches[[i]]) == 8){
+        studyPopDb <- studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[1]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[2]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[3]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[4]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[5]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[6]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[7]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[8]]}},
+                                              interval = "year"))
+          ) %>% dplyr::compute()
+      }  else if(length(minAgeBatches[[i]]) == 7){
+        studyPopDb <- studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[1]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[2]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[3]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[4]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[5]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[6]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[7]]}},
+                                              interval = "year"))
+          ) %>% dplyr::compute()
+      }   else if(length(minAgeBatches[[i]]) == 6){
+        studyPopDb <- studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[1]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[2]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[3]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[4]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[5]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[6]]}},
+                                              interval = "year"))
+          ) %>% dplyr::compute()
+      }   else if(length(minAgeBatches[[i]]) == 5){
+        studyPopDb <- studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[1]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[2]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[3]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[4]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[5]]}},
+                                              interval = "year"))
+          ) %>% dplyr::compute()
+      }   else if(length(minAgeBatches[[i]]) == 4){
+        studyPopDb <- studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[1]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[2]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[3]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[4]]}},
+                                              interval = "year"))
+          ) %>% dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 3){
+        studyPopDb <- studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[1]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[2]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[3]]}},
+                                              interval = "year"))
+          ) %>% dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 2){
+        studyPopDb <- studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[1]]}},
+                                              interval = "year")),
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[2]]}},
+                                              interval = "year"))
+          ) %>% dplyr::compute()
+      } else {
+        studyPopDb <- studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_min_age{minAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[1]]}},
+                                              interval = "year"))
+          ) %>% dplyr::compute()
 
-      if (i %% 10 == 0) {
-        # in case many options have been chosen
-        # we'll use a temp table to keep the
-        # sql queries manageable
-        studyPopDb <- dplyr::compute(studyPopDb)
       }
     }
-    studyPopDb <- studyPopDb %>% dplyr::compute()
 
     # for each max age, add the date at which they reach it
     # the day before their next birthday
-    for (i in seq_along(maxAge)) {
-      workingMax <- maxAge[[i]]
-      workingMaxPlusOne <- maxAge[[i]] + 1
-      variableName <- glue::glue("date_max_age{workingMax}")
+    maxAgeBatches <- split(
+      maxAge,
+      ceiling(seq_along(maxAge) / 15)
+    )
+    maxAgeBatchesPlusOne <- split(
+      maxAge+1,
+      ceiling(seq_along(maxAge) / 15)
+    )
 
-      studyPopDb <- studyPopDb %>%
-        dplyr::mutate("date_max_age{{workingMax}}" := as.Date(!!CDMConnector::dateadd(
-          "dob", {{workingMaxPlusOne}}, interval = "year"))) %>%
-        dplyr::mutate("date_max_age{{workingMax}}" := as.Date(!!CDMConnector::dateadd(
-          variableName, -1, interval = "day")))
-
-      if (i %% 10 == 0) {
-        studyPopDb <- dplyr::compute(studyPopDb)
+    for (i in seq_along(maxAgeBatches)) {
+      if(length(minAgeBatches[[i]]) == 15){
+        # add year
+        studyPopDb<-studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[1]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[2]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[3]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[4]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[5]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[6]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[7]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[8]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[9]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[10]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[11]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[11]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[12]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[12]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[13]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[13]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[14]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[14]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[15]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[15]]}}, interval = "year"))
+          ) %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[11]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[11]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[12]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[12]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[13]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[13]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[14]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[14]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[15]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[15]]}"),
+                                               -1, interval = "day"))
+          ) %>%
+          dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 14){
+        # add year
+        studyPopDb<-studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[1]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[2]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[3]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[4]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[5]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[6]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[7]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[8]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[9]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[10]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[11]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[11]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[12]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[12]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[13]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[13]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[14]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[14]]}}, interval = "year"))
+          ) %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[11]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[11]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[12]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[12]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[13]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[13]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[14]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[14]]}"),
+                                               -1, interval = "day"))
+          ) %>%
+          dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 13){
+        studyPopDb<-studyPopDb %>%
+        dplyr::mutate(
+          !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+            as.Date(!!CDMConnector::dateadd(
+              "dob", {{maxAgeBatchesPlusOne[[i]][[1]]}}, interval = "year")),
+          !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+            as.Date(!!CDMConnector::dateadd(
+              "dob", {{maxAgeBatchesPlusOne[[i]][[2]]}}, interval = "year")),
+          !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+            as.Date(!!CDMConnector::dateadd(
+              "dob", {{maxAgeBatchesPlusOne[[i]][[3]]}}, interval = "year")),
+          !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+            as.Date(!!CDMConnector::dateadd(
+              "dob", {{maxAgeBatchesPlusOne[[i]][[4]]}}, interval = "year")),
+          !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+            as.Date(!!CDMConnector::dateadd(
+              "dob", {{maxAgeBatchesPlusOne[[i]][[5]]}}, interval = "year")),
+          !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+            as.Date(!!CDMConnector::dateadd(
+              "dob", {{maxAgeBatchesPlusOne[[i]][[6]]}}, interval = "year")),
+          !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
+            as.Date(!!CDMConnector::dateadd(
+              "dob", {{maxAgeBatchesPlusOne[[i]][[7]]}}, interval = "year")),
+          !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
+            as.Date(!!CDMConnector::dateadd(
+              "dob", {{maxAgeBatchesPlusOne[[i]][[8]]}}, interval = "year")),
+          !!glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}") :=
+            as.Date(!!CDMConnector::dateadd(
+              "dob", {{maxAgeBatchesPlusOne[[i]][[9]]}}, interval = "year")),
+          !!glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}") :=
+            as.Date(!!CDMConnector::dateadd(
+              "dob", {{maxAgeBatchesPlusOne[[i]][[10]]}}, interval = "year")),
+          !!glue::glue("date_max_age{maxAgeBatches[[i]][[11]]}") :=
+            as.Date(!!CDMConnector::dateadd(
+              "dob", {{maxAgeBatchesPlusOne[[i]][[11]]}}, interval = "year")),
+          !!glue::glue("date_max_age{maxAgeBatches[[i]][[12]]}") :=
+            as.Date(!!CDMConnector::dateadd(
+              "dob", {{maxAgeBatchesPlusOne[[i]][[12]]}}, interval = "year")),
+          !!glue::glue("date_max_age{maxAgeBatches[[i]][[13]]}") :=
+            as.Date(!!CDMConnector::dateadd(
+              "dob", {{maxAgeBatchesPlusOne[[i]][[13]]}}, interval = "year"))
+          ) %>%
+        dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[11]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[11]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[12]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[12]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[13]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[13]]}"),
+                                               -1, interval = "day"))
+            ) %>%
+          dplyr::compute()
+      }  else if(length(minAgeBatches[[i]]) == 12){
+        studyPopDb<-studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[1]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[2]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[3]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[4]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[5]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[6]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[7]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[8]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[9]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[10]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[11]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[11]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[12]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[12]]}}, interval = "year"))
+          ) %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[11]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[11]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[12]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[12]]}"),
+                                               -1, interval = "day"))
+          ) %>%
+          dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 11){
+        studyPopDb<-studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[1]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[2]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[3]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[4]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[5]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[6]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[7]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[8]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[9]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[10]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[11]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[11]]}}, interval = "year"))
+          ) %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[11]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[11]]}"),
+                                               -1, interval = "day"))
+          ) %>%
+          dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 10){
+        studyPopDb<-studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[1]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[2]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[3]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[4]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[5]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[6]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[7]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[8]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[9]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[10]]}}, interval = "year"))
+          ) %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}"),
+                                               -1, interval = "day"))
+          ) %>%
+          dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 9){
+        studyPopDb<-studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[1]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[2]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[3]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[4]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[5]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[6]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[7]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[8]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[9]]}}, interval = "year"))
+          ) %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}"),
+                                               -1, interval = "day"))
+          ) %>%
+          dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 8){
+        studyPopDb<-studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[1]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[2]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[3]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[4]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[5]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[6]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[7]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[8]]}}, interval = "year"))
+          ) %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}"),
+                                               -1, interval = "day"))
+          ) %>%
+          dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 7){
+        studyPopDb<-studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[1]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[2]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[3]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[4]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[5]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[6]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[7]]}}, interval = "year"))
+          ) %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}"),
+                                               -1, interval = "day"))
+          ) %>%
+          dplyr::compute()
+      }  else if(length(minAgeBatches[[i]]) == 6){
+        studyPopDb<-studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[1]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[2]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[3]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[4]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[5]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[6]]}}, interval = "year"))
+          ) %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}"),
+                                               -1, interval = "day"))
+          ) %>%
+          dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 5){
+        studyPopDb<-studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[1]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[2]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[3]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[4]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[5]]}}, interval = "year"))
+          ) %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}"),
+                                               -1, interval = "day"))
+          ) %>%
+          dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 4){
+        studyPopDb<-studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[1]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[2]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[3]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[4]]}}, interval = "year"))
+          ) %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}"),
+                                               -1, interval = "day"))
+          ) %>%
+          dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 3){
+        studyPopDb<-studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[1]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[2]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[3]]}}, interval = "year"))
+          ) %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}"),
+                                               -1, interval = "day"))
+          ) %>%
+          dplyr::compute()
+      } else if(length(minAgeBatches[[i]]) == 2){
+        studyPopDb<-studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[1]]}}, interval = "year")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[2]]}}, interval = "year"))
+          ) %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}"),
+                                               -1, interval = "day")),
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}"),
+                                               -1, interval = "day"))
+          ) %>%
+          dplyr::compute()
+      } else {
+        studyPopDb<-studyPopDb %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[1]]}}, interval = "year"))) %>%
+          dplyr::mutate(
+            !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
+              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}"),
+                                               -1, interval = "day"))) %>%
+          dplyr::compute()
       }
+
     }
-    studyPopDb <- studyPopDb %>% dplyr::compute()
+
 
     # for each prior_history requirement,
     # add the date at which they reach
@@ -298,9 +1526,10 @@ getDenominatorCohorts <- function(cdm,
     varLowerAgeLimit <- glue::glue("date_min_age{lowerAgeLimit}")
     varUpperAgeLimit <- glue::glue("date_max_age{upperAgeLimit}")
     studyPopDb <- studyPopDb %>%
-      dplyr::filter(.data[[!!rlang::sym(varLowerAgeLimit)]] <=
-        .env$endDate) %>%
-      dplyr::filter(.data[[!!rlang::sym(varUpperAgeLimit)]] >=
+      dplyr::filter(
+        .data[[!!rlang::sym(varLowerAgeLimit)]] <=
+        .env$endDate &
+      .data[[!!rlang::sym(varUpperAgeLimit)]] >=
         .env$startDate)
 
     attrition <- recordAttrition(
@@ -314,9 +1543,10 @@ getDenominatorCohorts <- function(cdm,
     varLowerPriorHistory <-
       glue::glue("date_with_prior_history{min(daysPriorHistory)}")
     studyPopDb <- studyPopDb %>%
-      dplyr::filter(.data[[!!rlang::sym(varLowerPriorHistory)]] <=
-        .env$endDate) %>%
-      dplyr::filter(.data[[!!rlang::sym(varLowerPriorHistory)]] <=
+      dplyr::filter(
+      .data[[!!rlang::sym(varLowerPriorHistory)]] <=
+        .env$endDate,
+      .data[[!!rlang::sym(varLowerPriorHistory)]] <=
         .data$observation_period_end_date)
 
     attrition <- recordAttrition(
