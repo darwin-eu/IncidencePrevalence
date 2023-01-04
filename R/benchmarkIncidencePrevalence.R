@@ -1,4 +1,4 @@
-# Copyright 2022 DARWIN EU®
+# Copyright 2023 DARWIN EU®
 #
 # This file is part of IncidencePrevalence
 #
@@ -17,13 +17,7 @@
 #' Run benchmark of incidence and prevalence analyses
 #'
 #' @param cdm A CDM reference object
-#' @param type Whether to run a "simple", "typical", or "complex" analysis
-#' @param denominatorSampleSize Number for a random sample when generating
-#' denominator cohorts
-#' @param  outcomeTableBench A cohort table in the cdm reference containing
-#' a set of outcome cohorts. All cohorts in the table will be used.
-#' @param estimationInterval Interval used for estimating incidence and
-#' prevalence. Can be "weeks", "months", "quarters", or "years"
+#' @param outputFolder Folder to save results as CSV
 #' @param verbose Either TRUE or FALSE. If TRUE, progress will be reported.
 #'
 #' @return a tibble with time taken for different analyses
@@ -31,36 +25,21 @@
 #'
 #' @examples
 benchmarkIncidencePrevalence <- function(cdm,
-                                         type = "simple",
-                                         denominatorSampleSize = NULL,
-                                         outcomeTableBench = NULL,
-                                         estimationInterval = "years",
+                                         outputFolder = NULL,
                                          verbose = FALSE) {
-
   errorMessage <- checkmate::makeAssertCollection()
-  checkmate::assertTRUE(
-    all(type %in%
-          c("simple", "typical", "complex")),
+  cdmCheck <- inherits(cdm, "cdm_reference")
+  checkmate::assertTRUE(cdmCheck,
     add = errorMessage
   )
-  checkmate::assert_number(denominatorSampleSize, null.ok = TRUE)
-  outcomeCheck <- outcomeTableBench %in% names(cdm)
-  checkmate::assertTRUE(outcomeCheck,
-                        add = errorMessage
-  )
-  if (!isTRUE(outcomeCheck)) {
+  if (!isTRUE(cdmCheck)) {
     errorMessage$push(
-      "- `outcomeTableBench` is not found in cdm"
+      "- cdm must be a CDMConnector CDM reference object"
     )
   }
-  checkmate::assertTRUE(
-    all(estimationInterval %in%
-          c(
-            "weeks", "months",
-            "quarters", "years"
-          )),
-    add = errorMessage
-  )
+  if (!is.null(outputFolder)) {
+    checkmate::assertDirectoryExists(outputFolder)
+  }
   checkmate::assert_logical(verbose,
     add = errorMessage
   )
@@ -69,201 +48,142 @@ benchmarkIncidencePrevalence <- function(cdm,
   # will add timings to list
   timings <- list()
 
-  for(i in seq_along(type)){
-    workingType<-type[[i]]
-    if (verbose == TRUE) {
-      message(glue::glue(" -- {workingType} study settings"))
-    }
-  for(j in seq_along(type)){
-
-      workingEstimationInterval<-estimationInterval[[j]]
-      if (verbose == TRUE) {
-        message(glue::glue(" -- {workingEstimationInterval} study settings"))
-      }
-
-  if (verbose == TRUE) {
-    message(glue::glue("Getting denominator"))
-  }
   tictoc::tic()
-  if (workingType == "simple") {
-    cdm$denominator <- generateDenominatorCohortSet(
-      cdm = cdm,
-      sample = denominatorSampleSize,
-      verbose = verbose
-    )
-  } else if (workingType == "typical") {
-    cdm$denominator <- generateDenominatorCohortSet(
-      cdm = cdm,
-      daysPriorHistory = c(0, 180),
-      sex = c("Male", "Female"),
-      ageGroup = list(
-        c(0, 15), c(16, 25),
-        c(26, 32), c(33, 39),
-        c(40, 60), c(61, 64),
-        c(65, 79), c(80, 150)
-      ),
-      sample = denominatorSampleSize
-    )
-  } else {
-    cdm$denominator <- generateDenominatorCohortSet(
-      cdm = cdm,
-      daysPriorHistory = c(0, 365),
-      sex = c("Male", "Female", "Both"),
-      ageGroup = list(
-        c(0, 5), c(6, 10),
-        c(11, 15), c(16, 20),
-        c(21, 25), c(26, 30),
-        c(31, 35), c(36, 40),
-        c(41, 45), c(46, 50),
-        c(51, 55), c(56, 60),
-        c(61, 65), c(66, 70),
-        c(71, 75), c(76, 150)
-      ),
-      sample = denominatorSampleSize
-    )
-  }
-  t <- tictoc::toc(quiet = TRUE)
-  timings[[paste0("dpop_", i,"_",j)]] <- tibble::tibble(
-    type = .env$workingType,
-    task =  "generating denominator",
-    notes = paste0(
-      "nrow ", cdm$denominator %>% dplyr::count() %>% dplyr::pull(),
-      "; npeople ", cdm$denominator %>%
-        dplyr::select("subject_id") %>% dplyr::distinct() %>%
-        dplyr::count() %>% dplyr::pull(),
-      "; min cohort start ",
-      cdm$denominator %>%
-        dplyr::summarise(
-          min_cohort_start_date =
-            min(.data$cohort_start_date, na.rm = TRUE)
-        ) %>%
-        dplyr::pull(), "; max cohort start ",
-      cdm$denominator %>%
-        dplyr::summarise(
-          max_cohort_start_date =
-            max(.data$cohort_start_date, na.rm = TRUE)
-        ) %>%
-        dplyr::pull()
+  cdm$denominator_typical <- generateDenominatorCohortSet(
+    cdm = cdm,
+    daysPriorHistory = c(0, 180),
+    sex = c("Male", "Female"),
+    ageGroup = list(
+      c(0, 15), c(16, 25),
+      c(26, 32), c(33, 39),
+      c(40, 60), c(61, 64),
+      c(65, 79), c(80, 150)
     ),
-    time_taken_secs = as.numeric(t$toc - t$tic),
-    time_taken_mins = as.numeric(t$toc - t$tic) / 60
-  )
-
-  if (verbose == TRUE) {
-    message(glue::glue("Getting point prevalence"))
-  }
-  tictoc::tic()
-  point_prev <- estimatePointPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = outcomeTableBench,
-    interval = estimationInterval,
     verbose = verbose
   )
   t <- tictoc::toc(quiet = TRUE)
-  timings[[paste0("point_prev_", i,"_",j)]] <- tibble::tibble(
-    type = .env$workingType,
-    task = "estimating point prevalence",
-    interval = .env$workingEstimationInterval,
-    notes = paste0("n estimates ", nrow(point_prev)),
+  timings[["typical_denominator"]] <- tibble::tibble(
+    task = "generating typical denominator (32 cohorts)",
     time_taken_secs = as.numeric(t$toc - t$tic)
   )
 
-  if (verbose == TRUE) {
-    message(glue::glue("Getting period prevalence (full contribution not required)"))
-  }
+
+  # add a hypothetical outcome cohort
+  n_sample <- (cdm$denominator_typical %>%
+    dplyr::filter(cohort_definition_id == 1) %>%
+    dplyr::count() %>%
+    dplyr::pull()) * 0.25
+
+  cdm$bench_outcome <- cdm$denominator_typical %>%
+    dplyr::filter(cohort_definition_id == 1) %>%
+    utils::head(n_sample) %>%
+    dplyr::compute()
+
   tictoc::tic()
-  period_prev1 <- estimatePeriodPrevalence(
+  point_prev_typical_years <- estimatePointPrevalence(
     cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = outcomeTableBench,
-    interval = estimationInterval,
-    fullContribution = FALSE,
+    denominatorTable = "denominator_typical",
+    outcomeTable = "bench_outcome",
+    interval = "years",
     verbose = verbose
   )
   t <- tictoc::toc(quiet = TRUE)
-  timings[[paste0("period_prev1_", i,"_",j)]] <- tibble::tibble(
-    type = .env$workingType,
-    task = "estimating period prevalence (full contribution not required)",
-    interval = .env$workingEstimationInterval,
-    notes = paste0("n estimates ", nrow(period_prev1)),
+  timings[["point_prev_typical_years"]] <- tibble::tibble(
+    task = "yearly point prevalence - typical denominator, one outcome",
     time_taken_secs = as.numeric(t$toc - t$tic)
   )
 
-  if (verbose == TRUE) {
-    message(glue::glue("Getting period prevalence (full contribution required)"))
-  }
   tictoc::tic()
-  period_prev2 <- estimatePeriodPrevalence(
+  point_prev_typical_months <- estimatePointPrevalence(
     cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = outcomeTableBench,
-    interval = estimationInterval,
+    denominatorTable = "denominator_typical",
+    outcomeTable = "bench_outcome",
+    interval = "months",
+    verbose = verbose
+  )
+  t <- tictoc::toc(quiet = TRUE)
+  timings[["point_prev_typical_months"]] <- tibble::tibble(
+    task = "monthly point prevalence - typical denominator, one outcome",
+    time_taken_secs = as.numeric(t$toc - t$tic)
+  )
+
+  tictoc::tic()
+  period_prev_typical_years <- estimatePeriodPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator_typical",
+    outcomeTable = "bench_outcome",
+    interval = "years",
     fullContribution = TRUE,
     verbose = verbose
   )
   t <- tictoc::toc(quiet = TRUE)
-  timings[[paste0("period_prev2_", i,"_",j)]] <- tibble::tibble(
-    type = .env$workingType,
-    task = "estimating period prevalence (full contribution required)",
-    interval = .env$workingEstimationInterval,
-    notes = paste0("n estimates ", nrow(period_prev2)),
+  timings[["period_prev_typical_years"]] <- tibble::tibble(
+    task = "yearly period prevalence - typical denominator, one outcome",
     time_taken_secs = as.numeric(t$toc - t$tic)
   )
 
-
-
-  if (verbose == TRUE) {
-    message(glue::glue("Getting incidence - washout all history, no repeated events"))
-  }
   tictoc::tic()
-  inc1 <- estimateIncidence(
+  period_prev_typical_months <- estimatePeriodPrevalence(
     cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = outcomeTableBench,
-    interval = estimationInterval,
-    outcomeWashout = NULL,
-    repeatedEvents = FALSE,
+    denominatorTable = "denominator_typical",
+    outcomeTable = "bench_outcome",
+    interval = "months",
+    fullContribution = TRUE,
     verbose = verbose
   )
   t <- tictoc::toc(quiet = TRUE)
-  timings[[paste0("inc1_", i,"_",j)]] <- tibble::tibble(
-    type = .env$workingType,
-    task = "estimating incidence - washout all history, no repeated events",
-    interval = .env$workingEstimationInterval,
-    notes = paste0("n estimates ", nrow(inc1)),
+  timings[["period_prev_typical_months"]] <- tibble::tibble(
+    task = "monthly period prevalence - typical denominator, one outcome",
     time_taken_secs = as.numeric(t$toc - t$tic)
   )
 
-  if (verbose == TRUE) {
-    message(glue::glue("Getting incidence - 180 day washout, with repeated events"))
-  }
   tictoc::tic()
-  inc2 <- estimateIncidence(
+  inc_typical_years <- estimateIncidence(
     cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = outcomeTableBench,
-    interval = estimationInterval,
-    outcomeWashout = 180,
-    repeatedEvents = TRUE,
+    denominatorTable = "denominator_typical",
+    outcomeTable = "bench_outcome",
+    interval = "years",
     verbose = verbose
   )
   t <- tictoc::toc(quiet = TRUE)
-  timings[[paste0("inc2_", i,"_",j)]] <- tibble::tibble(
-    type = .env$workingType,
-    task = "estimating incidence - 180 day washout, with repeated events",
-    interval = .env$workingEstimationInterval,
-    notes = paste0("n estimates ", nrow(inc2)),
+  timings[["inc_typical_years"]] <- tibble::tibble(
+    task = "yearly incidence - typical denominator, one outcome",
     time_taken_secs = as.numeric(t$toc - t$tic)
   )
-  }}
+
+  tictoc::tic()
+  inc_typical_months <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator_typical",
+    outcomeTable = "bench_outcome",
+    interval = "months",
+    verbose = verbose
+  )
+  t <- tictoc::toc(quiet = TRUE)
+  timings[["inc_typical_months"]] <- tibble::tibble(
+    task = "monthly incidence - typical denominator, one outcome",
+    time_taken_secs = as.numeric(t$toc - t$tic)
+  )
 
   # combine results
   timings <- dplyr::bind_rows(timings) %>%
     dplyr::mutate(time_taken_mins = .data$time_taken_secs / 60) %>%
     dplyr::mutate(time_taken_hours = .data$time_taken_mins / 60) %>%
     dplyr::mutate(dbms = CDMConnector::dbms(cdm)) %>%
-    dplyr::relocate("notes", .after = "dbms")
+    dplyr::mutate(person_n = cdm$person %>% dplyr::count() %>% dplyr::pull()) %>%
+    dplyr::mutate(min_observation_start = cdm$observation_period %>%
+      dplyr::summarise(min_obs_start = min(observation_period_start_date, na.rm = TRUE)) %>%
+      dplyr::pull()) %>%
+    dplyr::mutate(max_observation_end = cdm$observation_period %>%
+      dplyr::summarise(max_observation_end = min(observation_period_end_date, na.rm = TRUE)) %>%
+      dplyr::pull())
+
+  if (!is.null(outputFolder) && dir.exists(outputFolder)) {
+    write.csv(timings,
+      file.path(outputFolder, "IncidencePrevalenceBenchmark.csv"),
+      row.names = FALSE
+    )
+  }
 
   return(timings)
 }

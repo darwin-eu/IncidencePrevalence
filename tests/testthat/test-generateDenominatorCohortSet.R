@@ -889,7 +889,8 @@ test_that("mock db: check example with multiple observation periods", {
   # expect two rows
   # one per observation period
   cdm$dpop <- generateDenominatorCohortSet(cdm = cdm)
-  expect_true(cohortCount(cdm$dpop)$n == 2)
+  expect_true(nrow(cdm$dpop %>% dplyr::collect()) == 2)
+  expect_true(cohortCount(cdm$dpop)$n == 1)
 
   # expect one rows- if start date is 1st Jan 2011
   cdm$dpop <- generateDenominatorCohortSet(

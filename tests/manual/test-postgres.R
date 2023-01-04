@@ -78,8 +78,7 @@ test_that("benchmark dementia analysis", {
   )
   cdm <- CDMConnector::cdm_from_con(
     con = db,
-    cdm_schema = "public",
-    write_schema = "results"
+    cdm_schema = "public"
   )
   outcome_cohorts <- CDMConnector::readCohortSet(here::here("inst",
                                                             "outcome_cohorts"))

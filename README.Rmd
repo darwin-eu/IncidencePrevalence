@@ -13,7 +13,7 @@ out.width = "100%"
 )
 ```
 
-# IncidencePrevalence <a href='https://github.com/darwin-eu-dev/IncidencePrevalence'><img src='man/figures/hexsticker.png' align="right" height="145" /></a>
+# IncidencePrevalence <a href='https://github.com/darwin-eu-dev/IncidencePrevalence'><img src='man/figures/hexsticker.png' align="right" height="185" /></a>
 
 <!-- badges: start -->
 [![codecov.io](https://codecov.io/github/darwin-eu/IncidencePrevalence/coverage.svg?branch=main)](https://codecov.io/github/darwin-eu/IncidencePrevalence?branch=main)
@@ -37,13 +37,28 @@ remotes::install_github("darwin-eu/IncidencePrevalence")
 
 ## Example usage
 ### Create a reference to data in the OMOP CDM format 
-The IncidencePrevalence package is designed to work with data in the OMOP CDM format, so our first step is to create a reference to the data using the CDMConnector package. Here we´ll generate an example reference with simulated data (to see how you would create a reference to your database please consult the CDMConnector package documentation).
+The IncidencePrevalence package is designed to work with data in the OMOP CDM format, so our first step is to create a reference to the data using the CDMConnector package. 
 
 ```{r}
 library(CDMConnector)
 library(IncidencePrevalence)
+```
 
-# We first need to create a cdm_reference 
+Creating a connection to a Postgres database would for example look like:
+```{r, eval=FALSE}
+con <- DBI::dbConnect(RPostgres::Postgres(),
+                      dbname = Sys.getenv("CDM5_POSTGRESQL_DBNAME"),
+                      host = Sys.getenv("CDM5_POSTGRESQL_HOST"),
+                      user = Sys.getenv("CDM5_POSTGRESQL_USER"),
+                      password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD"))
+
+cdm <- CDMConnector::cdm_from_con(con, 
+                    cdm_schema = Sys.getenv("CDM5_POSTGRESQL_CDM_SCHEMA"), 
+                    write_schema = Sys.getenv("CDM5_POSTGRESQL_RESULT_SCHEMA"))
+```
+To see how you would create a reference to your database please consult the CDMConnector package documentation. For this example though we´ll work with simulated data, and we'll generate an example cdm reference like so:
+
+```{r}
 cdm<-mockIncidencePrevalenceRef(sampleSize=5000)
 ```
 
@@ -72,8 +87,24 @@ These cohorts will be in the typical OMOP CDM structure
 cdm$denominator
 ```
 
+### Instantiate an outcome cohort
+Outcome cohorts for which we want to estimate incidence or prevalence need to be created. If the outcome cohorts are defined as JSON, we can use the CDMConnector package to read in and generate the cohorts.
+
+```{r, eval=FALSE}
+outcome_cohorts <- CDMConnector::readCohortSet("path_to_outcome_cohort_definitions")
+cdm <- CDMConnector::generateCohortSet(cdm = cdm, 
+                                       cohortSet = outcome_cohorts,
+                                       cohortTableName = "outcome_table_name"
+                                       )
+```
+
+Note, in our example cdm reference we already have an outcome cohort defined
+```{r}
+cdm$outcome
+```
+
 ### Estimating incidence and prevalence
-Now we have identified our denominator population, we can calculate incidence and prevalence as below. Note, in our example cdm reference we already have an outcome cohort defined as for this package outcome cohorts are required to have been defined externally.
+Now we have identified our denominator population, we can calculate incidence and prevalence as below. 
 
 For this example we´ll estimate incidence on a yearly basis, allowing individuals to have multiple events but with an outcome washout of 180 days. We also require that only complete database intervals are included, by which we mean that the database must have individuals observed throughout a year for that year to be included in the analysis. Note, we also specify a minimum cell count of 5, under which estimates will be obscured.
 
@@ -122,11 +153,9 @@ dplyr::glimpse(prev_period)
 ### Combining and exporting results
 After running different analyses We can use `gatherIncidencePrevalenceResults()` to bring together the results, adding outcome names and the database name to the output.
 ```{r}
-study_results <- gatherIncidencePrevalenceResults(
+study_results <- gatherIncidencePrevalenceResults(cdm=cdm,
                     resultList=list(inc, prev_point, prev_period),
-                    outcomeCohortId = 1,
-                    outcomeCohortName = "example_outcome",
-                    databaseName = "example_data")
+                    databaseName = "my_database")
 dplyr::glimpse(study_results$incidence_estimates)
 dplyr::glimpse(study_results$prevalence_estimates)
 ```
