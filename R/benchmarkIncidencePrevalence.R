@@ -70,12 +70,12 @@ benchmarkIncidencePrevalence <- function(cdm,
 
   # add a hypothetical outcome cohort
   n_sample <- (cdm$denominator_typical %>%
-    dplyr::filter(cohort_definition_id == 1) %>%
+    dplyr::filter(.data$cohort_definition_id == 1) %>%
     dplyr::count() %>%
     dplyr::pull()) * 0.25
 
   cdm$bench_outcome <- cdm$denominator_typical %>%
-    dplyr::filter(cohort_definition_id == 1) %>%
+    dplyr::filter(.data$cohort_definition_id == 1) %>%
     utils::head(n_sample) %>%
     dplyr::compute()
 
@@ -172,14 +172,14 @@ benchmarkIncidencePrevalence <- function(cdm,
     dplyr::mutate(dbms = CDMConnector::dbms(cdm)) %>%
     dplyr::mutate(person_n = cdm$person %>% dplyr::count() %>% dplyr::pull()) %>%
     dplyr::mutate(min_observation_start = cdm$observation_period %>%
-      dplyr::summarise(min_obs_start = min(observation_period_start_date, na.rm = TRUE)) %>%
+      dplyr::summarise(min_obs_start = min(.data$observation_period_start_date, na.rm = TRUE)) %>%
       dplyr::pull()) %>%
     dplyr::mutate(max_observation_end = cdm$observation_period %>%
-      dplyr::summarise(max_observation_end = min(observation_period_end_date, na.rm = TRUE)) %>%
+      dplyr::summarise(max_observation_end = min(.data$observation_period_end_date, na.rm = TRUE)) %>%
       dplyr::pull())
 
   if (!is.null(outputFolder) && dir.exists(outputFolder)) {
-    write.csv(timings,
+    utils::write.csv(timings,
       file.path(outputFolder, "IncidencePrevalenceBenchmark.csv"),
       row.names = FALSE
     )
