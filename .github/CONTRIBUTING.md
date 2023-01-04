@@ -29,8 +29,6 @@ Code to add new functionality should be accompanied by tests. Code coverage can 
 devtools::test_coverage()
 ```
 
-At the time of writing code coverage is currently at 100%, please try to keep it that way if possible (while adding useful tests, not ones simply for the sake of coverage). 
-
 ### Adhere to code style
 Please adhere to the code style when adding any new code. Do not though restyle any code unrelated to your pull request as this will make code review more difficult.  
 

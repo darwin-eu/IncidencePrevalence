@@ -1,4 +1,4 @@
-# Copyright 2022 DARWIN EU®
+# Copyright 2023 DARWIN EU®
 #
 # This file is part of IncidencePrevalence
 #
@@ -249,8 +249,7 @@ generateDenominatorCohortSet <- function(cdm,
   # get the overall contributing population (without stratification)
   # we need to the output the corresponding dates when getting the denominator
   if (verbose == TRUE) {
-    message("Progress: Gettng overall denominator population")
-    start <- Sys.time()
+    message("Gettng overall denominator population")
   }
 
   dpop <- getDenominatorCohorts(
@@ -265,22 +264,13 @@ generateDenominatorCohortSet <- function(cdm,
     sample = sample
   )
 
-  if (verbose == TRUE) {
-    message("Progress: Overall denominator population identified")
-    dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
-    message(glue::glue(
-      "Time taken: {floor(dur/60)} min and {dur %% 60 %/% 1} sec"
-    ))
-  }
-
   denominatorPopulationNrows <- dpop$denominator_population %>%
     dplyr::count() %>%
-    dplyr::pull(.data$n)
+    dplyr::pull()
 
   # build each of the cohorts of interest
   if (verbose == TRUE) {
-    message("Progress: Creating each denominator cohort of interest")
-    start <- Sys.time()
+    message("Creating each denominator cohort of interest")
   }
 
   if (denominatorPopulationNrows == 0) {
@@ -299,31 +289,42 @@ generateDenominatorCohortSet <- function(cdm,
 
   } else if (denominatorPopulationNrows > 0) {
     # first, if all cohorts are Male or Female get number that will be excluded
-    if (all(popSpecs$sex == "Female")) {
-      dpop$attrition <- recordAttrition(
-        table = dpop$denominator_population %>%
-          dplyr::filter(.data$sex == "Female"),
-        id = "person_id",
-        reason = "Not Female",
-        existingAttrition = dpop$attrition
-      )
-    }
-    if (all(popSpecs$sex == "Male")) {
-      dpop$attrition <- recordAttrition(
-        table = dpop$denominator_population %>%
-          dplyr::filter(.data$sex == "Male"),
-        id = "person_id",
-        reason = "Not Male",
-        existingAttrition = dpop$attrition
-      )
-    }
+    nFemale<-dpop$denominator_population %>%
+      dplyr::filter(.data$sex == "Female") %>%
+      dplyr::select("person_id") %>%
+      dplyr::distinct() %>%
+      dplyr::tally() %>%
+      dplyr::pull()
+    nMale<-dpop$denominator_population %>%
+      dplyr::filter(.data$sex == "Male") %>%
+      dplyr::select("person_id") %>%
+      dplyr::distinct() %>%
+      dplyr::tally() %>%
+      dplyr::pull()
 
-    # attrition so far is the same for each group
+    # attrition so far was the same for each group
+    # now we´ll make one for attrition record for each cohort
     dpop$attrition <- Map(cbind,
                           lapply(popSpecs$cohort_definition_id,
                                  function(x) dpop$attrition),
                           cohort_definition_id =
                             length(popSpecs$cohort_definition_id))
+
+    # count dropped for sex criteria
+    for(i in seq_along(dpop$attrition)){
+      if(popSpecs$sex[[i]]=="Male"){
+        dpop$attrition[[i]]<- dplyr::bind_rows(dpop$attrition[[i]],
+                                                tibble::tibble(current_n=.env$nMale,
+                                                               reason="Not Male",
+                                                               excluded=.env$nFemale))
+      }
+      if(popSpecs$sex[[i]]=="Female"){
+        dpop$attrition[[i]]<- dplyr::bind_rows(dpop$attrition[[i]],
+                                               tibble::tibble(current_n=.env$nFemale,
+                                                              reason="Not Female",
+                                                              excluded=.env$nMale))
+      }
+    }
 
     studyPops <- list()
     cohortCount <- list()
@@ -338,31 +339,20 @@ generateDenominatorCohortSet <- function(cdm,
       if (popSpecs$sex[[i]] %in% c("Male", "Female")) {
         workingDpop <- workingDpop %>%
           dplyr::filter(.data$sex == local(popSpecs$sex[[i]]))
-        dpop$attrition[[i]] <- recordAttrition(
-          table = workingDpop,
-          id = "person_id",
-          reason = glue::glue("Not {popSpecs$sex[[i]]}"),
-          existingAttrition = dpop$attrition[[i]]
-        )
       }
 
-      # cohort start
       workingDpop <- workingDpop %>%
         dplyr::rename(
+          # cohort start
           "cohort_start_date" =
-            glue::glue("date_min_age{popSpecs$min_age[[i]]}prior_history{popSpecs$days_prior_history[[i]]}")
-        )
-      # cohort end
-      workingDpop <- workingDpop %>%
-        dplyr::rename(
-          cohort_end_date =
+            glue::glue("date_min_age{popSpecs$min_age[[i]]}prior_history{popSpecs$days_prior_history[[i]]}"),
+          # cohort end
+          "cohort_end_date" =
             glue::glue(
               "date_max_age{popSpecs$max_age[[i]]}"
-            )
-        )
-
-      workingDpop <- workingDpop %>%
-        dplyr::rename("subject_id" = "person_id") %>%
+            ),
+          "subject_id" = "person_id"
+        ) %>%
         dplyr::select("subject_id", "cohort_start_date", "cohort_end_date") %>%
         dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
 
@@ -374,7 +364,7 @@ generateDenominatorCohortSet <- function(cdm,
       )
 
       dpop$attrition[[i]]$cohort_definition_id <- popSpecs$cohort_definition_id[[i]]
-      workingCount <- workingDpop %>% dplyr::count() %>% dplyr::pull()
+      workingCount <- utils::tail(dpop$attrition[[i]]$current_n,1)
       cohortCount[[i]] <- tibble::tibble(
         cohort_definition_id = popSpecs$cohort_definition_id[[i]],
         n = workingCount)
@@ -386,17 +376,18 @@ generateDenominatorCohortSet <- function(cdm,
       }
     }
     cli::cli_progress_done()
-    if (length(studyPops) != 0 && length(studyPops) < 20) {
+
+    if (length(studyPops) != 0 && length(studyPops) < 10) {
       if (verbose == TRUE) {
-        message(glue::glue("Progress: unioning cohorts"))
+        message(glue::glue("Unioning cohorts"))
       }
       studyPops <- Reduce(dplyr::union_all, studyPops) %>%
         dplyr::compute()
     }
-    if (length(studyPops) >= 20) {
-        # if 20 or more
+    if (length(studyPops) >= 10) {
+        # if 10 or more
         # combine in batches in case of many subgroups
-        nBatches <- 20 # number in a batch
+        nBatches <- 10 # number in a batch
         studyPopsBatches <- split(
           studyPops,
           ceiling(seq_along(studyPops) / nBatches)
@@ -414,20 +405,10 @@ generateDenominatorCohortSet <- function(cdm,
         }
         cli::cli_progress_done()
 
-        if (verbose == TRUE) {
-        message(glue::glue("Progress: unioning batches cohorts")) }
         studyPops <- Reduce(dplyr::union_all, studyPopsBatches) %>%
           dplyr::compute()
       }
     }
-
-  if (verbose == TRUE) {
-    message("Progress: Each denominator population of interest created")
-    dur <- abs(as.numeric(Sys.time() - start, units = "secs"))
-    message(glue::glue(
-      "Time taken: {floor(dur/60)} min and {dur %% 60 %/% 1} sec"
-    ))
-  }
 
   if (verbose == TRUE) {
     dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))

@@ -1,4 +1,4 @@
-# Copyright 2022 DARWIN EU®
+# Copyright 2023 DARWIN EU®
 #
 # This file is part of IncidencePrevalence
 #
@@ -204,14 +204,19 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
       maxDaysToObservationEnd <- 1000
     }
 
-    obsEndDate <-
-      obsStartDate + lubridate::days(
-        sample(
-          minDaysToObservationEnd:maxDaysToObservationEnd,
-          sampleSize,
-          replace = TRUE
+    if(minDaysToObservationEnd==maxDaysToObservationEnd){
+      obsEndDate <- obsStartDate +lubridate::days(minDaysToObservationEnd)
+    } else {
+      obsEndDate <-
+        obsStartDate + lubridate::days(
+          sample(
+            minDaysToObservationEnd:maxDaysToObservationEnd,
+            sampleSize,
+            replace = TRUE
+          )
         )
-      )
+    }
+
     if (is.null(personTable)) {
       personTable <- tibble::tibble(
         person_id = id,

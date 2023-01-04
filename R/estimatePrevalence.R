@@ -1,4 +1,4 @@
-# Copyright 2022 DARWIN EU®
+# Copyright 2023 DARWIN EU®
 #
 # This file is part of IncidencePrevalence
 #
@@ -335,7 +335,7 @@ estimatePrevalence <- function(cdm,
     if (verbose == TRUE) {
       counter <<- counter + 1
       message(glue::glue(
-        "Getting prevalence for anlalysis {counter} of {length(studySpecs)}"
+        "Getting prevalence for analysis {counter} of {length(studySpecs)}"
       ))
     }
     workingPrev <- getPrevalence(
