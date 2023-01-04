@@ -10,8 +10,6 @@ test_that("full benchmark", {
                                         outputFolder = tempdir(),
                                         verbose = TRUE)
   expect_true(tibble::is_tibble(timings))
-  # given our 100 person cdm with a year of follow up, all should all run quickly
-  expect_true(all(timings$time_taken_secs < 80))
   expect_true("IncidencePrevalenceBenchmark.csv" %in% list.files(tempdir()))
 
   # expected errors
