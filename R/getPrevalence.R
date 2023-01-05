@@ -318,7 +318,7 @@ getPrevalence <- function(cdm,
 
     } else if (fullContribution == FALSE) { # otherwise nobody excluded
       attrition <- recordAttrition(
-        table = tibble::tibble(subject_id = integer()),
+        table = studyPop,
         id = "subject_id",
         reason = "Do not satisfy full contribution requirement for an interval",
         existingAttrition = attrition

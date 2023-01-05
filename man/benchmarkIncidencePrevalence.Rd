@@ -4,10 +4,18 @@
 \alias{benchmarkIncidencePrevalence}
 \title{Run benchmark of incidence and prevalence analyses}
 \usage{
-benchmarkIncidencePrevalence(cdm, outputFolder = NULL, verbose = FALSE)
+benchmarkIncidencePrevalence(
+  cdm,
+  sample = NULL,
+  outputFolder = NULL,
+  verbose = FALSE
+)
 }
 \arguments{
 \item{cdm}{A CDM reference object}
+
+\item{sample}{An integer for which to take a random sample when generating
+the denominator cohort}
 
 \item{outputFolder}{Folder to save results as CSV}
 
@@ -18,4 +26,15 @@ a tibble with time taken for different analyses
 }
 \description{
 Run benchmark of incidence and prevalence analyses
+}
+\examples{
+\dontrun{
+con <- DBI::dbConnect(duckdb::duckdb(), CDMConnector::eunomia_dir())
+cdm <- CDMConnector::cdm_from_con(
+  con = con,
+  cdm_schema = "main"
+)
+
+timings <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm)
+}
 }
