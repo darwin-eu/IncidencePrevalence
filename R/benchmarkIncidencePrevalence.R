@@ -17,6 +17,8 @@
 #' Run benchmark of incidence and prevalence analyses
 #'
 #' @param cdm A CDM reference object
+#' @param sample An integer for which to take a random sample when generating
+#' the denominator cohort
 #' @param outputFolder Folder to save results as CSV
 #' @param verbose Either TRUE or FALSE. If TRUE, progress will be reported.
 #'
@@ -24,7 +26,17 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' con <- DBI::dbConnect(duckdb::duckdb(), CDMConnector::eunomia_dir())
+#' cdm <- CDMConnector::cdm_from_con(
+#'   con = con,
+#'   cdm_schema = "main"
+#' )
+#'
+#' timings <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm)
+#' }
 benchmarkIncidencePrevalence <- function(cdm,
+                                         sample = NULL,
                                          outputFolder = NULL,
                                          verbose = FALSE) {
   errorMessage <- checkmate::makeAssertCollection()
@@ -37,6 +49,10 @@ benchmarkIncidencePrevalence <- function(cdm,
       "- cdm must be a CDMConnector CDM reference object"
     )
   }
+  checkmate::assertNumeric(sample,
+                           add = errorMessage,
+                           null.ok = TRUE
+  )
   if (!is.null(outputFolder)) {
     checkmate::assertDirectoryExists(outputFolder)
   }
@@ -59,6 +75,7 @@ benchmarkIncidencePrevalence <- function(cdm,
       c(40, 60), c(61, 64),
       c(65, 79), c(80, 150)
     ),
+    sample = sample,
     verbose = verbose
   )
   t <- tictoc::toc(quiet = TRUE)
@@ -69,7 +86,7 @@ benchmarkIncidencePrevalence <- function(cdm,
 
 
   # add a hypothetical outcome cohort
-  n_sample <- (cdm$denominator_typical %>%
+  n_sample <- as.integer(cdm$denominator_typical %>%
     dplyr::filter(.data$cohort_definition_id == 1) %>%
     dplyr::count() %>%
     dplyr::pull()) * 0.25
@@ -77,7 +94,7 @@ benchmarkIncidencePrevalence <- function(cdm,
   cdm$bench_outcome <- cdm$denominator_typical %>%
     dplyr::filter(.data$cohort_definition_id == 1) %>%
     utils::head(n_sample) %>%
-    dplyr::compute()
+    CDMConnector::computeQuery()
 
   tictoc::tic()
   point_prev_typical_years <- estimatePointPrevalence(
