@@ -45,7 +45,7 @@ getDenominatorCohorts <- function(cdm,
   if (!is.null(sample)) {
     personDb <- personDb %>%
       dplyr::slice_sample(n = sample) %>%
-      dplyr::compute()
+      CDMConnector::computeQuery()
   }
 
   # stratify population on cohort
@@ -62,7 +62,7 @@ getDenominatorCohorts <- function(cdm,
           dplyr::distinct(),
         by = "person_id"
       ) %>%
-      dplyr::compute()
+      CDMConnector::computeQuery()
 
     observationPeriodDb <- observationPeriodDb %>%
       dplyr::inner_join(
@@ -113,7 +113,7 @@ getDenominatorCohorts <- function(cdm,
           )
       ) %>%
       dplyr::select(!c("cohort_start_date", "cohort_end_date")) %>%
-      dplyr::compute()
+      CDMConnector::computeQuery()
   }
 
   ## Identifying population of interest
@@ -127,7 +127,9 @@ getDenominatorCohorts <- function(cdm,
 
   studyPopDb <- personDb %>%
     dplyr::left_join(observationPeriodDb,
-      by = "person_id"
+      by = "person_id",
+      x_as = "x",
+      y_as = "y"
     ) %>%
     dplyr::filter(!is.na(.data$year_of_birth))
 
@@ -143,7 +145,7 @@ getDenominatorCohorts <- function(cdm,
        dplyr::if_else(.data$gender_concept_id == "8532", "Female", NA)
     )) %>%
     dplyr::filter(!is.na(.data$sex)) %>%
-    dplyr::compute()
+    CDMConnector::computeQuery()
 
   attrition <- recordAttrition(
     table = studyPopDb,
@@ -195,7 +197,7 @@ getDenominatorCohorts <- function(cdm,
     # drop people too young even at study end
     .data$lower_age_check <= .env$endDate) %>%
     dplyr::select(!c("lower_age_check", "upper_age_check")) %>%
-    dplyr::compute()
+    CDMConnector::computeQuery()
 
   attrition <- recordAttrition(
     table = studyPopDb,
@@ -210,7 +212,7 @@ getDenominatorCohorts <- function(cdm,
     .data$observation_period_start_date <= .env$endDate &
     # drop people with observation_period_end_date before study start
     .data$observation_period_end_date >= .env$startDate) %>%
-    dplyr::compute()
+    CDMConnector::computeQuery()
 
   attrition <- recordAttrition(
     table = studyPopDb,
@@ -264,7 +266,7 @@ getDenominatorCohorts <- function(cdm,
          !!glue::glue("date_min_age{minAgeBatches[[i]][[10]]}") :=
            as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[10]]}},
                                            interval = "year"))
-                      ) %>% dplyr::compute()
+                      ) %>% CDMConnector::computeQuery()
       } else if(length(minAgeBatches[[i]]) == 9){
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
@@ -295,7 +297,7 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_min_age{minAgeBatches[[i]][[9]]}") :=
               as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[9]]}},
                                               interval = "year"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
       }  else if(length(minAgeBatches[[i]]) == 8){
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
@@ -323,7 +325,7 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_min_age{minAgeBatches[[i]][[8]]}") :=
               as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[8]]}},
                                               interval = "year"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
       }  else if(length(minAgeBatches[[i]]) == 7){
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
@@ -348,7 +350,7 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_min_age{minAgeBatches[[i]][[7]]}") :=
               as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[7]]}},
                                               interval = "year"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
       }   else if(length(minAgeBatches[[i]]) == 6){
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
@@ -370,7 +372,7 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_min_age{minAgeBatches[[i]][[6]]}") :=
               as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[6]]}},
                                               interval = "year"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
       }   else if(length(minAgeBatches[[i]]) == 5){
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
@@ -389,7 +391,7 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_min_age{minAgeBatches[[i]][[5]]}") :=
               as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[5]]}},
                                               interval = "year"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
       }   else if(length(minAgeBatches[[i]]) == 4){
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
@@ -405,7 +407,7 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_min_age{minAgeBatches[[i]][[4]]}") :=
               as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[4]]}},
                                               interval = "year"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
       } else if(length(minAgeBatches[[i]]) == 3){
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
@@ -418,7 +420,7 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_min_age{minAgeBatches[[i]][[3]]}") :=
               as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[3]]}},
                                               interval = "year"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
       } else if(length(minAgeBatches[[i]]) == 2){
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
@@ -428,14 +430,14 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_min_age{minAgeBatches[[i]][[2]]}") :=
               as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[2]]}},
                                               interval = "year"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
       } else {
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
             !!glue::glue("date_min_age{minAgeBatches[[i]][[1]]}") :=
               as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[1]]}},
                                               interval = "year"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
 
       }
     }
@@ -518,7 +520,7 @@ getDenominatorCohorts <- function(cdm,
               as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}"),
                                                -1, interval = "day"))
           ) %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else if(length(maxAgeBatches[[i]]) == 9){
         studyPopDb<-studyPopDb %>%
           dplyr::mutate(
@@ -579,7 +581,7 @@ getDenominatorCohorts <- function(cdm,
               as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}"),
                                                -1, interval = "day"))
           ) %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else if(length(maxAgeBatches[[i]]) == 8){
         studyPopDb<-studyPopDb %>%
           dplyr::mutate(
@@ -634,7 +636,7 @@ getDenominatorCohorts <- function(cdm,
               as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}"),
                                                -1, interval = "day"))
           ) %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else if(length(maxAgeBatches[[i]]) == 7){
         studyPopDb<-studyPopDb %>%
           dplyr::mutate(
@@ -683,7 +685,7 @@ getDenominatorCohorts <- function(cdm,
               as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}"),
                                                -1, interval = "day"))
           ) %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       }  else if(length(maxAgeBatches[[i]]) == 6){
         studyPopDb<-studyPopDb %>%
           dplyr::mutate(
@@ -726,7 +728,7 @@ getDenominatorCohorts <- function(cdm,
               as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}"),
                                                -1, interval = "day"))
           ) %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else if(length(maxAgeBatches[[i]]) == 5){
         studyPopDb<-studyPopDb %>%
           dplyr::mutate(
@@ -763,7 +765,7 @@ getDenominatorCohorts <- function(cdm,
               as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}"),
                                                -1, interval = "day"))
           ) %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else if(length(maxAgeBatches[[i]]) == 4){
         studyPopDb<-studyPopDb %>%
           dplyr::mutate(
@@ -794,7 +796,7 @@ getDenominatorCohorts <- function(cdm,
               as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}"),
                                                -1, interval = "day"))
           ) %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else if(length(maxAgeBatches[[i]]) == 3){
         studyPopDb<-studyPopDb %>%
           dplyr::mutate(
@@ -819,7 +821,7 @@ getDenominatorCohorts <- function(cdm,
               as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}"),
                                                -1, interval = "day"))
           ) %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else if(length(maxAgeBatches[[i]]) == 2){
         studyPopDb<-studyPopDb %>%
           dplyr::mutate(
@@ -838,7 +840,7 @@ getDenominatorCohorts <- function(cdm,
               as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}"),
                                                -1, interval = "day"))
           ) %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else {
         studyPopDb<-studyPopDb %>%
           dplyr::mutate(
@@ -849,7 +851,7 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
               as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}"),
                                                -1, interval = "day"))) %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       }
 
     }
@@ -896,7 +898,7 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_with_prior_history{daysPriorHistoryBatches[[i]][[10]]}") :=
               as.Date(!!CDMConnector::dateadd("observation_period_start_date", {{daysPriorHistoryBatches[[i]][[10]]}},
                                               interval = "day"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
       } else if(length(daysPriorHistoryBatches[[i]]) == 9){
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
@@ -927,7 +929,7 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_with_prior_history{daysPriorHistoryBatches[[i]][[9]]}") :=
               as.Date(!!CDMConnector::dateadd("observation_period_start_date", {{daysPriorHistoryBatches[[i]][[9]]}},
                                               interval = "day"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
       }  else if(length(daysPriorHistoryBatches[[i]]) == 8){
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
@@ -955,7 +957,7 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_with_prior_history{daysPriorHistoryBatches[[i]][[8]]}") :=
               as.Date(!!CDMConnector::dateadd("observation_period_start_date", {{daysPriorHistoryBatches[[i]][[8]]}},
                                               interval = "day"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
       }  else if(length(daysPriorHistoryBatches[[i]]) == 7){
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
@@ -980,7 +982,7 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_with_prior_history{daysPriorHistoryBatches[[i]][[7]]}") :=
               as.Date(!!CDMConnector::dateadd("observation_period_start_date", {{daysPriorHistoryBatches[[i]][[7]]}},
                                               interval = "day"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
       }   else if(length(daysPriorHistoryBatches[[i]]) == 6){
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
@@ -1002,7 +1004,7 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_with_prior_history{daysPriorHistoryBatches[[i]][[6]]}") :=
               as.Date(!!CDMConnector::dateadd("observation_period_start_date", {{daysPriorHistoryBatches[[i]][[6]]}},
                                               interval = "day"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
       }   else if(length(daysPriorHistoryBatches[[i]]) == 5){
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
@@ -1021,7 +1023,7 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_with_prior_history{daysPriorHistoryBatches[[i]][[5]]}") :=
               as.Date(!!CDMConnector::dateadd("observation_period_start_date", {{daysPriorHistoryBatches[[i]][[5]]}},
                                               interval = "day"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
       }   else if(length(daysPriorHistoryBatches[[i]]) == 4){
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
@@ -1037,7 +1039,7 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_with_prior_history{daysPriorHistoryBatches[[i]][[4]]}") :=
               as.Date(!!CDMConnector::dateadd("observation_period_start_date", {{daysPriorHistoryBatches[[i]][[4]]}},
                                               interval = "day"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
       } else if(length(daysPriorHistoryBatches[[i]]) == 3){
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
@@ -1050,7 +1052,7 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_with_prior_history{daysPriorHistoryBatches[[i]][[3]]}") :=
               as.Date(!!CDMConnector::dateadd("observation_period_start_date", {{daysPriorHistoryBatches[[i]][[3]]}},
                                               interval = "day"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
       } else if(length(daysPriorHistoryBatches[[i]]) == 2){
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
@@ -1060,14 +1062,14 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_with_prior_history{daysPriorHistoryBatches[[i]][[2]]}") :=
               as.Date(!!CDMConnector::dateadd("observation_period_start_date", {{daysPriorHistoryBatches[[i]][[2]]}},
                                               interval = "day"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
       } else {
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
             !!glue::glue("date_with_prior_history{daysPriorHistoryBatches[[i]][[1]]}") :=
               as.Date(!!CDMConnector::dateadd("observation_period_start_date", {{daysPriorHistoryBatches[[i]][[1]]}},
                                               interval = "day"))
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
 
       }
     }
@@ -1274,7 +1276,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("last_of_min_age{ageHistBatchesAge[[i]][[10]]}prior_history{ageHistBatchesHist[[i]][[10]]}"))
               )
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else if(length(ageHistBatchesAge[[i]]) == 9){
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
@@ -1407,7 +1409,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("last_of_min_age{ageHistBatchesAge[[i]][[9]]}prior_history{ageHistBatchesHist[[i]][[9]]}"))
               )
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else if(length(ageHistBatchesAge[[i]]) == 8){
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
@@ -1526,7 +1528,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("last_of_min_age{ageHistBatchesAge[[i]][[8]]}prior_history{ageHistBatchesHist[[i]][[8]]}"))
               )
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else if(length(ageHistBatchesAge[[i]]) == 7){
         studyPopDb <-  studyPopDb %>%
           dplyr::mutate(
@@ -1631,7 +1633,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("last_of_min_age{ageHistBatchesAge[[i]][[7]]}prior_history{ageHistBatchesHist[[i]][[7]]}"))
               )
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else if(length(ageHistBatchesAge[[i]]) == 6){
         studyPopDb <-  studyPopDb %>%
           dplyr::mutate(
@@ -1722,7 +1724,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("last_of_min_age{ageHistBatchesAge[[i]][[6]]}prior_history{ageHistBatchesHist[[i]][[6]]}"))
               )
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else if(length(ageHistBatchesAge[[i]]) == 5){
         studyPopDb <-  studyPopDb %>%
           dplyr::mutate(
@@ -1799,7 +1801,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("last_of_min_age{ageHistBatchesAge[[i]][[5]]}prior_history{ageHistBatchesHist[[i]][[5]]}"))
               )
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else if(length(ageHistBatchesAge[[i]]) == 4){
         studyPopDb <-   studyPopDb %>%
           dplyr::mutate(
@@ -1862,7 +1864,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("last_of_min_age{ageHistBatchesAge[[i]][[4]]}prior_history{ageHistBatchesHist[[i]][[4]]}"))
               )
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else if(length(ageHistBatchesAge[[i]]) == 3){
         studyPopDb <-  studyPopDb %>%
           dplyr::mutate(
@@ -1911,7 +1913,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("last_of_min_age{ageHistBatchesAge[[i]][[3]]}prior_history{ageHistBatchesHist[[i]][[3]]}"))
               )
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else if(length(ageHistBatchesAge[[i]]) == 2){
         studyPopDb <-   studyPopDb %>%
           dplyr::mutate(
@@ -1946,7 +1948,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("last_of_min_age{ageHistBatchesAge[[i]][[2]]}prior_history{ageHistBatchesHist[[i]][[2]]}"))
               )
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else if(length(ageHistBatchesAge[[i]]) == 1){
         studyPopDb <-   studyPopDb %>%
           dplyr::mutate(
@@ -1967,7 +1969,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("last_of_min_age{ageHistBatchesAge[[i]][[1]]}prior_history{ageHistBatchesHist[[i]][[1]]}"))
               )
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       }
 
     }
@@ -2123,7 +2125,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[10]]}ObsPeriod")),
                 .env$endDate)
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
 
       } else if(length(maxAgeBatches[[i]]) == 9){
         studyPopDb<-studyPopDb %>%
@@ -2256,7 +2258,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[9]]}ObsPeriod")),
                 .env$endDate)
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
 
       } else if(length(maxAgeBatches[[i]]) == 8){
         studyPopDb<-studyPopDb %>%
@@ -2375,7 +2377,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[8]]}ObsPeriod")),
                 .env$endDate)
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
 
       } else if(length(maxAgeBatches[[i]]) == 7){
         studyPopDb<-studyPopDb %>%
@@ -2480,7 +2482,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[7]]}ObsPeriod")),
                 .env$endDate)
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
 
       }  else if(length(maxAgeBatches[[i]]) == 6){
         studyPopDb<-studyPopDb %>%
@@ -2571,7 +2573,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[6]]}ObsPeriod")),
                 .env$endDate)
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
 
       } else if(length(maxAgeBatches[[i]]) == 5){
         studyPopDb<-studyPopDb %>%
@@ -2648,7 +2650,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[5]]}ObsPeriod")),
                 .env$endDate)
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
 
 
       } else if(length(maxAgeBatches[[i]]) == 4){
@@ -2712,7 +2714,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[4]]}ObsPeriod")),
                 .env$endDate)
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
 
       } else if(length(maxAgeBatches[[i]]) == 3){
         studyPopDb<-studyPopDb %>%
@@ -2761,7 +2763,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[3]]}ObsPeriod")),
                 .env$endDate)
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else if(length(maxAgeBatches[[i]]) == 2){
         studyPopDb<-studyPopDb %>%
           dplyr::mutate(
@@ -2795,7 +2797,7 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod")),
                 .env$endDate)
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       } else {
         studyPopDb<-studyPopDb %>%
           dplyr::mutate(
@@ -2815,11 +2817,11 @@ getDenominatorCohorts <- function(cdm,
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod")),
                 .env$endDate)
           )  %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       }
     }
 
-    studyPopDb <- studyPopDb %>% dplyr::compute()
+    studyPopDb <- studyPopDb %>% CDMConnector::computeQuery()
   }
 
   # return list

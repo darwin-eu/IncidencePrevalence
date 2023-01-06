@@ -226,7 +226,7 @@ estimateIncidence <- function(cdm,
         dplyr::distinct(),
       by = "subject_id"
     ) %>%
-    dplyr::compute()
+    CDMConnector::computeQuery()
 
   outcome <- outcome %>%
     # most recent outcome starting before cohort start per person
@@ -244,7 +244,7 @@ estimateIncidence <- function(cdm,
         dplyr::filter(.data$outcome_start_date >= .data$cohort_start_date) %>%
         dplyr::filter(.data$outcome_start_date <= .data$cohort_end_date)
     ) %>%
-    dplyr::compute()
+    CDMConnector::computeQuery()
 
   outcome <- outcome %>%
     dplyr::group_by(
@@ -255,7 +255,7 @@ estimateIncidence <- function(cdm,
     dbplyr::window_order(.data$outcome_start_date) %>%
     dplyr::mutate(index = rank()) %>%
     dplyr::ungroup() %>%
-    dplyr::compute()
+    CDMConnector::computeQuery()
 
   # add to cdm reference
   cdm[[outcomeTable]] <- outcome %>%
@@ -271,7 +271,7 @@ estimateIncidence <- function(cdm,
       )
     ) %>%
     dplyr::select(-"index") %>%
-    dplyr::compute()
+    CDMConnector::computeQuery()
 
   studySpecs <- tidyr::expand_grid(
     outcome_cohort_id = outcomeCohortId,

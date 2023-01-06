@@ -45,7 +45,7 @@ getPrevalence <- function(cdm,
         ),
       by = "subject_id"
     ) %>%
-    dplyr::compute()
+    CDMConnector::computeQuery()
 
   attrition <- recordAttrition(
     table = studyPop,
@@ -147,7 +147,7 @@ getPrevalence <- function(cdm,
                     .data$cohort_end_date >= local(endTimeBatches[[i]][10]) &
                     .data$cohort_start_date <= local(startTimeBatches[[i]][10]),
                   .data$has_full_contribution+1, .data$has_full_contribution)
-            ) %>% dplyr::compute()
+            ) %>% CDMConnector::computeQuery()
         } else if (length(startTimeBatches[[i]]) == 9){
           studyPop <- studyPop %>%
             dplyr::mutate(
@@ -172,7 +172,7 @@ getPrevalence <- function(cdm,
                     .data$cohort_end_date >= local(endTimeBatches[[i]][9]) &
                     .data$cohort_start_date <= local(startTimeBatches[[i]][9]),
                   .data$has_full_contribution+1, .data$has_full_contribution)
-            ) %>% dplyr::compute()
+            ) %>% CDMConnector::computeQuery()
         } else if (length(startTimeBatches[[i]]) == 8){
           studyPop <- studyPop %>%
             dplyr::mutate(
@@ -195,7 +195,7 @@ getPrevalence <- function(cdm,
                     .data$cohort_end_date >= local(endTimeBatches[[i]][8]) &
                     .data$cohort_start_date <= local(startTimeBatches[[i]][8]),
                   .data$has_full_contribution+1, .data$has_full_contribution)
-            ) %>% dplyr::compute()
+            ) %>% CDMConnector::computeQuery()
         } else if (length(startTimeBatches[[i]]) == 7){
           studyPop <- studyPop %>%
             dplyr::mutate(
@@ -216,7 +216,7 @@ getPrevalence <- function(cdm,
                     .data$cohort_end_date >= local(endTimeBatches[[i]][7]) &
                     .data$cohort_start_date <= local(startTimeBatches[[i]][7]),
                   .data$has_full_contribution+1, .data$has_full_contribution)
-            ) %>% dplyr::compute()
+            ) %>% CDMConnector::computeQuery()
         } else if (length(startTimeBatches[[i]]) == 6){
           studyPop <- studyPop %>%
             dplyr::mutate(
@@ -235,7 +235,7 @@ getPrevalence <- function(cdm,
                     .data$cohort_end_date >= local(endTimeBatches[[i]][6]) &
                     .data$cohort_start_date <= local(startTimeBatches[[i]][6]),
                   .data$has_full_contribution+1, .data$has_full_contribution)
-            ) %>% dplyr::compute()
+            ) %>% CDMConnector::computeQuery()
         } else if (length(startTimeBatches[[i]]) == 5){
           studyPop <- studyPop %>%
             dplyr::mutate(
@@ -252,7 +252,7 @@ getPrevalence <- function(cdm,
                     .data$cohort_end_date >= local(endTimeBatches[[i]][5]) &
                     .data$cohort_start_date <= local(startTimeBatches[[i]][5]),
                   .data$has_full_contribution+1, .data$has_full_contribution)
-            ) %>% dplyr::compute()
+            ) %>% CDMConnector::computeQuery()
         } else if(length(startTimeBatches[[i]]) == 4) {
           studyPop <- studyPop %>%
             dplyr::mutate(
@@ -267,7 +267,7 @@ getPrevalence <- function(cdm,
                     .data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
                     .data$cohort_start_date <= local(startTimeBatches[[i]][4]) ,
                   .data$has_full_contribution+1, .data$has_full_contribution)
-            ) %>% dplyr::compute()
+            ) %>% CDMConnector::computeQuery()
         } else if(length(startTimeBatches[[i]]) == 3) {
           studyPop <- studyPop %>%
             dplyr::mutate(
@@ -280,7 +280,7 @@ getPrevalence <- function(cdm,
                     .data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
                     .data$cohort_start_date <= local(startTimeBatches[[i]][3]) ,
               .data$has_full_contribution+1, .data$has_full_contribution)
-          ) %>% dplyr::compute()
+          ) %>% CDMConnector::computeQuery()
         } else if(length(startTimeBatches[[i]]) == 2) {
           studyPop <- studyPop %>%
             dplyr::mutate(
@@ -291,7 +291,7 @@ getPrevalence <- function(cdm,
                     .data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
                     .data$cohort_start_date <= local(startTimeBatches[[i]][2]) ,
                   .data$has_full_contribution+1, .data$has_full_contribution)
-            ) %>% dplyr::compute()
+            ) %>% CDMConnector::computeQuery()
         } else {
           studyPop <- studyPop %>%
             dplyr::mutate(
@@ -300,14 +300,14 @@ getPrevalence <- function(cdm,
                   .data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
                     .data$cohort_start_date <= local(startTimeBatches[[i]][1]) ,
                   .data$has_full_contribution+1, .data$has_full_contribution)
-            ) %>% dplyr::compute()
+            ) %>% CDMConnector::computeQuery()
         }
       }
 
       studyPop <- studyPop %>%
         dplyr::filter(.data$has_full_contribution >= 1) %>%
         dplyr::select(!"has_full_contribution") %>%
-        dplyr::compute()
+        CDMConnector::computeQuery()
 
       attrition <- recordAttrition(
         table = studyPop,

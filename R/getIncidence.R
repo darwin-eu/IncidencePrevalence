@@ -47,7 +47,7 @@ getIncidence <- function(cdm,
         "cohort_end_date"
       )
     ) %>%
-    dplyr::compute()
+    CDMConnector::computeQuery()
 
   attrition <- recordAttrition(
     table = studyPop,
@@ -134,7 +134,7 @@ getIncidence <- function(cdm,
   # this is now our study population to get the incidence rates for
   studyPopDb <- studyPopNoOutcome %>%
     dplyr::union_all(studyPopOutcome) %>%
-    dplyr::compute()
+    CDMConnector::computeQuery()
 
   studyPop <- studyPopDb %>%
     dplyr::collect()

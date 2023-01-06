@@ -10,37 +10,14 @@ test_that("oracle test", {
     cdm_tables = c(CDMConnector::tbl_group("default"), -visit_detail) # visit_detail is missing in Oracle test database
   )
 
-
-
-  df <- cdm$observation_period %>%
-    dplyr::mutate(new_date=as.Date(observation_period_start_date)) %>%
-    head() %>%
-    dplyr::collect()
-
-  expect_s3_class(df, "data.frame")
-
-  df <- cdm$person %>%
-    dplyr::left_join(cdm$observation_period, by = "person_id") %>%
-    head() %>%
-    dplyr::collect()
-
-  expect_s3_class(df, "data.frame")
-
-
-  df <- cdm$person %>%
-    dplyr::slice_sample(n = 100) %>%
-    dplyr::collect()
-
-  expect_s3_class(df, "data.frame")
-
-  # debugonce(getDenominatorCohorts)
   # tables <- DBI::dbListTables(con)
   # tables <- tolower(tables)
   # "dbplyr_001" %in% tables
   # stringr::str_subset(tables, "dbplyr")
-  # tbls <- c("dbplyr_001", "dbplyr_002", "dbplyr_004", "dbplyr_005", "dbplyr_007")
-  # purrr::walk(tbls, ~DBI::dbRemoveTable(con,.))
+  # tables_to_remove <- stringr::str_subset(tables, "dbplyr")
+  # purrr::walk(tables_to_remove, ~DBI::dbRemoveTable(con,.))
 
+  # debugonce(generateDenominatorCohortSet)
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
     startDate = as.Date("2007-01-01"),

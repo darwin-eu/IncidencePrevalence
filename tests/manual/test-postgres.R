@@ -26,7 +26,7 @@ test_that("postgres test", {
     verbose = TRUE
   )
 
-  cdm$outcome <- cdm$denominator %>% head(10000) %>% dplyr::compute()
+  cdm$outcome <- cdm$denominator %>% head(10000) %>% CDMConnector::computeQuery()
 
   pont_prev <- estimatePointPrevalence(
     cdm = cdm,

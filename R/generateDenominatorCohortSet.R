@@ -382,7 +382,7 @@ generateDenominatorCohortSet <- function(cdm,
         message(glue::glue("Unioning cohorts"))
       }
       studyPops <- Reduce(dplyr::union_all, studyPops) %>%
-        dplyr::compute()
+        CDMConnector::computeQuery()
     }
     if (length(studyPops) >= 10) {
         # if 10 or more
@@ -401,12 +401,12 @@ generateDenominatorCohortSet <- function(cdm,
           }
           studyPopsBatches[[i]] <- Reduce(dplyr::union_all,
                                           studyPopsBatches[[i]]) %>%
-            dplyr::compute()
+            CDMConnector::computeQuery()
         }
         cli::cli_progress_done()
 
         studyPops <- Reduce(dplyr::union_all, studyPopsBatches) %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       }
     }
 
