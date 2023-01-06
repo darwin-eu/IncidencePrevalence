@@ -1,8 +1,10 @@
-test_that("oracle test", {
-  skip("failing test.")
+test_that("oracle prevalence test", {
+  skip_on_ci()
 
   con <- DBI::dbConnect(odbc::odbc(), "OracleODBC-19")
 
+  # Increase the number of temp tables from 16 (default) to 32
+  # DBI::dbExecute(con, 'ALTER SYSTEM SET "_ptt_max_num"=32 SCOPE = BOTH;')
 
   cdm <- CDMConnector::cdm_from_con(
     con = con,
@@ -10,6 +12,7 @@ test_that("oracle test", {
     cdm_tables = c(CDMConnector::tbl_group("default"), -visit_detail) # visit_detail is missing in Oracle test database
   )
 
+  # manually remove temp tables
   # tables <- DBI::dbListTables(con)
   # tables <- tolower(tables)
   # "dbplyr_001" %in% tables
@@ -17,40 +20,83 @@ test_that("oracle test", {
   # tables_to_remove <- stringr::str_subset(tables, "dbplyr")
   # purrr::walk(tables_to_remove, ~DBI::dbRemoveTable(con,.))
 
-  # debugonce(generateDenominatorCohortSet)
+  # debugonce(getDenominatorCohorts)
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
     startDate = as.Date("2007-01-01"),
     ageGroup = list(
-      c(40, 150),
+      # c(40, 150),
       c(40, 64)
     ),
-    sex = c("Male", "Female"),
+    # sex = c("Male", "Female"), # too many temp tables created
+    sex = c("Male"),
     daysPriorHistory = 365,
     sample = 1000000,
     verbose = TRUE
   )
 
-#   cdm$outcome <- cdm$denominator %>% head(10000) %>% CDMConnector::computeQuery()
+  expect_s3_class(dplyr::collect(head(cdm$denominator)), "data.frame")
+
+  cdm$outcome <- cdm$denominator %>% head(10000) %>% CDMConnector::computeQuery()
+
+  point_prev <- estimatePointPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    verbose = TRUE
+  )
+  expect_s3_class(point_prev, "data.frame")
+
+  period_prev <- estimatePeriodPrevalence(completeDatabaseIntervals = FALSE,
+                                          cdm = cdm,
+                                          denominatorTable = "denominator",
+                                          outcomeTable = "outcome",
+                                          verbose = TRUE
+  )
+  expect_s3_class(period_prev, "data.frame")
+
+  DBI::dbDisconnect(con)
+})
+
+# test_that("oracle Incidence test", {
+#   skip_on_ci()
 #
-#   pont_prev <- estimatePointPrevalence(
+#   con <- DBI::dbConnect(odbc::odbc(), "OracleODBC-19")
+#
+#   # Increase the number of temp tables from 16 (default) to 32
+#   # DBI::dbExecute(con, 'ALTER SYSTEM SET "_ptt_max_num"=32 SCOPE = BOTH;') # need privileges though.
+#
+#   cdm <- CDMConnector::cdm_from_con(
+#     con = con,
+#     cdm_schema = "CDMV5",
+#     cdm_tables = c(CDMConnector::tbl_group("default"), -visit_detail) # visit_detail is missing in Oracle test database
+#   )
+#
+#   cdm$denominator <- generateDenominatorCohortSet(
 #     cdm = cdm,
-#     denominatorTable = "denominator",
-#     outcomeTable = "outcome",
+#     startDate = as.Date("2007-01-01"),
+#     ageGroup = list(
+#       # c(40, 150),
+#       c(40, 64)
+#     ),
+#     # sex = c("Male", "Female"), # too many temp tables created
+#     sex = c("Male"),
+#     daysPriorHistory = 365,
+#     sample = 1000000,
 #     verbose = TRUE
 #   )
-#   period_prev <- estimatePeriodPrevalence(completeDatabaseIntervals =FALSE,
-#                                           cdm = cdm,
-#                                           denominatorTable = "denominator",
-#                                           outcomeTable = "outcome",
-#                                           verbose = TRUE
-#   )
+#
+#   expect_s3_class(dplyr::collect(head(cdm$denominator)), "data.frame")
+#
+#   cdm$outcome <- cdm$denominator %>% head(10000) %>% CDMConnector::computeQuery()
+#
 #   inc <- estimateIncidence(
 #     cdm = cdm,
 #     denominatorTable = "denominator",
 #     outcomeTable = "outcome",
 #     verbose = TRUE
 #   )
+#
 #   inc2 <- estimateIncidence(
 #     cdm = cdm,
 #     denominatorTable = "denominator",
@@ -142,5 +188,5 @@ test_that("oracle test", {
   #                                                                          "years"),
   #                                                   verbose = TRUE)
 
-  DBI::dbDisconnect(con)
-})
+#   DBI::dbDisconnect(con)
+# })

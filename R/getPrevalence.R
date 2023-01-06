@@ -96,8 +96,11 @@ getPrevalence <- function(cdm,
     minStartDate_ <- stringr::str_replace_all(as.character(minStartDate), "-", "/")
     maxStartDate_ <- stringr::str_replace_all(as.character(maxStartDate), "-", "/")
     studyPop <- studyPop %>%
-      dplyr::filter(.data$cohort_end_date >= !!CDMConnector::asDate(.env$minStartDate_)) %>%
-      dplyr::filter(.data$cohort_start_date <= !!CDMConnector::asDate(.env$maxStartDate_))
+      dplyr::mutate(minStartDate = !!CDMConnector::asDate(.env$minStartDate_),
+                    maxStartDate = !!CDMConnector::asDate(.env$maxStartDate_)) %>%
+      dplyr::filter(.data$cohort_end_date >= .data$minStartDate,
+                    .data$cohort_start_date <= .data$maxStartDate) %>%
+      dplyr::select(-minStartDate, -maxStartDate)
 
     attrition <- recordAttrition(
       table = studyPop,
@@ -333,8 +336,8 @@ getPrevalence <- function(cdm,
     # looping through each time interval
 
     # bring in to arrow
-    # studyPop <- studyPop %>% dplyr::collect()
-    studyPop <- arrow::arrow_table(studyPop %>% dplyr::collect())
+    studyPop <- studyPop %>% dplyr::collect()
+    # studyPop <- arrow::arrow_table(studyPop %>% dplyr::collect()) # had issue with R crashing when creating workingPop using arrow
 
     pr <- list()
     for (i in seq_along(studyDays$time)) {
@@ -370,7 +373,7 @@ getPrevalence <- function(cdm,
           t_start_date =
             dplyr::if_else(.data$cohort_start_date <= .env$workingStart,
               .env$workingStart,
-              .data$cohort_start_date
+              as.Date(.data$cohort_start_date)
             )
         )
 
@@ -381,7 +384,7 @@ getPrevalence <- function(cdm,
           t_end_date =
             dplyr::if_else(.data$cohort_end_date >= .env$workingEnd,
               .env$workingEnd,
-              .data$cohort_end_date
+              as.Date(.data$cohort_end_date)
             )
         )
 
