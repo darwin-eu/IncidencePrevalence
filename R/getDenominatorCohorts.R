@@ -164,12 +164,12 @@ getDenominatorCohorts <- function(cdm,
       year_of_birth1 = as.character(as.integer(.data$year_of_birth)),
       month_of_birth1 = as.character(as.integer(
           dplyr::if_else(is.na(.data$month_of_birth),
-            "01", .data$month_of_birth
+            1L, .data$month_of_birth
           )
         )),
       day_of_birth1 = as.character(as.integer(
           dplyr::if_else(is.na(.data$day_of_birth),
-            "01", .data$day_of_birth
+            1L, .data$day_of_birth
           )))
     ) %>%
     dplyr::mutate(dob = as.Date(paste0(
