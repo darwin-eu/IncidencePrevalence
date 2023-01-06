@@ -56,11 +56,13 @@ getPrevalence <- function(cdm,
   # start date
   start <- studyPop %>%
     dplyr::summarise(min(.data$cohort_start_date, na.rm = TRUE)) %>%
-    dplyr::pull()
+    dplyr::pull() %>%
+    as.Date()
   # end date
   end <- studyPop %>%
     dplyr::summarise(max(.data$cohort_end_date, na.rm = TRUE)) %>%
-    dplyr::pull()
+    dplyr::pull() %>%
+    as.Date()
   # get studyDays as a function of inputs
   studyDays <- getStudyDays(
     startDate = start,
@@ -91,9 +93,11 @@ getPrevalence <- function(cdm,
     # drop for complete database intervals requirement
     minStartDate <- min(studyDays$start_time)
     maxStartDate <- max(studyDays$end_time)
+    minStartDate_ <- stringr::str_replace_all(as.character(minStartDate), "-", "/")
+    maxStartDate_ <- stringr::str_replace_all(as.character(maxStartDate), "-", "/")
     studyPop <- studyPop %>%
-      dplyr::filter(.data$cohort_end_date >= minStartDate) %>%
-      dplyr::filter(.data$cohort_start_date <= maxStartDate)
+      dplyr::filter(.data$cohort_end_date >= !!CDMConnector::asDate(.env$minStartDate_)) %>%
+      dplyr::filter(.data$cohort_start_date <= !!CDMConnector::asDate(.env$maxStartDate_))
 
     attrition <- recordAttrition(
       table = studyPop,

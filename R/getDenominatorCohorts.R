@@ -172,7 +172,7 @@ getDenominatorCohorts <- function(cdm,
             1L, .data$day_of_birth
           )))
     ) %>%
-    dplyr::mutate(dob = as.Date(paste0(
+    dplyr::mutate(dob = !!CDMConnector::asDate(paste0(
       .data$year_of_birth1, "/",
       .data$month_of_birth1, "/",
       .data$day_of_birth1
@@ -184,19 +184,25 @@ getDenominatorCohorts <- function(cdm,
   lowerAgeLimit <- min(minAge)
   upperAgeLimit <- max(maxAge)
 
+  startDate_ <- stringr::str_replace_all(as.character(startDate), "-", "/")
+  endDate_ <- stringr::str_replace_all(as.character(endDate), "-", "/")
+
   studyPopDb <- studyPopDb %>%
-    dplyr::mutate(lower_age_check = as.Date(!!CDMConnector::dateadd("dob",
+    dplyr::mutate(lower_age_check = !!CDMConnector::dateadd("dob",
                                               {{lowerAgeLimit}},
-                                              interval = "year")),
-     upper_age_check = as.Date(!!CDMConnector::dateadd("dob",
+                                              interval = "year"),
+     upper_age_check = !!CDMConnector::dateadd("dob",
                                               {{upperAgeLimit}},
-                                              interval = "year"))) %>%
+                                              interval = "year"),
+     startDate = !!CDMConnector::asDate(.env$startDate_),
+     endDate = !!CDMConnector::asDate(.env$endDate_),
+     ) %>%
     dplyr::filter(
     # drop people too old even at study start
-    .data$upper_age_check >= .env$startDate,
+    .data$upper_age_check >= .data$startDate,
     # drop people too young even at study end
-    .data$lower_age_check <= .env$endDate) %>%
-    dplyr::select(!c("lower_age_check", "upper_age_check")) %>%
+    .data$lower_age_check <= .data$endDate) %>%
+    dplyr::select(-c("lower_age_check", "upper_age_check")) %>%
     CDMConnector::computeQuery()
 
   attrition <- recordAttrition(
@@ -209,9 +215,9 @@ getDenominatorCohorts <- function(cdm,
   studyPopDb <- studyPopDb %>%
     dplyr::filter(
     # drop people with observation_period_start_date after study end
-    .data$observation_period_start_date <= .env$endDate &
+    .data$observation_period_start_date <= .data$endDate &
     # drop people with observation_period_end_date before study start
-    .data$observation_period_end_date >= .env$startDate) %>%
+    .data$observation_period_end_date >= .data$startDate) %>%
     CDMConnector::computeQuery()
 
   attrition <- recordAttrition(
@@ -1081,9 +1087,9 @@ getDenominatorCohorts <- function(cdm,
     studyPopDb <- studyPopDb %>%
       dplyr::filter(
         .data[[!!rlang::sym(varLowerAgeLimit)]] <=
-        .env$endDate &
+        .data$endDate &
       .data[[!!rlang::sym(varUpperAgeLimit)]] >=
-        .env$startDate)
+        .data$startDate)
 
     attrition <- recordAttrition(
       table = studyPopDb,
@@ -1098,7 +1104,7 @@ getDenominatorCohorts <- function(cdm,
     studyPopDb <- studyPopDb %>%
       dplyr::filter(
       .data[[!!rlang::sym(varLowerPriorHistory)]] <=
-        .env$endDate,
+        .data$endDate,
       .data[[!!rlang::sym(varLowerPriorHistory)]] <=
         .data$observation_period_end_date)
 
@@ -1963,8 +1969,8 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_min_age{ageHistBatchesAge[[i]][[1]]}prior_history{ageHistBatchesHist[[i]][[1]]}") :=
               dplyr::if_else(!!rlang::sym(glue::glue(
                 "last_of_min_age{ageHistBatchesAge[[i]][[1]]}prior_history{ageHistBatchesHist[[i]][[1]]}")) <
-                  .env$startDate,
-                .env$startDate,
+                  .data$startDate,
+                .data$startDate,
                 !!rlang::sym(
                   glue::glue("last_of_min_age{ageHistBatchesAge[[i]][[1]]}prior_history{ageHistBatchesHist[[i]][[1]]}"))
               )
@@ -2057,73 +2063,73 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[3]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[3]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[4]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[4]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[5]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[5]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[6]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[6]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[7]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[7]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[8]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[8]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[9]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[9]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[10]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[10]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[10]]}ObsPeriod")),
-                .env$endDate)
+                .data$endDate)
           )  %>%
           CDMConnector::computeQuery()
 
@@ -2197,66 +2203,66 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[3]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[3]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[4]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[4]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[5]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[5]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[6]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[6]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[7]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[7]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[8]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[8]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[9]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[9]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[9]]}ObsPeriod")),
-                .env$endDate)
+                .data$endDate)
           )  %>%
           CDMConnector::computeQuery()
 
@@ -2323,59 +2329,59 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[3]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[3]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[4]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[4]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[5]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[5]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[6]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[6]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[7]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[7]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[8]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[8]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[8]]}ObsPeriod")),
-                .env$endDate)
+                .data$endDate)
           )  %>%
           CDMConnector::computeQuery()
 
@@ -2435,52 +2441,52 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[3]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[3]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[4]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[4]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[5]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[5]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[6]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[6]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[7]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[7]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[7]]}ObsPeriod")),
-                .env$endDate)
+                .data$endDate)
           )  %>%
           CDMConnector::computeQuery()
 
@@ -2533,45 +2539,45 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[3]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[3]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[4]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[4]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[5]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[5]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[6]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[6]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[6]]}ObsPeriod")),
-                .env$endDate)
+                .data$endDate)
           )  %>%
           CDMConnector::computeQuery()
 
@@ -2617,38 +2623,38 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[3]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[3]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[4]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[4]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[5]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[5]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[5]]}ObsPeriod")),
-                .env$endDate)
+                .data$endDate)
           )  %>%
           CDMConnector::computeQuery()
 
@@ -2688,31 +2694,31 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[3]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[3]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[4]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[4]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[4]]}ObsPeriod")),
-                .env$endDate)
+                .data$endDate)
           )  %>%
           CDMConnector::computeQuery()
 
@@ -2744,24 +2750,24 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[3]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[3]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[3]]}ObsPeriod")),
-                .env$endDate)
+                .data$endDate)
           )  %>%
           CDMConnector::computeQuery()
       } else if(length(maxAgeBatches[[i]]) == 2){
@@ -2785,17 +2791,17 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod")),
-                .env$endDate),
+                .data$endDate),
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[2]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[2]]}ObsPeriod")),
-                .env$endDate)
+                .data$endDate)
           )  %>%
           CDMConnector::computeQuery()
       } else {
@@ -2812,10 +2818,10 @@ getDenominatorCohorts <- function(cdm,
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
               dplyr::if_else(!!rlang::sym(
                 glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod"))
-                < .env$endDate,
+                < .data$endDate,
                 !!rlang::sym(
                   glue::glue("first_of_max_age{maxAgeBatches[[i]][[1]]}ObsPeriod")),
-                .env$endDate)
+                .data$endDate)
           )  %>%
           CDMConnector::computeQuery()
       }
