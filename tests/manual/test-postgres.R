@@ -15,7 +15,7 @@ test_that("postgres test", {
 
   # run for a random sample of 1000
   # if we want to run in full remove sample
-  timings <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm,
+  timings <- benchmarkIncidencePrevalence(cdm,
                                                     verbose = TRUE,
                                                     sample=1000)
 

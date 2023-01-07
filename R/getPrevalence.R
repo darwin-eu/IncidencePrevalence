@@ -33,7 +33,8 @@ getPrevalence <- function(cdm,
   # of people in the denominator of interest
   studyPop <- cdm[[denominatorTable]] %>%
     dplyr::filter(.data$cohort_definition_id ==
-                    .env$denominatorCohortId) %>%
+      .env$denominatorCohortId) %>%
+    dplyr::select(-"cohort_definition_id") %>%
     dplyr::left_join(
       cdm[[outcomeTable]] %>%
         dplyr::filter(.data$cohort_definition_id == .env$outcomeCohortId) %>%
@@ -107,207 +108,11 @@ getPrevalence <- function(cdm,
     # note we´re doing this out of the main loop below so that we can fill in
     # the attrition table
     if (fullContribution == TRUE) {
-      studyPop <- studyPop %>% dplyr::mutate(has_full_contribution = 0)
-      # update if they do have a full contribution
-      # we´re going to update the 5 (or less) intervals at a time
-      startTimeBatches <- split(
-        studyDays$start_time,
-        ceiling(seq_along(studyDays$start_time) / 10)
-      )
-      endTimeBatches <- split(
-        studyDays$end_time,
-        ceiling(seq_along(studyDays$start_time) / 10)
-      )
-      for (i in seq_along(startTimeBatches)) {
-        # all except the last batch should have length 5
-        # the last batch will be whatever is left over
-        if(length(startTimeBatches[[i]]) == 10){
-          studyPop <- studyPop %>%
-            dplyr::mutate(
-              has_full_contribution =
-                dplyr::if_else(
-                  .data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][1]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][2]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][3]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][4]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][5]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][5])||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][6]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][6])||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][7]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][7])||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][8]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][8])||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][9]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][9])||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][10]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][10]),
-                  .data$has_full_contribution+1, .data$has_full_contribution)
-            ) %>% dplyr::compute()
-        } else if (length(startTimeBatches[[i]]) == 9){
-          studyPop <- studyPop %>%
-            dplyr::mutate(
-              has_full_contribution =
-                dplyr::if_else(
-                  .data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][1]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][2]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][3]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][4]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][5]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][5])||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][6]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][6])||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][7]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][7])||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][8]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][8])||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][9]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][9]),
-                  .data$has_full_contribution+1, .data$has_full_contribution)
-            ) %>% dplyr::compute()
-        } else if (length(startTimeBatches[[i]]) == 8){
-          studyPop <- studyPop %>%
-            dplyr::mutate(
-              has_full_contribution =
-                dplyr::if_else(
-                  .data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][1]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][2]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][3]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][4]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][5]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][5])||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][6]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][6])||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][7]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][7])||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][8]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][8]),
-                  .data$has_full_contribution+1, .data$has_full_contribution)
-            ) %>% dplyr::compute()
-        } else if (length(startTimeBatches[[i]]) == 7){
-          studyPop <- studyPop %>%
-            dplyr::mutate(
-              has_full_contribution =
-                dplyr::if_else(
-                  .data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][1]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][2]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][3]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][4]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][5]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][5])||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][6]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][6])||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][7]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][7]),
-                  .data$has_full_contribution+1, .data$has_full_contribution)
-            ) %>% dplyr::compute()
-        } else if (length(startTimeBatches[[i]]) == 6){
-          studyPop <- studyPop %>%
-            dplyr::mutate(
-              has_full_contribution =
-                dplyr::if_else(
-                  .data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][1]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][2]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][3]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][4]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][5]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][5])||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][6]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][6]),
-                  .data$has_full_contribution+1, .data$has_full_contribution)
-            ) %>% dplyr::compute()
-        } else if (length(startTimeBatches[[i]]) == 5){
-          studyPop <- studyPop %>%
-            dplyr::mutate(
-              has_full_contribution =
-                dplyr::if_else(
-                  .data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][1]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][2]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][3]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][4]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][5]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][5]),
-                  .data$has_full_contribution+1, .data$has_full_contribution)
-            ) %>% dplyr::compute()
-        } else if(length(startTimeBatches[[i]]) == 4) {
-          studyPop <- studyPop %>%
-            dplyr::mutate(
-              has_full_contribution =
-                dplyr::if_else(
-                  .data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][1]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][2]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][3]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][4]) ,
-                  .data$has_full_contribution+1, .data$has_full_contribution)
-            ) %>% dplyr::compute()
-        } else if(length(startTimeBatches[[i]]) == 3) {
-          studyPop <- studyPop %>%
-            dplyr::mutate(
-              has_full_contribution =
-                dplyr::if_else(
-                  .data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][1]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][2]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][3]) ,
-              .data$has_full_contribution+1, .data$has_full_contribution)
-          ) %>% dplyr::compute()
-        } else if(length(startTimeBatches[[i]]) == 2) {
-          studyPop <- studyPop %>%
-            dplyr::mutate(
-              has_full_contribution =
-                dplyr::if_else(
-                  .data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][1]) ||
-                    .data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][2]) ,
-                  .data$has_full_contribution+1, .data$has_full_contribution)
-            ) %>% dplyr::compute()
-        } else {
-          studyPop <- studyPop %>%
-            dplyr::mutate(
-              has_full_contribution =
-                dplyr::if_else(
-                  .data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
-                    .data$cohort_start_date <= local(startTimeBatches[[i]][1]) ,
-                  .data$has_full_contribution+1, .data$has_full_contribution)
-            ) %>% dplyr::compute()
-        }
-      }
+      studyPop<- addFullContributionFlag(studyPop, studyDays)
 
       studyPop <- studyPop %>%
         dplyr::filter(.data$has_full_contribution >= 1) %>%
-        dplyr::select(!"has_full_contribution") %>%
-        dplyr::compute()
+        dplyr::select(!"has_full_contribution")
 
       attrition <- recordAttrition(
         table = studyPop,
@@ -315,7 +120,6 @@ getPrevalence <- function(cdm,
         reason = "Do not satisfy full contribution requirement for an interval",
         existingAttrition = attrition
       )
-
     } else if (fullContribution == FALSE) { # otherwise nobody excluded
       attrition <- recordAttrition(
         table = studyPop,
@@ -328,116 +132,105 @@ getPrevalence <- function(cdm,
     # fetch prevalence
     # looping through each time interval
 
-    # bring in to arrow
-    # studyPop <- studyPop %>% dplyr::collect()
-    studyPop <- arrow::arrow_table(studyPop %>% dplyr::collect())
+    # bring in to R
+    studyPopLocal <- arrow::arrow_table(studyPop %>% dplyr::collect())
 
-    pr <- list()
+    # pr <- list()
+    pr <- vector(mode = "list", length = length(studyDays$time))
+
     for (i in seq_along(studyDays$time)) {
       workingStart <- studyDays$start_time[i]
-      if (type == "period") {
-        workingEnd <- studyDays$end_time[i]
-        workingPeriod <- as.numeric(workingEnd - workingStart) + 1
-      } else {
-        workingEnd <- workingStart
-        workingPeriod <- 1
-      }
+      workingEnd <- studyDays$end_time[i]
 
       if (fullContribution == TRUE) {
         # require presence for all of period
         # drop people with end_date not after workingEnd
         # and start_date not before workingStart
-        workingPop <- studyPop %>%
-          dplyr::filter(.data$cohort_end_date >= .env$workingEnd &
-            .data$cohort_start_date <= .env$workingStart)
+        workingPop <- studyPopLocal %>%
+          dplyr::filter(.data$cohort_end_date >= .env$workingEnd) %>%
+          dplyr::filter(.data$cohort_start_date <= .env$workingStart)
       } else {
         # otherwise include people if they can contribute a day
         # drop people with end_date prior to workingStart
         # and start_date after workingEnd
-        workingPop <- studyPop %>%
-          dplyr::filter(.data$cohort_end_date >= .env$workingStart &
-            .data$cohort_start_date <= .env$workingEnd)
+        workingPop <- studyPopLocal %>%
+          dplyr::filter(.data$cohort_end_date >= .env$workingStart) %>%
+          dplyr::filter(.data$cohort_start_date <= .env$workingEnd)
       }
 
-      # individuals start date for this period
-      # which could be start of the period or later
       workingPop <- workingPop %>%
         dplyr::mutate(
-          t_start_date =
+          # individuals start date for this period
+          # which could be start of the period or later
+          cohort_start_date =
             dplyr::if_else(.data$cohort_start_date <= .env$workingStart,
               .env$workingStart,
               .data$cohort_start_date
-            )
-        )
-
-      # individuals end date for this period
-      # end of the period or earlier
-      workingPop <- workingPop %>%
-        dplyr::mutate(
-          t_end_date =
+            ),
+          # individuals end date for this period
+          # end of the period or earlier
+          cohort_end_date =
             dplyr::if_else(.data$cohort_end_date >= .env$workingEnd,
               .env$workingEnd,
               .data$cohort_end_date
             )
-        )
-
-      nPopulation <- workingPop %>%
-        dplyr::select("subject_id") %>%
-        dplyr::distinct() %>%
-        dplyr::collect() %>%
-        dplyr::count() %>%
-        dplyr::pull()
+        ) %>%
+        dplyr::collect()
 
       if (is.null(outcomeLookbackDays)) {
         # include any time prior
-        nCases <- workingPop %>%
-          dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
-          dplyr::select("subject_id") %>%
-          dplyr::distinct() %>%
-          dplyr::collect() %>%
-          dplyr::count() %>%
-          dplyr::pull()
+        result <- workingPop %>%
+          dplyr::summarise(
+            n_persons = dplyr::n_distinct(.data$subject_id),
+            n_cases = dplyr::n_distinct(.data$subject_id[
+              !is.na(outcome_start_date) &
+                .data$outcome_start_date <= .data$cohort_end_date
+            ])
+          )
       } else if (outcomeLookbackDays != 0) {
-          # include in window using outcomeLookbackDays
-          nCases <- workingPop %>%
-            dplyr::filter(.data$outcome_start_date <= .data$t_end_date) %>%
-            #collect here as lubridate days is not yet supported in arrow
-            dplyr::collect() %>%
-            dplyr::filter(.data$outcome_end_date >=
-                            (.data$t_start_date - lubridate::days(.env$outcomeLookbackDays))) %>%
-            dplyr::select("subject_id") %>%
-            dplyr::distinct() %>%
-            dplyr::count() %>%
-            dplyr::pull()
+        # include in window using outcomeLookbackDays
+        result <- workingPop %>%
+          dplyr::summarise(
+            n_persons = dplyr::n_distinct(.data$subject_id),
+            n_cases = dplyr::n_distinct(.data$subject_id[
+              !is.na(outcome_start_date) &
+                .data$outcome_start_date <= .data$cohort_end_date &
+                .data$outcome_end_date >=
+                  (.data$cohort_start_date - lubridate::days(.env$outcomeLookbackDays))
+            ])
+          )
       } else {
         # include ongoing in current time of interest
-        nCases <- workingPop %>%
-          dplyr::filter(.data$outcome_start_date <= .data$t_end_date  &
-                        .data$outcome_end_date >= .data$t_start_date ) %>%
-          dplyr::select("subject_id") %>%
-          dplyr::distinct() %>%
-          dplyr::collect() %>%
-          dplyr::count() %>%
-          dplyr::pull()
+        result <- workingPop %>%
+          dplyr::summarise(
+            n_persons = dplyr::n_distinct(.data$subject_id),
+            n_cases = dplyr::n_distinct(.data$subject_id[
+              !is.na(outcome_start_date) &
+                .data$outcome_start_date <= .data$cohort_end_date &
+                .data$outcome_end_date >= .data$cohort_start_date
+            ])
+          )
       }
 
       pr[[paste0(i)]] <- studyDays[i, ] %>%
-        dplyr::mutate(n_cases = .env$nCases) %>%
-        dplyr::mutate(n_population = .env$nPopulation) %>%
-        dplyr::mutate(prevalence = .env$nCases / .env$nPopulation) %>%
-        dplyr::select(
-          "n_cases", "n_population",
-          "prevalence", "start_time", "end_time"
-        ) %>%
-        dplyr::rename("prevalence_start_date" = "start_time") %>%
-        dplyr::rename("prevalence_end_date" = "end_time")
+        dplyr::mutate(
+          n_population = result$n_persons,
+          n_cases = result$n_cases
+        )
     }
-    pr <- dplyr::bind_rows(pr)
-  }
 
-  studyPop <- studyPop %>%
-    dplyr::select("subject_id", "cohort_start_date") %>%
-    dplyr::distinct()
+    pr <- dplyr::bind_rows(pr) %>%
+      # # note, arrow currently returns zero counts as NA
+      # dplyr::mutate(n_population = tidyr::replace_na(n_population, 0)) %>%
+      # dplyr::mutate(n_cases = tidyr::replace_na(n_cases, 0)) %>%
+      dplyr::mutate(prevalence = .data$n_cases / .data$n_population) %>%
+      dplyr::select(
+        "n_cases", "n_population",
+        "prevalence", "start_time", "end_time"
+      ) %>%
+      dplyr::rename("prevalence_start_date" = "start_time") %>%
+      dplyr::rename("prevalence_end_date" = "end_time")
+  }
 
   results <- list()
   results[["pr"]] <- pr
@@ -445,4 +238,401 @@ getPrevalence <- function(cdm,
   results[["attrition"]] <- attrition
 
   return(results)
+}
+
+
+
+# we want to check if someone satisfies the full contribution criteria
+# for at least one of the periods (of which there can be a varying number)
+# because going period by period leads to clumsy sql, we want to get a
+# case when statement which includes each of these
+
+# at the momenet we´ll do this by batching and some convoluted if else logic to
+# account for different batch lengths (as the last batch length is unknown)
+# note, we´ll compute every 5th batch to keep the generated sql manageable
+
+# this could be improved by generating one case when with all the periods
+addFullContributionFlag <- function(workingData, workingStudyDays) {
+  workingData <- workingData %>% dplyr::mutate(has_full_contribution = 0)
+  # update if they do have a full contribution
+
+  # we´re going to update the 10 (or less) intervals at a time
+  startTimeBatches <- split(
+    workingStudyDays$start_time,
+    ceiling(seq_along(workingStudyDays$start_time) / 15)
+  )
+  endTimeBatches <- split(
+    workingStudyDays$end_time,
+    ceiling(seq_along(workingStudyDays$start_time) / 15)
+  )
+  for (i in seq_along(startTimeBatches)) {
+    # all except the last batch should have maximum length
+    # the last batch will be whatever is left over
+
+    if (length(startTimeBatches[[i]]) == 15) {
+      workingData <- workingData %>%
+        dplyr::mutate(
+          has_full_contribution =
+            dplyr::if_else(
+              (.data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
+                 .data$cohort_start_date <= local(startTimeBatches[[i]][1])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][2])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][3])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][4])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][5]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][5])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][6]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][6])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][7]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][7])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][8]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][8])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][9]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][9])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][10]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][10])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][11]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][11])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][12]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][12])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][13]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][13])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][14]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][14])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][15]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][15])),
+              .data$has_full_contribution + 1, .data$has_full_contribution
+            )
+        )
+    } else if (length(startTimeBatches[[i]]) == 14) {
+      workingData <- workingData %>%
+        dplyr::mutate(
+          has_full_contribution =
+            dplyr::if_else(
+              (.data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
+                 .data$cohort_start_date <= local(startTimeBatches[[i]][1])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][2])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][3])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][4])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][5]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][5])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][6]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][6])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][7]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][7])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][8]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][8])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][9]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][9])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][10]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][10])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][11]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][11])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][12]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][12])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][13]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][13])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][14]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][14])),
+              .data$has_full_contribution + 1, .data$has_full_contribution
+            )
+        )
+    } else if (length(startTimeBatches[[i]]) == 13) {
+      workingData <- workingData %>%
+        dplyr::mutate(
+          has_full_contribution =
+            dplyr::if_else(
+              (.data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
+                 .data$cohort_start_date <= local(startTimeBatches[[i]][1])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][2])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][3])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][4])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][5]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][5])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][6]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][6])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][7]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][7])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][8]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][8])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][9]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][9])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][10]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][10])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][11]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][11])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][12]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][12])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][13]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][13])),
+              .data$has_full_contribution + 1, .data$has_full_contribution
+            )
+        )
+    } else if (length(startTimeBatches[[i]]) == 12) {
+      workingData <- workingData %>%
+        dplyr::mutate(
+          has_full_contribution =
+            dplyr::if_else(
+              (.data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
+                 .data$cohort_start_date <= local(startTimeBatches[[i]][1])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][2])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][3])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][4])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][5]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][5])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][6]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][6])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][7]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][7])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][8]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][8])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][9]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][9])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][10]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][10])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][11]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][11])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][12]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][12])),
+              .data$has_full_contribution + 1, .data$has_full_contribution
+            )
+        )
+    } else if (length(startTimeBatches[[i]]) == 11) {
+      workingData <- workingData %>%
+        dplyr::mutate(
+          has_full_contribution =
+            dplyr::if_else(
+              (.data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
+                 .data$cohort_start_date <= local(startTimeBatches[[i]][1])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][2])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][3])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][4])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][5]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][5])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][6]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][6])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][7]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][7])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][8]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][8])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][9]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][9])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][10]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][10])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][11]) &
+                   .data$cohort_start_date <= local(startTimeBatches[[i]][11])),
+              .data$has_full_contribution + 1, .data$has_full_contribution
+            )
+        )
+    } else if (length(startTimeBatches[[i]]) == 10) {
+      workingData <- workingData %>%
+        dplyr::mutate(
+          has_full_contribution =
+            dplyr::if_else(
+              (.data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
+                .data$cohort_start_date <= local(startTimeBatches[[i]][1])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][2])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][3])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][4])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][5]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][5])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][6]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][6])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][7]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][7])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][8]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][8])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][9]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][9])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][10]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][10])),
+              .data$has_full_contribution + 1, .data$has_full_contribution
+            )
+        )
+    } else if (length(startTimeBatches[[i]]) == 9) {
+      workingData <- workingData %>%
+        dplyr::mutate(
+          has_full_contribution =
+            dplyr::if_else(
+              (.data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
+                .data$cohort_start_date <= local(startTimeBatches[[i]][1])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][2])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][3])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][4])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][5]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][5])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][6]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][6])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][7]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][7])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][8]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][8])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][9]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][9])),
+              .data$has_full_contribution + 1, .data$has_full_contribution
+            )
+        )
+    } else if (length(startTimeBatches[[i]]) == 8) {
+      workingData <- workingData %>%
+        dplyr::mutate(
+          has_full_contribution =
+            dplyr::if_else(
+              (.data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
+                .data$cohort_start_date <= local(startTimeBatches[[i]][1])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][2])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][3])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][4])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][5]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][5])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][6]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][6])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][7]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][7])) ||
+                (.data$cohort_end_date >= local(endTimeBatches[[i]][8]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][8])),
+              .data$has_full_contribution + 1, .data$has_full_contribution
+            )
+        )
+    } else if (length(startTimeBatches[[i]]) == 7) {
+      workingData <- workingData %>%
+        dplyr::mutate(
+          has_full_contribution =
+            dplyr::if_else(
+              (.data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
+                .data$cohort_start_date <= local(startTimeBatches[[i]][1])) ||
+                 (.data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][2])) ||
+                    (.data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][3])) ||
+                    (.data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][4])) ||
+                    (.data$cohort_end_date >= local(endTimeBatches[[i]][5]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][5])) ||
+                    (.data$cohort_end_date >= local(endTimeBatches[[i]][6]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][6])) ||
+                    (.data$cohort_end_date >= local(endTimeBatches[[i]][7]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][7])),
+              .data$has_full_contribution + 1, .data$has_full_contribution
+            )
+        )
+    } else if (length(startTimeBatches[[i]]) == 6) {
+      workingData <- workingData %>%
+        dplyr::mutate(
+          has_full_contribution =
+            dplyr::if_else(
+              (.data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
+                .data$cohort_start_date <= local(startTimeBatches[[i]][1])) ||
+                 (.data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][2])) ||
+                    (.data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][3])) ||
+                    (.data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][4])) ||
+                    (.data$cohort_end_date >= local(endTimeBatches[[i]][5]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][5])) ||
+                    (.data$cohort_end_date >= local(endTimeBatches[[i]][6]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][6])),
+              .data$has_full_contribution + 1, .data$has_full_contribution
+            )
+        )
+    } else if (length(startTimeBatches[[i]]) == 5) {
+      workingData <- workingData %>%
+        dplyr::mutate(
+          has_full_contribution =
+            dplyr::if_else(
+              (.data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
+                .data$cohort_start_date <= local(startTimeBatches[[i]][1])) ||
+                 (.data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][2])) ||
+                    (.data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][3])) ||
+                    (.data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][4])) ||
+                    (.data$cohort_end_date >= local(endTimeBatches[[i]][5]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][5])),
+              .data$has_full_contribution + 1, .data$has_full_contribution
+            )
+        )
+    } else if (length(startTimeBatches[[i]]) == 4) {
+      workingData <- workingData %>%
+        dplyr::mutate(
+          has_full_contribution =
+            dplyr::if_else(
+              (.data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
+                .data$cohort_start_date <= local(startTimeBatches[[i]][1])) ||
+                 (.data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][2])) ||
+                    (.data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][3])) ||
+                    (.data$cohort_end_date >= local(endTimeBatches[[i]][4]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][4])),
+              .data$has_full_contribution + 1, .data$has_full_contribution
+            )
+        )
+    } else if (length(startTimeBatches[[i]]) == 3) {
+      workingData <- workingData %>%
+        dplyr::mutate(
+          has_full_contribution =
+            dplyr::if_else(
+              (.data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
+                .data$cohort_start_date <= local(startTimeBatches[[i]][1])) ||
+                 (.data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][2])) ||
+                    (.data$cohort_end_date >= local(endTimeBatches[[i]][3]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][3])),
+              .data$has_full_contribution + 1, .data$has_full_contribution
+            )
+        )
+    } else if (length(startTimeBatches[[i]]) == 2) {
+      workingData <- workingData %>%
+        dplyr::mutate(
+          has_full_contribution =
+            dplyr::if_else(
+              (.data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
+                .data$cohort_start_date <= local(startTimeBatches[[i]][1])) ||
+                 (.data$cohort_end_date >= local(endTimeBatches[[i]][2]) &
+                  .data$cohort_start_date <= local(startTimeBatches[[i]][2])),
+              .data$has_full_contribution + 1, .data$has_full_contribution
+            )
+        )
+    } else {
+      workingData <- workingData %>%
+        dplyr::mutate(
+          has_full_contribution =
+            dplyr::if_else(
+              .data$cohort_end_date >= local(endTimeBatches[[i]][1]) &
+                .data$cohort_start_date <= local(startTimeBatches[[i]][1]),
+              .data$has_full_contribution + 1, .data$has_full_contribution
+            )
+        )
+    }
+     if (i %% 5 == 0) {
+      workingData <- workingData %>% dplyr::compute()
+     }
+  }
+  return(workingData)
 }
