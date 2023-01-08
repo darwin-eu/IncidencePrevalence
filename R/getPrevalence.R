@@ -630,9 +630,7 @@ addFullContributionFlag <- function(workingData, workingStudyDays) {
             )
         )
     }
-     if (i %% 5 == 0) {
       workingData <- workingData %>% dplyr::compute()
-     }
   }
   return(workingData)
 }
