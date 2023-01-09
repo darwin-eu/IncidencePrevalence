@@ -133,7 +133,7 @@ getPrevalence <- function(cdm,
     # looping through each time interval
 
     # bring in to R
-    studyPopLocal <- arrow::arrow_table(studyPop %>% dplyr::collect())
+    studyPopLocal <- studyPop %>% dplyr::collect()
 
     # pr <- list()
     pr <- vector(mode = "list", length = length(studyDays$time))
@@ -174,8 +174,7 @@ getPrevalence <- function(cdm,
               .env$workingEnd,
               .data$cohort_end_date
             )
-        ) %>%
-        dplyr::collect()
+        )
 
       if (is.null(outcomeLookbackDays)) {
         # include any time prior
@@ -183,7 +182,7 @@ getPrevalence <- function(cdm,
           dplyr::summarise(
             n_persons = dplyr::n_distinct(.data$subject_id),
             n_cases = dplyr::n_distinct(.data$subject_id[
-              !is.na(outcome_start_date) &
+              !is.na(.data$outcome_start_date) &
                 .data$outcome_start_date <= .data$cohort_end_date
             ])
           )
@@ -193,7 +192,7 @@ getPrevalence <- function(cdm,
           dplyr::summarise(
             n_persons = dplyr::n_distinct(.data$subject_id),
             n_cases = dplyr::n_distinct(.data$subject_id[
-              !is.na(outcome_start_date) &
+              !is.na(.data$outcome_start_date) &
                 .data$outcome_start_date <= .data$cohort_end_date &
                 .data$outcome_end_date >=
                   (.data$cohort_start_date - lubridate::days(.env$outcomeLookbackDays))
@@ -205,7 +204,7 @@ getPrevalence <- function(cdm,
           dplyr::summarise(
             n_persons = dplyr::n_distinct(.data$subject_id),
             n_cases = dplyr::n_distinct(.data$subject_id[
-              !is.na(outcome_start_date) &
+              !is.na(.data$outcome_start_date) &
                 .data$outcome_start_date <= .data$cohort_end_date &
                 .data$outcome_end_date >= .data$cohort_start_date
             ])
@@ -220,9 +219,6 @@ getPrevalence <- function(cdm,
     }
 
     pr <- dplyr::bind_rows(pr) %>%
-      # # note, arrow currently returns zero counts as NA
-      # dplyr::mutate(n_population = tidyr::replace_na(n_population, 0)) %>%
-      # dplyr::mutate(n_cases = tidyr::replace_na(n_cases, 0)) %>%
       dplyr::mutate(prevalence = .data$n_cases / .data$n_population) %>%
       dplyr::select(
         "n_cases", "n_population",
@@ -630,7 +626,9 @@ addFullContributionFlag <- function(workingData, workingStudyDays) {
             )
         )
     }
+    if (i %% 2 == 0) {
       workingData <- workingData %>% dplyr::compute()
+    }
   }
   return(workingData)
 }
