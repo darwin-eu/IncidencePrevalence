@@ -58,66 +58,62 @@ test_that("oracle prevalence test", {
   DBI::dbDisconnect(con)
 })
 
-# test_that("oracle Incidence test", {
-#   skip_on_ci()
-#
-#   con <- DBI::dbConnect(odbc::odbc(), "OracleODBC-19")
-#
-#   # Increase the number of temp tables from 16 (default) to 32
-#   # DBI::dbExecute(con, 'ALTER SYSTEM SET "_ptt_max_num"=32 SCOPE = BOTH;') # need privileges though.
-#
-#   cdm <- CDMConnector::cdm_from_con(
-#     con = con,
-#     cdm_schema = "CDMV5",
-#     cdm_tables = c(CDMConnector::tbl_group("default"), -visit_detail) # visit_detail is missing in Oracle test database
-#   )
-#
-#   cdm$denominator <- generateDenominatorCohortSet(
-#     cdm = cdm,
-#     startDate = as.Date("2007-01-01"),
-#     ageGroup = list(
-#       # c(40, 150),
-#       c(40, 64)
-#     ),
-#     # sex = c("Male", "Female"), # too many temp tables created
-#     sex = c("Male"),
-#     daysPriorHistory = 365,
-#     sample = 1000000,
-#     verbose = TRUE
-#   )
-#
-#   expect_s3_class(dplyr::collect(head(cdm$denominator)), "data.frame")
-#
-#   cdm$outcome <- cdm$denominator %>% head(10000) %>% CDMConnector::computeQuery()
-#
-#   inc <- estimateIncidence(
-#     cdm = cdm,
-#     denominatorTable = "denominator",
-#     outcomeTable = "outcome",
-#     verbose = TRUE
-#   )
-#
-#   inc2 <- estimateIncidence(
-#     cdm = cdm,
-#     denominatorTable = "denominator",
-#     outcomeTable = "outcome",
-#     outcomeWashout = 180,
-#     verbose = TRUE
-#   )
-#
-#   results <- gatherIncidencePrevalenceResults(
-#     resultList = list(pont_prev, period_prev, inc, inc2),
-#     outcomeCohortName = "test_sample",
-#     outcomeCohortId = 1,
-#     databaseName = "test_database"
-#   )
-#   expect_true(all(names(results) == c(
-#     "prevalence_estimates",
-#     "incidence_estimates"
-#   )))
-#
-#   DBI::dbDisconnect(con)
-# })
+test_that("oracle Incidence test", {
+  skip_on_ci()
+  skip("fails because too many temp tables are created")
+
+  con <- DBI::dbConnect(odbc::odbc(), "OracleODBC-19")
+
+  # Increase the number of temp tables from 16 (default) to 32
+  # DBI::dbExecute(con, 'ALTER SYSTEM SET "_ptt_max_num"=32 SCOPE = BOTH;') # need privileges though.
+
+  cdm <- CDMConnector::cdm_from_con(
+    con = con,
+    cdm_schema = "CDMV5",
+    cdm_tables = c(CDMConnector::tbl_group("default"), -visit_detail) # visit_detail is missing in Oracle test database
+  )
+
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm,
+    startDate = as.Date("2007-01-01"),
+    daysPriorHistory = 365,
+    sample = 1000000,
+    verbose = TRUE
+  )
+
+  expect_s3_class(dplyr::collect(head(cdm$denominator)), "data.frame")
+
+  cdm$outcome <- cdm$denominator %>% head(10000) %>% CDMConnector::computeQuery()
+
+  inc <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    verbose = TRUE
+  )
+
+  inc2 <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    outcomeWashout = 180,
+    verbose = TRUE
+  )
+
+  results <- gatherIncidencePrevalenceResults(
+    resultList = list(pont_prev, period_prev, inc, inc2),
+    outcomeCohortName = "test_sample",
+    outcomeCohortId = 1,
+    databaseName = "test_database"
+  )
+  expect_true(all(names(results) == c(
+    "prevalence_estimates",
+    "incidence_estimates"
+  )))
+
+  DBI::dbDisconnect(con)
+})
+
 #
 # test_that("benchmark dementia analysis", {
 #   skip_if(Sys.getenv("DB_SERVER_cdmgold202007_dbi") == "")
