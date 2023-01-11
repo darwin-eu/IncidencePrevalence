@@ -389,7 +389,7 @@ estimateIncidence <- function(cdm,
   attrition <- dplyr::bind_rows(attrition,
     .id = NULL
   ) %>%
-    dplyr::select(!"denominator_cohort_id")
+    dplyr::select(-"denominator_cohort_id")
 
 
   # incidence estimates

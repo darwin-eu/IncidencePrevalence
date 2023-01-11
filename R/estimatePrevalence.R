@@ -468,7 +468,7 @@ estimatePrevalence <- function(cdm,
   attrition <- dplyr::bind_rows(attrition,
     .id = NULL
   ) %>%
-    dplyr::select(!"denominator_cohort_id")
+    dplyr::select(-"denominator_cohort_id")
 
   # return results as an IncidencePrevalenceResult class
   attr(prs, "settings") <- analysisSettings%>%
