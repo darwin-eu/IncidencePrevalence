@@ -118,7 +118,7 @@ getIncidence <- function(cdm,
             min(.data$cohort_start_date, na.rm = TRUE)) %>%
           dplyr::ungroup()
       ) %>%
-        dplyr::select(!"events_post")
+        dplyr::select(-"events_post")
     }
   }
 
@@ -202,7 +202,6 @@ getIncidence <- function(cdm,
       existingAttrition = attrition
     )
 
-    studyPop <- arrow::arrow_table(studyPop)
     # fetch incidence rates
     # looping through each time interval
     ir <- list()

@@ -173,19 +173,19 @@ getDenominatorCohorts <- function(cdm,
           )))
     ) %>%
     dplyr::mutate(dob = !!CDMConnector::asDate(paste0(
-      .data$year_of_birth1, "/",
-      .data$month_of_birth1, "/",
-      .data$day_of_birth1
+      as.character(.data$year_of_birth1), "-",
+      as.character(.data$month_of_birth1), "-",
+      as.character(.data$day_of_birth1)
     ))) %>%
-    dplyr::select(!c("year_of_birth1", "month_of_birth1", "day_of_birth1"))
+    dplyr::select(-c("year_of_birth1", "month_of_birth1", "day_of_birth1"))
 
   # filter for those within the age limits (of all the age strata)
   # during the study
   lowerAgeLimit <- min(minAge)
   upperAgeLimit <- max(maxAge)
 
-  startDate_ <- stringr::str_replace_all(as.character(startDate), "-", "/")
-  endDate_ <- stringr::str_replace_all(as.character(endDate), "-", "/")
+  startDate_ <- as.character(startDate)
+  endDate_ <- as.character(endDate)
 
   studyPopDb <- studyPopDb %>%
     dplyr::mutate(lower_age_check = !!CDMConnector::dateadd("dob",

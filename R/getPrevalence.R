@@ -93,8 +93,8 @@ getPrevalence <- function(cdm,
     # drop for complete database intervals requirement
     minStartDate <- min(studyDays$start_time)
     maxStartDate <- max(studyDays$end_time)
-    minStartDate_ <- stringr::str_replace_all(as.character(minStartDate), "-", "/")
-    maxStartDate_ <- stringr::str_replace_all(as.character(maxStartDate), "-", "/")
+    minStartDate_ <- as.character(minStartDate)
+    maxStartDate_ <- as.character(maxStartDate)
     studyPop <- studyPop %>%
       dplyr::mutate(minStartDate = !!CDMConnector::asDate(.env$minStartDate_),
                     maxStartDate = !!CDMConnector::asDate(.env$maxStartDate_)) %>%
@@ -313,7 +313,7 @@ getPrevalence <- function(cdm,
 
       studyPop <- studyPop %>%
         dplyr::filter(.data$has_full_contribution >= 1) %>%
-        dplyr::select(!"has_full_contribution") %>%
+        dplyr::select(-"has_full_contribution") %>%
         CDMConnector::computeQuery()
 
       attrition <- recordAttrition(
@@ -337,7 +337,6 @@ getPrevalence <- function(cdm,
 
     # bring in to arrow
     studyPop <- studyPop %>% dplyr::collect()
-    # studyPop <- arrow::arrow_table(studyPop %>% dplyr::collect()) # had issue with R crashing when creating workingPop using arrow
 
     pr <- list()
     for (i in seq_along(studyDays$time)) {
