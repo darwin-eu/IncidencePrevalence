@@ -54,85 +54,82 @@ test_that("postgres test", {
     verbose = TRUE
   )
 
-  results <- gatherIncidencePrevalenceResults(
-    resultList = list(pont_prev, period_prev, inc, inc2),
-    outcomeCohortName = "test_sample",
-    outcomeCohortId = 1,
-    databaseName = "test_database"
-  )
-  expect_true(all(names(results) == c(
-    "prevalence_estimates",
-    "incidence_estimates"
-  )))
+  # run for a random sample of 1000
+  # if we want to run in full remove sample
+  timings <- benchmarkIncidencePrevalence(cdm,
+                                                    verbose = TRUE,
+                                                    sample=1000)
+
+
 })
 
-test_that("benchmark dementia analysis", {
-  skip_if(Sys.getenv("DB_SERVER_cdmgold202007_dbi") == "")
+test_that("another postgres test", {
+  skip_if(Sys.getenv("CDM5_POSTGRESQL_USER") == "")
 
-  db <- DBI::dbConnect(RPostgres::Postgres(),
-                       dbname = Sys.getenv("DB_SERVER_cdmgold202007_dbi"),
-                       port = Sys.getenv("DB_PORT"),
-                       host = Sys.getenv("DB_HOST"),
-                       user = Sys.getenv("DB_USER"),
-                       password = Sys.getenv("DB_PASSWORD")
-  )
+  con <- DBI::dbConnect(RPostgres::Postgres(),
+                       dbname = Sys.getenv("CDM5_POSTGRESQL_DBNAME"),
+                       host = Sys.getenv("CDM5_POSTGRESQL_HOST"),
+                       user = Sys.getenv("CDM5_POSTGRESQL_USER"),
+                       password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD"))
+
   cdm <- CDMConnector::cdm_from_con(
-    con = db,
-    cdm_schema = "public"
+    con = con,
+    cdm_schema = Sys.getenv("CDM5_POSTGRESQL_CDM_SCHEMA")
   )
-  outcome_cohorts <- CDMConnector::readCohortSet(here::here("inst",
-                                                            "outcome_cohorts"))
-  # run dementia
-  dementia_cohort <- outcome_cohorts %>%
-    dplyr::filter(cohortName == "dementia")
-  cdm <- CDMConnector::generateCohortSet(cdm, dementia_cohort,
-                           cohortTableName = "incprevbench_dementia",
-                           overwrite = TRUE
-  )
-  timings_simple_dementia <- benchmarkIncidencePrevalence(cdm,
-    outcomeTableBench = "incprevbench_dementia",
-    type = "simple",
-    estimationInterval = "years",
+
+  cdm$denominator <- generateDenominatorCohortSet(
+    cdm = cdm,
+    startDate = as.Date("2007-01-01"),
+    ageGroup = list(
+      c(40, 150),
+      c(40, 64)
+    ),
+    sex = c("Male", "Female"),
+    daysPriorHistory = 365,
+    sample = 1000000,
     verbose = TRUE
   )
-  timings_simple_dementia$outcome <- "dementia"
 
-  timings_typical_dementia <- benchmarkIncidencePrevalence(cdm,
-                                                           outcomeTableBench = "incprevbench_dementia",
-                                                           type = "typical",
-                                                           estimationInterval = "years",
-                                                           verbose = TRUE
+  cdm$outcome <- cdm$denominator %>% head(10000) %>% CDMConnector::computeQuery()
+
+  point_prev <- estimatePointPrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    verbose = TRUE
   )
 
+  expect_s3_class(point_prev, "IncidencePrevalenceResult")
 
-  # run paracetamol
-  paracetamol_cohort <- outcome_cohorts %>%
-    dplyr::filter(cohortName == "paracetamol")
-  cdm <- CDMConnector::generateCohortSet(cdm, paracetamol_cohort,
-                                         cohortTableName = "incprevbench_paracetamol",
-                                         overwrite = TRUE
+  period_prev <- estimatePeriodPrevalence(completeDatabaseIntervals =FALSE,
+                                          cdm = cdm,
+                                          denominatorTable = "denominator",
+                                          outcomeTable = "outcome",
+                                          verbose = TRUE
   )
-  timings_simple_paracetamol <- benchmarkIncidencePrevalence(cdm,
-                                                          outcomeTableBench = "incprevbench_paracetamol",
-                                                          type = "simple",
-                                                          estimationInterval = "years",
-                                                          verbose = TRUE
+
+  expect_s3_class(period_prev, "IncidencePrevalenceResult")
+
+  inc <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    verbose = TRUE
   )
-  timings_simple_paracetamol$outcome <- "dementia"
-  timings_simple_paracetamol$nrow_outcome<- cdm$incprevbench_dementia %>%
-    dplyr::count() %>% dplyr::pull()
 
+  expect_s3_class(inc, "IncidencePrevalenceResult")
 
+  inc2 <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    outcomeWashout = 180,
+    verbose = TRUE
+  )
 
-  # expect this to take a long time to run!
-  # timings_simple<-benchmarkIncidencePrevalence(cdm,
-  #                                                   type = c("simple",
-  #                                                            "typical",
-  #                                                            "complex"),
-  #                                                   estimationInterval = c("weeks",
-  #                                                                          "months",
-  #                                                                          "quarters",
-  #                                                                          "years"),
-  #                                                   verbose = TRUE)
+  expect_s3_class(inc, "IncidencePrevalenceResult")
 
+  DBI::dbDisconnect(con)
 })
+
+

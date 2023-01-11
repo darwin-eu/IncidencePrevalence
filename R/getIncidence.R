@@ -76,8 +76,8 @@ getIncidence <- function(cdm,
   if (is.null(outcomeWashout)) {
     # exclude anyone with a previous outcome
     studyPopOutcome <- studyPopOutcome %>%
-      dplyr::filter(is.na(.data$outcome_prev_end_date)) %>%
-      dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
+      dplyr::filter(is.na(.data$outcome_prev_end_date) &
+                  .data$cohort_start_date <= .data$cohort_end_date)
   } else {
     # otherwise add the washout to the previous outcome
     outcomeWashoutPlusOne <- outcomeWashout + 1
@@ -133,8 +133,7 @@ getIncidence <- function(cdm,
   # combine those without an outcome back with those with an outcome
   # this is now our study population to get the incidence rates for
   studyPopDb <- studyPopNoOutcome %>%
-    dplyr::union_all(studyPopOutcome) %>%
-    CDMConnector::computeQuery()
+    dplyr::union_all(studyPopOutcome)
 
   studyPop <- studyPopDb %>%
     dplyr::collect()
@@ -214,27 +213,26 @@ getIncidence <- function(cdm,
         dplyr::filter(.data$cohort_end_date >= .env$workingStartTime &
           .data$cohort_start_date <= .env$workingEndTime)
 
-      if (nrow(workingPop %>% dplyr::collect() > 0)) {
+      if (nrow(workingPop) > 0) {
         # individuals start date for this period
         # which could be start of the period or later
         workingPop <- workingPop %>%
-          dplyr::mutate(tStart = dplyr::if_else(.data$cohort_start_date <=
-            .env$workingStartTime, .env$workingStartTime,
-          .data$cohort_start_date
+          dplyr::mutate(tStart = dplyr::if_else(.data$cohort_start_date <= .env$workingStartTime,
+            as.Date(.env$workingStartTime),
+            as.Date(.data$cohort_start_date)
           )) %>%
           # individuals end date for this period
           # end of the period or earlier
           dplyr::mutate(
             tEnd =
               dplyr::if_else(.data$cohort_end_date >= .env$workingEndTime,
-                .env$workingEndTime,
-                .data$cohort_end_date
+                as.Date(.env$workingEndTime),
+                as.Date(.data$cohort_end_date)
               )
           )
 
         # compute working days
         workingPop <- workingPop %>%
-          dplyr::collect() %>%
           dplyr::mutate(workingDays = as.numeric(difftime(
             .data$tEnd,
             .data$tStart,
@@ -246,7 +244,7 @@ getIncidence <- function(cdm,
           dplyr::mutate(outcome_start_date = dplyr::if_else(
             .data$outcome_start_date <= .data$tEnd &
               .data$outcome_start_date >= .data$tStart,
-            .data$outcome_start_date,
+            as.Date(.data$outcome_start_date),
             as.Date(NA)
           ))
 

@@ -127,9 +127,7 @@ getDenominatorCohorts <- function(cdm,
 
   studyPopDb <- personDb %>%
     dplyr::left_join(observationPeriodDb,
-      by = "person_id",
-      x_as = "x",
-      y_as = "y"
+      by = "person_id", x_as = "x", y_as = "y"
     ) %>%
     dplyr::filter(!is.na(.data$year_of_birth))
 
@@ -164,12 +162,12 @@ getDenominatorCohorts <- function(cdm,
       year_of_birth1 = as.character(as.integer(.data$year_of_birth)),
       month_of_birth1 = as.character(as.integer(
           dplyr::if_else(is.na(.data$month_of_birth),
-            1L, .data$month_of_birth
+                         1L, .data$month_of_birth
           )
         )),
       day_of_birth1 = as.character(as.integer(
           dplyr::if_else(is.na(.data$day_of_birth),
-            1L, .data$day_of_birth
+                         1L, .data$day_of_birth
           )))
     ) %>%
     dplyr::mutate(dob = !!CDMConnector::asDate(paste0(
@@ -441,8 +439,8 @@ getDenominatorCohorts <- function(cdm,
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
             !!glue::glue("date_min_age{minAgeBatches[[i]][[1]]}") :=
-              as.Date(!!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[1]]}},
-                                              interval = "year"))
+              !!CDMConnector::dateadd("dob", {{minAgeBatches[[i]][[1]]}},
+                                              interval = "year")
           ) %>% CDMConnector::computeQuery()
 
       }
@@ -851,12 +849,12 @@ getDenominatorCohorts <- function(cdm,
         studyPopDb<-studyPopDb %>%
           dplyr::mutate(
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
-              as.Date(!!CDMConnector::dateadd(
-                "dob", {{maxAgeBatchesPlusOne[[i]][[1]]}}, interval = "year"))) %>%
+              !!CDMConnector::dateadd(
+                "dob", {{maxAgeBatchesPlusOne[[i]][[1]]}}, interval = "year")) %>%
           dplyr::mutate(
             !!glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}") :=
-              as.Date(!!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}"),
-                                               -1, interval = "day"))) %>%
+              !!CDMConnector::dateadd( glue::glue("date_max_age{maxAgeBatches[[i]][[1]]}"),
+                                               -1, interval = "day")) %>%
           CDMConnector::computeQuery()
       }
 
@@ -1073,8 +1071,8 @@ getDenominatorCohorts <- function(cdm,
         studyPopDb <- studyPopDb %>%
           dplyr::mutate(
             !!glue::glue("date_with_prior_history{daysPriorHistoryBatches[[i]][[1]]}") :=
-              as.Date(!!CDMConnector::dateadd("observation_period_start_date", {{daysPriorHistoryBatches[[i]][[1]]}},
-                                              interval = "day"))
+              !!CDMConnector::dateadd("observation_period_start_date", {{daysPriorHistoryBatches[[i]][[1]]}},
+                                              interval = "day")
           ) %>% CDMConnector::computeQuery()
 
       }
@@ -1087,7 +1085,7 @@ getDenominatorCohorts <- function(cdm,
     studyPopDb <- studyPopDb %>%
       dplyr::filter(
         .data[[!!rlang::sym(varLowerAgeLimit)]] <=
-        .data$endDate &
+          .data$endDate &
       .data[[!!rlang::sym(varUpperAgeLimit)]] >=
         .data$startDate)
 
