@@ -46,7 +46,7 @@ getPrevalence <- function(cdm,
         ),
       by = "subject_id"
     ) %>%
-    dplyr::compute()
+    CDMConnector::computeQuery()
 
   attrition <- recordAttrition(
     table = studyPop,
@@ -57,11 +57,13 @@ getPrevalence <- function(cdm,
   # start date
   start <- studyPop %>%
     dplyr::summarise(min(.data$cohort_start_date, na.rm = TRUE)) %>%
-    dplyr::pull()
+    dplyr::pull() %>%
+    as.Date()
   # end date
   end <- studyPop %>%
     dplyr::summarise(max(.data$cohort_end_date, na.rm = TRUE)) %>%
-    dplyr::pull()
+    dplyr::pull() %>%
+    as.Date()
   # get studyDays as a function of inputs
   studyDays <- getStudyDays(
     startDate = start,
@@ -92,9 +94,14 @@ getPrevalence <- function(cdm,
     # drop for complete database intervals requirement
     minStartDate <- min(studyDays$start_time)
     maxStartDate <- max(studyDays$end_time)
+    minStartDate_ <- as.character(minStartDate)
+    maxStartDate_ <- as.character(maxStartDate)
     studyPop <- studyPop %>%
-      dplyr::filter(.data$cohort_end_date >= minStartDate) %>%
-      dplyr::filter(.data$cohort_start_date <= maxStartDate)
+      dplyr::mutate(minStartDate = !!CDMConnector::asDate(.env$minStartDate_),
+                    maxStartDate = !!CDMConnector::asDate(.env$maxStartDate_)) %>%
+      dplyr::filter(.data$cohort_end_date >= .data$minStartDate,
+                    .data$cohort_start_date <= .data$maxStartDate) %>%
+      dplyr::select(-minStartDate, -maxStartDate)
 
     attrition <- recordAttrition(
       table = studyPop,
@@ -112,7 +119,8 @@ getPrevalence <- function(cdm,
 
       studyPop <- studyPop %>%
         dplyr::filter(.data$has_full_contribution >= 1) %>%
-        dplyr::select(!"has_full_contribution")
+        dplyr::select(-"has_full_contribution") %>%
+        CDMConnector::computeQuery()
 
       attrition <- recordAttrition(
         table = studyPop,
@@ -165,14 +173,14 @@ getPrevalence <- function(cdm,
           cohort_start_date =
             dplyr::if_else(.data$cohort_start_date <= .env$workingStart,
               .env$workingStart,
-              .data$cohort_start_date
+              as.Date(.data$cohort_start_date)
             ),
           # individuals end date for this period
           # end of the period or earlier
           cohort_end_date =
             dplyr::if_else(.data$cohort_end_date >= .env$workingEnd,
               .env$workingEnd,
-              .data$cohort_end_date
+              as.Date(.data$cohort_end_date)
             )
         )
 

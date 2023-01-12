@@ -42,7 +42,7 @@
 #' a cohort.
 #' @param strataTable A cohort table in the cdm reference to use
 #' to limit cohort entry and exit (with individuals only contributing to a
-#' cohort when they are contibuting to the cohort in the stata table).
+#' cohort when they are contributing to the cohort in the strata table).
 #' @param strataCohortId The cohort definition id for the cohort of interest
 #'  in the strata table. Only one stratifying cohort is supported.
 #' @param strataCohortName Corresponding name for the strata cohort.
@@ -382,7 +382,7 @@ generateDenominatorCohortSet <- function(cdm,
         message(glue::glue("Unioning cohorts"))
       }
       studyPops <- Reduce(dplyr::union_all, studyPops) %>%
-        dplyr::compute()
+        CDMConnector::computeQuery()
     }
     if (length(studyPops) >= 10) {
         # if 10 or more
@@ -401,12 +401,12 @@ generateDenominatorCohortSet <- function(cdm,
           }
           studyPopsBatches[[i]] <- Reduce(dplyr::union_all,
                                           studyPopsBatches[[i]]) %>%
-            dplyr::compute()
+            CDMConnector::computeQuery()
         }
         cli::cli_progress_done()
 
         studyPops <- Reduce(dplyr::union_all, studyPopsBatches) %>%
-          dplyr::compute()
+          CDMConnector::computeQuery()
       }
     }
 

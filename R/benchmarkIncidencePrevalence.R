@@ -94,7 +94,7 @@ benchmarkIncidencePrevalence <- function(cdm,
   cdm$bench_outcome <- cdm$denominator_typical %>%
     dplyr::filter(.data$cohort_definition_id == 1) %>%
     utils::head(n_sample) %>%
-    dplyr::compute()
+    CDMConnector::computeQuery()
 
   tictoc::tic()
   point_prev_typical_years <- estimatePointPrevalence(

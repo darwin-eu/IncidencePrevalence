@@ -44,7 +44,7 @@ a cohort.}
 
 \item{strataTable}{A cohort table in the cdm reference to use
 to limit cohort entry and exit (with individuals only contributing to a
-cohort when they are contibuting to the cohort in the stata table).}
+cohort when they are contributing to the cohort in the strata table).}
 
 \item{strataCohortId}{The cohort definition id for the cohort of interest
 in the strata table. Only one stratifying cohort is supported.}

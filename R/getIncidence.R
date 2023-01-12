@@ -47,7 +47,7 @@ getIncidence <- function(cdm,
         "cohort_end_date"
       )
     ) %>%
-    dplyr::compute()
+    CDMConnector::computeQuery()
 
   attrition <- recordAttrition(
     table = studyPop,
@@ -118,7 +118,7 @@ getIncidence <- function(cdm,
             min(.data$cohort_start_date, na.rm = TRUE)) %>%
           dplyr::ungroup()
       ) %>%
-        dplyr::select(!"events_post")
+        dplyr::select(-"events_post")
     }
   }
 
@@ -217,17 +217,17 @@ getIncidence <- function(cdm,
         # individuals start date for this period
         # which could be start of the period or later
         workingPop <- workingPop %>%
-          dplyr::mutate(tStart = dplyr::if_else(.data$cohort_start_date <=
-            .env$workingStartTime, .env$workingStartTime,
-          .data$cohort_start_date
+          dplyr::mutate(tStart = dplyr::if_else(.data$cohort_start_date <= .env$workingStartTime,
+            as.Date(.env$workingStartTime),
+            as.Date(.data$cohort_start_date)
           )) %>%
           # individuals end date for this period
           # end of the period or earlier
           dplyr::mutate(
             tEnd =
               dplyr::if_else(.data$cohort_end_date >= .env$workingEndTime,
-                .env$workingEndTime,
-                .data$cohort_end_date
+                as.Date(.env$workingEndTime),
+                as.Date(.data$cohort_end_date)
               )
           )
 
@@ -244,7 +244,7 @@ getIncidence <- function(cdm,
           dplyr::mutate(outcome_start_date = dplyr::if_else(
             .data$outcome_start_date <= .data$tEnd &
               .data$outcome_start_date >= .data$tStart,
-            .data$outcome_start_date,
+            as.Date(.data$outcome_start_date),
             as.Date(NA)
           ))
 

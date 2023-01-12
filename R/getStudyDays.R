@@ -25,11 +25,15 @@
 #'
 #' @noRd
 getStudyDays <- function(startDate,
-                             endDate,
-                             timeInterval,
-                             completeDatabaseIntervals,
-                             type = "period",
-                             timePoint = NULL) {
+                         endDate,
+                         timeInterval,
+                         completeDatabaseIntervals,
+                         type = "period",
+                         timePoint = NULL) {
+
+  startDate <- as.Date(startDate)
+  endDate <- as.Date(endDate)
+
   if (timeInterval == "weeks") {
     weekCorrection <- lubridate::days(1)
   } else {

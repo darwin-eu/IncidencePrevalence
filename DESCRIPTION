@@ -36,7 +36,7 @@ Imports:
     purrr,
     tidyr,
     tidyselect,
-    CDMConnector (>= 0.3.0),
+    CDMConnector,
     stringr,
     zip
 Suggests: 
@@ -54,6 +54,8 @@ Suggests:
     tictoc,
     testthat (>= 3.0.0),
     spelling
+Remotes:
+    darwin-eu/CDMConnector
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Language: en-US
