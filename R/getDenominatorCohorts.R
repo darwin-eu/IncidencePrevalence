@@ -273,8 +273,6 @@ getDenominatorCohorts <- function(cdm,
         dplyr::mutate(!!!e2) %>%
         CDMConnector::computeQuery()
     }
-  }
-
 
     # for each prior_history requirement,
     # add the date at which they reach
@@ -399,7 +397,8 @@ getDenominatorCohorts <- function(cdm,
         CDMConnector::computeQuery()
     }
 
-  studyPopDb <- studyPopDb %>% CDMConnector::computeQuery()
+    studyPopDb <- studyPopDb %>% CDMConnector::computeQuery()
+  }
 
   # return list
   dpop <- list()
