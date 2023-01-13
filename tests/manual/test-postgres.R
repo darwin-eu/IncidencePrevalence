@@ -82,7 +82,8 @@ test_that("another postgres test", {
     startDate = as.Date("2007-01-01"),
     ageGroup = list(
       c(40, 150),
-      c(40, 64)
+      c(40, 64),
+      c(50, 64)
     ),
     sex = c("Male", "Female"),
     daysPriorHistory = 365,
@@ -105,7 +106,8 @@ test_that("another postgres test", {
                                           cdm = cdm,
                                           denominatorTable = "denominator",
                                           outcomeTable = "outcome",
-                                          verbose = TRUE
+                                          verbose = TRUE,
+                                          fullContribution = TRUE
   )
 
   expect_s3_class(period_prev, "IncidencePrevalenceResult")
