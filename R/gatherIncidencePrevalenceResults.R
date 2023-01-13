@@ -18,7 +18,7 @@
 #' Gather incidence and prevalence results
 #'
 #' @param cdm A CDM reference object
-#' @param resultList List of incididence and prevalence results
+#' @param resultList List of incidence and prevalence results
 #' @param databaseName A database name to add to to the results
 #'
 #' @return A list of up to two tibbles, one with prevalence results and one
