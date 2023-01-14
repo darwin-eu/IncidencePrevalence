@@ -9,7 +9,7 @@ gatherIncidencePrevalenceResults(cdm, resultList, databaseName = NULL)
 \arguments{
 \item{cdm}{A CDM reference object}
 
-\item{resultList}{List of incididence and prevalence results}
+\item{resultList}{List of incidence and prevalence results}
 
 \item{databaseName}{A database name to add to to the results}
 }

@@ -36,7 +36,7 @@ Incidence rates describe the rate at which new events occur in a population, wit
 
 There are a number of options to consider when calculating incidence rates. This package accommodates two main parameters, including:
 
-1. **Outcome washout**: The number of days used for a 'washout' period between the end of one outcome ending and an individual starting to contribute time at risk againg
+1. **Outcome washout**: The number of days used for a 'washout' period between the end of one outcome ending and an individual starting to contribute time at risk again.
 2. **Repeated events**: Whether individuals are able to contribute multiple events during the study period or if they will only contribute time up to their first event during the study period.
 
 ### No washout, no repetitive events
