@@ -227,73 +227,42 @@ getDenominatorCohorts <- function(cdm,
 
   # finalise population (if we still have people)
   if ((studyPopDb %>% dplyr::count() %>% dplyr::pull()) > 0) {
-    # only if we have found people
 
-    # add min ages
-    # batch to more than one at a time
-    minAgeBatches <- split(
-      minAge,
-      ceiling(seq_along(minAge) / 10)
-    )
-    # for each min age, add the date at which they reach it
-    for (i in seq_along(minAgeBatches)) {
-      j <- seq_along(minAgeBatches[[i]])
-      e <- glue::glue("as.Date(CDMConnector::dateadd('dob', {minAgeBatches[[i]][j]}, interval = 'year'))") %>%
+      # for each min age, add the date at which they reach it
+      minAgeDates <- glue::glue("as.Date(CDMConnector::dateadd('dob',
+                      {minAge[seq_along(minAge)]},
+                      interval = 'year'))") %>%
         rlang::parse_exprs() %>%
-        rlang::set_names(glue::glue("date_min_age{minAgeBatches[[i]][j]}"))
+        rlang::set_names(glue::glue("date_min_age{minAge[seq_along(minAge)]}"))
+
+      # for each max age, add the date at which they reach it
+      # the day before their next birthday
+       maxAgePlusOne <- maxAge +1
+       maxAgeDates <- glue::glue("as.Date(CDMConnector::dateadd('dob',
+                       {maxAgePlusOne},
+                       interval = 'year'))") %>%
+        rlang::parse_exprs() %>%
+        rlang::set_names(glue::glue("date_max_age{maxAge}"))
+
+       maxAgeDatesMinusDay <- glue::glue("CDMConnector::dateadd('date_max_age{maxAge}',
+                       -1, interval = 'day')") %>%
+        rlang::parse_exprs() %>%
+        rlang::set_names(glue::glue("date_max_age{maxAge}"))
+
+       # for each prior_history requirement,
+       # add the date at which they reach
+       # observation start date + prior_history requirement
+      priorHistoryDates <- glue::glue('as.Date(CDMConnector::dateadd("observation_period_start_date",
+                      {daysPriorHistory}, interval = "day"))') %>%
+        rlang::parse_exprs() %>%
+        rlang::set_names(glue::glue("date_with_prior_history{daysPriorHistory}"))
 
       studyPopDb <- studyPopDb %>%
-        dplyr::mutate(!!!e) %>%
+        dplyr::mutate(!!!minAgeDates, !!!maxAgeDates, !!!priorHistoryDates) %>%
+        dplyr::mutate(!!!maxAgeDatesMinusDay) %>%
         CDMConnector::computeQuery()
-    }
 
-    # for each max age, add the date at which they reach it
-    # the day before their next birthday
-    maxAgeBatches <- split(
-      maxAge,
-      ceiling(seq_along(maxAge) / 10)
-    )
-    maxAgeBatchesPlusOne <- split(
-      maxAge+1,
-      ceiling(seq_along(maxAge) / 10)
-    )
-
-    for (i in seq_along(maxAgeBatches)) {
-      j <- seq_along(minAgeBatches[[i]])
-      e1 <- glue::glue("CDMConnector::dateadd('dob', {maxAgeBatchesPlusOne[[i]][j]}, interval = 'year')") %>%
-        rlang::parse_exprs() %>%
-        rlang::set_names(glue::glue("date_max_age{maxAgeBatches[[i]][j]}"))
-
-      e2 <- glue::glue("CDMConnector::dateadd('date_max_age{maxAgeBatches[[i]][j]}', -1, interval = 'day')") %>%
-        rlang::parse_exprs() %>%
-        rlang::set_names(glue::glue("date_max_age{maxAgeBatches[[i]][j]}"))
-
-      studyPopDb <- studyPopDb %>%
-        dplyr::mutate(!!!e1) %>%
-        dplyr::mutate(!!!e2) %>%
-        CDMConnector::computeQuery()
-    }
-
-    # for each prior_history requirement,
-    # add the date at which they reach
-    # observation start date + prior_history requirement
-    daysPriorHistoryBatches <- split(
-      daysPriorHistory,
-      ceiling(seq_along(daysPriorHistory) / 10)
-    )
-
-    for (i in seq_along(daysPriorHistoryBatches)) {
-      j <- seq_along(daysPriorHistoryBatches[[i]])
-      e <- glue::glue('CDMConnector::dateadd("observation_period_start_date", {daysPriorHistoryBatches[[i]][j]}, interval = "day")') %>%
-        rlang::parse_exprs() %>%
-        rlang::set_names(glue::glue("date_with_prior_history{daysPriorHistoryBatches[[i]][j]}"))
-
-      studyPopDb <- studyPopDb %>%
-        dplyr::mutate(!!!e) %>%
-        CDMConnector::computeQuery()
-    }
-
-    # keep people only if they satisfy
+    # keep people only if they
     # satisfy age criteria at some point in the study
     varLowerAgeLimit <- glue::glue("date_min_age{lowerAgeLimit}")
     varUpperAgeLimit <- glue::glue("date_max_age{upperAgeLimit}")
@@ -311,7 +280,7 @@ getDenominatorCohorts <- function(cdm,
       existingAttrition = attrition
     )
 
-    # priory history criteria at some point in the study
+    # satisfy prior history criteria at some point in the study
     varLowerPriorHistory <-
       glue::glue("date_with_prior_history{min(daysPriorHistory)}")
     studyPopDb <- studyPopDb %>%
@@ -319,7 +288,8 @@ getDenominatorCohorts <- function(cdm,
       .data[[!!rlang::sym(varLowerPriorHistory)]] <=
         .data$endDate,
       .data[[!!rlang::sym(varLowerPriorHistory)]] <=
-        .data$observation_period_end_date)
+        .data$observation_period_end_date) %>%
+      CDMConnector::computeQuery()
 
     attrition <- recordAttrition(
       table = studyPopDb,
@@ -339,68 +309,50 @@ getDenominatorCohorts <- function(cdm,
     # for every combination of min age and prior history required
     ageHistCombos<- expand.grid(minAge = minAge,
                                 daysPriorHistory = daysPriorHistory)
-    ageHistBatchesAge <- split(
-      ageHistCombos$minAge,
-      ceiling(seq_along(ageHistCombos$minAge) / 10)
-    )
-    ageHistBatchesHist <- split(
-      ageHistCombos$daysPriorHistory,
-      ceiling(seq_along(ageHistCombos$daysPriorHistory) / 10)
-    )
 
-    for (i in seq_along(ageHistBatchesAge)) {
-      j <- seq_along(ageHistBatchesAge[[i]])
-      stopifnot(length(ageHistBatchesAge[[i]]) == length(ageHistBatchesHist[[i]]))
-
-      e1 <- glue::glue('dplyr::if_else(date_min_age{ageHistBatchesAge[[i]][j]} < date_with_prior_history{ageHistBatchesHist[[i]][j]},
-                                      date_with_prior_history{ageHistBatchesHist[[i]][j]},
-                                      date_min_age{ageHistBatchesAge[[i]][j]})') %>%
+    minAgeHistDates <- glue::glue('dplyr::if_else(date_min_age{ageHistCombos$minAge} < date_with_prior_history{ageHistCombos$daysPriorHistory},
+                                      date_with_prior_history{ageHistCombos$daysPriorHistory},
+                                      date_min_age{ageHistCombos$minAge})') %>%
         rlang::parse_exprs() %>%
-        rlang::set_names(glue::glue("last_of_min_age{ageHistBatchesAge[[i]][j]}prior_history{ageHistBatchesHist[[i]][j]}"))
+        rlang::set_names(glue::glue("last_of_min_age{ageHistCombos$minAge}prior_history{ageHistCombos$daysPriorHistory}"))
 
 
-      e2 <- glue::glue('dplyr::if_else(last_of_min_age{ageHistBatchesAge[[i]][j]}prior_history{ageHistBatchesHist[[i]][j]} < .env$startDate,
+    minAgeHistStartDates <- glue::glue('dplyr::if_else(last_of_min_age{ageHistCombos$minAge}prior_history{ageHistCombos$daysPriorHistory} < .env$startDate,
                                        .env$startDate,
-                                       last_of_min_age{ageHistBatchesAge[[i]][j]}prior_history{ageHistBatchesHist[[i]][j]})') %>%
+                                       last_of_min_age{ageHistCombos$minAge}prior_history{ageHistCombos$daysPriorHistory})') %>%
         rlang::parse_exprs() %>%
-        rlang::set_names(glue::glue("date_min_age{ageHistBatchesAge[[i]][j]}prior_history{ageHistBatchesHist[[i]][j]}"))
+        rlang::set_names(glue::glue("date_min_age{ageHistCombos$minAge}prior_history{ageHistCombos$daysPriorHistory}"))
 
       studyPopDb <- studyPopDb %>%
-        dplyr::mutate(!!!e1) %>%
-        dplyr::mutate(!!!e2) %>%
+        dplyr::mutate(!!!minAgeHistDates) %>%
+        dplyr::mutate(!!!minAgeHistStartDates) %>%
         CDMConnector::computeQuery()
-    }
 
     # cohort end dates
     # study end date,
     # end of observation,
     # max.age
     # (whichever comes first)
-    for (i in seq_along(maxAgeBatches)) {
-      j <- seq_along(maxAgeBatches[[i]])
-
-      e1 <- glue::glue('dplyr::if_else(date_max_age{maxAgeBatches[[i]][j]} < .data$observation_period_end_date,
-                                       date_max_age{maxAgeBatches[[i]][j]},
+    maxAgeObsPeriodDates <- glue::glue('dplyr::if_else(date_max_age{maxAge} < .data$observation_period_end_date,
+                                       date_max_age{maxAge},
                                        .data$observation_period_end_date)') %>%
         rlang::parse_exprs() %>%
-        rlang::set_names(glue::glue("first_of_max_age{maxAgeBatches[[i]][j]}ObsPeriod"))
+        rlang::set_names(glue::glue("first_of_max_age{maxAge}ObsPeriod"))
 
-      e2 <- glue::glue('dplyr::if_else(first_of_max_age{maxAgeBatches[[i]][j]}ObsPeriod < .data$endDate,
-                                       first_of_max_age{maxAgeBatches[[i]][j]}ObsPeriod,
+    maxAgeObsPeriodEndDates <- glue::glue('dplyr::if_else(first_of_max_age{maxAge}ObsPeriod < .data$endDate,
+                                       first_of_max_age{maxAge}ObsPeriod,
                                        .data$endDate)') %>%
         rlang::parse_exprs() %>%
-        rlang::set_names(glue::glue("date_max_age{maxAgeBatches[[i]][j]}"))
+        rlang::set_names(glue::glue("date_max_age{maxAge}"))
 
-      studyPopDb <- studyPopDb %>%
-        dplyr::mutate(!!!e1) %>%
-        dplyr::mutate(!!!e2)  %>%
+     studyPopDb <- studyPopDb %>%
+        dplyr::mutate(!!!maxAgeObsPeriodDates) %>%
+        dplyr::mutate(!!!maxAgeObsPeriodEndDates)  %>%
         CDMConnector::computeQuery()
-    }
 
-    studyPopDb <- studyPopDb %>% CDMConnector::computeQuery()
   }
 
-  # return list
+  # return list with population and attrition
   dpop <- list()
   dpop[["denominator_population"]] <- studyPopDb
   dpop[["attrition"]] <- attrition
