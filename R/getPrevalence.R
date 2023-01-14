@@ -110,17 +110,20 @@ getPrevalence <- function(cdm,
       existingAttrition = attrition
     )
 
-    # drop people who never fulfill fullContribution
-    # go period by period
-    # note we´re doing this out of the main loop below so that we can fill in
-    # the attrition table
+    # drop people who never fulfill contribution requirement
     if (fullContribution == TRUE) {
-      studyPop<- addFullContributionFlag(studyPop, studyDays)
+      checkExpression <- glue::glue("(.data$cohort_end_date >= local(studyDays$end_time[{seq_along(studyDays)}]) &
+           .data$cohort_start_date <= local(studyDays$start_time[{seq_along(studyDays)}]))") %>%
+        paste0(collapse = "||") %>%
+        rlang::parse_expr()
 
       studyPop <- studyPop %>%
+        dplyr::mutate(
+          has_full_contribution = dplyr::if_else(!!checkExpression,
+                                                 1L,
+                                                 0L))  %>%
         dplyr::filter(.data$has_full_contribution >= 1) %>%
-        dplyr::select(-"has_full_contribution") %>%
-        CDMConnector::computeQuery()
+        dplyr::select(-"has_full_contribution")
 
       attrition <- recordAttrition(
         table = studyPop,
@@ -244,50 +247,3 @@ getPrevalence <- function(cdm,
   return(results)
 }
 
-
-
-# we want to check if someone satisfies the full contribution criteria
-# for at least one of the periods (of which there can be a varying number)
-# because going period by period leads to clumsy sql, we want to get a
-# case when statement which includes each of these
-
-# at the momenet we´ll do this by batching and some convoluted if else logic to
-# account for different batch lengths (as the last batch length is unknown)
-# note, we´ll compute every 5th batch to keep the generated sql manageable
-
-# this could be improved by generating one case when with all the periods
-addFullContributionFlag <- function(workingData, workingStudyDays) {
-  workingData <- workingData %>% dplyr::mutate(has_full_contribution = 0)
-  # update if they do have a full contribution
-
-  # we´re going to update the 10 (or less) intervals at a time
-  startTimeBatches <- split(
-    workingStudyDays$start_time,
-    ceiling(seq_along(workingStudyDays$start_time) / 15)
-  )
-  endTimeBatches <- split(
-    workingStudyDays$end_time,
-    ceiling(seq_along(workingStudyDays$start_time) / 15)
-  )
-  for (i in seq_along(startTimeBatches)) {
-    # all except the last batch should have maximum length
-    # the last batch will be whatever is left over
-
-    checkExpression <- glue::glue("(.data$cohort_end_date >= local(endTimeBatches[[i]][{seq_along(startTimeBatches[[i]])}]) &
-           .data$cohort_start_date <= local(startTimeBatches[[i]][{seq_along(startTimeBatches[[i]])}]))") %>%
-      paste0(collapse = "||") %>%
-      rlang::parse_expr()
-
-    workingData <- workingData %>%
-      dplyr::mutate(
-        has_full_contribution = dplyr::if_else(!!checkExpression,
-                                               .data$has_full_contribution + 1,
-                                               .data$has_full_contribution)
-      )
-
-    if (i %% 2 == 0) {
-      workingData <- workingData %>% dplyr::compute()
-    }
-  }
-  return(workingData)
-}
