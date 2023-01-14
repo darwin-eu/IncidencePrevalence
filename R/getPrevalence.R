@@ -123,7 +123,8 @@ getPrevalence <- function(cdm,
                                                  1L,
                                                  0L))  %>%
         dplyr::filter(.data$has_full_contribution >= 1) %>%
-        dplyr::select(-"has_full_contribution")
+        dplyr::select(-"has_full_contribution")  %>%
+        CDMConnector::computeQuery()
 
       attrition <- recordAttrition(
         table = studyPop,

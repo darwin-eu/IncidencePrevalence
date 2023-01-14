@@ -639,6 +639,53 @@ test_that("mock db: check washout windows", {
     sum(incW365$person_days))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+
+  # never satisfy criteria in study period
+  personTable <- tibble::tibble(
+    person_id = "1",
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id = "1",
+    person_id = "1",
+    observation_period_start_date = as.Date("2010-01-01"),
+    observation_period_end_date = as.Date("2012-12-31")
+  )
+  outcomeTable <- tibble::tibble(
+    cohort_definition_id = 1,
+    subject_id = "1",
+    cohort_start_date = c(
+      as.Date("2009-06-01")
+    ),
+    cohort_end_date = c(
+      as.Date("2010-06-02")
+    )
+  )
+
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    outcomeTable = outcomeTable
+  )
+
+  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+
+  incW365 <- estimateIncidence(cdm,
+                               denominatorTable = "denominator",
+                               outcomeTable = "outcome",
+                               repeatedEvents = TRUE,
+                               outcomeWashout = 36500,
+                               completeDatabaseIntervals = FALSE,
+                               minCellCount = 0
+  )
+  expect_true(nrow(incW365) == 0)
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
 })
 
 test_that("mock db: check events overlapping with start of a period", {

@@ -457,6 +457,76 @@ test_that("mock db: check study time periods", {
   expect_true(nrow(prev) == 12)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+  # should return empty if no study days
+  personTable <- tibble::tibble(
+    person_id = "1",
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id = "1",
+    person_id = "1",
+    observation_period_start_date = as.Date("2010-01-01"),
+    observation_period_end_date = as.Date("2010-11-15")
+  )
+  outcomeTable <- tibble::tibble(
+    cohort_definition_id = 1,
+    subject_id = "1",
+    cohort_start_date = c(
+      as.Date("2010-02-05"),
+      as.Date("2010-02-08"),
+      as.Date("2010-02-20")
+    ),
+    cohort_end_date = c(
+      as.Date("2010-02-05"),
+      as.Date("2010-02-08"),
+      as.Date("2010-02-20")
+    )
+  )
+
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    outcomeTable = outcomeTable
+  )
+
+  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+
+  prev <- estimatePrevalence(cdm,
+                             denominatorTable = "denominator",
+                             outcomeTable = "outcome",
+                             type = "period",
+                             fullContribution = TRUE,
+                             interval = "weeks",
+                             verbose = FALSE
+  )
+  expect_true(nrow(prev) == 45)
+
+  prev <- estimatePrevalence(cdm,
+                             denominatorTable = "denominator",
+                             outcomeTable = "outcome",
+                             type = "period",
+                             fullContribution = TRUE,
+                             interval = "months",
+                             verbose = FALSE
+  )
+  expect_true(nrow(prev) == 10)
+
+  prev <- estimatePrevalence(cdm,
+                             denominatorTable = "denominator",
+                             outcomeTable = "outcome",
+                             type = "period",
+                             fullContribution = TRUE,
+                             interval = "years",
+                             verbose = FALSE
+  )
+  expect_true(nrow(prev) == 0)
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
 })
 
 test_that("mock db: check fullContribution requirement", {

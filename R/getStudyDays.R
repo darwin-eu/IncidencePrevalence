@@ -123,7 +123,8 @@ getStudyDays <- function(startDate,
       if(timeInterval == "weeks"){
         studyDays<- studyDays %>%
           dplyr::filter(difftime(studyDays$end_time,
-                                 studyDays$start_time) == 6)
+                                 studyDays$start_time,
+                                 units = "days") == 6)
       } else {
         studyDays <- studyDays %>%
           dplyr::filter(.data$start_time ==
