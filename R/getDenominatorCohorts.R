@@ -24,7 +24,9 @@ getDenominatorCohorts <- function(cdm,
                               daysPriorHistory,
                               strataTable,
                               strataCohortId,
-                              sample) {
+                              sample,
+                              computePermanent,
+                              computePermanentStem) {
 
   # make sure names are lowercase and keep variables required
   personDb <- dplyr::rename_with(cdm$person, tolower) %>%
@@ -259,6 +261,7 @@ getDenominatorCohorts <- function(cdm,
 
       studyPopDb <- studyPopDb %>%
         dplyr::mutate(!!!minAgeDates, !!!maxAgeDates, !!!priorHistoryDates) %>%
+        dplyr::collapse() %>%
         dplyr::mutate(!!!maxAgeDatesMinusDay) %>%
         CDMConnector::computeQuery()
 
@@ -294,7 +297,7 @@ getDenominatorCohorts <- function(cdm,
     attrition <- recordAttrition(
       table = studyPopDb,
       id = "person_id",
-      reason = "Prior history requirement not fullfilled during study period",
+      reason = "Prior history requirement not fulfilled during study period",
       existingAttrition = attrition
     )
 
@@ -325,6 +328,7 @@ getDenominatorCohorts <- function(cdm,
 
       studyPopDb <- studyPopDb %>%
         dplyr::mutate(!!!minAgeHistDates) %>%
+        dplyr::collapse()  %>%
         dplyr::mutate(!!!minAgeHistStartDates) %>%
         CDMConnector::computeQuery()
 
@@ -347,6 +351,7 @@ getDenominatorCohorts <- function(cdm,
 
      studyPopDb <- studyPopDb %>%
         dplyr::mutate(!!!maxAgeObsPeriodDates) %>%
+       dplyr::collapse()  %>%
         dplyr::mutate(!!!maxAgeObsPeriodEndDates)  %>%
         CDMConnector::computeQuery()
 

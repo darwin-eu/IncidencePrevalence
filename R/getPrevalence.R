@@ -24,7 +24,9 @@ getPrevalence <- function(cdm,
                           interval,
                           completeDatabaseIntervals,
                           timePoint,
-                          fullContribution) {
+                          fullContribution,
+                          computePermanent,
+                          computePermanentStem) {
   if (is.na(outcomeLookbackDays)) {
     outcomeLookbackDays <- NULL
   }
@@ -101,7 +103,8 @@ getPrevalence <- function(cdm,
                     maxStartDate = !!CDMConnector::asDate(.env$maxStartDate_)) %>%
       dplyr::filter(.data$cohort_end_date >= .data$minStartDate,
                     .data$cohort_start_date <= .data$maxStartDate) %>%
-      dplyr::select(-minStartDate, -maxStartDate)
+      dplyr::select(-minStartDate, -maxStartDate)   %>%
+      CDMConnector::computeQuery()
 
     attrition <- recordAttrition(
       table = studyPop,
@@ -122,6 +125,7 @@ getPrevalence <- function(cdm,
           has_full_contribution = dplyr::if_else(!!checkExpression,
                                                  1L,
                                                  0L))  %>%
+        dplyr::collapse()  %>%
         dplyr::filter(.data$has_full_contribution >= 1) %>%
         dplyr::select(-"has_full_contribution")  %>%
         CDMConnector::computeQuery()
@@ -178,14 +182,15 @@ getPrevalence <- function(cdm,
             dplyr::if_else(.data$cohort_start_date <= .env$workingStart,
               .env$workingStart,
               as.Date(.data$cohort_start_date)
-            ),
-          # individuals end date for this period
-          # end of the period or earlier
-          cohort_end_date =
-            dplyr::if_else(.data$cohort_end_date >= .env$workingEnd,
-              .env$workingEnd,
-              as.Date(.data$cohort_end_date)
             )
+        ) %>%
+        dplyr::mutate(
+      # individuals end date for this period
+      # end of the period or earlier
+      cohort_end_date =
+        dplyr::if_else(.data$cohort_end_date >= .env$workingEnd,
+                       .env$workingEnd,
+                       as.Date(.data$cohort_end_date))
         )
 
       if (is.null(outcomeLookbackDays)) {

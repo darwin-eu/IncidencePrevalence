@@ -23,6 +23,8 @@ getIncidence <- function(cdm,
                          completeDatabaseIntervals,
                          outcomeWashout,
                          repeatedEvents,
+                         computePermanent = computePermanent,
+                         computePermanentStem = computePermanentStem,
                          verbose) {
   if (!is.null(outcomeWashout)) {
     if (is.na(outcomeWashout)) {

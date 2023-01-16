@@ -15,6 +15,8 @@ estimatePointPrevalence(
   interval = "years",
   timePoint = "start",
   minCellCount = 5,
+  computePermanent = FALSE,
+  computePermanentStem = NULL,
   verbose = FALSE
 )
 }
@@ -52,6 +54,15 @@ be estimated for each chosen interval.}
 
 \item{minCellCount}{Minimum number of events to report- results
 lower than this will be obscured. If NULL all results will be reported.}
+
+\item{computePermanent}{Either TRUE or FALSE. If FALSE, temporary tables
+will be used when running the analysis. If TRUE, permanent tables
+will be used.}
+
+\item{computePermanentStem}{The stem for the permanent tables that will
+be created when running the analysis. Permanent tables will be created using
+this stem, and any existing tables that start with this will be at risk of
+being dropped or overwritten.}
 
 \item{verbose}{Whether to report progress}
 }

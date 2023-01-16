@@ -49,6 +49,13 @@
 #' @param sample An integer for which to take a random sample, using
 #' `dplyr::slice_sample()`, of the people in the person table eligible to be
 #' included in the cohort set.
+#' @param computePermanent Either TRUE or FALSE. If FALSE, temporary tables
+#' will be used when creating the denominator cohorts. If TRUE, permanent tables
+#' will be used.
+#' @param computePermanentStem The stem for the permanent tables that will
+#' be created when creating the denominator cohorts. Permanent tables will be
+#' created using this stem, and any existing tables that start with this
+#' will be at risk of being dropped or overwritten.
 #' @param verbose Either TRUE or FALSE. If TRUE, progress will be reported.
 #'
 #' @return A cohort reference
@@ -79,6 +86,8 @@ generateDenominatorCohortSet <- function(cdm,
                                strataCohortId = NULL,
                                strataCohortName = NULL,
                                sample = NULL,
+                               computePermanent = FALSE,
+                               computePermanentStem = NULL,
                                verbose = FALSE) {
   if (verbose == TRUE) {
     startCollect <- Sys.time()
@@ -200,6 +209,22 @@ generateDenominatorCohortSet <- function(cdm,
     add = errorMessage,
     null.ok = TRUE
   )
+  checkmate::assert_logical(computePermanent,
+                            add = errorMessage
+  )
+  checkmate::assertCharacter(computePermanentStem,
+                             len = 1,
+                             add = errorMessage,
+                             null.ok = TRUE
+  )
+  checkmate::assert_logical(computePermanent,
+                            add = errorMessage
+  )
+  checkmate::assertCharacter(computePermanentStem,
+                             len = 1,
+                             add = errorMessage,
+                             null.ok = TRUE
+  )
   checkmate::assert_logical(verbose,
     add = errorMessage
   )
@@ -261,7 +286,9 @@ generateDenominatorCohortSet <- function(cdm,
     daysPriorHistory = unique(popSpecs$days_prior_history),
     strataTable = strataTable,
     strataCohortId = strataCohortId,
-    sample = sample
+    sample = sample,
+    computePermanent,
+    computePermanentStem
   )
 
   denominatorPopulationNrows <- dpop$denominator_population %>%

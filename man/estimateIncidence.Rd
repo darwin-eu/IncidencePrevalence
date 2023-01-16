@@ -16,6 +16,8 @@ estimateIncidence(
   outcomeWashout = 0,
   repeatedEvents = FALSE,
   minCellCount = 5,
+  computePermanent = FALSE,
+  computePermanentStem = NULL,
   verbose = FALSE
 )
 }
@@ -64,6 +66,15 @@ first event during the study period.}
 
 \item{minCellCount}{The minimum number of events to reported, below which
 results will be obscured. If 0, all results will be reported.}
+
+\item{computePermanent}{Either TRUE or FALSE. If FALSE, temporary tables
+will be used when running the analysis. If TRUE, permanent tables
+will be used.}
+
+\item{computePermanentStem}{The stem for the permanent tables that will
+be created when running the analysis. Permanent tables will be created using
+this stem, and any existing tables that start with this will be at risk of
+being dropped or overwritten.}
 
 \item{verbose}{Either TRUE or FALSE. If TRUE, progress will be reported.}
 }

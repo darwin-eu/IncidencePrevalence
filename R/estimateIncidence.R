@@ -51,6 +51,13 @@
 #' first event during the study period.
 #' @param minCellCount The minimum number of events to reported, below which
 #' results will be obscured. If 0, all results will be reported.
+#' @param computePermanent Either TRUE or FALSE. If FALSE, temporary tables
+#' will be used when running the analysis. If TRUE, permanent tables
+#' will be used.
+#' @param computePermanentStem The stem for the permanent tables that will
+#' be created when running the analysis. Permanent tables will be created using
+#' this stem, and any existing tables that start with this will be at risk of
+#' being dropped or overwritten.
 #' @param verbose Either TRUE or FALSE. If TRUE, progress will be reported.
 #'
 #' @return Incidence estimates
@@ -85,6 +92,8 @@ estimateIncidence <- function(cdm,
                               outcomeWashout = 0,
                               repeatedEvents = FALSE,
                               minCellCount = 5,
+                              computePermanent = FALSE,
+                              computePermanentStem = NULL,
                               verbose = FALSE) {
   if (verbose == TRUE) {
     startCollect <- Sys.time()
@@ -157,6 +166,14 @@ estimateIncidence <- function(cdm,
     add = errorMessage
   )
   checkmate::assert_number(minCellCount)
+  checkmate::assert_logical(computePermanent,
+                            add = errorMessage
+  )
+  checkmate::assertCharacter(computePermanentStem,
+                             len = 1,
+                             add = errorMessage,
+                             null.ok = TRUE
+  )
   checkmate::assert_logical(verbose,
     add = errorMessage
   )
@@ -311,6 +328,8 @@ estimateIncidence <- function(cdm,
       completeDatabaseIntervals = x$complete_database_intervals,
       outcomeWashout = x$outcome_washout,
       repeatedEvents = x$repeated_events,
+      computePermanent = computePermanent,
+      computePermanentStem = computePermanentStem,
       verbose = verbose
     )
 
