@@ -122,7 +122,7 @@ benchmarkIncidencePrevalence <- function(cdm,
     dplyr::pull()) * prevOutcomes[1]/100
 
   cdm$bench_outcome <- cdm$denominator_typical %>%
-    dplyr::distinct(subject_id,.keep_all=TRUE) %>%
+    dplyr::distinct(.data$subject_id,.keep_all=TRUE) %>%
     dplyr::slice_sample(n=n_sample) %>% dplyr::mutate(cohort_definition_id = 1)
 
   # add as many hypothetical outcome cohorts as required
@@ -133,7 +133,7 @@ benchmarkIncidencePrevalence <- function(cdm,
                                dplyr::pull()) * prevOutcomes[i+1]/100
 
       outcome_temp <- cdm$denominator_typical %>%
-        dplyr::distinct(subject_id,.keep_all=TRUE) %>%
+        dplyr::distinct(.data$subject_id,.keep_all=TRUE) %>%
         dplyr::slice_sample(n=n_sample) %>%
         dplyr::mutate(cohort_definition_id = i+1)
       cdm$bench_outcome <- cdm$bench_outcome %>%
