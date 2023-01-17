@@ -82,7 +82,7 @@ benchmarkIncidencePrevalence <- function(cdm,
   )
   if (!isTRUE(analysistypeCheck)) {
     errorMessage$push(
-      "- `analysisType` is not of the expected type (1,2 or 3)"
+      "- `analysisType` is not of the expected type (1, 2, 3, 4, 5, 6 or 7)"
     )
   }
   if (!is.null(outputFolder)) {
