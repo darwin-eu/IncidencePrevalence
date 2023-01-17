@@ -32,7 +32,7 @@ test_that("benchmark multiple outcomes, prevalences and analysis types", {
                                     outPre = 0.1 )
 
   timings = benchmarkIncidencePrevalence(cdm,sample = NULL, nOutcomes = 2,
-                                         prevOutcomes = c(10,24), analysisType = 5,
+                                         prevOutcomes = c(10,24), analysisType = "only incidence",
                                          outputFolder = tempdir(), verbose = TRUE)
 
   expect_true("yearly incidence - typical denominator, 2 outcome(s)" %in% timings$task)
@@ -40,7 +40,7 @@ test_that("benchmark multiple outcomes, prevalences and analysis types", {
   expect_false("yearly point prevalence - typical denominator, 2 outcome(s)" %in% timings$task)
 
   timings = benchmarkIncidencePrevalence(cdm,sample = NULL, nOutcomes = 1,
-                                         prevOutcomes = c(15), analysisType = 2,
+                                         prevOutcomes = 15, analysisType = "all",
                                          outputFolder = tempdir(), verbose = TRUE)
 
   expect_false("yearly incidence - typical denominator, 2 outcome(s)" %in% timings$task)
@@ -50,11 +50,6 @@ test_that("benchmark multiple outcomes, prevalences and analysis types", {
   # expected errors
   expect_error(benchmarkIncidencePrevalence(cdm,
                                             nOutcomes = 2.2,
-                                            outputFolder = tempdir(),
-                                            verbose = TRUE))
-  expect_error(benchmarkIncidencePrevalence(cdm,
-                                            nOutcomes = 2,
-                                            prevOutcomes = 25,
                                             outputFolder = tempdir(),
                                             verbose = TRUE))
   expect_error(benchmarkIncidencePrevalence(cdm,
@@ -73,6 +68,11 @@ test_that("benchmark multiple outcomes, prevalences and analysis types", {
                                             analysisType = 0,
                                             outputFolder = tempdir(),
                                             verbose = TRUE))
+  expect_error(benchmarkIncidencePrevalence(cdm,
+                                            nOutcomes = 2,
+                                            prevOutcomes = c(10,30),
+                                            analysisType = "prevalence",
+                                            outputFolder = tempdir(),
+                                            verbose = TRUE))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
-

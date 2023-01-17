@@ -19,14 +19,13 @@
 #' @param cdm A CDM reference object
 #' @param sample An integer for which to take a random sample when generating
 #' the denominator cohort
-#' @param nOutcomes An integer specifying the number of outcomes to create in the denominator cohort.
-#' Default is 1.
-#' @param prevOutcomes An array of integers for the prevalence of the outcomes in the population (in %).
-#' Default is 25%.
-#' @param analysisType An integer for the analysis the user wants to perform:
-#' 1 for all, 2 for no incidence, 3 for no point prevalence, 4 for no period prevalence,
-#' 5 for only incidence, 6 for only point prevalence, 7 for only period prevalence.
-#' Default is 1 (all).
+#' @param nOutcomes An integer specifying the number of outcomes to create in
+#' the denominator cohort
+#' @param prevOutcomes An array of integers for the prevalence of the outcomes
+#' in the population (in %). If the user wants all the outcomes with the same
+#' prevalence, they can also provide a single integer
+#' @param analysisType A string of the following: "all", "only incidence",
+#' "only prevalence"
 #' @param outputFolder Folder to save results as CSV
 #' @param verbose Either TRUE or FALSE. If TRUE, progress will be reported.
 #'
@@ -46,8 +45,8 @@
 benchmarkIncidencePrevalence <- function(cdm,
                                          sample = NULL,
                                          nOutcomes = 1,
-                                         prevOutcomes = c(25),
-                                         analysisType = 1,
+                                         prevOutcomes = 25,
+                                         analysisType = "all",
                                          outputFolder = NULL,
                                          verbose = FALSE) {
   errorMessage <- checkmate::makeAssertCollection()
@@ -70,19 +69,29 @@ benchmarkIncidencePrevalence <- function(cdm,
                            add = errorMessage
   )
   checkmate::assertNumeric(prevOutcomes,
-                           len=nOutcomes,
                            add = errorMessage,
                            any.missing = FALSE,
                            lower = 0,
                            upper = 100
   )
-  analysistypeCheck <- analysisType %in% c(1,2,3,4,5,6,7)
+  lengthpOcheck <- length(prevOutcomes) %in% c(1,nOutcomes)
+  checkmate::assertTRUE(lengthpOcheck,
+                        add = errorMessage
+  )
+  if (!isTRUE(lengthpOcheck)) {
+    errorMessage$push(
+      "- `prevOutcomes` is not of the expected length (either 1 or nOutcomes)"
+    )
+  }
+  analysistypeCheck <- analysisType %in% c("all", "only incidence",
+                                           "only prevalence")
   checkmate::assertTRUE(analysistypeCheck,
                         add = errorMessage
   )
   if (!isTRUE(analysistypeCheck)) {
     errorMessage$push(
-      "- `analysisType` is not of the expected type (1, 2, 3, 4, 5, 6 or 7)"
+      "- `analysisType` is not one of the possibilities
+      ('all', 'only incidence'or 'only prevalence')"
     )
   }
   if (!is.null(outputFolder)) {
@@ -116,6 +125,11 @@ benchmarkIncidencePrevalence <- function(cdm,
     time_taken_secs = as.numeric(t$toc - t$tic)
   )
 
+  # change prevOutcomes to a vector, if an integer, to simplify the code
+  if(length(prevOutcomes) == 1 && nOutcomes != 1) {
+    prevOutcomes <- c(rep(prevOutcomes,nOutcomes))
+  }
+
   # create table for the first outcome
   n_sample <- as.integer(cdm$denominator_typical %>%
     dplyr::count() %>%
@@ -143,8 +157,9 @@ benchmarkIncidencePrevalence <- function(cdm,
     }
   }
 
-  # calculate point prevalence if analysisType is 1, 2, 4 or 6
-  if(analysisType %in% c(1,2,4,6)) {
+  # calculate prevalence if analysisType is not "only incidence"
+  if(analysisType != "only incidence") {
+    # point prevalence
     tictoc::tic()
     point_prev_typical_years <- estimatePointPrevalence(
       cdm = cdm,
@@ -172,10 +187,8 @@ benchmarkIncidencePrevalence <- function(cdm,
       task = paste0("monthly point prevalence - typical denominator, ",nOutcomes," outcome(s)"),
       time_taken_secs = as.numeric(t$toc - t$tic)
     )
-  }
 
-  # calculate period prevalence if analysisType is 1, 2, 3 or 7
-  if(analysisType  %in% c(1,2,3,7)) {
+    # period prevalence
     tictoc::tic()
     period_prev_typical_years <- estimatePeriodPrevalence(
       cdm = cdm,
@@ -207,8 +220,8 @@ benchmarkIncidencePrevalence <- function(cdm,
     )
   }
 
-  # calculate incidence if analysisType is 1, 3, 4 or 5
-  if(analysisType  %in% c(1,3,4,5)) {
+  # calculate incidence if analysisType is not "only prevalence"
+  if(analysisType  != "only prevalence") {
     tictoc::tic()
     inc_typical_years <- estimateIncidence(
       cdm = cdm,
