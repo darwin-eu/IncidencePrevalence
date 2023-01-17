@@ -212,11 +212,12 @@ generateDenominatorCohortSet <- function(cdm,
   checkmate::assert_logical(computePermanent,
                             add = errorMessage
   )
+  if(computePermanent==TRUE){
   checkmate::assertCharacter(computePermanentStem,
                              len = 1,
                              add = errorMessage,
-                             null.ok = TRUE
-  )
+                             null.ok = FALSE
+  )}
   checkmate::assert_logical(computePermanent,
                             add = errorMessage
   )
@@ -229,6 +230,20 @@ generateDenominatorCohortSet <- function(cdm,
     add = errorMessage
   )
   checkmate::reportAssertions(collection = errorMessage)
+
+  # drop table stem if exists
+  if(computePermanent==TRUE){
+  if(any(stringr::str_detect(
+    toupper(CDMConnector::listTables(attr(cdm, "dbcon"),
+                             schema = attr(cdm, "write_schema"))),
+    paste0(toupper(computePermanentStem), "\\b")))==TRUE){
+    DBI::dbRemoveTable(attr(cdm, "dbcon"),
+                       DBI::SQL(paste0(c(attr(cdm, "write_schema"),
+                                         toupper(computePermanentStem)),
+                                       collapse = ".")))
+  }
+  }
+
 
   # add broadest possible age group if no age strata were given
   if (is.null(startDate)) {
@@ -408,8 +423,19 @@ generateDenominatorCohortSet <- function(cdm,
       if (verbose == TRUE) {
         message(glue::glue("Unioning cohorts"))
       }
-      studyPops <- Reduce(dplyr::union_all, studyPops) %>%
+      studyPops <- Reduce(dplyr::union_all, studyPops)
+      if(computePermanent==FALSE){
+      studyPops <- studyPops %>%
         CDMConnector::computeQuery()
+      } else {
+        studyPops <- studyPops %>%
+          CDMConnector::computeQuery(name = paste0(computePermanentStem,
+                                            "_denominator"),
+                                     temporary = FALSE,
+                                     schema = attr(cdm, "write_schema"),
+                                     overwrite = TRUE)
+      }
+
     }
     if (length(studyPops) >= 10) {
         # if 10 or more
@@ -427,15 +453,56 @@ generateDenominatorCohortSet <- function(cdm,
             cli::cli_progress_update()
           }
           studyPopsBatches[[i]] <- Reduce(dplyr::union_all,
-                                          studyPopsBatches[[i]]) %>%
-            CDMConnector::computeQuery()
+                                          studyPopsBatches[[i]])
+
+          if(computePermanent==FALSE){
+            studyPopsBatches[[i]]  <- studyPopsBatches[[i]] %>%
+              CDMConnector::computeQuery()
+          } else {
+            studyPopsBatches[[i]]  <- studyPopsBatches[[i]] %>%
+              CDMConnector::computeQuery(name = paste0(computePermanentStem,
+                                                       "_batch_", i),
+                                         temporary = FALSE,
+                                         schema = attr(cdm, "write_schema"),
+                                         overwrite = TRUE)
+          }
         }
         cli::cli_progress_done()
 
-        studyPops <- Reduce(dplyr::union_all, studyPopsBatches) %>%
-          CDMConnector::computeQuery()
+        studyPops <- Reduce(dplyr::union_all, studyPopsBatches)
+        if(computePermanent==FALSE){
+          studyPops <- studyPops %>%
+            CDMConnector::computeQuery()
+        } else {
+          studyPops <- studyPops %>%
+            CDMConnector::computeQuery(name = paste0(computePermanentStem,
+                                                     "_denominator"),
+                                       temporary = FALSE,
+                                       schema = attr(cdm, "write_schema"),
+                                       overwrite = TRUE)
+        }
+
+        # drop any batch permanent tables
+        if(computePermanent==TRUE){
+        for (i in seq_along(studyPopsBatches)) {
+          DBI::dbRemoveTable(attr(cdm, "dbcon"),
+                             DBI::SQL(paste0(c(attr(cdm, "write_schema"),
+                                               paste0(computePermanentStem,
+                                                      "_batch_", i)),
+                                             collapse = ".")))
+
+        }}
       }
-    }
+  }
+
+  if(computePermanent==TRUE){
+      DBI::dbRemoveTable(attr(cdm, "dbcon"),
+                         DBI::SQL(paste0(c(attr(cdm, "write_schema"),
+                                           computePermanentStem),
+                                         collapse = ".")))
+
+}
+
 
   if (verbose == TRUE) {
     dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))

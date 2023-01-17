@@ -1287,3 +1287,49 @@ test_that("mock db: check attrition with multiple cohorts", {
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
+
+test_that("mock db: check compute permanent", {
+
+  # using temp
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm$dpop_temp <- generateDenominatorCohortSet(cdm = cdm,
+                                                ageGroup = list(c(0,10), c(11,20),
+                                                                c(21,30), c(31,40),
+                                                                c(41,50), c(51,60)),
+                                                daysPriorHistory = c(0,1,2),
+                                                computePermanent = FALSE)
+  # if using temp tables
+  # we have temp tables created by dbplyr
+  expect_true(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
+                          "dbplyr_")))
+  # but none in the schema as they are temp
+  expect_true(all(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon"),
+                                                   schema = "main"),
+                          "dbplyr_",
+                          negate = TRUE)))
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+  # using permanent
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  attr(cdm, "write_schema") <- "main"
+
+  cdm$dpop_perm <- generateDenominatorCohortSet(cdm = cdm,
+                                                ageGroup = list(c(0,10), c(11,20),
+                                                                c(21,30), c(31,40),
+                                                                c(41,50), c(51,60)),
+                                                daysPriorHistory = c(0,1,2),
+                                                computePermanent = TRUE,
+                                                computePermanentStem = "example")
+  # we´ll now have the stem table
+  expect_true(any(stringr::str_detect(
+    CDMConnector::listTables(attr(cdm, "dbcon"),
+                             schema = attr(cdm, "write_schema")),
+                          "example")))
+  # with no temp tables created by dbplyr
+  expect_true(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
+                          "dbplyr_",
+                          negate = TRUE)))
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+})
