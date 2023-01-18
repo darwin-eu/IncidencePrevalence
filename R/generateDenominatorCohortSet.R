@@ -218,30 +218,17 @@ generateDenominatorCohortSet <- function(cdm,
                              add = errorMessage,
                              null.ok = FALSE
   )}
-  checkmate::assert_logical(computePermanent,
-                            add = errorMessage
-  )
-  checkmate::assertCharacter(computePermanentStem,
-                             len = 1,
-                             add = errorMessage,
-                             null.ok = TRUE
-  )
   checkmate::assert_logical(verbose,
     add = errorMessage
   )
   checkmate::reportAssertions(collection = errorMessage)
 
-  # drop table stem if exists
+
   if(computePermanent==TRUE){
-  if(any(stringr::str_detect(
-    toupper(CDMConnector::listTables(attr(cdm, "dbcon"),
-                             schema = attr(cdm, "write_schema"))),
-    paste0(toupper(computePermanentStem), "\\b")))==TRUE){
-    DBI::dbRemoveTable(attr(cdm, "dbcon"),
-                       DBI::SQL(paste0(c(attr(cdm, "write_schema"),
-                                         toupper(computePermanentStem)),
-                                       collapse = ".")))
-  }
+    # drop table stem if exists
+    dropTable(cdm,
+               table = computePermanentStem
+               )
   }
 
 
@@ -485,23 +472,35 @@ generateDenominatorCohortSet <- function(cdm,
         # drop any batch permanent tables
         if(computePermanent==TRUE){
         for (i in seq_along(studyPopsBatches)) {
-          DBI::dbRemoveTable(attr(cdm, "dbcon"),
-                             DBI::SQL(paste0(c(attr(cdm, "write_schema"),
-                                               paste0(computePermanentStem,
-                                                      "_batch_", i)),
-                                             collapse = ".")))
-
+          dropTable(cdm,
+                     table = paste0(computePermanentStem,
+                                    "_batch_", i)
+          )
         }}
       }
   }
 
-  if(computePermanent==TRUE){
-      DBI::dbRemoveTable(attr(cdm, "dbcon"),
-                         DBI::SQL(paste0(c(attr(cdm, "write_schema"),
-                                           computePermanentStem),
-                                         collapse = ".")))
 
-}
+  if(computePermanent==TRUE){
+    # drop the intermediate tables that may have been created
+    dropTable(cdm,
+               table = computePermanentStem
+    )
+
+    for(i in 1:6){
+      dropTable(cdm,
+                 table = paste0(computePermanentStem, "_", i)
+      )
+    }
+
+    if(!is.null(sample)){
+      dropTable(cdm,
+                 table = paste0(computePermanentStem,
+                                "_person_sample")
+      )
+    }
+  }
+
 
 
   if (verbose == TRUE) {

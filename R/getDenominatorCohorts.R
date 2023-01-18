@@ -464,23 +464,6 @@ getDenominatorCohorts <- function(cdm,
 
   }
 
-  if(computePermanent==TRUE){
-    for(i in 1:6){
-      DBI::dbRemoveTable(attr(cdm, "dbcon"),
-                         DBI::SQL(paste0(c(attr(cdm, "write_schema"),
-                                           paste0(computePermanentStem, "_", i)),
-                                         collapse = ".")))
-    }
-    if(!is.null(sample)){
-      DBI::dbRemoveTable(attr(cdm, "dbcon"),
-                         DBI::SQL(paste0(c(attr(cdm, "write_schema"),
-                                           paste0(computePermanentStem,
-                                                  "_person_sample")),
-                                         collapse = ".")))
-    }
-
-  }
-
   # return list with population and attrition
   dpop <- list()
   dpop[["denominator_population"]] <- studyPopDb

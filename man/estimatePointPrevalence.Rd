@@ -17,6 +17,7 @@ estimatePointPrevalence(
   minCellCount = 5,
   computePermanent = FALSE,
   computePermanentStem = NULL,
+  returnParticipants = FALSE,
   verbose = FALSE
 )
 }
@@ -63,6 +64,12 @@ will be used.}
 be created when running the analysis. Permanent tables will be created using
 this stem, and any existing tables that start with this will be at risk of
 being dropped or overwritten.}
+
+\item{returnParticipants}{Either TRUE or FALSE. If TRUE references to
+participants from the analysis will be returned allowing for further
+analysis. Note, if using permanent tables and returnParticipants is TRUE,
+one table per analysis will be kept in the cdm write schema (these
+can be dropped at subsequently using dropStemTables() function)}
 
 \item{verbose}{Whether to report progress}
 }

@@ -23,8 +23,10 @@ getIncidence <- function(cdm,
                          completeDatabaseIntervals,
                          outcomeWashout,
                          repeatedEvents,
-                         computePermanent = computePermanent,
-                         computePermanentStem = computePermanentStem,
+                         computePermanent,
+                         computePermanentStem,
+                         returnParticipants,
+                         analysisId,
                          verbose) {
   if (!is.null(outcomeWashout)) {
     if (is.na(outcomeWashout)) {
@@ -48,8 +50,19 @@ getIncidence <- function(cdm,
         "cohort_start_date",
         "cohort_end_date"
       )
-    ) %>%
-    CDMConnector::computeQuery()
+    )
+
+  if(computePermanent==FALSE){
+    studyPop <- studyPop %>%
+      CDMConnector::computeQuery()
+  } else {
+    studyPop <- studyPop %>%
+      CDMConnector::computeQuery(name = paste0(computePermanentStem,
+                                               "_incidence_working_5"),
+                                 temporary = FALSE,
+                                 schema = attr(cdm, "write_schema"),
+                                 overwrite = TRUE)
+  }
 
   attrition <- recordAttrition(
     table = studyPop,
@@ -212,8 +225,8 @@ getIncidence <- function(cdm,
 
       # people who can contribute to the period
       workingPop <- studyPop %>%
-        dplyr::filter(.data$cohort_end_date >= .env$workingStartTime &
-          .data$cohort_start_date <= .env$workingEndTime)
+        dplyr::filter(.data$cohort_end_date >= .env$workingStartTime) %>%
+        dplyr::filter(.data$cohort_start_date <= .env$workingEndTime)
 
       if (nrow(workingPop) > 0) {
         # individuals start date for this period
@@ -282,12 +295,31 @@ getIncidence <- function(cdm,
       "cohort_end_date", "outcome_start_date"
     )
 
+
+  if(computePermanent==TRUE){
+
+    if(returnParticipants==TRUE){
+      # if using permanent tables (that get overwritten)
+      # we need to keep a permanent one for a given analysis
+      # so that we can refer back to it (e.g when using participants() function)
+      studyPopDb <- studyPopDb %>%
+        CDMConnector::computeQuery(name = paste0(computePermanentStem,
+                                                 "_incidence_analysis_",
+                                                 analysisId),
+                                   temporary = FALSE,
+                                   schema = attr(cdm, "write_schema"),
+                                   overwrite = TRUE)
+    }
+  }
+
   # return list
   results <- list()
   results[["ir"]] <- ir
   results[["analysis_settings"]] <- analysisSettings
-  results[["person_table"]] <- studyPopDb
   results[["attrition"]] <- attrition
+  if(returnParticipants == TRUE){
+    results[["person_table"]] <- studyPopDb
+  }
 
   return(results)
 }

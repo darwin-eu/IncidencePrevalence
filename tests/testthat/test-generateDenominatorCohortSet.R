@@ -1292,6 +1292,7 @@ test_that("mock db: check compute permanent", {
 
   # using temp
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  attr(cdm, "write_schema") <- "main"
   cdm$dpop_temp <- generateDenominatorCohortSet(cdm = cdm,
                                                 ageGroup = list(c(0,10), c(11,20),
                                                                 c(21,30), c(31,40),

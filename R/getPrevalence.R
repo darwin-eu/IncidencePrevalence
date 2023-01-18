@@ -26,7 +26,9 @@ getPrevalence <- function(cdm,
                           timePoint,
                           fullContribution,
                           computePermanent,
-                          computePermanentStem) {
+                          computePermanentStem,
+                          returnParticipants,
+                          analysisId) {
   if (is.na(outcomeLookbackDays)) {
     outcomeLookbackDays <- NULL
   }
@@ -47,8 +49,20 @@ getPrevalence <- function(cdm,
           "outcome_end_date"
         ),
       by = "subject_id"
-    ) %>%
-    CDMConnector::computeQuery()
+    )
+
+  if(computePermanent==FALSE){
+    studyPop <- studyPop %>%
+      CDMConnector::computeQuery()
+  } else {
+    studyPop <- studyPop %>%
+      CDMConnector::computeQuery(name = paste0(computePermanentStem,
+                                               "_prev_working_1"),
+                                 temporary = FALSE,
+                                 schema = attr(cdm, "write_schema"),
+                                 overwrite = TRUE)
+  }
+
 
   attrition <- recordAttrition(
     table = studyPop,
@@ -103,8 +117,19 @@ getPrevalence <- function(cdm,
                     maxStartDate = !!CDMConnector::asDate(.env$maxStartDate_)) %>%
       dplyr::filter(.data$cohort_end_date >= .data$minStartDate,
                     .data$cohort_start_date <= .data$maxStartDate) %>%
-      dplyr::select(-minStartDate, -maxStartDate)   %>%
-      CDMConnector::computeQuery()
+      dplyr::select(-minStartDate, -maxStartDate)
+
+    if(computePermanent==FALSE){
+      studyPop <- studyPop %>%
+        CDMConnector::computeQuery()
+    } else {
+      studyPop <- studyPop %>%
+        CDMConnector::computeQuery(name = paste0(computePermanentStem,
+                                                 "_prev_working_2"),
+                                   temporary = FALSE,
+                                   schema = attr(cdm, "write_schema"),
+                                   overwrite = TRUE)
+    }
 
     attrition <- recordAttrition(
       table = studyPop,
@@ -127,8 +152,19 @@ getPrevalence <- function(cdm,
                                                  0L))  %>%
         dplyr::collapse()  %>%
         dplyr::filter(.data$has_full_contribution >= 1) %>%
-        dplyr::select(-"has_full_contribution")  %>%
-        CDMConnector::computeQuery()
+        dplyr::select(-"has_full_contribution")
+
+      if(computePermanent==FALSE){
+        studyPop <- studyPop %>%
+          CDMConnector::computeQuery()
+      } else {
+        studyPop <- studyPop %>%
+          CDMConnector::computeQuery(name = paste0(computePermanentStem,
+                                                   "_prev_working_3"),
+                                     temporary = FALSE,
+                                     schema = attr(cdm, "write_schema"),
+                                     overwrite = TRUE)
+      }
 
       attrition <- recordAttrition(
         table = studyPop,
@@ -151,7 +187,6 @@ getPrevalence <- function(cdm,
     # bring in to R
     studyPopLocal <- studyPop %>% dplyr::collect()
 
-    # pr <- list()
     pr <- vector(mode = "list", length = length(studyDays$time))
 
     for (i in seq_along(studyDays$time)) {
@@ -245,10 +280,36 @@ getPrevalence <- function(cdm,
       dplyr::rename("prevalence_end_date" = "end_time")
   }
 
+  if(computePermanent==TRUE){
+
+   if(returnParticipants==TRUE){
+    # if using permanent tables (that get overwritten)
+    # we need to keep a permanent one for a given analysis
+    # so that we can refer back to it (e.g when using participants() function)
+    studyPop <- studyPop %>%
+      CDMConnector::computeQuery(name = paste0(computePermanentStem,
+                                               "_prev_analysis_",
+                                               analysisId),
+                                 temporary = FALSE,
+                                 schema = attr(cdm, "write_schema"),
+                                 overwrite = TRUE)
+    }
+
+    # drop other intermediate tables created
+    dropTable(cdm,
+              table = c(paste0(computePermanentStem, "_prev_working_1"),
+                        paste0(computePermanentStem, "_prev_working_2"),
+                        paste0(computePermanentStem, "_prev_working_3")
+                        ))
+
+  }
+
   results <- list()
   results[["pr"]] <- pr
-  results[["person_table"]] <- studyPop
   results[["attrition"]] <- attrition
+  if(returnParticipants==TRUE){
+    results[["person_table"]] <- studyPop
+  }
 
   return(results)
 }
