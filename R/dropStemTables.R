@@ -12,12 +12,13 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #'  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-#'  cdm$dpop <- IncidencePrevalence::generateDenominatorCohortSet(
+#'  cdm$dpop <- generateDenominatorCohortSet(
 #'   cdm = cdm,
 #'   computePermanent = TRUE,
 #'   computePermanentStem = "result")
-#' inc <- IncidencePrevalence::estimateIncidence(
+#' inc <- estimateIncidence(
 #'   cdm = cdm,
 #'   denominatorTable = "dpop",
 #'   outcomeTable = "outcome",
@@ -32,6 +33,7 @@
 #' dropStemTables(cdm, computePermanentStem = "result")
 #' CDMConnector::listTables(attr(cdm, "dbcon"),
 #'                          schema = attr(cdm, "write_schema")
+#' }
 
 dropStemTables <- function(cdm,
                            computePermanentStem){

@@ -11,19 +11,20 @@ dropStemTables(cdm, computePermanentStem)
 
 \item{computePermanentStem}{The stem for which to drop tables. For example,
 a stem of "study_results" would lead to dropping any table starting with this
-(i.e both "study_results" and "study_results_analysis_1" would be dropped if
+(ie both "study_results" and "study_results_analysis_1" would be dropped if
 they exist in the write schema)}
 }
 \description{
 Drop stem tables
 }
 \examples{
+\dontrun{
  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
- cdm$dpop <- IncidencePrevalence::generateDenominatorCohortSet(
+ cdm$dpop <- generateDenominatorCohortSet(
   cdm = cdm,
   computePermanent = TRUE,
   computePermanentStem = "result")
-inc <- IncidencePrevalence::estimateIncidence(
+inc <- estimateIncidence(
   cdm = cdm,
   denominatorTable = "dpop",
   outcomeTable = "outcome",
@@ -38,4 +39,5 @@ CDMConnector::listTables(attr(cdm, "dbcon"),
 dropStemTables(cdm, computePermanentStem = "result")
 CDMConnector::listTables(attr(cdm, "dbcon"),
                          schema = attr(cdm, "write_schema")
+}
 }

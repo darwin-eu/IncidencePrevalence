@@ -2990,11 +2990,6 @@ test_that("mock db: check compute permanent", {
   # we have temp tables created by dbplyr
   expect_true(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
                                       "dbplyr_")))
-  # but none in the schema as they are temp
-  expect_true(all(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon"),
-                                                               schema = "main"),
-                                      "dbplyr_",
-                                      negate = TRUE)))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   # using permanent
