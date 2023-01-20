@@ -15,8 +15,7 @@ generateDenominatorCohortSet(
   strataCohortId = NULL,
   strataCohortName = NULL,
   sample = NULL,
-  computePermanent = FALSE,
-  computePermanentStem = NULL,
+  tablePrefix = NULL,
   verbose = FALSE
 )
 }
@@ -57,14 +56,11 @@ in the strata table. Only one stratifying cohort is supported.}
 \code{dplyr::slice_sample()}, of the people in the person table eligible to be
 included in the cohort set.}
 
-\item{computePermanent}{Either TRUE or FALSE. If FALSE, temporary tables
-will be used when creating the denominator cohorts. If TRUE, permanent tables
-will be used.}
-
-\item{computePermanentStem}{The stem for the permanent tables that will
+\item{tablePrefix}{The stem for the permanent tables that will
 be created when creating the denominator cohorts. Permanent tables will be
 created using this stem, and any existing tables that start with this
-will be at risk of being dropped or overwritten.}
+will be at risk of being dropped or overwritten. If NULL, temporary
+tables will be used throughout.}
 
 \item{verbose}{Either TRUE or FALSE. If TRUE, progress will be reported.}
 }

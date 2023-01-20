@@ -23,8 +23,7 @@ getIncidence <- function(cdm,
                          completeDatabaseIntervals,
                          outcomeWashout,
                          repeatedEvents,
-                         computePermanent,
-                         computePermanentStem,
+                         tablePrefix,
                          returnParticipants,
                          analysisId,
                          verbose) {
@@ -52,12 +51,12 @@ getIncidence <- function(cdm,
       )
     )
 
-  if(computePermanent==FALSE){
+  if(is.null(tablePrefix)){
     studyPop <- studyPop %>%
       CDMConnector::computeQuery()
   } else {
     studyPop <- studyPop %>%
-      CDMConnector::computeQuery(name = paste0(computePermanentStem,
+      CDMConnector::computeQuery(name = paste0(tablePrefix,
                                                "_incidence_working_5"),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
@@ -296,14 +295,14 @@ getIncidence <- function(cdm,
     )
 
 
-  if(computePermanent==TRUE){
+  if(!is.null(tablePrefix)){
 
     if(returnParticipants==TRUE){
       # if using permanent tables (that get overwritten)
       # we need to keep a permanent one for a given analysis
       # so that we can refer back to it (e.g when using participants() function)
       studyPopDb <- studyPopDb %>%
-        CDMConnector::computeQuery(name = paste0(computePermanentStem,
+        CDMConnector::computeQuery(name = paste0(tablePrefix,
                                                  "_incidence_analysis_",
                                                  analysisId),
                                    temporary = FALSE,

@@ -56,16 +56,11 @@ dropStemTables <- function(cdm,
 
 
 # drop tables if they exist
- tablesToDrop <- CDMConnector::listTables(attr(cdm, "dbcon"),
-   schema = attr(cdm, "write_schema")
- )[
-   which(stringr::str_detect(
-     CDMConnector::listTables(attr(cdm, "dbcon"),
-       schema = attr(cdm, "write_schema")
-     ),
-     paste0(computePermanentStem)
-   ))
- ]
+ allTables <- CDMConnector::listTables(attr(cdm, "dbcon"),
+                                       schema = attr(cdm, "write_schema")
+ )
+ tablesToDrop <- stringr::str_subset(allTables, paste0("^",
+                                                       computePermanentStem))
 
  for(i in seq_along(tablesToDrop)){
    DBI::dbRemoveTable(attr(cdm, "dbcon"),

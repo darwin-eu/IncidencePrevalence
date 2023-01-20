@@ -1515,15 +1515,13 @@ test_that("mock db: check compute permanent", {
   attr(cdm, "write_schema") <- "main"
 
   cdm$dpop <- generateDenominatorCohortSet(cdm = cdm,
-                                           computePermanent = TRUE,
-                                           computePermanentStem = "result")
+                                           tablePrefix = "result")
   prev <- estimatePrevalence(
     cdm = cdm,
     denominatorTable = "dpop",
     outcomeTable = "outcome",
     interval = "years",
-    computePermanent = TRUE,
-    computePermanentStem = "result"
+    tablePrefix = "result"
   )
 
   # we´ll now have the stem table
@@ -1532,9 +1530,21 @@ test_that("mock db: check compute permanent", {
                              schema = attr(cdm, "write_schema")),
     "result")))
   # with no temp tables created by dbplyr
-  expect_true(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
-                                      "dbplyr_",
-                                      negate = TRUE)))
+  expect_false(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
+                                      "dbplyr_")))
+
+  prev <- estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "dpop",
+    outcomeTable = "outcome",
+    interval = "years",
+    tablePrefix = "result",
+    returnParticipants = TRUE
+  )
+  expect_true(any(stringr::str_detect(
+    CDMConnector::listTables(attr(cdm, "dbcon"),
+                             schema = attr(cdm, "write_schema")),
+    "result_prevalence_analysis_1")))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 

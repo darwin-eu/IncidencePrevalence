@@ -41,13 +41,11 @@
 #' @param timePoint where to compute the point prevalence
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
-#' @param computePermanent Either TRUE or FALSE. If FALSE, temporary tables
-#' will be used when running the analysis. If TRUE, permanent tables
-#' will be used.
-#' @param computePermanentStem The stem for the permanent tables that will
+#' @param tablePrefix The stem for the permanent tables that will
 #' be created when running the analysis. Permanent tables will be created using
-#' this stem, and any existing tables that start with this will be at risk of
-#' being dropped or overwritten.
+#' this prefix, and any existing tables that start with this will be at risk of
+#' being dropped or overwritten. If NULL, temporary tables will be
+#' used throughout.
 #' @param returnParticipants Either TRUE or FALSE. If TRUE references to
 #' participants from the analysis will be returned allowing for further
 #' analysis. Note, if using permanent tables and returnParticipants is TRUE,
@@ -87,8 +85,7 @@ estimatePointPrevalence <- function(cdm,
                                     interval = "years",
                                     timePoint = "start",
                                     minCellCount = 5,
-                                    computePermanent = FALSE,
-                                    computePermanentStem = NULL,
+                                    tablePrefix = NULL,
                                     returnParticipants = FALSE,
                                     verbose = FALSE) {
   estimatePrevalence(
@@ -105,8 +102,7 @@ estimatePointPrevalence <- function(cdm,
     fullContribution = FALSE,
     timePoint = timePoint,
     minCellCount = minCellCount,
-    computePermanent = computePermanent,
-    computePermanentStem = computePermanentStem,
+    tablePrefix = tablePrefix,
     returnParticipants =returnParticipants,
     verbose = verbose
   )
@@ -146,13 +142,11 @@ estimatePointPrevalence <- function(cdm,
 #' order to contribute.
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
-#' @param computePermanent Either TRUE or FALSE. If FALSE, temporary tables
-#' will be used when running the analysis. If TRUE, permanent tables
-#' will be used.
-#' @param computePermanentStem The stem for the permanent tables that will
+#' @param tablePrefix The stem for the permanent tables that will
 #' be created when running the analysis. Permanent tables will be created using
-#' this stem, and any existing tables that start with this will be at risk of
-#' being dropped or overwritten.
+#' this prefix, and any existing tables that start with this will be at risk of
+#' being dropped or overwritten. If NULL, temporary tables will be
+#' used throughout.
 #' @param returnParticipants Either TRUE or FALSE. If TRUE references to
 #' participants from the analysis will be returned allowing for further
 #' analysis. Note, if using permanent tables and returnParticipants is TRUE,
@@ -194,8 +188,7 @@ estimatePeriodPrevalence <- function(cdm,
                                      completeDatabaseIntervals = TRUE,
                                      fullContribution = FALSE,
                                      minCellCount = 5,
-                                     computePermanent = FALSE,
-                                     computePermanentStem = NULL,
+                                     tablePrefix = NULL,
                                      returnParticipants = FALSE,
                                      verbose = FALSE) {
   estimatePrevalence(
@@ -212,8 +205,7 @@ estimatePeriodPrevalence <- function(cdm,
     fullContribution = fullContribution,
     timePoint = "start",
     minCellCount = minCellCount,
-    computePermanent = computePermanent,
-    computePermanentStem = computePermanentStem,
+    tablePrefix = tablePrefix,
     returnParticipants = returnParticipants,
     verbose = verbose
   )
@@ -232,8 +224,7 @@ estimatePrevalence <- function(cdm,
                                fullContribution = FALSE,
                                timePoint = "start",
                                minCellCount = 5,
-                               computePermanent = FALSE,
-                               computePermanentStem = NULL,
+                               tablePrefix = NULL,
                                returnParticipants = FALSE,
                                verbose = FALSE) {
   if (verbose == TRUE) {
@@ -320,15 +311,11 @@ estimatePrevalence <- function(cdm,
   checkmate::assert_logical(completeDatabaseIntervals,
     add = errorMessage
   )
-  checkmate::assert_logical(computePermanent,
-                            add = errorMessage
-  )
-  if(computePermanent==TRUE){
-    checkmate::assertCharacter(computePermanentStem,
+    checkmate::assertCharacter(tablePrefix,
                                len = 1,
                                add = errorMessage,
-                               null.ok = FALSE
-    )}
+                               null.ok = TRUE
+    )
   checkmate::assert_logical(returnParticipants,
                             add = errorMessage
   )
@@ -401,8 +388,7 @@ estimatePrevalence <- function(cdm,
       completeDatabaseIntervals = x$completeDatabaseIntervals,
       timePoint = x$timePoint,
       fullContribution = x$fullContribution,
-      computePermanent = computePermanent,
-      computePermanentStem = computePermanentStem,
+      tablePrefix = tablePrefix,
       returnParticipants = returnParticipants,
       analysisId = x$analysis_id
     )

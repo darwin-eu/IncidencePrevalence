@@ -1298,7 +1298,7 @@ test_that("mock db: check compute permanent", {
                                                                 c(21,30), c(31,40),
                                                                 c(41,50), c(51,60)),
                                                 daysPriorHistory = c(0,1,2),
-                                                computePermanent = FALSE)
+                                                tablePrefix = NULL)
   # if using temp tables
   # we have temp tables created by dbplyr
   expect_true(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
@@ -1314,8 +1314,7 @@ test_that("mock db: check compute permanent", {
                                                                 c(21,30), c(31,40),
                                                                 c(41,50), c(51,60)),
                                                 daysPriorHistory = c(0,1,2),
-                                                computePermanent = TRUE,
-                                                computePermanentStem = "example")
+                                                tablePrefix = "example")
   # we´ll now have the stem table
   expect_true(any(stringr::str_detect(
     CDMConnector::listTables(attr(cdm, "dbcon"),

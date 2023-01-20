@@ -25,8 +25,7 @@ getDenominatorCohorts <- function(cdm,
                               strataTable,
                               strataCohortId,
                               sample,
-                              computePermanent,
-                              computePermanentStem) {
+                              tablePrefix) {
 
   # make sure names are lowercase and keep variables required
   personDb <- dplyr::rename_with(cdm$person, tolower) %>%
@@ -48,12 +47,12 @@ getDenominatorCohorts <- function(cdm,
     personDb <- personDb %>%
       dplyr::slice_sample(n = sample)
 
-    if(computePermanent==FALSE){
+    if(is.null(tablePrefix)){
       personDb <- personDb %>%
         CDMConnector::computeQuery()
     } else {
       personDb <- personDb %>%
-        CDMConnector::computeQuery(name = paste0(computePermanentStem,
+        CDMConnector::computeQuery(name = paste0(tablePrefix,
                                                  "_person_sample"),
                                    temporary = FALSE,
                                    schema = attr(cdm, "write_schema"),
@@ -77,12 +76,12 @@ getDenominatorCohorts <- function(cdm,
         by = "person_id"
       )
 
-    if(computePermanent==FALSE){
+    if(is.null(tablePrefix)){
       personDb <- personDb %>%
         CDMConnector::computeQuery()
     } else {
       personDb <- personDb %>%
-        CDMConnector::computeQuery(name = paste0(computePermanentStem,
+        CDMConnector::computeQuery(name = paste0(tablePrefix,
                                                  "_working_person"),
                                    temporary = FALSE,
                                    schema = attr(cdm, "write_schema"),
@@ -139,12 +138,12 @@ getDenominatorCohorts <- function(cdm,
       ) %>%
       dplyr::select(!c("cohort_start_date", "cohort_end_date"))
 
-    if(computePermanent==FALSE){
+    if(is.null(tablePrefix)){
       observationPeriodDb <- observationPeriodDb %>%
         CDMConnector::computeQuery()
     } else {
       personDb <- personDb %>%
-        CDMConnector::computeQuery(name = paste0(computePermanentStem,
+        CDMConnector::computeQuery(name = paste0(tablePrefix,
                                                  "_working_obs_period"),
                                                  temporary = FALSE,
                                    schema = attr(cdm, "write_schema"),
@@ -182,12 +181,12 @@ getDenominatorCohorts <- function(cdm,
     )) %>%
     dplyr::filter(!is.na(.data$sex))
 
-  if(computePermanent==FALSE){
+  if(is.null(tablePrefix)){
     studyPopDb <- studyPopDb %>%
       CDMConnector::computeQuery()
   } else {
     studyPopDb <- studyPopDb %>%
-      CDMConnector::computeQuery(name = paste0(computePermanentStem,"_1"),
+      CDMConnector::computeQuery(name = paste0(tablePrefix,"_1"),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
                                  overwrite = TRUE)
@@ -250,12 +249,12 @@ getDenominatorCohorts <- function(cdm,
     .data$lower_age_check <= .data$endDate) %>%
     dplyr::select(-c("lower_age_check", "upper_age_check"))
 
-  if(computePermanent==FALSE){
+  if(is.null(tablePrefix)){
     studyPopDb <- studyPopDb %>%
       CDMConnector::computeQuery()
   } else {
     studyPopDb <- studyPopDb %>%
-      CDMConnector::computeQuery(name = paste0(computePermanentStem,"_2"),
+      CDMConnector::computeQuery(name = paste0(tablePrefix,"_2"),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
                                  overwrite = TRUE)
@@ -275,12 +274,12 @@ getDenominatorCohorts <- function(cdm,
     # drop people with observation_period_end_date before study start
     .data$observation_period_end_date >= .data$startDate)
 
-  if(computePermanent==FALSE){
+  if(is.null(tablePrefix)){
     studyPopDb <- studyPopDb %>%
       CDMConnector::computeQuery()
   } else {
     studyPopDb <- studyPopDb %>%
-      CDMConnector::computeQuery(name = paste0(computePermanentStem,"_3"),
+      CDMConnector::computeQuery(name = paste0(tablePrefix,"_3"),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
                                  overwrite = TRUE)
@@ -330,12 +329,12 @@ getDenominatorCohorts <- function(cdm,
         dplyr::collapse() %>%
         dplyr::mutate(!!!maxAgeDatesMinusDay)
 
-      if(computePermanent==FALSE){
+      if(is.null(tablePrefix)){
         studyPopDb <- studyPopDb %>%
           CDMConnector::computeQuery()
       } else {
         studyPopDb <- studyPopDb %>%
-          CDMConnector::computeQuery(name = paste0(computePermanentStem,"_4"),
+          CDMConnector::computeQuery(name = paste0(tablePrefix,"_4"),
                                      temporary = FALSE,
                                      schema = attr(cdm, "write_schema"),
                                      overwrite = TRUE)
@@ -369,12 +368,12 @@ getDenominatorCohorts <- function(cdm,
       .data[[!!rlang::sym(varLowerPriorHistory)]] <=
         .data$observation_period_end_date)
 
-    if(computePermanent==FALSE){
+    if(is.null(tablePrefix)){
       studyPopDb <- studyPopDb %>%
         CDMConnector::computeQuery()
     } else {
       studyPopDb <- studyPopDb %>%
-        CDMConnector::computeQuery(name = paste0(computePermanentStem,"_5"),
+        CDMConnector::computeQuery(name = paste0(tablePrefix,"_5"),
                                    temporary = FALSE,
                                    schema = attr(cdm, "write_schema"),
                                    overwrite = TRUE)
@@ -418,12 +417,12 @@ getDenominatorCohorts <- function(cdm,
         dplyr::collapse()  %>%
         dplyr::mutate(!!!minAgeHistStartDates)
 
-      if(computePermanent==FALSE){
+      if(is.null(tablePrefix)){
         studyPopDb <- studyPopDb %>%
           CDMConnector::computeQuery()
       } else {
         studyPopDb <- studyPopDb %>%
-          CDMConnector::computeQuery(name = paste0(computePermanentStem,"_6"),
+          CDMConnector::computeQuery(name = paste0(tablePrefix,"_6"),
                                      temporary = FALSE,
                                      schema = attr(cdm, "write_schema"),
                                      overwrite = TRUE)
@@ -451,12 +450,12 @@ getDenominatorCohorts <- function(cdm,
        dplyr::collapse()  %>%
         dplyr::mutate(!!!maxAgeObsPeriodEndDates)
 
-     if(computePermanent==FALSE){
+     if(is.null(tablePrefix)){
        studyPopDb <- studyPopDb %>%
          CDMConnector::computeQuery()
      } else {
        studyPopDb <- studyPopDb %>%
-         CDMConnector::computeQuery(name = computePermanentStem,
+         CDMConnector::computeQuery(name = tablePrefix,
                                     temporary = FALSE,
                                     schema = attr(cdm, "write_schema"),
                                     overwrite = TRUE)

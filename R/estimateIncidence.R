@@ -51,13 +51,11 @@
 #' first event during the study period.
 #' @param minCellCount The minimum number of events to reported, below which
 #' results will be obscured. If 0, all results will be reported.
-#' @param computePermanent Either TRUE or FALSE. If FALSE, temporary tables
-#' will be used when running the analysis. If TRUE, permanent tables
-#' will be used.
-#' @param computePermanentStem The stem for the permanent tables that will
+#' @param tablePrefix The stem for the permanent tables that will
 #' be created when running the analysis. Permanent tables will be created using
-#' this stem, and any existing tables that start with this will be at risk of
-#' being dropped or overwritten.
+#' this prefix, and any existing tables that start with this will be at risk of
+#' being dropped or overwritten. If NULL, temporary tables will be
+#' used throughout.
 #' @param returnParticipants Either TRUE or FALSE. If TRUE references to
 #' participants from the analysis will be returned allowing for further
 #' analysis. Note, if using permanent tables and returnParticipants is TRUE,
@@ -97,8 +95,7 @@ estimateIncidence <- function(cdm,
                               outcomeWashout = 0,
                               repeatedEvents = FALSE,
                               minCellCount = 5,
-                              computePermanent = FALSE,
-                              computePermanentStem = NULL,
+                              tablePrefix = NULL,
                               returnParticipants = FALSE,
                               verbose = FALSE) {
   if (verbose == TRUE) {
@@ -172,10 +169,7 @@ estimateIncidence <- function(cdm,
     add = errorMessage
   )
   checkmate::assert_number(minCellCount)
-  checkmate::assert_logical(computePermanent,
-                            add = errorMessage
-  )
-  checkmate::assertCharacter(computePermanentStem,
+  checkmate::assertCharacter(tablePrefix,
                              len = 1,
                              add = errorMessage,
                              null.ok = TRUE
@@ -253,12 +247,12 @@ estimateIncidence <- function(cdm,
       by = "subject_id"
     )
 
-  if(computePermanent==FALSE){
+  if(is.null(tablePrefix)){
     outcome <- outcome %>%
       CDMConnector::computeQuery()
   } else {
     outcome <- outcome %>%
-      CDMConnector::computeQuery(name = paste0(computePermanentStem,
+      CDMConnector::computeQuery(name = paste0(tablePrefix,
                                                "_incidence_working_1"),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
@@ -282,12 +276,12 @@ estimateIncidence <- function(cdm,
         dplyr::filter(.data$outcome_start_date <= .data$cohort_end_date)
     )
 
-  if(computePermanent==FALSE){
+  if(is.null(tablePrefix)){
     outcome <- outcome %>%
       CDMConnector::computeQuery()
   } else {
     outcome <- outcome %>%
-      CDMConnector::computeQuery(name = paste0(computePermanentStem,
+      CDMConnector::computeQuery(name = paste0(tablePrefix,
                                                "_incidence_working_2"),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
@@ -304,12 +298,12 @@ estimateIncidence <- function(cdm,
     dplyr::mutate(index = rank()) %>%
     dplyr::ungroup()
 
-  if(computePermanent==FALSE){
+  if(is.null(tablePrefix)){
     outcome <- outcome %>%
       CDMConnector::computeQuery()
   } else {
     outcome <- outcome %>%
-      CDMConnector::computeQuery(name = paste0(computePermanentStem,
+      CDMConnector::computeQuery(name = paste0(tablePrefix,
                                                "_incidence_working_3"),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
@@ -331,12 +325,12 @@ estimateIncidence <- function(cdm,
     ) %>%
     dplyr::select(-"index")
 
-  if(computePermanent==FALSE){
+  if(is.null(tablePrefix)){
     outcome <- outcome %>%
       CDMConnector::computeQuery()
   } else {
     outcome <- outcome %>%
-      CDMConnector::computeQuery(name = paste0(computePermanentStem,
+      CDMConnector::computeQuery(name = paste0(tablePrefix,
                                                "_incidence_working_4"),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
@@ -381,8 +375,7 @@ estimateIncidence <- function(cdm,
       completeDatabaseIntervals = x$complete_database_intervals,
       outcomeWashout = x$outcome_washout,
       repeatedEvents = x$repeated_events,
-      computePermanent = computePermanent,
-      computePermanentStem = computePermanentStem,
+      tablePrefix = tablePrefix,
       returnParticipants = returnParticipants,
       analysisId = x$analysis_id,
       verbose = verbose
@@ -495,13 +488,13 @@ estimateIncidence <- function(cdm,
   )]
   }
 
-  if(computePermanent==TRUE){
+  if(!is.null(tablePrefix)){
   dropTable(cdm,
-             table = c(paste0(computePermanentStem, "_incidence_working_1"),
-                       paste0(computePermanentStem, "_incidence_working_2"),
-                       paste0(computePermanentStem, "_incidence_working_3"),
-                       paste0(computePermanentStem, "_incidence_working_4"),
-                       paste0(computePermanentStem, "_incidence_working_5")
+             table = c(paste0(tablePrefix, "_incidence_working_1"),
+                       paste0(tablePrefix, "_incidence_working_2"),
+                       paste0(tablePrefix, "_incidence_working_3"),
+                       paste0(tablePrefix, "_incidence_working_4"),
+                       paste0(tablePrefix, "_incidence_working_5")
              ))
   }
 

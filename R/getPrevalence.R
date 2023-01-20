@@ -25,8 +25,7 @@ getPrevalence <- function(cdm,
                           completeDatabaseIntervals,
                           timePoint,
                           fullContribution,
-                          computePermanent,
-                          computePermanentStem,
+                          tablePrefix,
                           returnParticipants,
                           analysisId) {
   if (is.na(outcomeLookbackDays)) {
@@ -51,12 +50,12 @@ getPrevalence <- function(cdm,
       by = "subject_id"
     )
 
-  if(computePermanent==FALSE){
+  if(is.null(tablePrefix)){
     studyPop <- studyPop %>%
       CDMConnector::computeQuery()
   } else {
     studyPop <- studyPop %>%
-      CDMConnector::computeQuery(name = paste0(computePermanentStem,
+      CDMConnector::computeQuery(name = paste0(tablePrefix,
                                                "_prev_working_1"),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
@@ -119,12 +118,12 @@ getPrevalence <- function(cdm,
                     .data$cohort_start_date <= .data$maxStartDate) %>%
       dplyr::select(-minStartDate, -maxStartDate)
 
-    if(computePermanent==FALSE){
+    if(is.null(tablePrefix)){
       studyPop <- studyPop %>%
         CDMConnector::computeQuery()
     } else {
       studyPop <- studyPop %>%
-        CDMConnector::computeQuery(name = paste0(computePermanentStem,
+        CDMConnector::computeQuery(name = paste0(tablePrefix,
                                                  "_prev_working_2"),
                                    temporary = FALSE,
                                    schema = attr(cdm, "write_schema"),
@@ -154,12 +153,12 @@ getPrevalence <- function(cdm,
         dplyr::filter(.data$has_full_contribution >= 1) %>%
         dplyr::select(-"has_full_contribution")
 
-      if(computePermanent==FALSE){
+      if(is.null(tablePrefix)){
         studyPop <- studyPop %>%
           CDMConnector::computeQuery()
       } else {
         studyPop <- studyPop %>%
-          CDMConnector::computeQuery(name = paste0(computePermanentStem,
+          CDMConnector::computeQuery(name = paste0(tablePrefix,
                                                    "_prev_working_3"),
                                      temporary = FALSE,
                                      schema = attr(cdm, "write_schema"),
@@ -280,15 +279,15 @@ getPrevalence <- function(cdm,
       dplyr::rename("prevalence_end_date" = "end_time")
   }
 
-  if(computePermanent==TRUE){
+  if(!is.null(tablePrefix)){
 
    if(returnParticipants==TRUE){
     # if using permanent tables (that get overwritten)
     # we need to keep a permanent one for a given analysis
     # so that we can refer back to it (e.g when using participants() function)
     studyPop <- studyPop %>%
-      CDMConnector::computeQuery(name = paste0(computePermanentStem,
-                                               "_prev_analysis_",
+      CDMConnector::computeQuery(name = paste0(tablePrefix,
+                                               "_prevalence_analysis_",
                                                analysisId),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
@@ -297,9 +296,9 @@ getPrevalence <- function(cdm,
 
     # drop other intermediate tables created
     dropTable(cdm,
-              table = c(paste0(computePermanentStem, "_prev_working_1"),
-                        paste0(computePermanentStem, "_prev_working_2"),
-                        paste0(computePermanentStem, "_prev_working_3")
+              table = c(paste0(tablePrefix, "_prev_working_1"),
+                        paste0(tablePrefix, "_prev_working_2"),
+                        paste0(tablePrefix, "_prev_working_3")
                         ))
 
   }
