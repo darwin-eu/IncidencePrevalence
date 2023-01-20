@@ -52,14 +52,27 @@ test_that("mock db: check output format", {
 
   expect_true(tibble::is_tibble(attrition(inc)))
   expect_true(tibble::is_tibble(attrition(inc, analysisId = 1)))
+  # do not return participants as default
+  expect_true(is.null(participants(inc)))
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
+  cdm <- mockIncidencePrevalenceRef()
+  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  inc <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    outcomeCohortName = "test_outcome",
+    interval = "months",
+    returnParticipants = TRUE
+  )
   expect_true(is.list(participants(inc))) # list of references to participants
   expect_true(tibble::is_tibble(participants(inc, 1) %>%
-    dplyr::collect()))
+                                  dplyr::collect()))
   expect_true(participants(inc, 1) %>%
-    dplyr::collect() %>%
-    dplyr::select("subject_id") %>%
-    dplyr::pull() == 1)
+                dplyr::collect() %>%
+                dplyr::select("subject_id") %>%
+                dplyr::pull() == 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -2959,3 +2972,64 @@ test_that("mock db: check attrition with complete database intervals", {
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
+
+test_that("mock db: check compute permanent", {
+
+  # using temp
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  attr(cdm, "write_schema") <- "main"
+
+  cdm$dpop <- generateDenominatorCohortSet(cdm = cdm)
+  inc <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "dpop",
+    outcomeTable = "outcome",
+    interval = "overall"
+  )
+  # if using temp tables
+  # we have temp tables created by dbplyr
+  expect_true(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
+                                      "dbplyr_")))
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+  # using permanent
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  attr(cdm, "write_schema") <- "main"
+
+  cdm$dpop <- generateDenominatorCohortSet(cdm = cdm,
+                                           tablePrefix =  "result")
+  inc <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "dpop",
+    outcomeTable = "outcome",
+    interval = "overall",
+    tablePrefix =  "result"
+  )
+
+  # we´ll now have the stem table
+  expect_true(any(stringr::str_detect(
+    CDMConnector::listTables(attr(cdm, "dbcon"),
+                             schema = attr(cdm, "write_schema")),
+    "result")))
+  # with no temp tables created by dbplyr
+  expect_false(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
+                                      "dbplyr_")))
+
+
+  inc <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "dpop",
+    outcomeTable = "outcome",
+    interval = "overall",
+    tablePrefix =  "result",
+    returnParticipants = TRUE
+  )
+  expect_true(any(stringr::str_detect(
+    CDMConnector::listTables(attr(cdm, "dbcon"),
+                             schema = attr(cdm, "write_schema")),
+    "result_incidence_analysis_1")))
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+})
+

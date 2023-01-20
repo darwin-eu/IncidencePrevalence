@@ -41,6 +41,16 @@
 #' @param timePoint where to compute the point prevalence
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
+#' @param tablePrefix The stem for the permanent tables that will
+#' be created when running the analysis. Permanent tables will be created using
+#' this prefix, and any existing tables that start with this will be at risk of
+#' being dropped or overwritten. If NULL, temporary tables will be
+#' used throughout.
+#' @param returnParticipants Either TRUE or FALSE. If TRUE references to
+#' participants from the analysis will be returned allowing for further
+#' analysis. Note, if using permanent tables and returnParticipants is TRUE,
+#' one table per analysis will be kept in the cdm write schema (these
+#' can be dropped at subsequently using dropStemTables() function)
 #' @param verbose Whether to report progress
 #'
 #' @return Point prevalence estimates
@@ -75,6 +85,8 @@ estimatePointPrevalence <- function(cdm,
                                     interval = "years",
                                     timePoint = "start",
                                     minCellCount = 5,
+                                    tablePrefix = NULL,
+                                    returnParticipants = FALSE,
                                     verbose = FALSE) {
   estimatePrevalence(
     cdm = cdm,
@@ -90,6 +102,8 @@ estimatePointPrevalence <- function(cdm,
     fullContribution = FALSE,
     timePoint = timePoint,
     minCellCount = minCellCount,
+    tablePrefix = tablePrefix,
+    returnParticipants =returnParticipants,
     verbose = verbose
   )
 }
@@ -128,6 +142,16 @@ estimatePointPrevalence <- function(cdm,
 #' order to contribute.
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
+#' @param tablePrefix The stem for the permanent tables that will
+#' be created when running the analysis. Permanent tables will be created using
+#' this prefix, and any existing tables that start with this will be at risk of
+#' being dropped or overwritten. If NULL, temporary tables will be
+#' used throughout.
+#' @param returnParticipants Either TRUE or FALSE. If TRUE references to
+#' participants from the analysis will be returned allowing for further
+#' analysis. Note, if using permanent tables and returnParticipants is TRUE,
+#' one table per analysis will be kept in the cdm write schema (these
+#' can be dropped at subsequently using dropStemTables() function)
 #' @param verbose Whether to report progress
 #'
 #' @return  Period prevalence estimates
@@ -164,6 +188,8 @@ estimatePeriodPrevalence <- function(cdm,
                                      completeDatabaseIntervals = TRUE,
                                      fullContribution = FALSE,
                                      minCellCount = 5,
+                                     tablePrefix = NULL,
+                                     returnParticipants = FALSE,
                                      verbose = FALSE) {
   estimatePrevalence(
     cdm = cdm,
@@ -179,6 +205,8 @@ estimatePeriodPrevalence <- function(cdm,
     fullContribution = fullContribution,
     timePoint = "start",
     minCellCount = minCellCount,
+    tablePrefix = tablePrefix,
+    returnParticipants = returnParticipants,
     verbose = verbose
   )
 }
@@ -196,6 +224,8 @@ estimatePrevalence <- function(cdm,
                                fullContribution = FALSE,
                                timePoint = "start",
                                minCellCount = 5,
+                               tablePrefix = NULL,
+                               returnParticipants = FALSE,
                                verbose = FALSE) {
   if (verbose == TRUE) {
     startCollect <- Sys.time()
@@ -281,6 +311,14 @@ estimatePrevalence <- function(cdm,
   checkmate::assert_logical(completeDatabaseIntervals,
     add = errorMessage
   )
+    checkmate::assertCharacter(tablePrefix,
+                               len = 1,
+                               add = errorMessage,
+                               null.ok = TRUE
+    )
+  checkmate::assert_logical(returnParticipants,
+                            add = errorMessage
+  )
   # report initial assertions
   checkmate::reportAssertions(collection = errorMessage)
 
@@ -349,7 +387,10 @@ estimatePrevalence <- function(cdm,
       interval = x$interval,
       completeDatabaseIntervals = x$completeDatabaseIntervals,
       timePoint = x$timePoint,
-      fullContribution = x$fullContribution
+      fullContribution = x$fullContribution,
+      tablePrefix = tablePrefix,
+      returnParticipants = returnParticipants,
+      analysisId = x$analysis_id
     )
 
     if (nrow(workingPrev[["pr"]]) == 0) {
@@ -377,18 +418,21 @@ estimatePrevalence <- function(cdm,
       dplyr::mutate(analysis_id = x$analysis_id) %>%
       dplyr::relocate("analysis_id")
 
+    if(returnParticipants==TRUE){
     workingPrevPersonTable <- workingPrev[["person_table"]] %>%
       dplyr::mutate(analysis_id = !!x$analysis_id) %>%
       dplyr::relocate("analysis_id")
+    }
 
     result <- list()
     result[["pr"]] <- workingPrevPr
     result[["analysis_settings"]] <- workingPrevAnalysisSettings
+    result[["attrition"]] <- workingPrevAttrition
+    if(returnParticipants==TRUE){
     result[[paste0(
       "study_population_analyis_",
       x$analysis_id
-    )]] <- workingPrevPersonTable
-    result[["attrition"]] <- workingPrevAttrition
+    )]] <- workingPrevPersonTable }
 
     return(result)
   })
@@ -430,10 +474,12 @@ estimatePrevalence <- function(cdm,
   }
 
   # study population
+  if(returnParticipants==TRUE){
   personTable <- prsList[stringr::str_detect(
     names(prsList),
     "study_population"
   )]
+  }
 
   # prevalence estimates
   prs <- prsList[names(prsList) == "pr"]
@@ -476,8 +522,9 @@ estimatePrevalence <- function(cdm,
     dplyr::relocate("outcome_cohort_name", .after = "outcome_cohort_id") %>%
     dplyr::relocate("denominator_cohort_id", .after = "analysis_min_cell_count")
   attr(prs, "attrition") <- attrition
+  if(returnParticipants==TRUE){
   attr(prs, "participants") <- personTable
-  attr(prs, "sql") <- tibble::tibble() # placeholder
+  }
 
   class(prs) <- c("IncidencePrevalenceResult", class(prs))
 

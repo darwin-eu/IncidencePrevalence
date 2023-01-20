@@ -83,7 +83,23 @@ test_that("mock db: check output format", {
   ) %in%
     names(attrition(prev, analysisId = 1))))
 
-  # check we can get the reference to participants who contributed
+  # by default we don´t return the participants
+  expect_true(is.null(participants(prev)))
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+
+  cdm <- mockIncidencePrevalenceRef()
+  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+
+  prev <- estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    outcomeCohortName = "test_outcome",
+    interval = "years",
+    returnParticipants = TRUE
+  )
+  # now we do return the participants
   expect_true(is.list(participants(prev))) # list of references to participants
   expect_true(tibble::is_tibble(participants(prev, 1) %>%
     dplyr::collect()))
@@ -1473,4 +1489,63 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
   expect_true(sum(ppo_middle_m_lb9$n_cases) == 8)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
+test_that("mock db: check compute permanent", {
+
+  # using temp
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  attr(cdm, "write_schema") <- "main"
+
+  cdm$dpop <- generateDenominatorCohortSet(cdm = cdm)
+  prev <- estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "dpop",
+    outcomeTable = "outcome",
+    interval = "years"
+  )
+  # if using temp tables
+  # we have temp tables created by dbplyr
+  expect_true(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
+                                      "dbplyr_")))
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+  # using permanent
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  attr(cdm, "write_schema") <- "main"
+
+  cdm$dpop <- generateDenominatorCohortSet(cdm = cdm,
+                                           tablePrefix = "result")
+  prev <- estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "dpop",
+    outcomeTable = "outcome",
+    interval = "years",
+    tablePrefix = "result"
+  )
+
+  # we´ll now have the stem table
+  expect_true(any(stringr::str_detect(
+    CDMConnector::listTables(attr(cdm, "dbcon"),
+                             schema = attr(cdm, "write_schema")),
+    "result")))
+  # with no temp tables created by dbplyr
+  expect_false(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
+                                      "dbplyr_")))
+
+  prev <- estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "dpop",
+    outcomeTable = "outcome",
+    interval = "years",
+    tablePrefix = "result",
+    returnParticipants = TRUE
+  )
+  expect_true(any(stringr::str_detect(
+    CDMConnector::listTables(attr(cdm, "dbcon"),
+                             schema = attr(cdm, "write_schema")),
+    "result_prevalence_analysis_1")))
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
 })

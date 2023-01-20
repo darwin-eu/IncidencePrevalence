@@ -24,7 +24,10 @@ getPrevalence <- function(cdm,
                           interval,
                           completeDatabaseIntervals,
                           timePoint,
-                          fullContribution) {
+                          fullContribution,
+                          tablePrefix,
+                          returnParticipants,
+                          analysisId) {
   if (is.na(outcomeLookbackDays)) {
     outcomeLookbackDays <- NULL
   }
@@ -45,8 +48,20 @@ getPrevalence <- function(cdm,
           "outcome_end_date"
         ),
       by = "subject_id"
-    ) %>%
-    CDMConnector::computeQuery()
+    )
+
+  if(is.null(tablePrefix)){
+    studyPop <- studyPop %>%
+      CDMConnector::computeQuery()
+  } else {
+    studyPop <- studyPop %>%
+      CDMConnector::computeQuery(name = paste0(tablePrefix,
+                                               "_prev_working_1"),
+                                 temporary = FALSE,
+                                 schema = attr(cdm, "write_schema"),
+                                 overwrite = TRUE)
+  }
+
 
   attrition <- recordAttrition(
     table = studyPop,
@@ -103,6 +118,18 @@ getPrevalence <- function(cdm,
                     .data$cohort_start_date <= .data$maxStartDate) %>%
       dplyr::select(-minStartDate, -maxStartDate)
 
+    if(is.null(tablePrefix)){
+      studyPop <- studyPop %>%
+        CDMConnector::computeQuery()
+    } else {
+      studyPop <- studyPop %>%
+        CDMConnector::computeQuery(name = paste0(tablePrefix,
+                                                 "_prev_working_2"),
+                                   temporary = FALSE,
+                                   schema = attr(cdm, "write_schema"),
+                                   overwrite = TRUE)
+    }
+
     attrition <- recordAttrition(
       table = studyPop,
       id = "subject_id",
@@ -122,9 +149,21 @@ getPrevalence <- function(cdm,
           has_full_contribution = dplyr::if_else(!!checkExpression,
                                                  1L,
                                                  0L))  %>%
+        dplyr::collapse()  %>%
         dplyr::filter(.data$has_full_contribution >= 1) %>%
-        dplyr::select(-"has_full_contribution")  %>%
-        CDMConnector::computeQuery()
+        dplyr::select(-"has_full_contribution")
+
+      if(is.null(tablePrefix)){
+        studyPop <- studyPop %>%
+          CDMConnector::computeQuery()
+      } else {
+        studyPop <- studyPop %>%
+          CDMConnector::computeQuery(name = paste0(tablePrefix,
+                                                   "_prev_working_3"),
+                                     temporary = FALSE,
+                                     schema = attr(cdm, "write_schema"),
+                                     overwrite = TRUE)
+      }
 
       attrition <- recordAttrition(
         table = studyPop,
@@ -147,7 +186,6 @@ getPrevalence <- function(cdm,
     # bring in to R
     studyPopLocal <- studyPop %>% dplyr::collect()
 
-    # pr <- list()
     pr <- vector(mode = "list", length = length(studyDays$time))
 
     for (i in seq_along(studyDays$time)) {
@@ -178,14 +216,15 @@ getPrevalence <- function(cdm,
             dplyr::if_else(.data$cohort_start_date <= .env$workingStart,
               .env$workingStart,
               as.Date(.data$cohort_start_date)
-            ),
-          # individuals end date for this period
-          # end of the period or earlier
-          cohort_end_date =
-            dplyr::if_else(.data$cohort_end_date >= .env$workingEnd,
-              .env$workingEnd,
-              as.Date(.data$cohort_end_date)
             )
+        ) %>%
+        dplyr::mutate(
+      # individuals end date for this period
+      # end of the period or earlier
+      cohort_end_date =
+        dplyr::if_else(.data$cohort_end_date >= .env$workingEnd,
+                       .env$workingEnd,
+                       as.Date(.data$cohort_end_date))
         )
 
       if (is.null(outcomeLookbackDays)) {
@@ -240,10 +279,36 @@ getPrevalence <- function(cdm,
       dplyr::rename("prevalence_end_date" = "end_time")
   }
 
+  if(!is.null(tablePrefix)){
+
+   if(returnParticipants==TRUE){
+    # if using permanent tables (that get overwritten)
+    # we need to keep a permanent one for a given analysis
+    # so that we can refer back to it (e.g when using participants() function)
+    studyPop <- studyPop %>%
+      CDMConnector::computeQuery(name = paste0(tablePrefix,
+                                               "_prevalence_analysis_",
+                                               analysisId),
+                                 temporary = FALSE,
+                                 schema = attr(cdm, "write_schema"),
+                                 overwrite = TRUE)
+    }
+
+    # drop other intermediate tables created
+    dropTable(cdm,
+              table = c(paste0(tablePrefix, "_prev_working_1"),
+                        paste0(tablePrefix, "_prev_working_2"),
+                        paste0(tablePrefix, "_prev_working_3")
+                        ))
+
+  }
+
   results <- list()
   results[["pr"]] <- pr
-  results[["person_table"]] <- studyPop
   results[["attrition"]] <- attrition
+  if(returnParticipants==TRUE){
+    results[["person_table"]] <- studyPop
+  }
 
   return(results)
 }

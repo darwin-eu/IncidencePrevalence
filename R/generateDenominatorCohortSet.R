@@ -49,6 +49,11 @@
 #' @param sample An integer for which to take a random sample, using
 #' `dplyr::slice_sample()`, of the people in the person table eligible to be
 #' included in the cohort set.
+#' @param tablePrefix The stem for the permanent tables that will
+#' be created when creating the denominator cohorts. Permanent tables will be
+#' created using this stem, and any existing tables that start with this
+#' will be at risk of being dropped or overwritten. If NULL, temporary
+#' tables will be used throughout.
 #' @param verbose Either TRUE or FALSE. If TRUE, progress will be reported.
 #'
 #' @return A cohort reference
@@ -79,6 +84,7 @@ generateDenominatorCohortSet <- function(cdm,
                                strataCohortId = NULL,
                                strataCohortName = NULL,
                                sample = NULL,
+                               tablePrefix = NULL,
                                verbose = FALSE) {
   if (verbose == TRUE) {
     startCollect <- Sys.time()
@@ -200,10 +206,24 @@ generateDenominatorCohortSet <- function(cdm,
     add = errorMessage,
     null.ok = TRUE
   )
+  checkmate::assertCharacter(tablePrefix,
+                             len = 1,
+                             add = errorMessage,
+                             null.ok = TRUE
+  )
   checkmate::assert_logical(verbose,
     add = errorMessage
   )
   checkmate::reportAssertions(collection = errorMessage)
+
+
+  if(!is.null(tablePrefix)){
+    # drop table stem if exists
+    dropTable(cdm,
+               table = tablePrefix
+               )
+  }
+
 
   # add broadest possible age group if no age strata were given
   if (is.null(startDate)) {
@@ -261,7 +281,8 @@ generateDenominatorCohortSet <- function(cdm,
     daysPriorHistory = unique(popSpecs$days_prior_history),
     strataTable = strataTable,
     strataCohortId = strataCohortId,
-    sample = sample
+    sample = sample,
+    tablePrefix
   )
 
   denominatorPopulationNrows <- dpop$denominator_population %>%
@@ -381,8 +402,19 @@ generateDenominatorCohortSet <- function(cdm,
       if (verbose == TRUE) {
         message(glue::glue("Unioning cohorts"))
       }
-      studyPops <- Reduce(dplyr::union_all, studyPops) %>%
+      studyPops <- Reduce(dplyr::union_all, studyPops)
+      if(is.null(tablePrefix)){
+      studyPops <- studyPops %>%
         CDMConnector::computeQuery()
+      } else {
+        studyPops <- studyPops %>%
+          CDMConnector::computeQuery(name = paste0(tablePrefix,
+                                            "_denominator"),
+                                     temporary = FALSE,
+                                     schema = attr(cdm, "write_schema"),
+                                     overwrite = TRUE)
+      }
+
     }
     if (length(studyPops) >= 10) {
         # if 10 or more
@@ -400,15 +432,68 @@ generateDenominatorCohortSet <- function(cdm,
             cli::cli_progress_update()
           }
           studyPopsBatches[[i]] <- Reduce(dplyr::union_all,
-                                          studyPopsBatches[[i]]) %>%
-            CDMConnector::computeQuery()
+                                          studyPopsBatches[[i]])
+
+          if(is.null(tablePrefix)){
+            studyPopsBatches[[i]]  <- studyPopsBatches[[i]] %>%
+              CDMConnector::computeQuery()
+          } else {
+            studyPopsBatches[[i]]  <- studyPopsBatches[[i]] %>%
+              CDMConnector::computeQuery(name = paste0(tablePrefix,
+                                                       "_batch_", i),
+                                         temporary = FALSE,
+                                         schema = attr(cdm, "write_schema"),
+                                         overwrite = TRUE)
+          }
         }
         cli::cli_progress_done()
 
-        studyPops <- Reduce(dplyr::union_all, studyPopsBatches) %>%
-          CDMConnector::computeQuery()
+        studyPops <- Reduce(dplyr::union_all, studyPopsBatches)
+        if(is.null(tablePrefix)){
+          studyPops <- studyPops %>%
+            CDMConnector::computeQuery()
+        } else {
+          studyPops <- studyPops %>%
+            CDMConnector::computeQuery(name = paste0(tablePrefix,
+                                                     "_denominator"),
+                                       temporary = FALSE,
+                                       schema = attr(cdm, "write_schema"),
+                                       overwrite = TRUE)
+        }
+
+        # drop any batch permanent tables
+        if(!is.null(tablePrefix)){
+        for (i in seq_along(studyPopsBatches)) {
+          dropTable(cdm,
+                     table = paste0(tablePrefix,
+                                    "_batch_", i)
+          )
+        }}
       }
+  }
+
+
+  if(!is.null(tablePrefix)){
+    # drop the intermediate tables that may have been created
+    dropTable(cdm,
+               table = tablePrefix
+    )
+
+    for(i in 1:6){
+      dropTable(cdm,
+                 table = paste0(tablePrefix, "_", i)
+      )
     }
+
+    if(!is.null(sample)){
+      dropTable(cdm,
+                 table = paste0(tablePrefix,
+                                "_person_sample")
+      )
+    }
+  }
+
+
 
   if (verbose == TRUE) {
     dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))

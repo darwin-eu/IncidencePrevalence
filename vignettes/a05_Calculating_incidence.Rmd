@@ -232,13 +232,14 @@ inc <- estimateIncidence(
   outcomeTable = "outcome",
   interval = c("Years"),
   outcomeWashout = c(0, 180),
-  repeatedEvents = TRUE
+  repeatedEvents = TRUE,
+  returnParticipants = TRUE
 )
 attrition(inc)
 settings(inc)
 ```
 
-In addition, we can see the individuals who contributed to a given analysis by using `participants()`. This can be used if we want to perform further analyses on the individuals (e.g. describing their characteristics).
+In addition, if we set returnParticipants as TRUE as above, we can see the individuals who contributed to a given analysis by using `participants()`. This can be used if we want to perform further analyses on the individuals (e.g. describing their characteristics).
 ```{r, message= FALSE, warning=FALSE}
 participants(inc)
 ```
