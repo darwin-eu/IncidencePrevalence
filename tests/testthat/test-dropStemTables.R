@@ -9,16 +9,14 @@ test_that("multiplication works", {
       c(19, 60)
     ),
     daysPriorHistory = c(0, 1, 2),
-    computePermanent = TRUE,
-    computePermanentStem = "result"
+    tablePrefix =  "result"
   )
   inc <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "dpop",
     outcomeTable = "outcome",
     interval = "overall",
-    computePermanent = TRUE,
-    computePermanentStem = "result",
+    tablePrefix =  "result",
     returnParticipants = TRUE
   )
 
