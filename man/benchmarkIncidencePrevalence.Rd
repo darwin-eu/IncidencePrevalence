@@ -7,6 +7,9 @@
 benchmarkIncidencePrevalence(
   cdm,
   sample = NULL,
+  nOutcomes = 1,
+  prevOutcomes = 25,
+  analysisType = "all",
   outputFolder = NULL,
   verbose = FALSE
 )
@@ -16,6 +19,16 @@ benchmarkIncidencePrevalence(
 
 \item{sample}{An integer for which to take a random sample when generating
 the denominator cohort}
+
+\item{nOutcomes}{An integer specifying the number of outcomes to create in
+the denominator cohort}
+
+\item{prevOutcomes}{An array of integers for the prevalence of the outcomes
+in the population (in \%). If the user wants all the outcomes with the same
+prevalence, they can also provide a single integer}
+
+\item{analysisType}{A string of the following: "all", "only incidence",
+"only prevalence"}
 
 \item{outputFolder}{Folder to save results as CSV}
 
