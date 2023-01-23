@@ -6,9 +6,12 @@
 \usage{
 benchmarkIncidencePrevalence(
   cdm,
+  startDate = NULL,
+  endDate = NULL,
+  tablePrefix = NULL,
   sample = NULL,
   nOutcomes = 1,
-  prevOutcomes = 25,
+  prevOutcomes = 0.25,
   analysisType = "all",
   outputFolder = NULL,
   verbose = FALSE
@@ -16,6 +19,19 @@ benchmarkIncidencePrevalence(
 }
 \arguments{
 \item{cdm}{A CDM reference object}
+
+\item{startDate}{A date indicating the start of the study
+period to be used for the denominator cohort. If NULL, the earliest
+observation_start_date in the observation_period table will be used.}
+
+\item{endDate}{A date indicating the end of the study
+period to be used for the denominator cohort. If NULL, the latest
+observation end date in the observation period  table will be used.}
+
+\item{tablePrefix}{The stem for the permanent tables that will
+be created. Permanent tables will be created using this stem, and any
+existing tables that start with this will be at risk of being dropped
+or overwritten. If NULL, temporary tables will be used throughout.}
 
 \item{sample}{An integer for which to take a random sample when generating
 the denominator cohort}

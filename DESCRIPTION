@@ -8,7 +8,7 @@ Authors@R: c(
     comment = c(ORCID = "0000-0002-4668-2970")), 
     person("Marti", "Catala", email = "marti.catalasabate@ndorms.ox.ac.uk", role = c("aut"), 
     comment = c(ORCID = "0000-0003-3308-9905")),
-    person("Mike", "Du", email = "mike.du@ndorms.ox.ac.uk", role = c("aut"), 
+    person("Mike", "Du", email = "mike.du@ndorms.ox.ac.uk", role = c("ctb"), 
     comment = c(ORCID = "0000-0002-9517-8834")),
     person("Yuchen", "Guo", email = "yuchen.guo@ndorms.ox.ac.uk", role = c("ctb"), 
            comment = c(ORCID = "0000-0002-0847-4855")),
@@ -24,21 +24,21 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
 Imports: 
-    checkmate,
-    cli,
-    DBI,
-    dbplyr,
-    dplyr,
-    lubridate,
-    glue,
-    magrittr,
-    rlang,
-    purrr,
-    tidyr,
-    tidyselect,
-    CDMConnector,
-    stringr,
-    zip
+    CDMConnector (>= 0.4.0),
+    checkmate (>= 2.0.0),
+    cli (>= 3.0.0),
+    DBI (>= 1.0.0),
+    dbplyr (>= 2.0.0),
+    dplyr (>= 1.0.0),
+    glue (>= 1.5.0),
+    lubridate (>= 1.0.0),
+    magrittr (>= 2.0.0),
+    purrr (>= 0.3.5),
+    rlang (>= 1.0.0),
+    stringr (>= 1.5.0),
+    tidyr (>= 1.2.0),
+    tidyselect (>= 1.2.0),
+    zip (>= 2.2.0)
 Suggests: 
     knitr,
     rmarkdown,
@@ -52,7 +52,7 @@ Suggests:
     Hmisc,
     epitools,
     tictoc,
-    testthat (>= 3.0.0),
+    testthat (>= 0.3.1),
     spelling
 Remotes:
     darwin-eu/CDMConnector

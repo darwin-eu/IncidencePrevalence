@@ -15,11 +15,11 @@ Authors:
 \itemize{
   \item Berta Raventos \email{braventos@idiapjgol.info} (\href{https://orcid.org/0000-0002-4668-2970}{ORCID})
   \item Marti Catala \email{marti.catalasabate@ndorms.ox.ac.uk} (\href{https://orcid.org/0000-0003-3308-9905}{ORCID})
-  \item Mike Du \email{mike.du@ndorms.ox.ac.uk} (\href{https://orcid.org/0000-0002-9517-8834}{ORCID})
 }
 
 Other contributors:
 \itemize{
+  \item Mike Du \email{mike.du@ndorms.ox.ac.uk} (\href{https://orcid.org/0000-0002-9517-8834}{ORCID}) [contributor]
   \item Yuchen Guo \email{yuchen.guo@ndorms.ox.ac.uk} (\href{https://orcid.org/0000-0002-0847-4855}{ORCID}) [contributor]
   \item Adam Black \email{black@ohdsi.org} (\href{https://orcid.org/0000-0001-5576-8701}{ORCID}) [contributor]
   \item Ger Inberg \email{g.inberg@erasmusmc.nl} (\href{https://orcid.org/0000-0001-8993-8748}{ORCID}) [contributor]

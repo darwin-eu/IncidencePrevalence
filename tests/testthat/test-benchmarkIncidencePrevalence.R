@@ -12,7 +12,14 @@ test_that("full benchmark", {
   expect_true(tibble::is_tibble(timings))
   expect_true("IncidencePrevalenceBenchmark.csv" %in% list.files(tempdir()))
 
-  # expected errors
+  # using permanent tables
+  timings_perm<-benchmarkIncidencePrevalence(cdm,
+                                             tablePrefix = "stem",
+                                        outputFolder = tempdir(),
+                                        verbose = TRUE)
+
+
+   # expected errors
   expect_error(benchmarkIncidencePrevalence(cdm="a",
                                outputFolder = tempdir(),
                                verbose = TRUE))
@@ -32,20 +39,22 @@ test_that("benchmark multiple outcomes, prevalences and analysis types", {
                                     outPre = 0.1 )
 
   timings = benchmarkIncidencePrevalence(cdm,sample = NULL, nOutcomes = 2,
-                                         prevOutcomes = c(10,24), analysisType = "only incidence",
-                                         outputFolder = tempdir(), verbose = TRUE)
+                                         prevOutcomes = c(0.1),
+                                         analysisType = "only incidence",
+                                         outputFolder = tempdir(),
+                                         verbose = TRUE)
 
-  expect_true("yearly incidence - typical denominator, 2 outcome(s)" %in% timings$task)
-  expect_true("monthly incidence - typical denominator, 2 outcome(s)" %in% timings$task)
-  expect_false("yearly point prevalence - typical denominator, 2 outcome(s)" %in% timings$task)
+  expect_true("yearly incidence, 2 outcome(s)" %in% timings$task)
+  expect_true("monthly incidence, 2 outcome(s)" %in% timings$task)
+  expect_false("yearly point prevalence, 2 outcome(s)" %in% timings$task)
 
   timings = benchmarkIncidencePrevalence(cdm,sample = NULL, nOutcomes = 1,
-                                         prevOutcomes = 15, analysisType = "all",
+                                         prevOutcomes = 0.15, analysisType = "all",
                                          outputFolder = tempdir(), verbose = TRUE)
 
-  expect_false("yearly incidence - typical denominator, 2 outcome(s)" %in% timings$task)
-  expect_true("monthly point prevalence - typical denominator, 1 outcome(s)" %in% timings$task)
-  expect_true("yearly period prevalence - typical denominator, 1 outcome(s)" %in% timings$task)
+  expect_false("yearly incidence, 2 outcome(s)" %in% timings$task)
+  expect_true("monthly point prevalence, 1 outcome(s)" %in% timings$task)
+  expect_true("yearly period prevalence, 1 outcome(s)" %in% timings$task)
 
   # expected errors
   expect_error(benchmarkIncidencePrevalence(cdm,
@@ -53,24 +62,29 @@ test_that("benchmark multiple outcomes, prevalences and analysis types", {
                                             outputFolder = tempdir(),
                                             verbose = TRUE))
   expect_error(benchmarkIncidencePrevalence(cdm,
-                                            nOutcomes = 2,
-                                            prevOutcomes = c(-10,30),
+                                            nOutcomes = 4,
+                                            prevOutcomes = c(0.1,0.2),
                                             outputFolder = tempdir(),
                                             verbose = TRUE))
   expect_error(benchmarkIncidencePrevalence(cdm,
                                             nOutcomes = 2,
-                                            prevOutcomes = c(10,310),
+                                            prevOutcomes = c(-0.10,0.30),
                                             outputFolder = tempdir(),
                                             verbose = TRUE))
   expect_error(benchmarkIncidencePrevalence(cdm,
                                             nOutcomes = 2,
-                                            prevOutcomes = c(10,30),
+                                            prevOutcomes = c(0.10,310),
+                                            outputFolder = tempdir(),
+                                            verbose = TRUE))
+  expect_error(benchmarkIncidencePrevalence(cdm,
+                                            nOutcomes = 2,
+                                            prevOutcomes = c(0.10,30),
                                             analysisType = 0,
                                             outputFolder = tempdir(),
                                             verbose = TRUE))
   expect_error(benchmarkIncidencePrevalence(cdm,
                                             nOutcomes = 2,
-                                            prevOutcomes = c(10,30),
+                                            prevOutcomes = c(0.10,30),
                                             analysisType = "prevalence",
                                             outputFolder = tempdir(),
                                             verbose = TRUE))

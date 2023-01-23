@@ -17,6 +17,16 @@
 #' Run benchmark of incidence and prevalence analyses
 #'
 #' @param cdm A CDM reference object
+#' @param startDate A date indicating the start of the study
+#' period to be used for the denominator cohort. If NULL, the earliest
+#' observation_start_date in the observation_period table will be used.
+#' @param endDate A date indicating the end of the study
+#' period to be used for the denominator cohort. If NULL, the latest
+#' observation end date in the observation period  table will be used.
+#' @param tablePrefix The stem for the permanent tables that will
+#' be created. Permanent tables will be created using this stem, and any
+#' existing tables that start with this will be at risk of being dropped
+#' or overwritten. If NULL, temporary tables will be used throughout.
 #' @param sample An integer for which to take a random sample when generating
 #' the denominator cohort
 #' @param nOutcomes An integer specifying the number of outcomes to create in
@@ -43,9 +53,12 @@
 #' timings <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm)
 #' }
 benchmarkIncidencePrevalence <- function(cdm,
+                                         startDate = NULL,
+                                         endDate = NULL,
+                                         tablePrefix = NULL,
                                          sample = NULL,
                                          nOutcomes = 1,
-                                         prevOutcomes = 25,
+                                         prevOutcomes = 0.25,
                                          analysisType = "all",
                                          outputFolder = NULL,
                                          verbose = FALSE) {
@@ -59,20 +72,25 @@ benchmarkIncidencePrevalence <- function(cdm,
       "- cdm must be a CDMConnector CDM reference object"
     )
   }
+  checkmate::assertCharacter(tablePrefix,
+                             len = 1,
+                             add = errorMessage,
+                             null.ok = TRUE
+  )
   checkmate::assertNumeric(sample,
                            lower = 0,
                            add = errorMessage,
                            null.ok = TRUE
   )
   checkmate::assertIntegerish(nOutcomes,
-                           lower = 1,
+                           lower = 0,
                            add = errorMessage
   )
   checkmate::assertNumeric(prevOutcomes,
                            add = errorMessage,
                            any.missing = FALSE,
                            lower = 0,
-                           upper = 100
+                           upper = 1
   )
   lengthpOcheck <- length(prevOutcomes) %in% c(1,nOutcomes)
   checkmate::assertTRUE(lengthpOcheck,
@@ -108,20 +126,21 @@ benchmarkIncidencePrevalence <- function(cdm,
   tictoc::tic()
   cdm$denominator_typical <- generateDenominatorCohortSet(
     cdm = cdm,
-    daysPriorHistory = c(0, 180),
+    startDate = startDate,
+    endDate = endDate,
+    daysPriorHistory = 180,
     sex = c("Male", "Female"),
     ageGroup = list(
-      c(0, 15), c(16, 25),
-      c(26, 32), c(33, 39),
-      c(40, 60), c(61, 64),
+      c(0, 25), c(26, 64),
       c(65, 79), c(80, 150)
     ),
     sample = sample,
+    tablePrefix = tablePrefix,
     verbose = verbose
   )
   t <- tictoc::toc(quiet = TRUE)
   timings[["typical_denominator"]] <- tibble::tibble(
-    task = "generating typical denominator (32 cohorts)",
+    task = "generating typical denominator (8 cohorts)",
     time_taken_secs = as.numeric(t$toc - t$tic)
   )
 
@@ -133,7 +152,7 @@ benchmarkIncidencePrevalence <- function(cdm,
   # create table for the first outcome
   n_sample <- as.integer(cdm$denominator_typical %>%
     dplyr::count() %>%
-    dplyr::pull()) * prevOutcomes[1]/100
+    dplyr::pull()) * prevOutcomes[1]
 
   cdm$bench_outcome <- cdm$denominator_typical %>%
     dplyr::distinct(.data$subject_id,.keep_all=TRUE) %>%
@@ -163,6 +182,7 @@ benchmarkIncidencePrevalence <- function(cdm,
     tictoc::tic()
     point_prev_typical_years <- estimatePointPrevalence(
       cdm = cdm,
+      tablePrefix = tablePrefix,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "years",
@@ -170,13 +190,14 @@ benchmarkIncidencePrevalence <- function(cdm,
     )
     t <- tictoc::toc(quiet = TRUE)
     timings[["point_prev_typical_years"]] <- tibble::tibble(
-      task = paste0("yearly point prevalence - typical denominator, ",nOutcomes," outcome(s)"),
+      task = paste0("yearly point prevalence, ",nOutcomes," outcome(s)"),
       time_taken_secs = as.numeric(t$toc - t$tic)
     )
 
     tictoc::tic()
     point_prev_typical_months <- estimatePointPrevalence(
       cdm = cdm,
+      tablePrefix = tablePrefix,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "months",
@@ -184,7 +205,7 @@ benchmarkIncidencePrevalence <- function(cdm,
     )
     t <- tictoc::toc(quiet = TRUE)
     timings[["point_prev_typical_months"]] <- tibble::tibble(
-      task = paste0("monthly point prevalence - typical denominator, ",nOutcomes," outcome(s)"),
+      task = paste0("monthly point prevalence, ",nOutcomes," outcome(s)"),
       time_taken_secs = as.numeric(t$toc - t$tic)
     )
 
@@ -192,6 +213,7 @@ benchmarkIncidencePrevalence <- function(cdm,
     tictoc::tic()
     period_prev_typical_years <- estimatePeriodPrevalence(
       cdm = cdm,
+      tablePrefix = tablePrefix,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "years",
@@ -200,13 +222,14 @@ benchmarkIncidencePrevalence <- function(cdm,
     )
     t <- tictoc::toc(quiet = TRUE)
     timings[["period_prev_typical_years"]] <- tibble::tibble(
-      task = paste0("yearly period prevalence - typical denominator, ",nOutcomes," outcome(s)"),
+      task = paste0("yearly period prevalence, ",nOutcomes," outcome(s)"),
       time_taken_secs = as.numeric(t$toc - t$tic)
     )
 
     tictoc::tic()
     period_prev_typical_months <- estimatePeriodPrevalence(
       cdm = cdm,
+      tablePrefix = tablePrefix,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "months",
@@ -215,7 +238,7 @@ benchmarkIncidencePrevalence <- function(cdm,
     )
     t <- tictoc::toc(quiet = TRUE)
     timings[["period_prev_typical_months"]] <- tibble::tibble(
-      task = paste0("monthly period prevalence - typical denominator, ",nOutcomes," outcome(s)"),
+      task = paste0("monthly period prevalence, ",nOutcomes," outcome(s)"),
       time_taken_secs = as.numeric(t$toc - t$tic)
     )
   }
@@ -225,6 +248,7 @@ benchmarkIncidencePrevalence <- function(cdm,
     tictoc::tic()
     inc_typical_years <- estimateIncidence(
       cdm = cdm,
+      tablePrefix = tablePrefix,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "years",
@@ -232,13 +256,14 @@ benchmarkIncidencePrevalence <- function(cdm,
     )
     t <- tictoc::toc(quiet = TRUE)
     timings[["inc_typical_years"]] <- tibble::tibble(
-      task = paste0("yearly incidence - typical denominator, ",nOutcomes," outcome(s)"),
+      task = paste0("yearly incidence, ",nOutcomes," outcome(s)"),
       time_taken_secs = as.numeric(t$toc - t$tic)
     )
 
     tictoc::tic()
     inc_typical_months <- estimateIncidence(
       cdm = cdm,
+      tablePrefix = tablePrefix,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "months",
@@ -246,7 +271,7 @@ benchmarkIncidencePrevalence <- function(cdm,
     )
     t <- tictoc::toc(quiet = TRUE)
     timings[["inc_typical_months"]] <- tibble::tibble(
-      task = paste0("monthly incidence - typical denominator, ",nOutcomes," outcome(s)"),
+      task = paste0("monthly incidence, ",nOutcomes," outcome(s)"),
       time_taken_secs = as.numeric(t$toc - t$tic)
     )
   }
@@ -264,6 +289,14 @@ benchmarkIncidencePrevalence <- function(cdm,
     dplyr::mutate(max_observation_end = cdm$observation_period %>%
       dplyr::summarise(max_observation_end = min(.data$observation_period_end_date, na.rm = TRUE)) %>%
       dplyr::pull())
+
+  if(is.null(tablePrefix)){
+    timings <- timings %>%
+      dplyr::mutate(tables = "temporary")
+  } else {
+    timings <- timings %>%
+      dplyr::mutate(tables = "permanent")
+  }
 
   if (!is.null(outputFolder) && dir.exists(outputFolder)) {
     utils::write.csv(timings,

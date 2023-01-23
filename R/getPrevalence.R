@@ -102,7 +102,7 @@ getPrevalence <- function(cdm,
     attrition <- recordAttrition(
       table = tibble::tibble(subject_id = integer()),
       id = "subject_id",
-      reason = "Do not satisfy full contribution requirement for an interval",
+      reason = "Do not satisfy full contribution requirement for any time interval",
       existingAttrition = attrition
     )
   } else {
