@@ -8,15 +8,19 @@ test_that("full benchmark", {
 
   timings<-benchmarkIncidencePrevalence(cdm,
                                         outputFolder = tempdir(),
+                                        fileName = "bench",
                                         verbose = TRUE)
   expect_true(tibble::is_tibble(timings))
-  expect_true("IncidencePrevalenceBenchmark.csv" %in% list.files(tempdir()))
+  expect_true("bench.csv" %in% list.files(tempdir()))
 
   # using permanent tables
   timings_perm<-benchmarkIncidencePrevalence(cdm,
                                              tablePrefix = "stem",
                                         outputFolder = tempdir(),
+                                        fileName = "bench_perm",
                                         verbose = TRUE)
+  expect_true(tibble::is_tibble(timings_perm))
+  expect_true("bench_perm.csv" %in% list.files(tempdir()))
 
 
    # expected errors
@@ -41,7 +45,6 @@ test_that("benchmark multiple outcomes, prevalences and analysis types", {
   timings = benchmarkIncidencePrevalence(cdm,sample = NULL, nOutcomes = 2,
                                          prevOutcomes = c(0.1),
                                          analysisType = "only incidence",
-                                         outputFolder = tempdir(),
                                          verbose = TRUE)
 
   expect_true("yearly incidence, 2 outcome(s)" %in% timings$task)
@@ -50,7 +53,7 @@ test_that("benchmark multiple outcomes, prevalences and analysis types", {
 
   timings = benchmarkIncidencePrevalence(cdm,sample = NULL, nOutcomes = 1,
                                          prevOutcomes = 0.15, analysisType = "all",
-                                         outputFolder = tempdir(), verbose = TRUE)
+                                         verbose = TRUE)
 
   expect_false("yearly incidence, 2 outcome(s)" %in% timings$task)
   expect_true("monthly point prevalence, 1 outcome(s)" %in% timings$task)

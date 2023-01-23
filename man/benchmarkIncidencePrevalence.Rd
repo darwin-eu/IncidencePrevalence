@@ -14,6 +14,7 @@ benchmarkIncidencePrevalence(
   prevOutcomes = 0.25,
   analysisType = "all",
   outputFolder = NULL,
+  fileName = NULL,
   verbose = FALSE
 )
 }
@@ -47,6 +48,8 @@ prevalence, they can also provide a single integer}
 "only prevalence"}
 
 \item{outputFolder}{Folder to save results as CSV}
+
+\item{fileName}{Name given to CSV with results}
 
 \item{verbose}{Either TRUE or FALSE. If TRUE, progress will be reported.}
 }

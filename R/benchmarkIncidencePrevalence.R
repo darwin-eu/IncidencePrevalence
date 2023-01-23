@@ -37,6 +37,7 @@
 #' @param analysisType A string of the following: "all", "only incidence",
 #' "only prevalence"
 #' @param outputFolder Folder to save results as CSV
+#' @param fileName Name given to CSV with results
 #' @param verbose Either TRUE or FALSE. If TRUE, progress will be reported.
 #'
 #' @return a tibble with time taken for different analyses
@@ -61,6 +62,7 @@ benchmarkIncidencePrevalence <- function(cdm,
                                          prevOutcomes = 0.25,
                                          analysisType = "all",
                                          outputFolder = NULL,
+                                         fileName = NULL,
                                          verbose = FALSE) {
   errorMessage <- checkmate::makeAssertCollection()
   cdmCheck <- inherits(cdm, "cdm_reference")
@@ -115,6 +117,13 @@ benchmarkIncidencePrevalence <- function(cdm,
   if (!is.null(outputFolder)) {
     checkmate::assertDirectoryExists(outputFolder)
   }
+  if (!is.null(outputFolder)) {
+  checkmate::assertCharacter(fileName,
+                             len = 1,
+                             add = errorMessage,
+                             null.ok = FALSE
+  )
+  }
   checkmate::assert_logical(verbose,
     add = errorMessage
   )
@@ -140,7 +149,7 @@ benchmarkIncidencePrevalence <- function(cdm,
   )
   t <- tictoc::toc(quiet = TRUE)
   timings[["typical_denominator"]] <- tibble::tibble(
-    task = "generating typical denominator (8 cohorts)",
+    task = "generating denominator (8 cohorts)",
     time_taken_secs = as.numeric(t$toc - t$tic)
   )
 
@@ -279,15 +288,18 @@ benchmarkIncidencePrevalence <- function(cdm,
 
   # combine results
   timings <- dplyr::bind_rows(timings) %>%
-    dplyr::mutate(time_taken_mins = .data$time_taken_secs / 60) %>%
-    dplyr::mutate(time_taken_hours = .data$time_taken_mins / 60) %>%
+    dplyr::mutate(time_taken_secs = round(.data$time_taken_secs, 2)) %>%
+    dplyr::mutate(time_taken_mins = round(.data$time_taken_secs / 60, 2)) %>%
+    dplyr::mutate(time_taken_hours = round(.data$time_taken_mins / 60, 2)) %>%
     dplyr::mutate(dbms = CDMConnector::dbms(cdm)) %>%
     dplyr::mutate(person_n = cdm$person %>% dplyr::count() %>% dplyr::pull()) %>%
-    dplyr::mutate(min_observation_start = cdm$observation_period %>%
-      dplyr::summarise(min_obs_start = min(.data$observation_period_start_date, na.rm = TRUE)) %>%
+    dplyr::mutate(db_min_observation_start = cdm$observation_period %>%
+      dplyr::summarise(db_min_obs_start = min(.data$observation_period_start_date,
+                                              na.rm = TRUE)) %>%
       dplyr::pull()) %>%
     dplyr::mutate(max_observation_end = cdm$observation_period %>%
-      dplyr::summarise(max_observation_end = min(.data$observation_period_end_date, na.rm = TRUE)) %>%
+      dplyr::summarise(max_observation_end = max(.data$observation_period_end_date,
+                                                 na.rm = TRUE)) %>%
       dplyr::pull())
 
   if(is.null(tablePrefix)){
@@ -300,7 +312,7 @@ benchmarkIncidencePrevalence <- function(cdm,
 
   if (!is.null(outputFolder) && dir.exists(outputFolder)) {
     utils::write.csv(timings,
-      file.path(outputFolder, "IncidencePrevalenceBenchmark.csv"),
+      file.path(outputFolder, paste0(fileName,".csv")),
       row.names = FALSE
     )
   }
