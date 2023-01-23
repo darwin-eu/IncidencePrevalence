@@ -205,8 +205,8 @@ getIncidence <- function(cdm,
     minStartDate <- min(studyDays$start_time)
     maxStartDate <- max(studyDays$end_time)
     studyPop <- studyPop %>%
-      dplyr::filter(.data$cohort_end_date >= minStartDate) %>%
-      dplyr::filter(.data$cohort_start_date <= maxStartDate)
+      dplyr::filter(.data$cohort_end_date >= .env$minStartDate) %>%
+      dplyr::filter(.data$cohort_start_date <= .env$maxStartDate)
 
     attrition <- recordAttrition(
       table = studyPop,

@@ -229,8 +229,9 @@ getDenominatorCohorts <- function(cdm,
   lowerAgeLimit <- min(minAge)
   upperAgeLimit <- max(maxAge)
 
-  startDate_ <- as.character(startDate)
-  endDate_ <- as.character(endDate)
+  # as character so we can insert into db
+  startDateChar <- as.character(startDate)
+  endDateChar <- as.character(endDate)
 
   studyPopDb <- studyPopDb %>%
     dplyr::mutate(lower_age_check = !!CDMConnector::dateadd("dob",
@@ -239,8 +240,8 @@ getDenominatorCohorts <- function(cdm,
      upper_age_check = !!CDMConnector::dateadd("dob",
                                               {{upperAgeLimit}},
                                               interval = "year"),
-     startDate = !!CDMConnector::asDate(.env$startDate_),
-     endDate = !!CDMConnector::asDate(.env$endDate_),
+     startDate = !!CDMConnector::asDate(.env$startDateChar),
+     endDate = !!CDMConnector::asDate(.env$endDateChar),
      ) %>%
     dplyr::filter(
     # drop people too old even at study start

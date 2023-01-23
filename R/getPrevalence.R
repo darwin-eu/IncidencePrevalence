@@ -109,11 +109,13 @@ getPrevalence <- function(cdm,
     # drop for complete database intervals requirement
     minStartDate <- min(studyDays$start_time)
     maxStartDate <- max(studyDays$end_time)
-    minStartDate_ <- as.character(minStartDate)
-    maxStartDate_ <- as.character(maxStartDate)
+
+    minStartDateChar <- as.character(minStartDate)
+    maxStartDateChar <- as.character(maxStartDate)
+
     studyPop <- studyPop %>%
-      dplyr::mutate(minStartDate = !!CDMConnector::asDate(.env$minStartDate_),
-                    maxStartDate = !!CDMConnector::asDate(.env$maxStartDate_)) %>%
+      dplyr::mutate(minStartDate = !!CDMConnector::asDate(.env$minStartDateChar),
+                    maxStartDate = !!CDMConnector::asDate(.env$maxStartDateChar)) %>%
       dplyr::filter(.data$cohort_end_date >= .data$minStartDate,
                     .data$cohort_start_date <= .data$maxStartDate) %>%
       dplyr::select(-minStartDate, -maxStartDate)
