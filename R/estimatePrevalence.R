@@ -264,7 +264,8 @@ estimatePrevalence <- function(cdm,
     all(interval %in%
       c(
         "weeks", "months",
-        "quarters", "years", "overall"
+        "quarters", "years",
+        "overall"
       )),
     add = errorMessage
   )
