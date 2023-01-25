@@ -472,6 +472,18 @@ test_that("mock db: check study time periods", {
   # as the person goes up to the last day of the month
   expect_true(nrow(prev) == 12)
 
+
+  # overall period
+  prev <- estimatePrevalence(cdm,
+                             denominatorTable = "denominator",
+                             outcomeTable = "outcome",
+                             type = "period",
+                             interval = "overall",
+                             verbose = FALSE
+  )
+  # just one row
+  expect_true(nrow(prev) == 1)
+
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   # should return empty if no study days
@@ -722,6 +734,21 @@ test_that("mock db: check periods follow calendar dates", {
   )
   expect_true(prev$prevalence_start_date[1] ==
     as.Date("2011-02-01"))
+
+  # for overall
+  prev <- estimatePrevalence(cdm,
+                             denominatorTable = "denominator",
+                             outcomeTable = "outcome",
+                             type = "period",
+                             interval = "overall",
+                             minCellCount = 0,
+                             fullContribution = FALSE,
+                             completeDatabaseIntervals = FALSE
+  )
+  expect_true(prev$prevalence_start_date[1] ==
+                as.Date("2011-01-15"))
+  expect_true(prev$prevalence_end_date[1] ==
+                as.Date("2013-06-15"))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })

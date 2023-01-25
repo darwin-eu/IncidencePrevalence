@@ -111,6 +111,7 @@ getStudyDays <- function(startDate,
         paste0(.data$year, "_0", .data$isoweek),
         paste0(.data$year, "_", .data$isoweek)
       )) %>%
+      dplyr::mutate(overall = "overall") %>%
       dplyr::rename("time" = .env$timeInterval) %>%
       dplyr::mutate(time = as.character(.data$time)) %>%
       dplyr::group_by(.data$time) %>%
@@ -125,7 +126,8 @@ getStudyDays <- function(startDate,
           dplyr::filter(difftime(studyDays$end_time,
                                  studyDays$start_time,
                                  units = "days") == 6)
-      } else {
+      }
+      if(timeInterval %in%  c("months", "quarters", "years")){
         studyDays <- studyDays %>%
           dplyr::filter(.data$start_time ==
                           lubridate::floor_date(.data$start_time,
