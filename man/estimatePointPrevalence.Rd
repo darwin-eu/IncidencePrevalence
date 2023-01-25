@@ -45,7 +45,7 @@ as prevalent. If NULL any prior outcome will be considered as prevalent. If
 0, only ongoing outcomes will be considered as prevalent.}
 
 \item{interval}{Time intervals over which period prevalence is estimated. Can
-be "weeks", "months", "quarters", "years", or "overall". ISO weeks will
+be "weeks", "months", "quarters", or "years". ISO weeks will
 be used for weeks. Calendar months, quarters, or years can be used as
 the period. If more than one option is chosen then results will
 be estimated for each chosen interval.}

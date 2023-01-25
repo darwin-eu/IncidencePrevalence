@@ -91,7 +91,7 @@ estimatePointPrevalence <- function(cdm,
 
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(
-    all(interval %in%
+    all(tolower(interval) %in%
           c(
             "weeks", "months",
             "quarters", "years"
