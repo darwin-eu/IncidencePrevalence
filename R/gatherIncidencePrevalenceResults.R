@@ -84,6 +84,7 @@ gatherIncidencePrevalenceResults <- function(cdm, resultList, databaseName = NUL
   checkmate::reportAssertions(collection = errorMessage)
 
   # add analysis settings to results
+  # add result_id (as each set of results will have analysis ids)
   estimates <- list()
   attrition <- list()
   for (i in seq_along(resultList)) {
@@ -95,7 +96,9 @@ gatherIncidencePrevalenceResults <- function(cdm, resultList, databaseName = NUL
               as.integer(.data$outcome_cohort_id)
           ),
         by = "analysis_id"
-      )
+      ) %>%
+      dplyr::mutate(result_id=i) %>%
+      dplyr::relocate("result_id")
     attrition[[i]] <- attrition(resultList[[i]]) %>%
       dplyr::left_join(
         settings(resultList[[i]]) %>%
@@ -104,7 +107,9 @@ gatherIncidencePrevalenceResults <- function(cdm, resultList, databaseName = NUL
               as.integer(.data$outcome_cohort_id)
           ),
         by = "analysis_id"
-      )
+      ) %>%
+      dplyr::mutate(result_id=i) %>%
+      dplyr::relocate("result_id")
   }
 
   # combine results of same type (incidence or prevalence)
@@ -120,26 +125,14 @@ gatherIncidencePrevalenceResults <- function(cdm, resultList, databaseName = NUL
 
 
   if (any(resultType == "Prevalence")) {
-    # combine prevalence estimates, updating analysis_id
+    # combine prevalence estimates
     prevalence_estimates <- dplyr::bind_rows(
       estimates[resultType == "Prevalence"]
-    ) %>%
-      dplyr::group_by_at(dplyr::vars(tidyselect::starts_with(c(
-        "analysis_", "denominator_",
-        "outcome_"
-      )))) %>%
-      dplyr::mutate(analysis_id = dplyr::cur_group_id()) %>%
-      dplyr::ungroup()
+    )
     # combine prevalence attrition
     prevalence_attrition <- dplyr::bind_rows(
       attrition[resultType == "Prevalence"]
-    ) %>%
-      dplyr::group_by_at(dplyr::vars(tidyselect::starts_with(c(
-        "analysis_", "denominator_",
-        "outcome_"
-      )))) %>%
-      dplyr::mutate(analysis_id = dplyr::cur_group_id()) %>%
-      dplyr::ungroup()
+    )
     if (!is.null(databaseName)) {
       prevalence_estimates <- prevalence_estimates %>%
         dplyr::mutate(database_name = .env$databaseName)
@@ -152,24 +145,11 @@ gatherIncidencePrevalenceResults <- function(cdm, resultList, databaseName = NUL
   if (any(resultType == "Incidence")) {
     incidence_estimates <- dplyr::bind_rows(
       estimates[resultType == "Incidence"]
-    ) %>%
-      dplyr::group_by_at(dplyr::vars(tidyselect::starts_with(c(
-        "analysis_", "denominator_",
-        "outcome_"
-      )))) %>%
-      dplyr::mutate(analysis_id = dplyr::cur_group_id()) %>%
-      dplyr::mutate(database_name = .env$databaseName) %>%
-      dplyr::ungroup()
+    )
     # combine incidence attrition
     incidence_attrition <- dplyr::bind_rows(
       attrition[resultType == "Incidence"]
-    ) %>%
-      dplyr::group_by_at(dplyr::vars(tidyselect::starts_with(c(
-        "analysis_", "denominator_",
-        "outcome_"
-      )))) %>%
-      dplyr::mutate(analysis_id = dplyr::cur_group_id()) %>%
-      dplyr::ungroup()
+    )
     if (!is.null(databaseName)) {
       incidence_estimates <- incidence_estimates %>%
         dplyr::mutate(database_name = .env$databaseName)
