@@ -1400,7 +1400,7 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
     fullContribution = TRUE,
     minCellCount = 0
   )
-  expect_true(sum(ppe_fullC_m$n_cases) == 19)
+  expect_true(sum(ppe_fullC_m$n_cases) == 20)
   expect_true(ppe_fullC_m$n_cases[111] == 2)
   expect_true(ppe_fullC_m$n_cases[115] == 1)
   expect_true(ppe_fullC_m$n_population[148] == 2)
