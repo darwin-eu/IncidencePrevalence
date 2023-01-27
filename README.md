@@ -1,14 +1,11 @@
 
-<!-- README.md is generated from README.Rmd. Please edit that file -->
+# IncidencePrevalence <img src='man/figures/hexsticker.png' align="right" height="139"/>
 
-# IncidencePrevalence <a href='https://github.com/darwin-eu-dev/IncidencePrevalence'><img src='man/figures/hexsticker.png' align="right" height="185" /></a>
-
-<!-- badges: start -->
-
+[![CRAN
+status](https://www.r-pkg.org/badges/version/IncidencePrevalence)](https://CRAN.R-project.org/package=IncidencePrevalence)
 [![codecov.io](https://codecov.io/github/darwin-eu/IncidencePrevalence/coverage.svg?branch=main)](https://codecov.io/github/darwin-eu/IncidencePrevalence?branch=main)
 [![R-CMD-check](https://github.com/darwin-eu/IncidencePrevalence/workflows/R-CMD-check/badge.svg)](https://github.com/darwin-eu/IncidencePrevalence/actions)
 [![Lifecycle:Experimental](https://img.shields.io/badge/Lifecycle-Experimental-339999)](https://www.tidyverse.org/lifecycle/#experimental)
-<!-- badges: end -->
 
 ## Package overview
 
