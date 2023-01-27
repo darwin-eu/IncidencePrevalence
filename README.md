@@ -31,7 +31,6 @@ using the CDMConnector package.
 
 ``` r
 library(CDMConnector)
-#> Warning: package 'CDMConnector' was built under R version 4.2.2
 library(IncidencePrevalence)
 ```
 
