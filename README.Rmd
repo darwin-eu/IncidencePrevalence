@@ -13,7 +13,7 @@ out.width = "100%"
 )
 ```
 
-# IncidencePrevalence <a href='https://github.com/darwin-eu/IncidencePrevalence'><img src='man/figures/hexsticker.png' align="right" height="185" /></a>
+# IncidencePrevalence <a href='https://github.com/darwin-eu/IncidencePrevalence'><img src='man/figures/hexsticker.png' align="right" height="139" /></a>
 
 <!-- badges: start -->
 [![codecov.io](https://codecov.io/github/darwin-eu/IncidencePrevalence/coverage.svg?branch=main)](https://codecov.io/github/darwin-eu/IncidencePrevalence?branch=main)

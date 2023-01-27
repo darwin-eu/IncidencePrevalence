@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# IncidencePrevalence <a href='https://github.com/darwin-eu-dev/IncidencePrevalence'><img src='man/figures/hexsticker.png' align="right" height="125" /></a>
+# IncidencePrevalence <a href='https://github.com/darwin-eu/IncidencePrevalence'><img src='man/figures/hexsticker.png' align="right" height="139" /></a>
 
 <!-- badges: start -->
 
@@ -34,6 +34,7 @@ using the CDMConnector package.
 
 ``` r
 library(CDMConnector)
+#> Warning: package 'CDMConnector' was built under R version 4.2.2
 library(IncidencePrevalence)
 ```
 
