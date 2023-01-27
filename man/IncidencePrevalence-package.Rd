@@ -6,7 +6,7 @@
 \alias{IncidencePrevalence-package}
 \title{IncidencePrevalence: Population Incidence and Prevalence using the OMOP Common Data Model}
 \description{
-Calculate population incidence and prevalence using data mapped to the OMOP common data model.
+Calculate incidence and prevalence using data mapped to the Observational Medical Outcomes Partnership (OMOP) common data model. Incidence and prevalence can be estimated for the total population in a database or for a stratification cohort.
 }
 \author{
 \strong{Maintainer}: Edward Burn \email{edward.burn@ndorms.ox.ac.uk} (\href{https://orcid.org/0000-0002-9286-1128}{ORCID})
