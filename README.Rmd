@@ -1,0 +1,168 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+fig.path = "man/figures/README-",
+out.width = "100%"
+)
+```
+
+# IncidencePrevalence <a href='https://github.com/darwin-eu-dev/IncidencePrevalence'><img src='man/figures/hexsticker.png' align="right" height="185" /></a>
+
+<!-- badges: start -->
+[![codecov.io](https://codecov.io/github/darwin-eu/IncidencePrevalence/coverage.svg?branch=main)](https://codecov.io/github/darwin-eu/IncidencePrevalence?branch=main)
+[![R-CMD-check](https://github.com/darwin-eu/IncidencePrevalence/workflows/R-CMD-check/badge.svg)](https://github.com/darwin-eu/IncidencePrevalence/actions)
+[![Lifecycle:Experimental](https://img.shields.io/badge/Lifecycle-Experimental-339999)](https://www.tidyverse.org/lifecycle/#experimental)
+<!-- badges: end -->
+
+## Package overview
+
+IncidencePrevalence contains functions for estimating population-level incidence and prevalence using the OMOP common data model.  
+
+
+## Package installation
+
+You can install the latest version of IncidencePrevalence like so:
+
+```{r, eval=FALSE}
+install.packages("remotes")
+remotes::install_github("darwin-eu/IncidencePrevalence")
+```
+
+## Example usage
+### Create a reference to data in the OMOP CDM format 
+The IncidencePrevalence package is designed to work with data in the OMOP CDM format, so our first step is to create a reference to the data using the CDMConnector package. 
+
+```{r}
+library(CDMConnector)
+library(IncidencePrevalence)
+```
+
+Creating a connection to a Postgres database would for example look like:
+```{r, eval=FALSE}
+con <- DBI::dbConnect(RPostgres::Postgres(),
+                      dbname = Sys.getenv("CDM5_POSTGRESQL_DBNAME"),
+                      host = Sys.getenv("CDM5_POSTGRESQL_HOST"),
+                      user = Sys.getenv("CDM5_POSTGRESQL_USER"),
+                      password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD"))
+
+cdm <- CDMConnector::cdm_from_con(con, 
+                    cdm_schema = Sys.getenv("CDM5_POSTGRESQL_CDM_SCHEMA"), 
+                    write_schema = Sys.getenv("CDM5_POSTGRESQL_RESULT_SCHEMA"))
+```
+To see how you would create a reference to your database please consult the CDMConnector package documentation. For this example though we´ll work with simulated data, and we'll generate an example cdm reference like so:
+
+```{r}
+cdm<-mockIncidencePrevalenceRef(sampleSize=5000)
+```
+
+### Identify a denominator cohort
+To identify a set of denominator cohorts we can use the `generateDenominatorCohortSet` function. Here we want to identify denominator populations for a study period between 2008 and 2018 and with 180 days of prior history (observation time in the database). We also wish to consider multiple age groups (from 0 to 64, and 65 to 100) and multiple sex criteria (one cohort only males, one only females, and one with both sexes included).  
+
+```{r}
+cdm$denominator <- generateDenominatorCohortSet(
+  cdm = cdm,
+  startDate = as.Date("2008-01-01"),
+  endDate = as.Date("2018-01-01"),
+  ageGroup = list(c(0,64),
+                  c(65,100)),
+  sex = c("Male", "Female", "Both"),
+  daysPriorHistory = 180
+)
+```
+
+This will then give us six denominator cohorts
+```{r}
+settings(cdm$denominator)
+```
+
+These cohorts will be in the typical OMOP CDM structure
+```{r}
+cdm$denominator
+```
+
+### Instantiate an outcome cohort
+Outcome cohorts for which we want to estimate incidence or prevalence need to be created. If the outcome cohorts are defined as JSON, we can use the CDMConnector package to read in and generate the cohorts.
+
+```{r, eval=FALSE}
+outcome_cohorts <- CDMConnector::readCohortSet("path_to_outcome_cohort_definitions")
+cdm <- CDMConnector::generateCohortSet(cdm = cdm, 
+                                       cohortSet = outcome_cohorts,
+                                       cohortTableName = "outcome_table_name"
+                                       )
+```
+
+Note, in our example cdm reference we already have an outcome cohort defined
+```{r}
+cdm$outcome
+```
+
+### Estimating incidence and prevalence
+Now we have identified our denominator population, we can calculate incidence and prevalence as below. 
+
+For this example we´ll estimate incidence on a yearly basis, allowing individuals to have multiple events but with an outcome washout of 180 days. We also require that only complete database intervals are included, by which we mean that the database must have individuals observed throughout a year for that year to be included in the analysis. Note, we also specify a minimum cell count of 5, under which estimates will be obscured.
+
+```{r}
+inc <- estimateIncidence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = "years",
+  repeatedEvents = TRUE,
+  outcomeWashout = 180, 
+  completeDatabaseIntervals = TRUE,
+  minCellCount = 5
+  )
+dplyr::glimpse(inc)
+```
+
+We could also estimate point prevalence, as of the start of each calendar year like so:
+```{r}
+prev_point <- estimatePointPrevalence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = "years",
+  timePoint = "start",
+  minCellCount = 5
+)
+dplyr::glimpse(prev_point)
+```
+
+And annual period prevalence where we again require complete database intervals and, in addition, only include those people who are observed in the data for the full year:
+
+```{r}
+prev_period <- estimatePeriodPrevalence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = "years",
+  completeDatabaseIntervals = TRUE, 
+  fullContribution = TRUE,
+  minCellCount = 5
+)
+dplyr::glimpse(prev_period)
+```
+
+### Combining and exporting results
+After running different analyses We can use `gatherIncidencePrevalenceResults()` to bring together the results, adding outcome names and the database name to the output.
+```{r}
+study_results <- gatherIncidencePrevalenceResults(cdm=cdm,
+                    resultList=list(inc, prev_point, prev_period),
+                    databaseName = "my_database")
+dplyr::glimpse(study_results$incidence_estimates)
+dplyr::glimpse(study_results$prevalence_estimates)
+```
+
+After gathering results, we can export them as CSVs in a zip folder using the `exportIncidencePrevalenceResults()` function. 
+```{r, eval=FALSE}
+exportIncidencePrevalenceResults(result=study_results, 
+                  zipName="example_results",
+                  outputFolder=here::here()) 
+```
