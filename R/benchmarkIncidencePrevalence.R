@@ -66,9 +66,6 @@ benchmarkIncidencePrevalence <- function(cdm,
                                          verbose = FALSE) {
   errorMessage <- checkmate::makeAssertCollection()
   cdmCheck <- inherits(cdm, "cdm_reference")
-  checkmate::assertTRUE(cdmCheck,
-    add = errorMessage
-  )
   if (!isTRUE(cdmCheck)) {
     errorMessage$push(
       "- cdm must be a CDMConnector CDM reference object"
@@ -95,9 +92,6 @@ benchmarkIncidencePrevalence <- function(cdm,
                            upper = 1
   )
   lengthpOcheck <- length(prevOutcomes) %in% c(1,nOutcomes)
-  checkmate::assertTRUE(lengthpOcheck,
-                        add = errorMessage
-  )
   if (!isTRUE(lengthpOcheck)) {
     errorMessage$push(
       "- `prevOutcomes` is not of the expected length (either 1 or nOutcomes)"
@@ -105,9 +99,6 @@ benchmarkIncidencePrevalence <- function(cdm,
   }
   analysistypeCheck <- analysisType %in% c("all", "only incidence",
                                            "only prevalence")
-  checkmate::assertTRUE(analysistypeCheck,
-                        add = errorMessage
-  )
   if (!isTRUE(analysistypeCheck)) {
     errorMessage$push(
       "- `analysisType` is not one of the possibilities
