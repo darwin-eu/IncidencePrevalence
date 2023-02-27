@@ -3045,8 +3045,6 @@ test_that("mock db: check compute permanent", {
 test_that("mock db: check participants", {
 
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  attr(cdm, "write_schema") <- "main"
-
   cdm$dpop <- generateDenominatorCohortSet(cdm = cdm,
                                            sex = c("Male", "Female", "Both"),
                                            ageGroup = list(c(0,50),
@@ -3061,12 +3059,16 @@ test_that("mock db: check participants", {
   )
 
   # we should have cleaned up all the intermediate tables
-  expect_true(all(CDMConnector::listTables(attr(cdm, "dbcon"),
-                           schema = attr(cdm, "write_schema")) %in%
-               c("test_incidence_participants",
-                 "vocabulary" ,
-                 "cdm_source", "outcome", "strata",
-                 "observation_period", "person" )))
+  expect_true(all(c("test_incidence_participants",
+                    "vocabulary" , "outcome", "strata",
+                    "observation_period", "person" ) %in%
+    CDMConnector::listTables(attr(cdm, "dbcon"),
+                           schema = attr(cdm, "write_schema"))))
+  expect_true(all(!c("test_incidence_analysis_1",
+                    "test_incidence_working_5") %in%
+                    CDMConnector::listTables(attr(cdm, "dbcon"),
+                                             schema = attr(cdm,
+                                                           "write_schema"))))
 
   expect_equal(names(participants(inc, 1) %>%
     head(1) %>%

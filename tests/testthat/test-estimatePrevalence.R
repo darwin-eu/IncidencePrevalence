@@ -1508,12 +1508,16 @@ test_that("mock db: check participants", {
   )
 
   # we should have cleaned up all the intermediate tables
-  expect_true(all(CDMConnector::listTables(attr(cdm, "dbcon"),
-                                           schema = attr(cdm, "write_schema")) %in%
-                    c("test_prevalence_participants",
-                      "vocabulary" ,
-                      "cdm_source", "outcome", "strata",
-                      "observation_period", "person" )))
+  expect_true(all(c("test_prevalence_participants",
+                    "vocabulary" , "outcome", "strata",
+                    "observation_period", "person" ) %in%
+                    CDMConnector::listTables(attr(cdm, "dbcon"),
+                                             schema = attr(cdm, "write_schema"))))
+  expect_true(all(!c("test_prevalence_analysis_1",
+                     "test_prev_working_1") %in%
+                    CDMConnector::listTables(attr(cdm, "dbcon"),
+                                             schema = attr(cdm,
+                                                           "write_schema"))))
 
   expect_equal(names(participants(prev, 1) %>%
                        head(1) %>%
