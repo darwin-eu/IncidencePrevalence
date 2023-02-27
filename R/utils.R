@@ -186,18 +186,59 @@ cohortCount.IncidencePrevalenceDenominator <- function(cohortTable,
 #'   outcomeTable = "outcome",
 #'   interval = "overall"
 #' )
-#' participants(result = incidence)
 #' participants(result = incidence, analysisId = 1)
-participants <- function(result, analysisId = NULL) {
+participants <- function(result, analysisId) {
   UseMethod("participants")
 }
 
 #' @export
 participants.IncidencePrevalenceResult <- function(result,
-                                                   analysisId = NULL) {
-  included <- attr(result, "participants")
-  if (!is.null(analysisId)) {
-    included <- included[[paste0("study_population_analyis_", analysisId)]]
-  }
+                                                   analysisId) {
+
+  checkmate::assertIntegerish(analysisId)
+
+  if(!is.null(attr(result, "participants"))){
+
+  included <- attr(result, "participants") %>%
+    dplyr::select(
+      "subject_id",
+      paste0(
+        "cohort_start_date",
+        "_analysis_",
+        analysisId
+      ),
+      paste0(
+        "cohort_end_date",
+        "_analysis_",
+        analysisId
+      ),
+      paste0(
+        "outcome_start_date",
+        "_analysis_",
+        analysisId
+      )
+    ) %>%
+    dplyr::rename(
+      "cohort_start_date" = paste0(
+        "cohort_start_date",
+        "_analysis_",
+        analysisId
+      ),
+      "cohort_end_date" = paste0(
+        "cohort_end_date",
+        "_analysis_",
+        analysisId
+      ),
+      "outcome_start_date" = paste0(
+        "outcome_start_date",
+        "_analysis_",
+        analysisId
+      )
+    )
+
+  } else{
+    included <- NULL
+}
+
   return(included)
 }

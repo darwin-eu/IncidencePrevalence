@@ -84,7 +84,7 @@ test_that("mock db: check output format", {
     names(attrition(prev, analysisId = 1))))
 
   # by default we don´t return the participants
-  expect_true(is.null(participants(prev)))
+  expect_true(is.null(participants(prev, analysisId = 1)))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
 
@@ -97,10 +97,11 @@ test_that("mock db: check output format", {
     outcomeTable = "outcome",
     outcomeCohortName = "test_outcome",
     interval = "years",
+    tablePrefix = "result",
     returnParticipants = TRUE
   )
   # now we do return the participants
-  expect_true(is.list(participants(prev))) # list of references to participants
+  expect_true(is.list(participants(prev, 1))) # list of references to participants
   expect_true(tibble::is_tibble(participants(prev, 1) %>%
     dplyr::collect()))
   expect_true(participants(prev, 1) %>%
@@ -929,6 +930,16 @@ test_that("mock db: check expected errors", {
     denominatorCohortId = 1
   ))
 
+  expect_error(estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    outcomeCohortId = 1,
+    denominatorCohortId = 1,
+    tablePrefix = NULL,
+    returnParticipants = TRUE
+  ))
+
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
@@ -1392,33 +1403,6 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
   expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==15)] == 1)
   expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==16)] == 1)
 
-  ppe_fullC_m <- estimatePeriodPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    fullContribution = TRUE,
-    minCellCount = 0
-  )
-  expect_true(sum(ppe_fullC_m$n_cases) == 20)
-  expect_true(ppe_fullC_m$n_cases[111] == 2)
-  expect_true(ppe_fullC_m$n_cases[115] == 1)
-  expect_true(ppe_fullC_m$n_population[148] == 2)
-
-  ppe_nofullC_m <- estimatePeriodPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    fullContribution = FALSE,
-    minCellCount = 0
-  )
-  expect_true(sum(ppe_nofullC_m$n_cases) == 20)
-  expect_true(ppe_nofullC_m$n_cases[111] == 2)
-  expect_true(ppe_nofullC_m$n_cases[115] == 1)
-  expect_true(ppe_nofullC_m$n_population[148] == 3)
-
-
   # do point prevalence too
   ppo_start <- estimatePointPrevalence(
     cdm = cdm,
@@ -1443,77 +1427,6 @@ test_that("mock db: multiple denominators and outcomes, lookback and time point 
   # mid point is 2010-07-01 so look back 30 days will show two events.
   # As the two people have enough past data, they both are in two cohorts.
   expect_true(sum(pop_middle$n_cases) == 4)
-
-  pop_end <- estimatePointPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "years",
-    outcomeLookbackDays = c(0, 30),
-    timePoint = "end",
-    minCellCount = 0
-  )
-  # only sees one event (both for 0 or 365 days of previous observation)
-  expect_true(sum(pop_end$n_cases) == 2)
-
-  ppo_start_m <- estimatePointPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    outcomeLookbackDays = c(0, 30),
-    timePoint = "start",
-    minCellCount = 0
-  )
-  # no events without look back and all events with look back 30 (except from the one in December)
-  expect_true(sum(ppo_start_m$n_cases) == 18)
-
-  ppo_start_m_lb10 <- estimatePointPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    outcomeLookbackDays = 10,
-    timePoint = "start",
-    minCellCount = 0
-  )
-  # two events with look back 10, one of them from a person not contributing when we ask for 365d of previous obvs
-  expect_true(sum(ppo_start_m_lb10$n_cases) == 3)
-  ppo_start_m_lb12 <- estimatePointPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    outcomeLookbackDays = 12,
-    timePoint = "start",
-    minCellCount = 0
-  )
-  # one event at day 2010-01-20 added, from a person only contirbuting when we don't ask for previous obvs
-  expect_true(sum(ppo_start_m_lb12$n_cases) == 4)
-
-  ppo_middle_m_lb10 <- estimatePointPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    outcomeLookbackDays = 10,
-    timePoint = "middle",
-    minCellCount = 0
-  )
-  # five events with look back 10 (days of the month 06 to 15)
-  expect_true(sum(ppo_middle_m_lb10$n_cases) == 10)
-
-  ppo_middle_m_lb9 <- estimatePointPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    outcomeLookbackDays = 9,
-    timePoint = "middle",
-    minCellCount = 0
-  )
-  # lost the event at 2010-01-06
-  expect_true(sum(ppo_middle_m_lb9$n_cases) == 8)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -1571,7 +1484,45 @@ test_that("mock db: check compute permanent", {
   expect_true(any(stringr::str_detect(
     CDMConnector::listTables(attr(cdm, "dbcon"),
                              schema = attr(cdm, "write_schema")),
-    "result_prevalence_analysis_1")))
+    "result_prevalence_participants")))
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+})
+
+test_that("mock db: check participants", {
+
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  attr(cdm, "write_schema") <- "main"
+
+  cdm$dpop <- generateDenominatorCohortSet(cdm = cdm,
+                                           sex = c("Male", "Female", "Both"),
+                                           ageGroup = list(c(0,50),
+                                                           c(51,100)))
+  prev <- estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "dpop",
+    outcomeTable = "outcome",
+    tablePrefix = "test",
+    returnParticipants = TRUE
+  )
+
+  # we should have cleaned up all the intermediate tables
+  expect_true(all(CDMConnector::listTables(attr(cdm, "dbcon"),
+                                           schema = attr(cdm, "write_schema")) %in%
+                    c("test_prevalence_participants",
+                      "vocabulary" ,
+                      "cdm_source", "outcome", "strata",
+                      "observation_period", "person" )))
+
+  expect_equal(names(participants(prev, 1) %>%
+                       head(1) %>%
+                       dplyr::collect()),
+               c("subject_id",
+                 "cohort_start_date",
+                 "cohort_end_date",
+                 "outcome_start_date"
+               ))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 

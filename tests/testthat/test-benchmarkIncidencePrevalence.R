@@ -1,4 +1,6 @@
 test_that("full benchmark", {
+  skip_on_cran()
+
   cdm <- mockIncidencePrevalenceRef(sampleSize = 100,
                                     earliestObservationStartDate = as.Date("2010-01-01") ,
                                     latestObservationStartDate = as.Date("2010-01-01"),
@@ -35,6 +37,8 @@ test_that("full benchmark", {
 })
 
 test_that("benchmark multiple outcomes, prevalences and analysis types", {
+  skip_on_cran()
+
   cdm <- mockIncidencePrevalenceRef(sampleSize = 100,
                                     earliestObservationStartDate = as.Date("2010-01-01") ,
                                     latestObservationStartDate = as.Date("2010-01-01"),

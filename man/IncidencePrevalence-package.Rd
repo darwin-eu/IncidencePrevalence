@@ -4,7 +4,7 @@
 \name{IncidencePrevalence-package}
 \alias{IncidencePrevalence}
 \alias{IncidencePrevalence-package}
-\title{IncidencePrevalence: Population Incidence and Prevalence using the OMOP Common Data Model}
+\title{IncidencePrevalence: Estimate Incidence and Prevalence using the OMOP Common Data Model}
 \description{
 Calculate incidence and prevalence using data mapped to the Observational Medical Outcomes Partnership (OMOP) common data model. Incidence and prevalence can be estimated for the total population in a database or for a stratification cohort.
 }
