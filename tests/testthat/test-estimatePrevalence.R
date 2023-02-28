@@ -1171,14 +1171,14 @@ test_that("mock db: check attrition", {
   # for female cohort we should have a row for those excluded for not being male
   expect_true(any("Not Female" == settings(prev) %>%
     dplyr::filter(denominator_sex == "Female") %>%
-    dplyr::inner_join(attrition(prev),
+    dplyr::inner_join(attrition(prev),multiple = "all",
       by = "analysis_id"
     ) %>%
     dplyr::pull(.data$reason)))
   # for male, the opposite
   expect_true(any("Not Male" == settings(prev) %>%
     dplyr::filter(denominator_sex == "Male") %>%
-    dplyr::inner_join(attrition(prev),
+    dplyr::inner_join(attrition(prev),multiple = "all",
       by = "analysis_id"
     ) %>%
     dplyr::pull(.data$reason)))
