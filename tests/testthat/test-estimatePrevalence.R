@@ -1178,8 +1178,8 @@ test_that("mock db: check attrition", {
   # for male, the opposite
   expect_true(any("Not Male" == settings(prev) %>%
     dplyr::filter(denominator_sex == "Male") %>%
-    dplyr::inner_join(attrition(prev),
-      by = "analysis_id", multiple = "all"
+    dplyr::inner_join(attrition(prev),multiple = "all",
+      by = "analysis_id"
     ) %>%
     dplyr::pull(.data$reason)))
 
@@ -1516,6 +1516,11 @@ test_that("mock db: check participants", {
                       "vocabulary" ,
                       "cdm_source", "outcome", "strata",
                       "observation_period", "person" )))
+  expect_true(all(!c("test_prevalence_analysis_1",
+                     "test_prev_working_1") %in%
+                    CDMConnector::listTables(attr(cdm, "dbcon"),
+                                             schema = attr(cdm,
+                                                           "write_schema"))))
 
   expect_equal(names(participants(prev, 1) %>%
                        head(1) %>%

@@ -2905,14 +2905,14 @@ test_that("mock db: check attrition", {
   # for female cohort we should have a row for those excluded for not being male
   expect_true(any("Not Female" == settings(inc) %>%
     dplyr::filter(denominator_sex == "Female") %>%
-    dplyr::inner_join(attrition(inc),
+    dplyr::inner_join(attrition(inc), multiple = "all",
       by = "analysis_id"
     ) %>%
     dplyr::pull(.data$reason)))
   # for male, the opposite
   expect_true(any("Not Male" == settings(inc) %>%
     dplyr::filter(denominator_sex == "Male") %>%
-    dplyr::inner_join(attrition(inc),
+    dplyr::inner_join(attrition(inc), multiple = "all",
       by = "analysis_id"
     ) %>%
     dplyr::pull(.data$reason)))
@@ -3045,8 +3045,6 @@ test_that("mock db: check compute permanent", {
 test_that("mock db: check participants", {
 
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  attr(cdm, "write_schema") <- "main"
-
   cdm$dpop <- generateDenominatorCohortSet(cdm = cdm,
                                            sex = c("Male", "Female", "Both"),
                                            ageGroup = list(c(0,50),
@@ -3069,7 +3067,11 @@ test_that("mock db: check participants", {
                  "vocabulary" ,
                  "cdm_source", "outcome", "strata",
                  "observation_period", "person" )))
-
+  expect_true(all(!c("test_incidence_analysis_1",
+                    "test_incidence_working_5") %in%
+                    CDMConnector::listTables(attr(cdm, "dbcon"),
+                                             schema = attr(cdm,
+                                                           "write_schema"))))
   expect_equal(names(participants(inc, 1) %>%
     head(1) %>%
     dplyr::collect()),
