@@ -4,6 +4,8 @@
 If you have found a bug, have a question, or want to suggest a new feature please open an issue. If reporting a bug, then a [reprex](https://reprex.tidyverse.org/) would be much appreciated. Before contributing either documentation or code, please make sure to open an issue beforehand to identify what needs to be done and who will do it.
 
 ## Contributing code or documentation
+> This package has been developed as part of the DARWIN EU(R) project and is closed to external contributions.
+
 ###  Documenting the package
 Run the below to update and check package documentation:
 ``` r
