@@ -242,3 +242,14 @@ participants.IncidencePrevalenceResult <- function(result,
 
   return(included)
 }
+
+# Helper function to deal with compound schemas
+inSchema <- function(schema, table) {
+  checkmate::assertCharacter(schema, min.len = 1, max.len = 2)
+  checkmate::assertCharacter(table, len = 1)
+  if (length(schema) == 2) {
+    return(DBI::Id(catalog = schema[1], schema = schema[2], table = table))
+  } else {
+    return(DBI::Id(schema = schema, table = table))
+  }
+}

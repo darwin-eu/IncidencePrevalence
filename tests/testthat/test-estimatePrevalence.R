@@ -1172,14 +1172,14 @@ test_that("mock db: check attrition", {
   expect_true(any("Not Female" == settings(prev) %>%
     dplyr::filter(denominator_sex == "Female") %>%
     dplyr::inner_join(attrition(prev),
-      by = "analysis_id"
+      by = "analysis_id", multiple = "all"
     ) %>%
     dplyr::pull(.data$reason)))
   # for male, the opposite
   expect_true(any("Not Male" == settings(prev) %>%
     dplyr::filter(denominator_sex == "Male") %>%
     dplyr::inner_join(attrition(prev),
-      by = "analysis_id"
+      by = "analysis_id", multiple = "all"
     ) %>%
     dplyr::pull(.data$reason)))
 
@@ -1496,6 +1496,7 @@ test_that("mock db: check participants", {
   attr(cdm, "write_schema") <- "main"
 
   cdm$dpop <- generateDenominatorCohortSet(cdm = cdm,
+                                           tablePrefix = "test",
                                            sex = c("Male", "Female", "Both"),
                                            ageGroup = list(c(0,50),
                                                            c(51,100)))
@@ -1510,7 +1511,8 @@ test_that("mock db: check participants", {
   # we should have cleaned up all the intermediate tables
   expect_true(all(CDMConnector::listTables(attr(cdm, "dbcon"),
                                            schema = attr(cdm, "write_schema")) %in%
-                    c("test_prevalence_participants",
+                    c("test_denominator",
+                      "test_prevalence_participants",
                       "vocabulary" ,
                       "cdm_source", "outcome", "strata",
                       "observation_period", "person" )))

@@ -9,6 +9,7 @@ benchmarkIncidencePrevalence(
   startDate = NULL,
   endDate = NULL,
   tablePrefix = NULL,
+  returnParticipants = FALSE,
   sample = NULL,
   nOutcomes = 1,
   prevOutcomes = 0.25,
@@ -33,6 +34,9 @@ observation end date in the observation period  table will be used.}
 be created. Permanent tables will be created using this stem, and any
 existing tables that start with this will be at risk of being dropped
 or overwritten. If NULL, temporary tables will be used throughout.}
+
+\item{returnParticipants}{Whether to return participants (Requires tablePrefix
+to have been specified)}
 
 \item{sample}{An integer for which to take a random sample when generating
 the denominator cohort}

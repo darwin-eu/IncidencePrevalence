@@ -3050,7 +3050,8 @@ test_that("mock db: check participants", {
   cdm$dpop <- generateDenominatorCohortSet(cdm = cdm,
                                            sex = c("Male", "Female", "Both"),
                                            ageGroup = list(c(0,50),
-                                                           c(51,100)))
+                                                           c(51,100)),
+                                           tablePrefix = "test")
   inc <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "dpop",
@@ -3063,7 +3064,8 @@ test_that("mock db: check participants", {
   # we should have cleaned up all the intermediate tables
   expect_true(all(CDMConnector::listTables(attr(cdm, "dbcon"),
                            schema = attr(cdm, "write_schema")) %in%
-               c("test_incidence_participants",
+               c("test_denominator",
+                 "test_incidence_participants",
                  "vocabulary" ,
                  "cdm_source", "outcome", "strata",
                  "observation_period", "person" )))
@@ -3079,4 +3081,4 @@ test_that("mock db: check participants", {
 
     DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
-})
+    })

@@ -486,19 +486,21 @@ estimateIncidence <- function(cdm,
     names(irsList),
     "study_population"
   )]))
-  participantTablesSchema <- paste(attr(cdm, "write_schema"),participantTables,sep = ".")
-
   # combine to a single participants
   # from 1st analysis
-  participants <- dplyr::tbl(attr(cdm, "dbcon"), participantTablesSchema[[1]])
+  participants <- dplyr::tbl(attr(cdm, "dbcon"),
+                             inSchema(attr(cdm, "write_schema"),
+                                   participantTables[[1]]))
 
-  if (length(participantTablesSchema) >= 2) {
+
+  if (length(participantTables) >= 2) {
     # join additional analyses
     participantTables <- participantTables[2:length(participantTables)]
-    participantTablesSchema <- participantTablesSchema[2:length(participantTablesSchema)]
-    for (i in seq_along(participantTablesSchema)) {
+    for (i in seq_along(participantTables)) {
       participants <- participants %>%
-        dplyr::full_join(dplyr::tbl(attr(cdm, "dbcon"), participantTablesSchema[[i]]),
+        dplyr::full_join(dplyr::tbl(attr(cdm, "dbcon"),
+                                    inSchema(attr(cdm, "write_schema"),
+                                                          participantTables[[i]])),
           by = "subject_id"
         ) %>%
         CDMConnector::computeQuery(name = paste0(tablePrefix,
