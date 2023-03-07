@@ -295,29 +295,39 @@ getIncidence <- function(cdm,
     )
 
 
-  if(!is.null(tablePrefix)){
-
-    if(returnParticipants==TRUE){
-      # if using permanent tables (that get overwritten)
-      # we need to keep a permanent one for a given analysis
-      # so that we can refer back to it (e.g when using participants() function)
-      studyPopDb <- studyPopDb %>%
-        CDMConnector::computeQuery(name = paste0(tablePrefix,
-                                                 "_incidence_analysis_",
-                                                 analysisId),
-                                   temporary = FALSE,
-                                   schema = attr(cdm, "write_schema"),
-                                   overwrite = TRUE)
-    }
-  }
-
   # return list
   results <- list()
   results[["ir"]] <- ir
   results[["analysis_settings"]] <- analysisSettings
   results[["attrition"]] <- attrition
-  if(returnParticipants == TRUE){
-    results[["person_table"]] <- studyPopDb
+
+  if(returnParticipants==TRUE){
+    # keep a table permanent one for the given analysis
+    # so that we can refer back to it (e.g when using participants() function)
+
+
+    studyPopDb <- studyPopDb %>%
+      dplyr::select(!"outcome_prev_end_date") %>%
+      dplyr::rename(!!paste0("cohort_start_date",
+                             "_analysis_",
+                             analysisId) := "cohort_start_date",
+                    !!paste0("cohort_end_date",
+                             "_analysis_",
+                             analysisId) := "cohort_end_date",
+                    !!paste0("outcome_start_date",
+                             "_analysis_",
+                             analysisId) := "outcome_start_date"
+                    ) %>%
+      CDMConnector::computeQuery(name = paste0(tablePrefix,
+                                               "_incidence_analysis_",
+                                               analysisId),
+                                 temporary = FALSE,
+                                 schema = attr(cdm, "write_schema"),
+                                 overwrite = TRUE)
+    # keep a record of the table name
+    results[["person_table"]] <- paste0(tablePrefix,
+                                        "_incidence_analysis_",
+                                        analysisId)
   }
 
   return(results)

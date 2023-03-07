@@ -53,7 +53,7 @@ test_that("mock db: check output format", {
   expect_true(tibble::is_tibble(attrition(inc)))
   expect_true(tibble::is_tibble(attrition(inc, analysisId = 1)))
   # do not return participants as default
-  expect_true(is.null(participants(inc)))
+  expect_true(is.null(participants(inc, 1)))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   cdm <- mockIncidencePrevalenceRef()
@@ -64,9 +64,9 @@ test_that("mock db: check output format", {
     outcomeTable = "outcome",
     outcomeCohortName = "test_outcome",
     interval = "months",
+    tablePrefix =  "result", # returnParticipants requires use of tablePrefix
     returnParticipants = TRUE
   )
-  expect_true(is.list(participants(inc))) # list of references to participants
   expect_true(tibble::is_tibble(participants(inc, 1) %>%
                                   dplyr::collect()))
   expect_true(participants(inc, 1) %>%
@@ -2476,6 +2476,16 @@ test_that("expected errors with mock", {
     outcomeCohortId = 11
   ))
 
+  # returnParticipants only works with tablePrefix
+  expect_error(estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    outcomeCohortName = "test_outcome",
+    tablePrefix = NULL,
+    returnParticipants = TRUE
+  ))
+
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
@@ -2895,14 +2905,14 @@ test_that("mock db: check attrition", {
   # for female cohort we should have a row for those excluded for not being male
   expect_true(any("Not Female" == settings(inc) %>%
     dplyr::filter(denominator_sex == "Female") %>%
-    dplyr::inner_join(attrition(inc),
+    dplyr::inner_join(attrition(inc), multiple = "all",
       by = "analysis_id"
     ) %>%
     dplyr::pull(.data$reason)))
   # for male, the opposite
   expect_true(any("Not Male" == settings(inc) %>%
     dplyr::filter(denominator_sex == "Male") %>%
-    dplyr::inner_join(attrition(inc),
+    dplyr::inner_join(attrition(inc), multiple = "all",
       by = "analysis_id"
     ) %>%
     dplyr::pull(.data$reason)))
@@ -3015,7 +3025,6 @@ test_that("mock db: check compute permanent", {
   expect_false(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
                                       "dbplyr_")))
 
-
   inc <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "dpop",
@@ -3027,9 +3036,51 @@ test_that("mock db: check compute permanent", {
   expect_true(any(stringr::str_detect(
     CDMConnector::listTables(attr(cdm, "dbcon"),
                              schema = attr(cdm, "write_schema")),
-    "result_incidence_analysis_1")))
+    "result_incidence_participants")))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
 })
 
+test_that("mock db: check participants", {
+
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm$dpop <- generateDenominatorCohortSet(cdm = cdm,
+                                           sex = c("Male", "Female", "Both"),
+                                           ageGroup = list(c(0,50),
+                                                           c(51,100)),
+                                           tablePrefix = "test")
+  inc <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "dpop",
+    outcomeTable = "outcome",
+    interval = "overall",
+    tablePrefix = "test",
+    returnParticipants = TRUE
+  )
+
+  # we should have cleaned up all the intermediate tables
+  expect_true(all(CDMConnector::listTables(attr(cdm, "dbcon"),
+                           schema = attr(cdm, "write_schema")) %in%
+               c("test_denominator",
+                 "test_incidence_participants",
+                 "vocabulary" ,
+                 "cdm_source", "outcome", "strata",
+                 "observation_period", "person" )))
+  expect_true(all(!c("test_incidence_analysis_1",
+                    "test_incidence_working_5") %in%
+                    CDMConnector::listTables(attr(cdm, "dbcon"),
+                                             schema = attr(cdm,
+                                                           "write_schema"))))
+  expect_equal(names(participants(inc, 1) %>%
+    head(1) %>%
+    dplyr::collect()),
+    c("subject_id",
+      "cohort_start_date",
+      "cohort_end_date",
+      "outcome_start_date"
+      ))
+
+    DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+    })

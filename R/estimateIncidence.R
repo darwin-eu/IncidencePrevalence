@@ -177,6 +177,12 @@ estimateIncidence <- function(cdm,
   checkmate::assert_logical(returnParticipants,
                             add = errorMessage
   )
+  if(is.null(tablePrefix)){
+    # returnParticipants only when we are using permanent tables
+  checkmate::assert_false(returnParticipants,
+                            add = errorMessage
+  )
+    }
   checkmate::assert_logical(verbose,
     add = errorMessage
   )
@@ -401,12 +407,6 @@ estimateIncidence <- function(cdm,
       dplyr::mutate(analysis_id = x$analysis_id) %>%
       dplyr::relocate("analysis_id")
 
-    if(returnParticipants == TRUE){
-      workingIncPersonTable <- workingInc[["person_table"]] %>%
-        dplyr::mutate(analysis_id = !!x$analysis_id) %>%
-        dplyr::relocate("analysis_id")
-    }
-
     result <- list()
     result[["ir"]] <- workingIncIr
     result[["analysis_settings"]] <- workingIncAnalysisSettings
@@ -415,7 +415,7 @@ estimateIncidence <- function(cdm,
       result[[paste0(
         "study_population_analyis_",
         x$analysis_id
-      )]] <- workingIncPersonTable }
+      )]] <- workingInc[["person_table"]]  }
 
     return(result)
   })
@@ -482,20 +482,51 @@ estimateIncidence <- function(cdm,
 
   # person_table summary
   if(returnParticipants == TRUE){
-  personTable <- irsList[stringr::str_detect(
+  participantTables <- unname(purrr::as_vector(irsList[stringr::str_detect(
     names(irsList),
     "study_population"
-  )]
+  )]))
+  # combine to a single participants
+  # from 1st analysis
+  participants <- dplyr::tbl(attr(cdm, "dbcon"),
+                             inSchema(attr(cdm, "write_schema"),
+                                   participantTables[[1]]))
+
+
+  if (length(participantTables) >= 2) {
+    # join additional analyses
+    participantTables <- participantTables[2:length(participantTables)]
+    for (i in seq_along(participantTables)) {
+      participants <- participants %>%
+        dplyr::full_join(dplyr::tbl(attr(cdm, "dbcon"),
+                                    inSchema(attr(cdm, "write_schema"),
+                                                          participantTables[[i]])),
+          by = "subject_id"
+        ) %>%
+        CDMConnector::computeQuery(name = paste0(tablePrefix,
+                                                 "_incidence_participants_", i),
+                                   temporary = FALSE,
+                                   schema = attr(cdm, "write_schema"),
+                                   overwrite = TRUE)
+
+
+    }
+
+  }
+
+  participants <- participants %>%
+    CDMConnector::computeQuery(name = paste0(tablePrefix,
+                                             "_incidence_participants"),
+                               temporary = FALSE,
+                               schema = attr(cdm, "write_schema"),
+                               overwrite = TRUE)
+  dropStemTables(cdm, paste0(tablePrefix,"_incidence_participants_"))
+
   }
 
   if(!is.null(tablePrefix)){
-  dropTable(cdm,
-             table = c(paste0(tablePrefix, "_incidence_working_1"),
-                       paste0(tablePrefix, "_incidence_working_2"),
-                       paste0(tablePrefix, "_incidence_working_3"),
-                       paste0(tablePrefix, "_incidence_working_4"),
-                       paste0(tablePrefix, "_incidence_working_5")
-             ))
+    dropStemTables(cdm, paste0(tablePrefix,"_incidence_working_"))
+    dropStemTables(cdm, paste0(tablePrefix,"_incidence_analysis_"))
   }
 
 
@@ -506,7 +537,7 @@ estimateIncidence <- function(cdm,
     dplyr::relocate("outcome_cohort_name", .after = "outcome_cohort_id")
   attr(irs, "attrition") <- attrition
   if(returnParticipants == TRUE){
-  attr(irs, "participants") <- personTable
+  attr(irs, "participants") <- participants
   }
 
   class(irs) <- c("IncidencePrevalenceResult", class(irs))

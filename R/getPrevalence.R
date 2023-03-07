@@ -281,21 +281,31 @@ getPrevalence <- function(cdm,
       dplyr::rename("prevalence_end_date" = "end_time")
   }
 
-  if(!is.null(tablePrefix)){
-
    if(returnParticipants==TRUE){
     # if using permanent tables (that get overwritten)
     # we need to keep a permanent one for a given analysis
     # so that we can refer back to it (e.g when using participants() function)
-    studyPop <- studyPop %>%
+    studyPop <- studyPop  %>%
+      dplyr::select(!"outcome_end_date") %>%
+      dplyr::rename(!!paste0("cohort_start_date",
+                             "_analysis_",
+                             analysisId) := "cohort_start_date",
+                    !!paste0("cohort_end_date",
+                             "_analysis_",
+                             analysisId) := "cohort_end_date",
+                    !!paste0("outcome_start_date",
+                             "_analysis_",
+                             analysisId) := "outcome_start_date"
+      ) %>%
       CDMConnector::computeQuery(name = paste0(tablePrefix,
                                                "_prevalence_analysis_",
                                                analysisId),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
                                  overwrite = TRUE)
-    }
+   }
 
+  if(!is.null(tablePrefix)){
     # drop other intermediate tables created
     dropTable(cdm,
               table = c(paste0(tablePrefix, "_prev_working_1"),
@@ -309,7 +319,9 @@ getPrevalence <- function(cdm,
   results[["pr"]] <- pr
   results[["attrition"]] <- attrition
   if(returnParticipants==TRUE){
-    results[["person_table"]] <- studyPop
+    results[["person_table"]] <- paste0(tablePrefix,
+                                        "_prevalence_analysis_",
+                                        analysisId)
   }
 
   return(results)

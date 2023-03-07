@@ -1,6 +1,6 @@
 Package: IncidencePrevalence
-Title: Population Incidence and Prevalence using the OMOP Common Data Model
-Version: 0.1.0
+Title: Estimate Incidence and Prevalence using the OMOP Common Data Model
+Version: 0.2.0
 Authors@R: c(
     person("Edward", "Burn", email = "edward.burn@ndorms.ox.ac.uk", 
     role = c("aut", "cre"), 
@@ -34,7 +34,7 @@ Imports:
     cli (>= 3.0.0),
     DBI (>= 1.0.0),
     dbplyr (>= 2.0.0),
-    dplyr (>= 1.0.0),
+    dplyr (>= 1.1.0),
     glue (>= 1.5.0),
     lubridate (>= 1.0.0),
     magrittr (>= 2.0.0),
