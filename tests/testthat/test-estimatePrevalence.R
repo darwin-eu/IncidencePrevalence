@@ -1531,6 +1531,10 @@ test_that("mock db: check participants", {
                  "outcome_start_date"
                ))
 
+ expect_true(nrow(participants(prev, 1) %>%
+    dplyr::collect() %>%
+    dplyr::filter(is.na(cohort_start_date))) == 0)
+
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
 })

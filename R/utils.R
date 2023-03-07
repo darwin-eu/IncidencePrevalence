@@ -236,6 +236,9 @@ participants.IncidencePrevalenceResult <- function(result,
       )
     )
 
+  included <- included %>%
+    dplyr::filter(!is.na(cohort_start_date))
+
   } else{
     included <- NULL
 }
