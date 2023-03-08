@@ -36,6 +36,7 @@ test_that("check working example with defaults", {
 })
 
 test_that("check working example with outcome table", {
+  skip_on_cran()
   outcomeTable <- tibble::tibble(
     cohort_definition_id = "1",
     subject_id = "1",
@@ -67,6 +68,7 @@ test_that("check working example with outcome table", {
 })
 
 test_that("check working example sample size and outcome prevalence option", {
+  skip_on_cran()
   db <- mockIncidencePrevalenceRef(sampleSize = 100, outPre = 0.2)
 
   expect_true(nrow(db$person %>%
@@ -90,6 +92,7 @@ test_that("check working example sample size and outcome prevalence option", {
 })
 
 test_that("outcome varies by gender and age option", {
+  skip_on_cran()
   db <- mockIncidencePrevalenceRef(sampleSize = 100,
                                               outPre = 0.2,
                                               genderBeta = -1,
@@ -130,6 +133,7 @@ test_that("outcome varies by gender and age option", {
 })
 
 test_that("multiple outcomes", {
+  skip_on_cran()
   db <-
     mockIncidencePrevalenceRef(
       sampleSize = 200,
@@ -216,6 +220,7 @@ test_that("multiple outcomes", {
 })
 
 test_that("check expected errors", {
+  skip_on_cran()
   expect_error(
     mockIncidencePrevalenceRef(personTable = "x")
   )

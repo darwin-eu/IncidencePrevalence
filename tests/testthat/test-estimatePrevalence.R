@@ -8,7 +8,6 @@ test_that("mock db: check output format", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortName = "test_outcome",
     interval = "years"
   )
 
@@ -95,7 +94,6 @@ test_that("mock db: check output format", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortName = "test_outcome",
     interval = "years",
     tablePrefix = "result",
     returnParticipants = TRUE
@@ -162,6 +160,7 @@ test_that("mock db: checks on working example", {
 })
 
 test_that("mock db: working examples 2", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -218,6 +217,7 @@ test_that("mock db: working examples 2", {
 })
 
 test_that("mock db: check outcome lookback", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -319,6 +319,7 @@ test_that("mock db: check outcome lookback", {
 })
 
 test_that("mock db: check minimum counts", {
+  skip_on_cran()
   # 20 people
   personTable <- tibble::tibble(
     person_id = as.character(c(1:20)),
@@ -424,6 +425,7 @@ test_that("mock db: check minimum counts", {
 })
 
 test_that("mock db: check study time periods", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -559,6 +561,7 @@ test_that("mock db: check study time periods", {
 })
 
 test_that("mock db: check fullContribution requirement", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3"),
     gender_concept_id = "8507",
@@ -635,6 +638,7 @@ test_that("mock db: check fullContribution requirement", {
 })
 
 test_that("mock db: check periods follow calendar dates", {
+  skip_on_cran()
   # check that even if study_start_date is during a period
   # periods still follow calendar dates
   personTable <- tibble::tibble(
@@ -755,6 +759,7 @@ test_that("mock db: check periods follow calendar dates", {
 })
 
 test_that("mock db: check multiple outcome ids", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = "8507",
@@ -800,6 +805,7 @@ test_that("mock db: check multiple outcome ids", {
 })
 
 test_that("mock db: some empty result sets", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = "8507",
@@ -854,6 +860,7 @@ test_that("mock db: some empty result sets", {
 })
 
 test_that("mock db: check messages when vebose is true", {
+  skip_on_cran()
   outcomeTable <- tibble::tibble(
     cohort_definition_id = 1,
     subject_id = "1",
@@ -887,6 +894,7 @@ test_that("mock db: check messages when vebose is true", {
 })
 
 test_that("mock db: check expected errors", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -944,6 +952,7 @@ test_that("mock db: check expected errors", {
 })
 
 test_that("mock db: check user point prevalence function", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef()
 
   cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
@@ -969,6 +978,7 @@ test_that("mock db: check user point prevalence function", {
 })
 
 test_that("mock db: check user period prevalence function", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef()
 
   cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
@@ -995,6 +1005,7 @@ test_that("mock db: check user period prevalence function", {
 })
 
 test_that("mock db: multiple observation periods", {
+  skip_on_cran()
   # create data for hypothetical people to test
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
@@ -1126,6 +1137,7 @@ test_that("mock db: multiple observation periods", {
 })
 
 test_that("mock db: check confidence intervals", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm
@@ -1155,6 +1167,7 @@ test_that("mock db: check confidence intervals", {
 })
 
 test_that("mock db: check attrition", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
@@ -1191,6 +1204,7 @@ test_that("mock db: check attrition", {
 })
 
 test_that("mock db: check attrition with complete database intervals", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = "8507",
@@ -1252,8 +1266,8 @@ test_that("mock db: check attrition with complete database intervals", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
-
 test_that("mock db: check compute permanent", {
+  skip_on_cran()
 
   # using temp
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
@@ -1313,6 +1327,7 @@ test_that("mock db: check compute permanent", {
 })
 
 test_that("mock db: check participants", {
+  skip_on_cran()
 
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
   attr(cdm, "write_schema") <- "main"

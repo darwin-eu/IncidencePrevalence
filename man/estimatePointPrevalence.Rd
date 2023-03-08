@@ -10,7 +10,6 @@ estimatePointPrevalence(
   outcomeTable,
   denominatorCohortId = NULL,
   outcomeCohortId = NULL,
-  outcomeCohortName = NULL,
   outcomeLookbackDays = 0,
   interval = "years",
   timePoint = "start",
@@ -37,8 +36,6 @@ analysis.}
 \item{outcomeCohortId}{The cohort definition ids of the outcome
 cohorts of interest. If NULL all cohorts will be considered in the
 analysis.}
-
-\item{outcomeCohortName}{Corresponding names for each outcomeCohortId.}
 
 \item{outcomeLookbackDays}{Days lookback when considering an outcome
 as prevalent. If NULL any prior outcome will be considered as prevalent. If

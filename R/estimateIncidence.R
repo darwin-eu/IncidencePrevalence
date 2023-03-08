@@ -29,7 +29,6 @@
 #' @param outcomeCohortId The cohort definition ids of the outcome
 #' cohorts of interest. If NULL all cohorts will be considered in the
 #' analysis.
-#' @param outcomeCohortName Corresponding names for each outcomeCohortId.
 #' @param interval Time intervals over which incidence is estimated. Can
 #' be "weeks", "months", "quarters", "years", or "overall". ISO weeks will
 #' be used for weeks. Calendar months, quarters, or years can be used, or an
@@ -89,7 +88,6 @@ estimateIncidence <- function(cdm,
                               outcomeTable,
                               denominatorCohortId = NULL,
                               outcomeCohortId = NULL,
-                              outcomeCohortName = NULL,
                               interval = "years",
                               completeDatabaseIntervals = TRUE,
                               outcomeWashout = 0,
@@ -108,7 +106,7 @@ estimateIncidence <- function(cdm,
 
   checkInputEstimateIncidence(
     cdm, denominatorTable, outcomeTable, denominatorCohortId,
-    outcomeCohortId, outcomeCohortName, interval, completeDatabaseIntervals,
+    outcomeCohortId, interval, completeDatabaseIntervals,
     outcomeWashout, repeatedEvents, minCellCount, tablePrefix,
     returnParticipants, verbose
   )
@@ -128,9 +126,15 @@ estimateIncidence <- function(cdm,
       dplyr::collect() %>%
       dplyr::pull()
   }
-  if (is.null(outcomeCohortName)) {
+
+ ## add outcome from attribute
+  if(!is.null(CDMConnector::cohortSet(cdm[[outcomeTable]]))){
+  outcomeCohortName <- CDMConnector::cohortSet(cdm[[outcomeTable]]) %>%
+    dplyr::pull("cohort_name")
+  } else {
     outcomeCohortName <- NA
   }
+
    outcomeRef <- tibble::tibble(
       outcome_cohort_id = .env$outcomeCohortId,
       outcome_cohort_name = .env$outcomeCohortName

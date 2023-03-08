@@ -8,7 +8,6 @@ test_that("mock db: check output format", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortName = "test_outcome",
     interval = "months"
   )
 
@@ -62,7 +61,6 @@ test_that("mock db: check output format", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortName = "test_outcome",
     interval = "months",
     tablePrefix =  "result", # returnParticipants requires use of tablePrefix
     returnParticipants = TRUE
@@ -126,6 +124,7 @@ test_that("mock db: checks on working example", {
 })
 
 test_that("mock db: check working example 2", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -220,6 +219,7 @@ test_that("mock db: check working example 2", {
 })
 
 test_that("mock db: check study periods", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -288,6 +288,7 @@ test_that("mock db: check study periods", {
 })
 
 test_that("mock db: check overall", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = "8507",
@@ -374,6 +375,7 @@ test_that("mock db: check overall", {
 })
 
 test_that("mock db: check person days", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
@@ -466,6 +468,7 @@ test_that("mock db: check person days", {
 })
 
 test_that("mock db: check periods follow calendar dates", {
+  skip_on_cran()
   # check that even if startDate as during a period
   # periods still follow calendar dates
   personTable <- tibble::tibble(
@@ -550,6 +553,7 @@ test_that("mock db: check periods follow calendar dates", {
 })
 
 test_that("mock db: check washout windows", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -702,6 +706,7 @@ test_that("mock db: check washout windows", {
 })
 
 test_that("mock db: check events overlapping with start of a period", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
@@ -808,6 +813,7 @@ test_that("mock db: check events overlapping with start of a period", {
 })
 
 test_that("mock db: compare results from months and years", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = rep("8507", 2),
@@ -956,6 +962,7 @@ test_that("mock db: compare results from months and years", {
 })
 
 test_that("mock db: check entry and event on same day", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -1016,6 +1023,7 @@ test_that("mock db: check entry and event on same day", {
 })
 
 test_that("mock db: cohort start overlaps with the outcome", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
@@ -1070,6 +1078,7 @@ test_that("mock db: cohort start overlaps with the outcome", {
 })
 
 test_that("mock db: check outcome before observation period start", {
+  skip_on_cran()
   # 1) with outcome starting and ending before observation period start
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
@@ -1264,6 +1273,7 @@ test_that("mock db: check outcome before observation period start", {
 })
 
 test_that("mock db: check minimum counts", {
+  skip_on_cran()
   # 20 people
   personTable <- tibble::tibble(
     person_id = as.character(c(1:20)),
@@ -1363,6 +1373,7 @@ test_that("mock db: check minimum counts", {
 })
 
 test_that("mock db: multiple overlapping outcomes", {
+  skip_on_cran()
   # two
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
@@ -1469,6 +1480,7 @@ test_that("mock db: multiple overlapping outcomes", {
 })
 
 test_that("mock db: cohort before period start ending after period", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
@@ -1549,6 +1561,7 @@ test_that("mock db: cohort before period start ending after period", {
 })
 
 test_that("mock db: check full period requirement - year", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
@@ -1654,6 +1667,7 @@ test_that("mock db: check full period requirement - year", {
 })
 
 test_that("mock db: check full period requirement - month", {
+  skip_on_cran()
   # expected to work
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
@@ -1761,6 +1775,7 @@ test_that("mock db: check full period requirement - month", {
 })
 
 test_that("mock db: check completeDatabaseIntervals", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
@@ -1864,6 +1879,7 @@ test_that("mock db: check completeDatabaseIntervals", {
 })
 
 test_that("mock db: check insufficient study days", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
@@ -1919,6 +1935,7 @@ test_that("mock db: check insufficient study days", {
 })
 
 test_that("mock db: check with and without study start and end date", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3", "4", "5", "6"),
     gender_concept_id = "8507",
@@ -2100,6 +2117,7 @@ test_that("mock db: check with and without study start and end date", {
 })
 
 test_that("mock db: check study start and end date 10000", {
+  skip_on_cran()
   # with one outcome per person
   cdm <- mockIncidencePrevalenceRef(
     sampleSize = 10000,
@@ -2356,6 +2374,7 @@ test_that("mock db: check study start and end date 10000", {
 })
 
 test_that("mock db: check messages when vebose is true", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -2398,6 +2417,7 @@ test_that("mock db: check messages when vebose is true", {
 })
 
 test_that("expected errors with mock", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -2481,7 +2501,6 @@ test_that("expected errors with mock", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortName = "test_outcome",
     tablePrefix = NULL,
     returnParticipants = TRUE
   ))
@@ -2490,6 +2509,7 @@ test_that("expected errors with mock", {
 })
 
 test_that("mock db: multiple observation periods", {
+  skip_on_cran()
   # create data for hypothetical people to test
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
@@ -2861,6 +2881,7 @@ test_that("mock db: multiple observation periods", {
 })
 
 test_that("mock db: check confidence intervals", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef(
     sampleSize = 10000
   )
@@ -2892,6 +2913,7 @@ test_that("mock db: check confidence intervals", {
 })
 
 test_that("mock db: check attrition", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
@@ -2925,6 +2947,7 @@ test_that("mock db: check attrition", {
 })
 
 test_that("mock db: check attrition with complete database intervals", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = "8507",
@@ -2984,6 +3007,7 @@ test_that("mock db: check attrition with complete database intervals", {
 })
 
 test_that("mock db: check compute permanent", {
+  skip_on_cran()
 
   # using temp
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
@@ -3043,6 +3067,7 @@ test_that("mock db: check compute permanent", {
 })
 
 test_that("mock db: check participants", {
+  skip_on_cran()
 
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
   cdm$dpop <- generateDenominatorCohortSet(cdm = cdm,

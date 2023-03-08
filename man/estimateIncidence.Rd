@@ -10,7 +10,6 @@ estimateIncidence(
   outcomeTable,
   denominatorCohortId = NULL,
   outcomeCohortId = NULL,
-  outcomeCohortName = NULL,
   interval = "years",
   completeDatabaseIntervals = TRUE,
   outcomeWashout = 0,
@@ -38,8 +37,6 @@ analysis.}
 \item{outcomeCohortId}{The cohort definition ids of the outcome
 cohorts of interest. If NULL all cohorts will be considered in the
 analysis.}
-
-\item{outcomeCohortName}{Corresponding names for each outcomeCohortId.}
 
 \item{interval}{Time intervals over which incidence is estimated. Can
 be "weeks", "months", "quarters", "years", or "overall". ISO weeks will

@@ -127,6 +127,7 @@ test_that("mock db: checks on working example", {
 })
 
 test_that("mock db: check example we expect to work", {
+  skip_on_cran()
   # one person, one observation periods
   personTable <- tibble::tibble(
     person_id = "1",
@@ -174,6 +175,7 @@ test_that("mock db: check example we expect to work", {
 })
 
 test_that("mock db: check another example we expect to work", {
+  skip_on_cran()
   # 5 person, 1 observation periods
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3", "4", "5"),
@@ -278,6 +280,7 @@ test_that("mock db: check another example we expect to work", {
 })
 
 test_that("mock db: mock example 1000", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   # all options being used except study start and end
   cdm$dpop <- generateDenominatorCohortSet(cdm,
@@ -327,6 +330,7 @@ test_that("mock db: mock example 1000", {
 })
 
 test_that("mock db: subset denominator by cohort", {
+  skip_on_cran()
   # one person, one observation periods
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3"),
@@ -555,6 +559,7 @@ test_that("mock db: subset denominator by cohort", {
 })
 
 test_that("mock db: one male, one female", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
@@ -601,6 +606,7 @@ test_that("mock db: one male, one female", {
 })
 
 test_that("mock db: check example with restriction on sex", {
+  skip_on_cran()
   # two male, one female
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3"),
@@ -678,6 +684,7 @@ test_that("mock db: check example with restriction on sex", {
 })
 
 test_that("mock db: check example with restriction on age", {
+  skip_on_cran()
   # three people, born in 2000, 2005, and 2010
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3"),
@@ -769,6 +776,7 @@ test_that("mock db: check example with restriction on age", {
 })
 
 test_that("mock db: check age edge cases", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
 
   # same min and max
@@ -811,6 +819,7 @@ test_that("mock db: check age edge cases", {
 })
 
 test_that("mock db check age strata entry and exit", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -862,6 +871,7 @@ test_that("mock db check age strata entry and exit", {
 })
 
 test_that("mock db: check example with multiple observation periods", {
+  skip_on_cran()
   # one person, two observation periods
   personTable <- tibble::tibble(
     person_id = "1",
@@ -924,6 +934,7 @@ test_that("mock db: check example with multiple observation periods", {
 })
 
 test_that("mock db: check imputation of date of birth", {
+  skip_on_cran()
   # one person with all info, one missing month, one missing day, and one both
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3", "4"),
@@ -976,6 +987,7 @@ test_that("mock db: check imputation of date of birth", {
 })
 
 test_that("mock db: check edge cases (zero results expected)", {
+  skip_on_cran()
   # one person, one observation periods
   personTable <- tibble::tibble(
     person_id = "1",
@@ -1034,6 +1046,7 @@ test_that("mock db: check edge cases (zero results expected)", {
 })
 
 test_that("mock db: check expected errors", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef()
 
   # not a cdm reference
@@ -1102,6 +1115,7 @@ test_that("mock db: check expected errors", {
 })
 
 test_that("mock db: check attrition table logic", {
+  skip_on_cran()
   # 7 person, 1 observation periods
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3", "4", "5", "6", "7"),
@@ -1209,6 +1223,7 @@ test_that("mock db: check attrition table logic", {
 })
 
 test_that("mock db: check attrition with multiple cohorts", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
 
   cdm$dpop <- generateDenominatorCohortSet(cdm,
@@ -1286,6 +1301,7 @@ test_that("mock db: check attrition with multiple cohorts", {
 })
 
 test_that("mock db: check compute permanent", {
+  skip_on_cran()
 
   # using temp
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
