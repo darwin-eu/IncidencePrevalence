@@ -28,22 +28,10 @@
 #' @examples
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 #' cdm$denominator <- generateDenominatorCohortSet(cdm,
-#'   startDate = NULL,
-#'   endDate = NULL,
 #'   ageGroup = list(c(18, 40)),
-#'   sex = c("Female", "Male"),
 #'   daysPriorHistory = 120
 #' )
-#' attrition(result = cdm$denominator)
-#' attrition(result = cdm$denominator, cohortDefinitionId = 1)
-#' incidence <- estimateIncidence(
-#'   cdm = cdm,
-#'   denominatorTable = "denominator",
-#'   outcomeTable = "outcome",
-#'   interval = "overall"
-#' )
-#' attrition(result = incidence)
-#' attrition(result = incidence, analysisId = 1)
+#' attrition(cdm$denominator)
 attrition <- function(result, ...) {
   UseMethod("attrition")
 }
@@ -237,7 +225,7 @@ participants.IncidencePrevalenceResult <- function(result,
     )
 
   included <- included %>%
-    dplyr::filter(!is.na(cohort_start_date))
+    dplyr::filter(!is.na(.data$cohort_start_date))
 
   } else{
     included <- NULL

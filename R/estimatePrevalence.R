@@ -253,94 +253,15 @@ estimatePrevalence <- function(cdm,
     timePoint <- tolower(timePoint)
   }
 
-  ## check for standard types of user error
-  errorMessage <- checkmate::makeAssertCollection()
-  cdmCheck <- inherits(cdm, "cdm_reference")
-  checkmate::assertTRUE(cdmCheck,
-    add = errorMessage
+  checkInputEstimatePrevalence(
+    cdm, denominatorTable, outcomeTable,
+    denominatorCohortId, outcomeCohortId,
+    outcomeCohortName, outcomeLookbackDays,
+    type, interval, completeDatabaseIntervals,
+    fullContribution, timePoint,
+    minCellCount, tablePrefix,
+    returnParticipants, verbose
   )
-  if (!isTRUE(cdmCheck)) {
-    errorMessage$push(
-      "- cdm must be a CDMConnector CDM reference object"
-    )
-  }
-  denomCheck <- denominatorTable %in% names(cdm)
-  checkmate::assertTRUE(denomCheck,
-    add = errorMessage
-  )
-  if (!isTRUE(denomCheck)) {
-    errorMessage$push(
-      "- `denominatorTable` is not found in cdm"
-    )
-  }
-  checkmate::assertIntegerish(denominatorCohortId,
-    add = errorMessage,
-    null.ok = TRUE
-  )
-  outcomeCheck <- outcomeTable %in% names(cdm)
-  checkmate::assertTRUE(outcomeCheck,
-    add = errorMessage
-  )
-  if (!isTRUE(outcomeCheck)) {
-    errorMessage$push(
-      "- `outcomeTable` is not found in cdm"
-    )
-  }
-  checkmate::assertIntegerish(outcomeCohortId,
-    add = errorMessage,
-    null.ok = TRUE
-  )
-  checkmate::assertCharacter(outcomeCohortName,
-                             add = errorMessage,
-                             null.ok = TRUE
-  )
-  checkmate::assert_numeric(outcomeLookbackDays,
-    add = errorMessage,
-    null.ok = TRUE
-  )
-  checkmate::assert_choice(type,
-    choices = c("point", "period"),
-    add = errorMessage
-  )
-  checkmate::assertTRUE(
-    all(interval %in%
-      c(
-        "weeks", "months",
-        "quarters", "years",
-        "overall"
-      )),
-    add = errorMessage
-  )
-  checkmate::assertTRUE(all(timePoint %in% c("start", "middle", "end")),
-    add = errorMessage
-  )
-  checkmate::assert_number(minCellCount)
-  checkmate::assert_logical(fullContribution,
-    add = errorMessage
-  )
-  checkmate::assert_logical(verbose,
-    add = errorMessage
-  )
-  checkmate::assert_logical(completeDatabaseIntervals,
-    add = errorMessage
-  )
-  if(is.null(tablePrefix)){
-    # returnParticipants only when we are using permanent tables
-    checkmate::assert_false(returnParticipants,
-                           add = errorMessage
-    )
-  }
-    checkmate::assertCharacter(tablePrefix,
-                               len = 1,
-                               add = errorMessage,
-                               null.ok = TRUE
-    )
-  checkmate::assert_logical(returnParticipants,
-                            add = errorMessage
-  )
-  # report initial assertions
-  checkmate::reportAssertions(collection = errorMessage)
-
 
   # if not given, use all denominator and outcome cohorts
   if (is.null(denominatorCohortId)) {
