@@ -1096,11 +1096,7 @@ test_that("mock db: check expected errors", {
     start_date = as.Date("2012-06-06"),
     end_date = as.Date("2013-06-06")
   )
-  cdm <- mockIncidencePrevalenceRef(strataTable = strataTable)
-  testthat::expect_error(generateDenominatorCohortSet(
-    cdm = cdm,
-    strataTable = "strata"
-  ))
+  testthat::expect_error(mockIncidencePrevalenceRef(strataTable = strataTable))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
