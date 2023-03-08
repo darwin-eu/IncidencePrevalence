@@ -44,6 +44,18 @@ test_that("dbms test", {
                                                verbose = TRUE)
   expect_true(tibble::is_tibble(timings_perm))
 
+  # returning participants
+  timings_perm <- benchmarkIncidencePrevalence(cdm,
+                                               startDate = as.Date("2012-01-01"),
+                                               endDate = as.Date("2015-12-31"),
+                                               tablePrefix = "incprev_bench",
+                                               returnParticipants = TRUE,
+                                               sample=1000000,
+                                               nOutcomes = 1,
+                                               prevOutcomes = 0.10,
+                                               verbose = TRUE)
+  expect_true(tibble::is_tibble(timings_perm))
+
   # 23rd January 2023, CPRD GOLD, Postgres
   timings_temp
   # A tibble: 7 × 8

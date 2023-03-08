@@ -1224,39 +1224,39 @@ test_that("mock db: check attrition with multiple cohorts", {
   # for male cohort we should have a row for those excluded for not being male
   expect_true(any("Not Male" == settings(cdm$dpop) %>%
     dplyr::filter(sex == "Male") %>%
-    dplyr::inner_join(attrition(cdm$dpop),
+    dplyr::inner_join(attrition(cdm$dpop),multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::pull(.data$reason)) == TRUE)
   expect_true(any("Not Female" == settings(cdm$dpop) %>%
     dplyr::filter(sex == "Male") %>%
-    dplyr::inner_join(attrition(cdm$dpop),
+    dplyr::inner_join(attrition(cdm$dpop),multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::pull(.data$reason)) == FALSE)
   # for female cohort we should have a row for those excluded for not being male
   expect_true(any("Not Male" == settings(cdm$dpop) %>%
     dplyr::filter(sex == "Female") %>%
-    dplyr::inner_join(attrition(cdm$dpop),
+    dplyr::inner_join(attrition(cdm$dpop),multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::pull(.data$reason)) == FALSE)
   expect_true(any("Not Female" == settings(cdm$dpop) %>%
     dplyr::filter(sex == "Female") %>%
-    dplyr::inner_join(attrition(cdm$dpop),
+    dplyr::inner_join(attrition(cdm$dpop),multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::pull(.data$reason)) == TRUE)
   # for both cohort we should have a row for those excluded for not being male
   expect_true(any("Not Male" == settings(cdm$dpop) %>%
     dplyr::filter(sex == "Both") %>%
-    dplyr::inner_join(attrition(cdm$dpop),
+    dplyr::inner_join(attrition(cdm$dpop),multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::pull(.data$reason)) == FALSE)
   expect_true(any("Not Female" == settings(cdm$dpop) %>%
     dplyr::filter(sex == "Both") %>%
-    dplyr::inner_join(attrition(cdm$dpop),
+    dplyr::inner_join(attrition(cdm$dpop),multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::pull(.data$reason)) == FALSE)
@@ -1270,7 +1270,7 @@ test_that("mock db: check attrition with multiple cohorts", {
 
   # nobody dropped for prior hist when req is 0
   expect_true(settings(cdm$dpop) %>%
-    dplyr::inner_join(attrition(cdm$dpop),
+    dplyr::inner_join(attrition(cdm$dpop),multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::filter(days_prior_history == 0) %>%
@@ -1278,7 +1278,7 @@ test_that("mock db: check attrition with multiple cohorts", {
     dplyr::pull(.data$excluded) == 0)
   # some people dropped for prior hist when req is 365
   expect_true(settings(cdm$dpop) %>%
-    dplyr::inner_join(attrition(cdm$dpop),
+    dplyr::inner_join(attrition(cdm$dpop),multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::filter(days_prior_history == 365) %>%

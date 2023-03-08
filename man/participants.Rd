@@ -4,7 +4,7 @@
 \alias{participants}
 \title{Participants contributing to an analysis}
 \usage{
-participants(result, analysisId = NULL)
+participants(result, analysisId)
 }
 \arguments{
 \item{result}{Result object}
@@ -33,6 +33,5 @@ incidence <- estimateIncidence(
   outcomeTable = "outcome",
   interval = "overall"
 )
-participants(result = incidence)
 participants(result = incidence, analysisId = 1)
 }
