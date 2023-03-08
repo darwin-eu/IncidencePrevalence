@@ -191,7 +191,7 @@ generateDenominatorCohortSet <- function(cdm,
       cohort_definition_id = popSpecs$cohort_definition_id,
       n = 0
     )
-  } else if (denominatorPopulationNrows > 0) {
+  } else {
     # first, if all cohorts are Male or Female get number that will be excluded
     nFemale <- dpop$denominator_population %>%
       dplyr::filter(.data$sex == "Female") %>%
@@ -297,96 +297,11 @@ generateDenominatorCohortSet <- function(cdm,
     }
     cli::cli_progress_done()
 
-    if (length(studyPops) != 0 && length(studyPops) < 10) {
-      if (verbose == TRUE) {
-        message(glue::glue("Unioning cohorts"))
-      }
-      studyPops <- Reduce(dplyr::union_all, studyPops)
-      if (is.null(tablePrefix)) {
-        studyPops <- studyPops %>%
-          CDMConnector::computeQuery()
-      } else {
-        studyPops <- studyPops %>%
-          CDMConnector::computeQuery(
-            name = paste0(
-              tablePrefix,
-              "_denominator"
-            ),
-            temporary = FALSE,
-            schema = attr(cdm, "write_schema"),
-            overwrite = TRUE
-          )
-      }
-    }
-    if (length(studyPops) >= 10) {
-      # if 10 or more
-      # combine in batches in case of many subgroups
-      nBatches <- 10 # number in a batch
-      studyPopsBatches <- split(
-        studyPops,
-        ceiling(seq_along(studyPops) / nBatches)
-      )
-      cli::cli_progress_bar(
-        total = length(studyPopsBatches),
-        format = " -- unioning {cli::pb_bar} {cli::pb_current} of {cli::pb_total} batched cohorts"
-      )
+    studyPops <- unionCohorts(cdm,
+                              studyPops,
+                              tablePrefix,
+                              verbose)
 
-      for (i in seq_along(studyPopsBatches)) {
-        if (verbose == TRUE) {
-          cli::cli_progress_update()
-        }
-        studyPopsBatches[[i]] <- Reduce(
-          dplyr::union_all,
-          studyPopsBatches[[i]]
-        )
-
-        if (is.null(tablePrefix)) {
-          studyPopsBatches[[i]] <- studyPopsBatches[[i]] %>%
-            CDMConnector::computeQuery()
-        } else {
-          studyPopsBatches[[i]] <- studyPopsBatches[[i]] %>%
-            CDMConnector::computeQuery(
-              name = paste0(
-                tablePrefix,
-                "_batch_", i
-              ),
-              temporary = FALSE,
-              schema = attr(cdm, "write_schema"),
-              overwrite = TRUE
-            )
-        }
-      }
-      cli::cli_progress_done()
-
-      studyPops <- Reduce(dplyr::union_all, studyPopsBatches)
-      if (is.null(tablePrefix)) {
-        studyPops <- studyPops %>%
-          CDMConnector::computeQuery()
-      } else {
-        studyPops <- studyPops %>%
-          CDMConnector::computeQuery(
-            name = paste0(
-              tablePrefix,
-              "_denominator"
-            ),
-            temporary = FALSE,
-            schema = attr(cdm, "write_schema"),
-            overwrite = TRUE
-          )
-      }
-
-      # drop any batch permanent tables
-      if (!is.null(tablePrefix)) {
-        for (i in seq_along(studyPopsBatches)) {
-          dropTable(cdm,
-            table = paste0(
-              tablePrefix,
-              "_batch_", i
-            )
-          )
-        }
-      }
-    }
   }
 
 
@@ -447,142 +362,105 @@ generateDenominatorCohortSet <- function(cdm,
 
 
 
-checkInputGenerateDCS <- function(cdm,
-                                  startDate,
-                                  endDate,
-                                  ageGroup,
-                                  sex,
-                                  daysPriorHistory,
-                                  strataTable,
-                                  strataCohortId,
-                                  strataCohortName,
-                                  sample,
-                                  tablePrefix,
-                                  verbose) {
+# union cohort tables
+# combine the set of separate cohort tables into a single table
+unionCohorts <- function(cdm,
+                         studyPops,
+                         tablePrefix,
+                         verbose
+                         ){
 
-  errorMessage <- checkmate::makeAssertCollection()
-  cdmCheck <- inherits(cdm, "cdm_reference")
-  checkmate::assertTRUE(cdmCheck,
-                        add = errorMessage
-  )
-  if (!isTRUE(cdmCheck)) {
-    errorMessage$push(
-      "- cdm must be a CDMConnector CDM reference object"
-    )
+  if (length(studyPops) != 0 && length(studyPops) < 10) {
+    if (verbose == TRUE) {
+      message(glue::glue("Unioning cohorts"))
+    }
+    studyPops <- Reduce(dplyr::union_all, studyPops)
+    if (is.null(tablePrefix)) {
+      studyPops <- studyPops %>%
+        CDMConnector::computeQuery()
+    } else {
+      studyPops <- studyPops %>%
+        CDMConnector::computeQuery(
+          name = paste0(
+            tablePrefix,
+            "_denominator"
+          ),
+          temporary = FALSE,
+          schema = attr(cdm, "write_schema"),
+          overwrite = TRUE
+        )
+    }
   }
-  cdmPersonCheck <- inherits(cdm$person, "tbl_dbi")
-  checkmate::assertTRUE(cdmPersonCheck, add = errorMessage)
-  if (!isTRUE(cdmPersonCheck)) {
-    errorMessage$push(
-      "- table `person` is not found"
+  if (length(studyPops) >= 10) {
+    # if 10 or more
+    # combine in batches in case of many subgroups
+    studyPopsBatches <- split(
+      studyPops,
+      ceiling(seq_along(studyPops) / 10) # 10 in a batch
     )
-  }
-  cdmObsPeriodCheck <- inherits(cdm$observation_period, "tbl_dbi")
-  checkmate::assertTRUE(cdmObsPeriodCheck, add = errorMessage)
-  if (!isTRUE(cdmObsPeriodCheck)) {
-    errorMessage$push(
-      "- table `observation_period` is not found"
+    cli::cli_progress_bar(
+      total = length(studyPopsBatches),
+      format = " -- unioning {cli::pb_bar} {cli::pb_current} of {cli::pb_total} batched cohorts"
     )
-  }
-  checkmate::assert_date(startDate,
-                         add = errorMessage,
-                         null.ok = TRUE
-  )
-  checkmate::assert_date(endDate,
-                         add = errorMessage,
-                         null.ok = TRUE
-  )
-  checkmate::assert_list(ageGroup,
-                         add = errorMessage
-  )
-  if (!is.null(ageGroup)) {
-    for (i in seq_along(ageGroup)) {
-      checkmate::assertTRUE(length(ageGroup[[i]]) == 2)
-      checkmate::assert_numeric(ageGroup[[i]][1],
-                                add = errorMessage
+
+    for (i in seq_along(studyPopsBatches)) {
+      if (verbose == TRUE) {
+        cli::cli_progress_update()
+      }
+      studyPopsBatches[[i]] <- Reduce(
+        dplyr::union_all,
+        studyPopsBatches[[i]]
       )
-      checkmate::assert_numeric(ageGroup[[i]][2],
-                                add = errorMessage
-      )
-      ageCheck <- ageGroup[[i]][1] <=
-        ageGroup[[i]][2]
-      checkmate::assertTRUE(ageCheck,
-                            add = errorMessage
-      )
-      if (!isTRUE(ageCheck)) {
-        errorMessage$push(
-          "- upper age value must be equal or higher than lower age value"
+
+      if (is.null(tablePrefix)) {
+        studyPopsBatches[[i]] <- studyPopsBatches[[i]] %>%
+          CDMConnector::computeQuery()
+      } else {
+        studyPopsBatches[[i]] <- studyPopsBatches[[i]] %>%
+          CDMConnector::computeQuery(
+            name = paste0(
+              tablePrefix,
+              "_batch_", i
+            ),
+            temporary = FALSE,
+            schema = attr(cdm, "write_schema"),
+            overwrite = TRUE
+          )
+      }
+    }
+    cli::cli_progress_done()
+
+    studyPops <- Reduce(dplyr::union_all, studyPopsBatches)
+    if (is.null(tablePrefix)) {
+      studyPops <- studyPops %>%
+        CDMConnector::computeQuery()
+    } else {
+      studyPops <- studyPops %>%
+        CDMConnector::computeQuery(
+          name = paste0(
+            tablePrefix,
+            "_denominator"
+          ),
+          temporary = FALSE,
+          schema = attr(cdm, "write_schema"),
+          overwrite = TRUE
+        )
+    }
+
+    # drop any batch permanent tables
+    if (!is.null(tablePrefix)) {
+      for (i in seq_along(studyPopsBatches)) {
+        dropTable(cdm,
+                  table = paste0(
+                    tablePrefix,
+                    "_batch_", i
+                  )
         )
       }
-      checkmate::assertTRUE(ageGroup[[i]][1] >= 0,
-                            add = errorMessage
-      )
-      checkmate::assertTRUE(ageGroup[[i]][2] >= 0,
-                            add = errorMessage
-      )
     }
   }
-  checkmate::assert_vector(sex,
-                           add = errorMessage
-  )
-  sexCheck <- all(sex %in% c("Male", "Female", "Both"))
-  if (!isTRUE(sexCheck)) {
-    errorMessage$push(
-      "- sex stratas must be from: Male, Female, and Both"
-    )
-  }
-  checkmate::assert_numeric(daysPriorHistory,
-                            add = errorMessage
-  )
-  daysCheck <- all(daysPriorHistory >= 0)
-  if (!isTRUE(daysCheck)) {
-    errorMessage$push(
-      "- daysPriorHistory cannot be negative"
-    )
-  }
-  if (!is.null(strataTable)) {
-    strataTableCheck <- inherits(cdm[[strataTable]], "tbl_dbi")
-    checkmate::assertTRUE(strataTableCheck, add = errorMessage)
-    if (!isTRUE(strataTableCheck)) {
-      errorMessage$push(
-        "- table `strata` is not found"
-      )
-    }
-    strataNamesCheck <- all(names(cdm[[strataTable]] %>%
-                                    utils::head(1) %>%
-                                    dplyr::collect()) %in%
-                              c(
-                                "cohort_definition_id", "subject_id",
-                                "cohort_start_date", "cohort_end_date"
-                              ))
-    checkmate::assertTRUE(strataNamesCheck, add = errorMessage)
-    if (!isTRUE(strataNamesCheck)) {
-      errorMessage$push(
-        "- table `strata` does not conform to specification"
-      )
-    }
-  }
-  checkmate::assertIntegerish(strataCohortId,
-                              len = 1,
-                              add = errorMessage,
-                              null.ok = TRUE
-  )
-  checkmate::assertCharacter(strataCohortName,
-                             len = 1,
-                             add = errorMessage,
-                             null.ok = TRUE
-  )
-  checkmate::assertNumeric(sample,
-                           add = errorMessage,
-                           null.ok = TRUE
-  )
-  checkmate::assertCharacter(tablePrefix,
-                             len = 1,
-                             add = errorMessage,
-                             null.ok = TRUE
-  )
-  checkmate::assert_logical(verbose,
-                            add = errorMessage
-  )
-  return(checkmate::reportAssertions(collection = errorMessage))
+
+  return(studyPops)
+
+
 }

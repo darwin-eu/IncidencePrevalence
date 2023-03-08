@@ -106,81 +106,12 @@ estimateIncidence <- function(cdm,
     interval <- tolower(interval)
   }
 
-  ## check for standard types of user error
-  errorMessage <- checkmate::makeAssertCollection()
-  cdmCheck <- inherits(cdm, "cdm_reference")
-  checkmate::assertTRUE(cdmCheck,
-    add = errorMessage
+  checkInputEstimateIncidence(
+    cdm, denominatorTable, outcomeTable, denominatorCohortId,
+    outcomeCohortId, outcomeCohortName, interval, completeDatabaseIntervals,
+    outcomeWashout, repeatedEvents, minCellCount, tablePrefix,
+    returnParticipants, verbose
   )
-  if (!isTRUE(cdmCheck)) {
-    errorMessage$push(
-      "- cdm must be a CDMConnector CDM reference object"
-    )
-    }
-  checkmate::reportAssertions(collection = errorMessage)
-  errorMessage <- checkmate::makeAssertCollection()
-  denominatorCheck <- denominatorTable %in% names(cdm)
-  checkmate::assertTRUE(denominatorCheck,
-    add = errorMessage
-  )
-  if (!isTRUE(denominatorCheck)) {
-    errorMessage$push(
-      "- `denominatorTable` is not found in cdm"
-    )
-  }
-  checkmate::assertIntegerish(denominatorCohortId,
-    add = errorMessage,
-    null.ok = TRUE
-  )
-  outcomeCheck <- outcomeTable %in% names(cdm)
-  checkmate::assertTRUE(outcomeCheck,
-    add = errorMessage
-  )
-  if (!isTRUE(outcomeCheck)) {
-    errorMessage$push(
-      "- `outcomeTable` is not found in cdm"
-    )
-  }
-  checkmate::assertIntegerish(outcomeCohortId,
-    add = errorMessage,
-    null.ok = TRUE
-  )
-  checkmate::assertCharacter(outcomeCohortName,
-                             add = errorMessage,
-                             null.ok = TRUE
-  )
-  checkmate::assertTRUE(
-    all(interval %in%
-      c(
-        "weeks", "months",
-        "quarters", "years",
-        "overall"
-      )),
-    add = errorMessage
-  )
-  checkmate::assert_logical(completeDatabaseIntervals,
-    add = errorMessage
-  )
-  checkmate::assert_numeric(outcomeWashout,
-    add = errorMessage,
-    null.ok = TRUE
-  )
-  checkmate::assert_logical(repeatedEvents,
-    add = errorMessage
-  )
-  checkmate::assert_number(minCellCount)
-  checkmate::assertCharacter(tablePrefix,
-                             len = 1,
-                             add = errorMessage,
-                             null.ok = TRUE
-  )
-  checkmate::assert_logical(returnParticipants,
-                            add = errorMessage
-  )
-  checkmate::assert_logical(verbose,
-    add = errorMessage
-  )
-  checkmate::reportAssertions(collection = errorMessage)
 
   # if not given, use all denominator and outcome cohorts
   if (is.null(denominatorCohortId)) {
@@ -206,31 +137,9 @@ estimateIncidence <- function(cdm,
     )
 
   # further checks that there are the required data elements
-  errorMessage <- checkmate::makeAssertCollection()
-  denomCountCheck <- cdm[[denominatorTable]] %>%
-    dplyr::filter(.data$cohort_definition_id %in%
-                    .env$denominatorCohortId) %>%
-    dplyr::count() %>%
-    dplyr::pull() > 0
-  if (!isTRUE(denomCountCheck)) {
-    errorMessage$push(
-      "- nobody in `denominatorTable` with one of the `denominatorCohortId`"
-    )
-  }
-  outcomeCountCheck <- cdm[[outcomeTable]] %>%
-    dplyr::filter(.data$cohort_definition_id %in% .env$outcomeCohortId) %>%
-    dplyr::count() %>%
-    dplyr::pull() > 0
-  checkmate::assertTRUE(outcomeCountCheck,
-    add = errorMessage
-  )
-  if (!isTRUE(outcomeCountCheck)) {
-    errorMessage$push(
-      "- nobody in `outcomeTable` with one of the `outcomeCohortId`"
-    )
-  }
-  checkmate::reportAssertions(collection = errorMessage)
-
+   checkInputEstimateIncidenceAdditional(
+     cdm, denominatorTable, outcomeTable, denominatorCohortId,
+     outcomeCohortId)
 
   # get outcomes + cohort_start_date & cohort_end_date
   outcome <- cdm[[outcomeTable]] %>%

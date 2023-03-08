@@ -23,20 +23,8 @@ Cohort attrition
 \examples{
 cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 cdm$denominator <- generateDenominatorCohortSet(cdm,
-  startDate = NULL,
-  endDate = NULL,
   ageGroup = list(c(18, 40)),
-  sex = c("Female", "Male"),
   daysPriorHistory = 120
 )
-attrition(result = cdm$denominator)
-attrition(result = cdm$denominator, cohortDefinitionId = 1)
-incidence <- estimateIncidence(
-  cdm = cdm,
-  denominatorTable = "denominator",
-  outcomeTable = "outcome",
-  interval = "overall"
-)
-attrition(result = incidence)
-attrition(result = incidence, analysisId = 1)
+attrition(cdm$denominator)
 }
