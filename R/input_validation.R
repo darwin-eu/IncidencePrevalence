@@ -190,6 +190,12 @@ checkInputEstimateIncidence <- function(cdm,
     add = errorMessage,
     null.ok = TRUE
   )
+  if(is.null(tablePrefix)){
+    # returnParticipants only when we are using permanent tables
+    checkmate::assert_false(returnParticipants,
+                            add = errorMessage
+    )
+  }
   checkmate::assert_logical(returnParticipants,
     add = errorMessage
   )
@@ -321,6 +327,12 @@ checkInputEstimatePrevalence <- function(cdm,
   checkmate::assert_logical(returnParticipants,
                             add = errorMessage
   )
+  if(is.null(tablePrefix)){
+    # returnParticipants only when we are using permanent tables
+    checkmate::assert_false(returnParticipants,
+                            add = errorMessage
+    )
+  }
   return(checkmate::reportAssertions(collection = errorMessage))
 
 }
