@@ -122,7 +122,6 @@ checkInputEstimateIncidence <- function(cdm,
                                         outcomeTable,
                                         denominatorCohortId,
                                         outcomeCohortId,
-                                        outcomeCohortName,
                                         interval,
                                         completeDatabaseIntervals,
                                         outcomeWashout,
@@ -158,10 +157,6 @@ checkInputEstimateIncidence <- function(cdm,
     )
   }
   checkmate::assertIntegerish(outcomeCohortId,
-    add = errorMessage,
-    null.ok = TRUE
-  )
-  checkmate::assertCharacter(outcomeCohortName,
     add = errorMessage,
     null.ok = TRUE
   )
@@ -243,7 +238,6 @@ checkInputEstimatePrevalence <- function(cdm,
                                          outcomeTable,
                                          denominatorCohortId,
                                          outcomeCohortId,
-                                         outcomeCohortName,
                                          outcomeLookbackDays,
                                          type,
                                          interval,
@@ -284,10 +278,6 @@ checkInputEstimatePrevalence <- function(cdm,
   checkmate::assertIntegerish(outcomeCohortId,
                               add = errorMessage,
                               null.ok = TRUE
-  )
-  checkmate::assertCharacter(outcomeCohortName,
-                             add = errorMessage,
-                             null.ok = TRUE
   )
   checkmate::assert_numeric(outcomeLookbackDays,
                             add = errorMessage,

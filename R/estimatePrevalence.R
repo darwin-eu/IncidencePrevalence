@@ -29,7 +29,6 @@
 #' @param outcomeCohortId The cohort definition ids of the outcome
 #' cohorts of interest. If NULL all cohorts will be considered in the
 #' analysis.
-#' @param outcomeCohortName Corresponding names for each outcomeCohortId.
 #' @param outcomeLookbackDays Days lookback when considering an outcome
 #' as prevalent. If NULL any prior outcome will be considered as prevalent. If
 #' 0, only ongoing outcomes will be considered as prevalent.
@@ -49,8 +48,7 @@
 #' @param returnParticipants Either TRUE or FALSE. If TRUE references to
 #' participants from the analysis will be returned allowing for further
 #' analysis. Note, if using permanent tables and returnParticipants is TRUE,
-#' one table per analysis will be kept in the cdm write schema (these
-#' can be dropped at subsequently using dropStemTables() function)
+#' one table per analysis will be kept in the cdm write schema.
 #' @param verbose Whether to report progress
 #'
 #' @return Point prevalence estimates
@@ -80,7 +78,6 @@ estimatePointPrevalence <- function(cdm,
                                     outcomeTable,
                                     denominatorCohortId = NULL,
                                     outcomeCohortId = NULL,
-                                    outcomeCohortName = NULL,
                                     outcomeLookbackDays = 0,
                                     interval = "years",
                                     timePoint = "start",
@@ -106,7 +103,6 @@ estimatePointPrevalence <- function(cdm,
     outcomeTable = outcomeTable,
     denominatorCohortId = denominatorCohortId,
     outcomeCohortId = outcomeCohortId,
-    outcomeCohortName = outcomeCohortName,
     outcomeLookbackDays = outcomeLookbackDays,
     type = "point",
     interval = interval,
@@ -135,7 +131,6 @@ estimatePointPrevalence <- function(cdm,
 #' @param outcomeCohortId The cohort definition ids of the outcome
 #' cohorts of interest. If NULL all cohorts will be considered in the
 #' analysis.
-#' @param outcomeCohortName Corresponding names for each outcomeCohortId.
 #' @param outcomeLookbackDays Days lookback when considering an outcome
 #' as prevalent. If NULL any prior outcome will be considered as prevalent. If
 #' 0, only ongoing outcomes will be considered as prevalent.
@@ -162,8 +157,7 @@ estimatePointPrevalence <- function(cdm,
 #' @param returnParticipants Either TRUE or FALSE. If TRUE references to
 #' participants from the analysis will be returned allowing for further
 #' analysis. Note, if using permanent tables and returnParticipants is TRUE,
-#' one table per analysis will be kept in the cdm write schema (these
-#' can be dropped at subsequently using dropStemTables() function)
+#' one table per analysis will be kept in the cdm write schema.
 #' @param verbose Whether to report progress
 #'
 #' @return  Period prevalence estimates
@@ -194,7 +188,6 @@ estimatePeriodPrevalence <- function(cdm,
                                      outcomeTable,
                                      denominatorCohortId = NULL,
                                      outcomeCohortId = NULL,
-                                     outcomeCohortName = NULL,
                                      outcomeLookbackDays = 0,
                                      interval = "years",
                                      completeDatabaseIntervals = TRUE,
@@ -209,7 +202,6 @@ estimatePeriodPrevalence <- function(cdm,
     outcomeTable = outcomeTable,
     denominatorCohortId = denominatorCohortId,
     outcomeCohortId = outcomeCohortId,
-    outcomeCohortName = outcomeCohortName,
     outcomeLookbackDays = outcomeLookbackDays,
     type = "period",
     interval = interval,
@@ -228,7 +220,6 @@ estimatePrevalence <- function(cdm,
                                outcomeTable,
                                denominatorCohortId = NULL,
                                outcomeCohortId = NULL,
-                               outcomeCohortName = NULL,
                                outcomeLookbackDays = 0,
                                type = "point",
                                interval = "months",
@@ -256,8 +247,8 @@ estimatePrevalence <- function(cdm,
   checkInputEstimatePrevalence(
     cdm, denominatorTable, outcomeTable,
     denominatorCohortId, outcomeCohortId,
-    outcomeCohortName, outcomeLookbackDays,
-    type, interval, completeDatabaseIntervals,
+    outcomeLookbackDays, type,
+    interval, completeDatabaseIntervals,
     fullContribution, timePoint,
     minCellCount, tablePrefix,
     returnParticipants, verbose
@@ -278,9 +269,15 @@ estimatePrevalence <- function(cdm,
       dplyr::collect() %>%
       dplyr::pull()
   }
-  if (is.null(outcomeCohortName)) {
+
+  ## add outcome from attribute
+  if(!is.null(CDMConnector::cohortSet(cdm[[outcomeTable]]))){
+    outcomeCohortName <- CDMConnector::cohortSet(cdm[[outcomeTable]]) %>%
+      dplyr::pull("cohort_name")
+  } else {
     outcomeCohortName <- NA
   }
+
   outcomeRef <- tibble::tibble(
     outcome_cohort_id = .env$outcomeCohortId,
     outcome_cohort_name = .env$outcomeCohortName
@@ -448,9 +445,12 @@ estimatePrevalence <- function(cdm,
                                temporary = FALSE,
                                schema = attr(cdm, "write_schema"),
                                overwrite = TRUE)
-  dropStemTables(cdm, paste0(tablePrefix,"_prevalence_analysis_"))
-  dropStemTables(cdm, paste0(tablePrefix,"_prevalence_participants_"))
-
+  CDMConnector::dropTable(cdm = cdm,
+                          name = tidyselect::starts_with(paste0(tablePrefix,
+                                                    "_prevalence_analysis_")))
+  CDMConnector::dropTable(cdm = cdm,
+                          name = tidyselect::starts_with(paste0(tablePrefix,
+                                                    "_prevalence_participants_")))
   }
 
   # prevalence estimates

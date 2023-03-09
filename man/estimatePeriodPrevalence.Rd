@@ -10,7 +10,6 @@ estimatePeriodPrevalence(
   outcomeTable,
   denominatorCohortId = NULL,
   outcomeCohortId = NULL,
-  outcomeCohortName = NULL,
   outcomeLookbackDays = 0,
   interval = "years",
   completeDatabaseIntervals = TRUE,
@@ -38,8 +37,6 @@ analysis.}
 \item{outcomeCohortId}{The cohort definition ids of the outcome
 cohorts of interest. If NULL all cohorts will be considered in the
 analysis.}
-
-\item{outcomeCohortName}{Corresponding names for each outcomeCohortId.}
 
 \item{outcomeLookbackDays}{Days lookback when considering an outcome
 as prevalent. If NULL any prior outcome will be considered as prevalent. If
@@ -73,8 +70,7 @@ used throughout.}
 \item{returnParticipants}{Either TRUE or FALSE. If TRUE references to
 participants from the analysis will be returned allowing for further
 analysis. Note, if using permanent tables and returnParticipants is TRUE,
-one table per analysis will be kept in the cdm write schema (these
-can be dropped at subsequently using dropStemTables() function)}
+one table per analysis will be kept in the cdm write schema.}
 
 \item{verbose}{Whether to report progress}
 }

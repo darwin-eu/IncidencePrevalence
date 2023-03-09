@@ -98,11 +98,9 @@ generateDenominatorCohortSet <- function(cdm,
   )
   if (!is.null(tablePrefix)) {
     # drop table stem if exists
-    dropTable(cdm,
-      table = tablePrefix
-    )
+    CDMConnector::dropTable(cdm = cdm,
+                            name = tidyselect::starts_with(tablePrefix))
   }
-
 
   # add broadest possible age group if no age strata were given
   if (is.null(startDate)) {
@@ -307,27 +305,18 @@ generateDenominatorCohortSet <- function(cdm,
 
   if (!is.null(tablePrefix)) {
     # drop the intermediate tables that may have been created
-    dropTable(cdm,
-      table = tablePrefix
-    )
-
-    for (i in 1:6) {
-      dropTable(cdm,
-        table = paste0(tablePrefix, "_", i)
-      )
-    }
-
-    if (!is.null(sample)) {
-      dropTable(cdm,
-        table = paste0(
-          tablePrefix,
-          "_person_sample"
-        )
-      )
+    CDMConnector::dropTable(cdm = cdm,
+                            name = tablePrefix)
+    CDMConnector::dropTable(cdm = cdm,
+                            name = tidyselect::starts_with(paste0(tablePrefix, "_i_")))
+    if(!is.null(sample)){
+    CDMConnector::dropTable(cdm = cdm,
+                            name = paste0(
+                              tablePrefix,
+                              "_person_sample"
+                            ))
     }
   }
-
-
 
   if (verbose == TRUE) {
     dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
@@ -355,7 +344,7 @@ generateDenominatorCohortSet <- function(cdm,
     dplyr::as_tibble()
   attr(studyPops, "cohortCount") <- dplyr::bind_rows(cohortCount)
 
-  class(studyPops) <- c("IncidencePrevalenceDenominator", "cohort_reference", class(studyPops))
+  class(studyPops) <- c("IncidencePrevalenceDenominator", "GeneratedCohortSet", class(studyPops))
 
   return(studyPops)
 }
@@ -449,14 +438,8 @@ unionCohorts <- function(cdm,
 
     # drop any batch permanent tables
     if (!is.null(tablePrefix)) {
-      for (i in seq_along(studyPopsBatches)) {
-        dropTable(cdm,
-                  table = paste0(
-                    tablePrefix,
-                    "_batch_", i
-                  )
-        )
-      }
+      CDMConnector::dropTable(cdm = cdm,
+                              name = tidyselect::starts_with(paste0(tablePrefix, "_batch_")))
     }
   }
 

@@ -186,7 +186,7 @@ getDenominatorCohorts <- function(cdm,
       CDMConnector::computeQuery()
   } else {
     studyPopDb <- studyPopDb %>%
-      CDMConnector::computeQuery(name = paste0(tablePrefix,"_1"),
+      CDMConnector::computeQuery(name = paste0(tablePrefix,"_i_1"),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
                                  overwrite = TRUE)
@@ -255,7 +255,7 @@ getDenominatorCohorts <- function(cdm,
       CDMConnector::computeQuery()
   } else {
     studyPopDb <- studyPopDb %>%
-      CDMConnector::computeQuery(name = paste0(tablePrefix,"_2"),
+      CDMConnector::computeQuery(name = paste0(tablePrefix,"_i_2"),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
                                  overwrite = TRUE)
@@ -280,7 +280,7 @@ getDenominatorCohorts <- function(cdm,
       CDMConnector::computeQuery()
   } else {
     studyPopDb <- studyPopDb %>%
-      CDMConnector::computeQuery(name = paste0(tablePrefix,"_3"),
+      CDMConnector::computeQuery(name = paste0(tablePrefix,"_i_3"),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
                                  overwrite = TRUE)
@@ -335,7 +335,7 @@ getDenominatorCohorts <- function(cdm,
           CDMConnector::computeQuery()
       } else {
         studyPopDb <- studyPopDb %>%
-          CDMConnector::computeQuery(name = paste0(tablePrefix,"_4"),
+          CDMConnector::computeQuery(name = paste0(tablePrefix,"_i_4"),
                                      temporary = FALSE,
                                      schema = attr(cdm, "write_schema"),
                                      overwrite = TRUE)
@@ -374,7 +374,7 @@ getDenominatorCohorts <- function(cdm,
         CDMConnector::computeQuery()
     } else {
       studyPopDb <- studyPopDb %>%
-        CDMConnector::computeQuery(name = paste0(tablePrefix,"_5"),
+        CDMConnector::computeQuery(name = paste0(tablePrefix,"_i_5"),
                                    temporary = FALSE,
                                    schema = attr(cdm, "write_schema"),
                                    overwrite = TRUE)
@@ -423,7 +423,7 @@ getDenominatorCohorts <- function(cdm,
           CDMConnector::computeQuery()
       } else {
         studyPopDb <- studyPopDb %>%
-          CDMConnector::computeQuery(name = paste0(tablePrefix,"_6"),
+          CDMConnector::computeQuery(name = paste0(tablePrefix,"_i_6"),
                                      temporary = FALSE,
                                      schema = attr(cdm, "write_schema"),
                                      overwrite = TRUE)
