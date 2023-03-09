@@ -307,12 +307,9 @@ getPrevalence <- function(cdm,
 
   if(!is.null(tablePrefix)){
     # drop other intermediate tables created
-    dropTable(cdm,
-              table = c(paste0(tablePrefix, "_prev_working_1"),
-                        paste0(tablePrefix, "_prev_working_2"),
-                        paste0(tablePrefix, "_prev_working_3")
-                        ))
-
+    CDMConnector::dropTable(cdm = cdm,
+                            name = tidyselect::starts_with(paste0(tablePrefix,
+                                                      "_prev_working_")))
   }
 
   results <- list()

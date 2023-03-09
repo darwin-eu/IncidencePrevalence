@@ -23,20 +23,7 @@ Settings associated with a cohort set
 \examples{
 cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 cdm$denominator <- generateDenominatorCohortSet(cdm,
-  startDate = NULL,
-  endDate = NULL,
-  ageGroup = list(c(18, 40)),
-  sex = c("Female", "Male"),
-  daysPriorHistory = 120
+  sex = c("Female", "Male")
 )
 settings(result = cdm$denominator)
-settings(result = cdm$denominator, cohortDefinitionId = 1)
-incidence <- estimateIncidence(
-  cdm = cdm,
-  denominatorTable = "denominator",
-  outcomeTable = "outcome",
-  interval = "overall"
-)
-settings(result = incidence)
-settings(result = incidence, analysisId = 1)
 }

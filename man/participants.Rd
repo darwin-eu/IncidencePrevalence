@@ -20,13 +20,7 @@ Participants contributing to an analysis
 }
 \examples{
 cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-cdm$denominator <- generateDenominatorCohortSet(cdm,
-  startDate = NULL,
-  endDate = NULL,
-  ageGroup = list(c(18, 40)),
-  sex = c("Female", "Male"),
-  daysPriorHistory = 120
-)
+cdm$denominator <- generateDenominatorCohortSet(cdm)
 incidence <- estimateIncidence(
   cdm = cdm,
   denominatorTable = "denominator",

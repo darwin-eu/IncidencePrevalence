@@ -1110,8 +1110,6 @@ test_that("mock db: check expected errors", {
     end_date = as.Date("2013-06-06")
   )
   testthat::expect_error(mockIncidencePrevalenceRef(strataTable = strataTable))
-
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: check attrition table logic", {

@@ -48,8 +48,7 @@
 #' @param returnParticipants Either TRUE or FALSE. If TRUE references to
 #' participants from the analysis will be returned allowing for further
 #' analysis. Note, if using permanent tables and returnParticipants is TRUE,
-#' one table per analysis will be kept in the cdm write schema (these
-#' can be dropped at subsequently using dropStemTables() function)
+#' one table per analysis will be kept in the cdm write schema.
 #' @param verbose Whether to report progress
 #'
 #' @return Point prevalence estimates
@@ -158,8 +157,7 @@ estimatePointPrevalence <- function(cdm,
 #' @param returnParticipants Either TRUE or FALSE. If TRUE references to
 #' participants from the analysis will be returned allowing for further
 #' analysis. Note, if using permanent tables and returnParticipants is TRUE,
-#' one table per analysis will be kept in the cdm write schema (these
-#' can be dropped at subsequently using dropStemTables() function)
+#' one table per analysis will be kept in the cdm write schema.
 #' @param verbose Whether to report progress
 #'
 #' @return  Period prevalence estimates
@@ -447,9 +445,12 @@ estimatePrevalence <- function(cdm,
                                temporary = FALSE,
                                schema = attr(cdm, "write_schema"),
                                overwrite = TRUE)
-  dropStemTables(cdm, paste0(tablePrefix,"_prevalence_analysis_"))
-  dropStemTables(cdm, paste0(tablePrefix,"_prevalence_participants_"))
-
+  CDMConnector::dropTable(cdm = cdm,
+                          name = tidyselect::starts_with(paste0(tablePrefix,
+                                                    "_prevalence_analysis_")))
+  CDMConnector::dropTable(cdm = cdm,
+                          name = tidyselect::starts_with(paste0(tablePrefix,
+                                                    "_prevalence_participants_")))
   }
 
   # prevalence estimates
