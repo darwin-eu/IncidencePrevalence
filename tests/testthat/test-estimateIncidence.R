@@ -28,7 +28,8 @@ test_that("mock db: check output format", {
     "denominator_start_date",
     "denominator_end_date",
     "denominator_strata_cohort_definition_id",
-    "denominator_strata_cohort_name"
+    "denominator_strata_cohort_name",
+    "cdm_name"
   ) %in%
     names(settings(inc))))
 

@@ -159,8 +159,7 @@ inc %>%
 Once we have our estimates, we can use `gatherIncidencePrevalenceResults()` to bring together the results, adding outcome names and the database name to the output.
 ```{r}
 study_results <- gatherIncidencePrevalenceResults(cdm = cdm,
-                    resultList = list(inc, prev),
-                    databaseName = "example_data")
+                    resultList = list(inc, prev))
 dplyr::glimpse(study_results$incidence_estimates)
 dplyr::glimpse(study_results$prevalence_estimates)
 ```

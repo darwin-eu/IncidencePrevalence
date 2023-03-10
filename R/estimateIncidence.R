@@ -446,7 +446,8 @@ estimateIncidence <- function(cdm,
   attr(irs, "settings") <- analysisSettings %>%
     dplyr::left_join(outcomeRef, by = "outcome_cohort_id") %>%
     dplyr::relocate("outcome_cohort_id", .after = "analysis_id") %>%
-    dplyr::relocate("outcome_cohort_name", .after = "outcome_cohort_id")
+    dplyr::relocate("outcome_cohort_name", .after = "outcome_cohort_id") %>%
+    dplyr::mutate(cdm_name = attr(cdm, "cdm_name"))
   attr(irs, "attrition") <- attrition
   if(returnParticipants == TRUE){
   attr(irs, "participants") <- participants

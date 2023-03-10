@@ -342,7 +342,7 @@ generateDenominatorCohortSet <- function(cdm,
   attr(studyPops, "attrition") <- dplyr::bind_rows(dpop$attrition) %>%
     dplyr::mutate(step = "Generating denominator cohort set") %>%
     dplyr::as_tibble()
-  attr(studyPops, "cohortCount") <- dplyr::bind_rows(cohortCount)
+  attr(studyPops, "cohort_count") <- dplyr::bind_rows(cohortCount)
 
   class(studyPops) <- c("IncidencePrevalenceDenominator", "GeneratedCohortSet", class(studyPops))
 

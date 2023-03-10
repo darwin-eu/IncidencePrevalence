@@ -42,7 +42,8 @@ test_that("mock db: check output format", {
     "denominator_sex",
     "denominator_days_prior_history",
     "denominator_start_date",
-    "denominator_end_date"
+    "denominator_end_date",
+    "cdm_name"
   ) %in%
     names(settings(prev))))
 
