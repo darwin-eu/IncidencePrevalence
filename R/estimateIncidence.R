@@ -41,7 +41,7 @@
 #' period start dates, respectively).
 #' @param outcomeWashout The number of days used for a 'washout' period
 #' between the end of one outcome and an individual starting to contribute
-#' time at risk. If NULL, no time can be contributed after an event has
+#' time at risk. If Inf, no time can be contributed after an event has
 #' occurred (whether during the study period or if occurring beforehand).
 #' @param repeatedEvents TRUE/ FALSE. If TRUE, an individual will be able to
 #' contribute multiple events during the study period (time while they are
@@ -89,7 +89,7 @@ estimateIncidence <- function(cdm,
                               outcomeCohortId = NULL,
                               interval = "years",
                               completeDatabaseIntervals = TRUE,
-                              outcomeWashout = 0,
+                              outcomeWashout = Inf,
                               repeatedEvents = FALSE,
                               minCellCount = 5,
                               tablePrefix = NULL,
@@ -257,7 +257,7 @@ estimateIncidence <- function(cdm,
     outcome_washout = outcomeWashout,
     repeated_events = repeatedEvents
   )
-  if (is.null(outcomeWashout)) {
+  if (is.infinite(outcomeWashout)) {
     studySpecs$outcome_washout <- NA
   }
   studySpecs <- studySpecs %>%

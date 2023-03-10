@@ -12,7 +12,7 @@ estimateIncidence(
   outcomeCohortId = NULL,
   interval = "years",
   completeDatabaseIntervals = TRUE,
-  outcomeWashout = 0,
+  outcomeWashout = Inf,
   repeatedEvents = FALSE,
   minCellCount = 5,
   tablePrefix = NULL,
@@ -52,7 +52,7 @@ period start dates, respectively).}
 
 \item{outcomeWashout}{The number of days used for a 'washout' period
 between the end of one outcome and an individual starting to contribute
-time at risk. If NULL, no time can be contributed after an event has
+time at risk. If Inf, no time can be contributed after an event has
 occurred (whether during the study period or if occurring beforehand).}
 
 \item{repeatedEvents}{TRUE/ FALSE. If TRUE, an individual will be able to
