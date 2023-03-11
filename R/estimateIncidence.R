@@ -257,8 +257,9 @@ estimateIncidence <- function(cdm,
     outcome_washout = outcomeWashout,
     repeated_events = repeatedEvents
   )
-  if (is.infinite(outcomeWashout)) {
-    studySpecs$outcome_washout <- NA
+  if (any(is.infinite(outcomeWashout))) {
+    studySpecs$outcome_washout[
+      which(is.infinite(studySpecs$outcome_washout))] <- NA
   }
   studySpecs <- studySpecs %>%
     dplyr::mutate(analysis_id = as.character(dplyr::row_number()))

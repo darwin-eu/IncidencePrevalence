@@ -128,14 +128,14 @@ inc %>%
   theme_minimal()
 ```
 
-Now with a washout of all prior history while still not allowing repetitive events
+Now with a washout of all prior history while still not allowing repetitive events. Here we use `Inf` to specifify that we will use a washout of all prior history for an individual.
 ```{r, message= FALSE, warning=FALSE}
 inc <- estimateIncidence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "years",
-  outcomeWashout = NULL,
+  outcomeWashout = Inf,
   repeatedEvents = FALSE
 )
 
