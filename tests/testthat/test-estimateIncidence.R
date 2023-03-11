@@ -261,6 +261,7 @@ test_that("mock db: check study periods", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "months",
+    outcomeWashout = 0,
     repeatedEvents = TRUE,
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
@@ -275,6 +276,7 @@ test_that("mock db: check study periods", {
   inc <- estimateIncidence(cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
+    outcomeWashout = 0,
     interval = "months",
     repeatedEvents = TRUE,
     minCellCount = 0,
@@ -1822,6 +1824,7 @@ test_that("mock db: check completeDatabaseIntervals", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = c("Years"),
+    outcomeWashout = 0,
     repeatedEvents = TRUE,
     completeDatabaseIntervals = TRUE,
     minCellCount = 0
@@ -1851,6 +1854,7 @@ test_that("mock db: check completeDatabaseIntervals", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
+    outcomeWashout = 0,
     interval = c("Years"),
     repeatedEvents = TRUE,
     completeDatabaseIntervals = FALSE,
