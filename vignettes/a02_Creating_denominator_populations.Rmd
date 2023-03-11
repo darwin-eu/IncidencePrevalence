@@ -18,6 +18,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r, message= FALSE, warning=FALSE, echo=FALSE}
+library(CDMConnector)
 library(IncidencePrevalence)
 library(dbplyr)
 library(dplyr)

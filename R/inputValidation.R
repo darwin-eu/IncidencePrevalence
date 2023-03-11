@@ -172,10 +172,11 @@ checkInputEstimateIncidence <- function(cdm,
   checkmate::assert_logical(completeDatabaseIntervals,
     add = errorMessage
   )
-  checkmate::assert_numeric(outcomeWashout,
-    add = errorMessage,
-    null.ok = TRUE
+  if(any(outcomeWashout != Inf)){
+  checkmate::assert_numeric(outcomeWashout[which(!is.infinite(outcomeWashout))],
+    add = errorMessage
   )
+  }
   checkmate::assert_logical(repeatedEvents,
     add = errorMessage
   )

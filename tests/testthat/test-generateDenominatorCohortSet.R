@@ -43,8 +43,10 @@ test_that("mock db: check output format", {
 
   expect_true(tibble::is_tibble(attrition(dpop)))
   expect_true(tibble::is_tibble(attrition(dpop, cohortDefinitionId =1)))
-  expect_true(cohortCount(dpop)$n ==1)
-  expect_true(cohortCount(dpop, cohortDefinitionId =1)$n ==1)
+  expect_true(CDMConnector::cohortCount(dpop)$n ==1)
+  expect_true(CDMConnector::cohortCount(dpop) %>%
+                dplyr::filter(cohort_definition_id == 1) %>%
+                dplyr::pull("n") == 1)
 
   # check verbose
   expect_message(generateDenominatorCohortSet(
@@ -93,7 +95,7 @@ test_that("mock db: checks on working example", {
     ageGroup = list(c(50, 59), c(60, 69)),
     daysPriorHistory = c(0, 365)
   ))
-  expect_true(all(cohortCount(cdm$dpop)$n == 0))
+  expect_true(all(CDMConnector::cohortCount(cdm$dpop)$n == 0))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   # using cohort strata
@@ -149,7 +151,7 @@ test_that("mock db: check example we expect to work", {
   )
 
   cdm$dpop <- generateDenominatorCohortSet(cdm = cdm)
-  expect_true(cohortCount(cdm$dpop)$n == 1)
+  expect_true(CDMConnector::cohortCount(cdm$dpop)$n == 1)
   expect_true(cdm$dpop %>%
     dplyr::collect() %>%
     dplyr::pull(cohort_start_date) == as.Date("2010-01-01"))
@@ -299,7 +301,7 @@ test_that("mock db: mock example 1000", {
     daysPriorHistory = c(0, 30, 60, 90, 120, 150, 180),
     verbose=TRUE
   )
-  expect_true(any(cohortCount(cdm$dpop)$n > 0))
+  expect_true(any(CDMConnector::cohortCount(cdm$dpop)$n > 0))
 
   # all options being used
   cdm$dpop <- generateDenominatorCohortSet(cdm,
@@ -310,7 +312,7 @@ test_that("mock db: mock example 1000", {
     daysPriorHistory = c(0, 180),
     verbose = TRUE
   )
-  expect_true(any(cohortCount(cdm$dpop)$n > 0))
+  expect_true(any(CDMConnector::cohortCount(cdm$dpop)$n > 0))
   expect_true(min(cdm$dpop %>%
     dplyr::collect() %>%
     dplyr::pull(cohort_start_date)) >=
@@ -324,7 +326,7 @@ test_that("mock db: mock example 1000", {
   cdm$dpop <- generateDenominatorCohortSet(cdm,
     sample = 55
   )
-  expect_true(cohortCount(cdm$dpop)$n == 55)
+  expect_true(CDMConnector::cohortCount(cdm$dpop)$n == 55)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -639,9 +641,9 @@ test_that("mock db: check example with restriction on sex", {
     cdm = cdm,
     sex = "Female"
   )
-  expect_true(cohortCount(cdm$dpop1)$n == 2)
-  expect_true(cohortCount(cdm$dpop2)$n == 3)
-  expect_true(cohortCount(cdm$dpop3)$n == 1)
+  expect_true(CDMConnector::cohortCount(cdm$dpop1)$n == 2)
+  expect_true(CDMConnector::cohortCount(cdm$dpop2)$n == 3)
+  expect_true(CDMConnector::cohortCount(cdm$dpop3)$n == 1)
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   # one male only
@@ -676,9 +678,9 @@ test_that("mock db: check example with restriction on sex", {
     cdm = cdm,
     sex = "Female"
   )
-  expect_true(cohortCount(cdm$dpop1)$n == 1)
-  expect_true(cohortCount(cdm$dpop2)$n == 1)
-  expect_true(cohortCount(cdm$dpop3)$n == 0)
+  expect_true(CDMConnector::cohortCount(cdm$dpop1)$n == 1)
+  expect_true(CDMConnector::cohortCount(cdm$dpop2)$n == 1)
+  expect_true(CDMConnector::cohortCount(cdm$dpop3)$n == 0)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -723,10 +725,10 @@ test_that("mock db: check example with restriction on age", {
     ageGroup = list(c(40, 150))
   )
 
-  expect_true(cohortCount(cdm$dpop1)$n == 3)
-  expect_true(cohortCount(cdm$dpop2)$n == 2)
-  expect_true(cohortCount(cdm$dpop3)$n == 1)
-  expect_true(cohortCount(cdm$dpop4)$n == 0)
+  expect_true(CDMConnector::cohortCount(cdm$dpop1)$n == 3)
+  expect_true(CDMConnector::cohortCount(cdm$dpop2)$n == 2)
+  expect_true(CDMConnector::cohortCount(cdm$dpop3)$n == 1)
+  expect_true(CDMConnector::cohortCount(cdm$dpop4)$n == 0)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
@@ -901,7 +903,7 @@ test_that("mock db: check example with multiple observation periods", {
   # one per observation period
   cdm$dpop <- generateDenominatorCohortSet(cdm = cdm)
   expect_true(nrow(cdm$dpop %>% dplyr::collect()) == 2)
-  expect_true(cohortCount(cdm$dpop)$n == 1)
+  expect_true(CDMConnector::cohortCount(cdm$dpop)$n == 1)
 
   # expect one rows- if start date is 1st Jan 2011
   cdm$dpop <- generateDenominatorCohortSet(
@@ -1012,19 +1014,19 @@ test_that("mock db: check edge cases (zero results expected)", {
     cdm = cdm,
     startDate = as.Date("2100-01-01")
   )
-  expect_true(cohortCount(cdm$dpop)$n == 0)
+  expect_true(CDMConnector::cohortCount(cdm$dpop)$n == 0)
 
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     endDate = as.Date("1800-01-01")
   )
-  expect_true(cohortCount(cdm$dpop)$n == 0)
+  expect_true(CDMConnector::cohortCount(cdm$dpop)$n == 0)
 
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroup = list(c(155, 200))
   )
-  expect_true(cohortCount(cdm$dpop)$n == 0)
+  expect_true(CDMConnector::cohortCount(cdm$dpop)$n == 0)
 
   # note could include people as it would go up to day before first birthday
   # but given observation period, here we would expect a null
@@ -1032,7 +1034,7 @@ test_that("mock db: check edge cases (zero results expected)", {
     cdm = cdm,
     ageGroup = list(c(0, 1))
   )
-  expect_true(cohortCount(cdm$dpop)$n == 0)
+  expect_true(CDMConnector::cohortCount(cdm$dpop)$n == 0)
 
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
@@ -1040,7 +1042,7 @@ test_that("mock db: check edge cases (zero results expected)", {
     daysPriorHistory = 365000,
     verbose = FALSE
   )
-  expect_true(cohortCount(cdm$dpop)$n == 0)
+  expect_true(CDMConnector::cohortCount(cdm$dpop)$n == 0)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })

@@ -492,7 +492,8 @@ estimatePrevalence <- function(cdm,
   attr(prs, "settings") <- analysisSettings%>%
     dplyr::left_join(outcomeRef, by = "outcome_cohort_id") %>%
     dplyr::relocate("outcome_cohort_name", .after = "outcome_cohort_id") %>%
-    dplyr::relocate("denominator_cohort_id", .after = "analysis_min_cell_count")
+    dplyr::relocate("denominator_cohort_id", .after = "analysis_min_cell_count") %>%
+    dplyr::mutate(cdm_name = attr(cdm, "cdm_name"))
   attr(prs, "attrition") <- attrition
   if(returnParticipants==TRUE){
   attr(prs, "participants") <- participants

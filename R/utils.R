@@ -102,41 +102,6 @@ settings.IncidencePrevalenceResult <- function(result,
   return(settings)
 }
 
-#' Counts of cohorts in a cohort set
-#'
-#' @param cohortTable Set of cohorts
-#' @param cohortDefinitionId cohortDefinitionId can be used to
-#' specify a particular cohort of interest
-#'
-#' @return tibble with settings used when generating the cohort set
-#' @export
-#'
-#' @examples
-#' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-#' cdm$denominator <- generateDenominatorCohortSet(cdm,
-#'   startDate = NULL,
-#'   endDate = NULL,
-#'   ageGroup = list(c(18, 40)),
-#'   sex = c("Female", "Male"),
-#'   daysPriorHistory = 120
-#' )
-#' cohortCount(cohortTable = cdm$denominator)
-#' cohortCount(cohortTable = cdm$denominator, cohortDefinitionId = 1)
-cohortCount <- function(cohortTable, cohortDefinitionId = NULL) {
-  UseMethod("cohortCount")
-}
-
-#' @export
-cohortCount.IncidencePrevalenceDenominator <- function(cohortTable,
-                                                       cohortDefinitionId = NULL) {
-  cohortCount <- attr(cohortTable, "cohortCount")
-  if (!is.null(cohortDefinitionId)) {
-    cohortCount <- cohortCount %>%
-      dplyr::filter(.data$cohort_definition_id == .env$cohortDefinitionId)
-  }
-  return(cohortCount)
-}
-
 #'  Participants contributing to an analysis
 #'
 #' @param result Result object

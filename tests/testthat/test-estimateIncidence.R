@@ -28,7 +28,8 @@ test_that("mock db: check output format", {
     "denominator_start_date",
     "denominator_end_date",
     "denominator_strata_cohort_definition_id",
-    "denominator_strata_cohort_name"
+    "denominator_strata_cohort_name",
+    "cdm_name"
   ) %in%
     names(settings(inc))))
 
@@ -198,7 +199,7 @@ test_that("mock db: check working example 2", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     repeatedEvents = TRUE,
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
@@ -208,7 +209,7 @@ test_that("mock db: check working example 2", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     repeatedEvents = TRUE,
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     minCellCount = 0,
     interval = "weeks",
     completeDatabaseIntervals = FALSE
@@ -260,6 +261,7 @@ test_that("mock db: check study periods", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "months",
+    outcomeWashout = 0,
     repeatedEvents = TRUE,
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
@@ -274,6 +276,7 @@ test_that("mock db: check study periods", {
   inc <- estimateIncidence(cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
+    outcomeWashout = 0,
     interval = "months",
     repeatedEvents = TRUE,
     minCellCount = 0,
@@ -643,7 +646,7 @@ test_that("mock db: check washout windows", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     repeatedEvents = TRUE,
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
@@ -749,7 +752,7 @@ test_that("mock db: check events overlapping with start of a period", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Years"),
     verbose = TRUE,
@@ -801,7 +804,7 @@ test_that("mock db: check events overlapping with start of a period", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Years"),
     verbose = TRUE,
@@ -1000,7 +1003,7 @@ test_that("mock db: check entry and event on same day", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     repeatedEvents = FALSE,
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     interval = "years",
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
@@ -1012,7 +1015,7 @@ test_that("mock db: check entry and event on same day", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     repeatedEvents = TRUE,
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     interval = "years",
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
@@ -1132,7 +1135,7 @@ test_that("mock db: check outcome before observation period start", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Years"),
     minCellCount = 0
@@ -1196,7 +1199,7 @@ test_that("mock db: check outcome before observation period start", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Years"),
     minCellCount = 0
@@ -1260,7 +1263,7 @@ test_that("mock db: check outcome before observation period start", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Years"),
     minCellCount = 0
@@ -1548,7 +1551,7 @@ test_that("mock db: cohort before period start ending after period", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = FALSE,
     interval = c("Years"),
     verbose = TRUE,
@@ -1603,7 +1606,7 @@ test_that("mock db: check full period requirement - year", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Years"),
     verbose = TRUE,
@@ -1655,7 +1658,7 @@ test_that("mock db: check full period requirement - year", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Years"),
     verbose = TRUE,
@@ -1710,7 +1713,7 @@ test_that("mock db: check full period requirement - month", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Months"),
     verbose = TRUE,
@@ -1762,7 +1765,7 @@ test_that("mock db: check full period requirement - month", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Months"),
     verbose = TRUE,
@@ -1821,6 +1824,7 @@ test_that("mock db: check completeDatabaseIntervals", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = c("Years"),
+    outcomeWashout = 0,
     repeatedEvents = TRUE,
     completeDatabaseIntervals = TRUE,
     minCellCount = 0
@@ -1850,6 +1854,7 @@ test_that("mock db: check completeDatabaseIntervals", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
+    outcomeWashout = 0,
     interval = c("Years"),
     repeatedEvents = TRUE,
     completeDatabaseIntervals = FALSE,
