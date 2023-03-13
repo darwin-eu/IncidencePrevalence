@@ -66,6 +66,7 @@ getPrevalence <- function(cdm,
   attrition <- recordAttrition(
     table = studyPop,
     id = "subject_id",
+    reasonId = 11,
     reason = "Starting analysis population"
   )
 
@@ -96,12 +97,14 @@ getPrevalence <- function(cdm,
     attrition <- recordAttrition(
       table = tibble::tibble(subject_id = integer()),
       id = "subject_id",
+      reasonId = 12,
       reason = "Not observed during the complete database interval",
       existingAttrition = attrition
     )
     attrition <- recordAttrition(
       table = tibble::tibble(subject_id = integer()),
       id = "subject_id",
+      reasonId = 13,
       reason = "Do not satisfy full contribution requirement for any time interval",
       existingAttrition = attrition
     )
@@ -135,6 +138,7 @@ getPrevalence <- function(cdm,
     attrition <- recordAttrition(
       table = studyPop,
       id = "subject_id",
+      reasonId = 14,
       reason = "Not observed during the complete database interval",
       existingAttrition = attrition
     )
@@ -170,6 +174,7 @@ getPrevalence <- function(cdm,
       attrition <- recordAttrition(
         table = studyPop,
         id = "subject_id",
+        reasonId = 15,
         reason = "Do not satisfy full contribution requirement for an interval",
         existingAttrition = attrition
       )
@@ -177,6 +182,7 @@ getPrevalence <- function(cdm,
       attrition <- recordAttrition(
         table = studyPop,
         id = "subject_id",
+        reasonId = 16,
         reason = "Do not satisfy full contribution requirement for an interval",
         existingAttrition = attrition
       )

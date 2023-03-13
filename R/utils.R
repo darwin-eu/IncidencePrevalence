@@ -14,91 +14,110 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#' Cohort attrition
+#' Attrition associated with an incidence analysis
 #'
 #' @param result Result for which to get attrition
-#' @param ... Additional arguments. For denominator cohort, cohortDefinitionId
-#' can be used to specify a particular cohort of interest. For incidence and
-#' prevalence analyses results, analysisId can be used to specify a
-#' particular analysis of interest.
 #'
 #' @return tibble with counts and reasons for attrition.
 #' @export
 #'
 #' @examples
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-#' cdm$denominator <- generateDenominatorCohortSet(cdm,
-#'   ageGroup = list(c(18, 40)),
-#'   daysPriorHistory = 120
+#' cdm$denominator <- generateDenominatorCohortSet(cdm)
+#' inc <- estimateIncidence(
+#'   cdm = cdm,
+#'   denominatorTable = "denominator",
+#'   outcomeTable = "outcome",
+#'   interval = "overall"
 #' )
-#' attrition(cdm$denominator)
-attrition <- function(result, ...) {
-  UseMethod("attrition")
+#' incidenceAttrition(inc)
+incidenceAttrition <- function(result) {
+  UseMethod("incidenceAttrition")
 }
 
 #' @export
-attrition.IncidencePrevalenceDenominator <- function(result,
-                                                     cohortDefinitionId = NULL, ...) {
+incidenceAttrition.IncidenceResult <- function(result) {
   attrition <- attr(result, "attrition")
-  if (!is.null(cohortDefinitionId)) {
-    attrition <- attrition %>%
-      dplyr::filter(.data$cohort_definition_id == .env$cohortDefinitionId)
-  }
   return(attrition)
 }
 
-#' @export
-attrition.IncidencePrevalenceResult <- function(result,
-                                                analysisId = NULL, ...) {
-  attrition <- attr(result, "attrition")
-  if (!is.null(analysisId)) {
-    attrition <- attrition %>%
-      dplyr::filter(.data$analysis_id == .env$analysisId)
-  }
-  return(attrition)
-}
-
-
-#' Settings associated with a cohort set
+#' Attrition associated with an prevalence analysis
 #'
-#' @param result Result for which to get settings
-#' @param ... Additional arguments. For denominator cohort, cohortDefinitionId
-#' can be used to specify a particular cohort of interest. For incidence and
-#' prevalence analyses results, analysisId can be used to specify a
-#' particular analysis of interest.
+#' @param result Result for which to get attrition
 #'
-#' @return tibble with settings used when generating the cohort set
+#' @return tibble with counts and reasons for attrition.
 #' @export
 #'
 #' @examples
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-#' cdm$denominator <- generateDenominatorCohortSet(cdm,
-#'   sex = c("Female", "Male")
+#' cdm$denominator <- generateDenominatorCohortSet(cdm)
+#' prev <- estimatePointPrevalence(
+#'   cdm = cdm,
+#'   denominatorTable = "denominator",
+#'   outcomeTable = "outcome"
 #' )
-#' settings(result = cdm$denominator)
-settings <- function(result, ...) {
-  UseMethod("settings")
+#' prevalenceAttrition(prev)
+prevalenceAttrition <- function(result) {
+  UseMethod("prevalenceAttrition")
 }
 
 #' @export
-settings.IncidencePrevalenceDenominator <- function(result,
-                                                    cohortDefinitionId = NULL, ...) {
+prevalenceAttrition.PrevalenceResult <- function(result) {
+  attrition <- attr(result, "attrition")
+  return(attrition)
+}
+
+
+#' Settings associated with an incidence analysis
+#'
+#' @param result Result for which to get settings
+#'
+#' @return tibble with settings used when estimating incidence
+#' @export
+#'
+#' @examples
+#' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
+#' cdm$denominator <- generateDenominatorCohortSet(cdm)
+#' inc <- estimateIncidence(
+#'   cdm = cdm,
+#'   denominatorTable = "denominator",
+#'   outcomeTable = "outcome",
+#'   interval = "overall"
+#' )
+#' incidenceSet(inc)
+incidenceSet <- function(result) {
+  UseMethod("incidenceSet")
+}
+
+#' @export
+incidenceSet.IncidenceResult <- function(result) {
   settings <- attr(result, "settings")
-  if (!is.null(cohortDefinitionId)) {
-    settings <- settings %>%
-      dplyr::filter(.data$cohort_definition_id == .env$cohortDefinitionId)
-  }
   return(settings)
 }
 
+#' Settings associated with a prevalence analysis
+#'
+#' @param result Result for which to get settings
+#'
+#' @return tibble with settings used when estimating prevalence
 #' @export
-settings.IncidencePrevalenceResult <- function(result,
-                                               analysisId = NULL, ...) {
+#'
+#' @examples
+#' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
+#' cdm$denominator <- generateDenominatorCohortSet(cdm)
+#' prev <- estimatePointPrevalence(
+#'   cdm = cdm,
+#'   denominatorTable = "denominator",
+#'   outcomeTable = "outcome"
+#' )
+#' prevalenceSet(prev)
+prevalenceSet <- function(result) {
+  UseMethod("prevalenceSet")
+}
+
+#' @export
+prevalenceSet.PrevalenceResult <- function(result) {
   settings <- attr(result, "settings")
-  if (!is.null(analysisId)) {
-    settings <- settings %>%
-      dplyr::filter(.data$analysis_id == .env$analysisId)
-  }
   return(settings)
 }
 

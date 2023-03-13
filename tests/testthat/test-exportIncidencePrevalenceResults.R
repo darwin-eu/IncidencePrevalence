@@ -24,7 +24,8 @@ test_that("writing results- expected errors", {
     denominatorTable = "denominator",
     outcomeTable = "outcome"
   )
-  results <- gatherIncidencePrevalenceResults(cdm=cdm, resultList = list(prev))
+  results <- gatherIncidencePrevalenceResults(cdm=cdm,
+                                              resultList = list(prev))
   # not a gathered result
   expect_error(exportIncidencePrevalenceResults(
     result = "a",

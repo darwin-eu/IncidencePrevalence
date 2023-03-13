@@ -41,6 +41,8 @@ test_that("check gathering of results", {
     "incidence_estimates", "incidence_attrition",
     "cdm_snapshot"
   )))
+  expect_true(attr(g1, "cdm_name") == "test database")
+
   # with only prevalence
   g2 <- gatherIncidencePrevalenceResults(cdm = cdm,
                                          resultList = list(prev1, prev2))
@@ -55,19 +57,6 @@ test_that("check gathering of results", {
   expect_true(length(g3) == 3)
   expect_true(all(names(g3) == c("incidence_estimates", "incidence_attrition",
                                  "cdm_snapshot")))
-
-  # with database name
-  g4 <- gatherIncidencePrevalenceResults(cdm = cdm,
-    resultList = list(prev1, prev2, inc1, inc2),
-    databaseName = "test_database"
-  )
-  expect_true(all(names(g4) == c(
-    "prevalence_estimates_test_database", "prevalence_attrition_test_database",
-    "incidence_estimates_test_database", "incidence_attrition_test_database",
-    "cdm_snapshot_test_database"
-  )))
-  expect_true(all(g4$prevalence_estimates$database_name == "test_database"))
-
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 

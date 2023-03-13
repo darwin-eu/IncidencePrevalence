@@ -66,6 +66,7 @@ getIncidence <- function(cdm,
   attrition <- recordAttrition(
     table = studyPop,
     id = "subject_id",
+    reasonId = 11,
     reason = "Starting analysis population"
   )
 
@@ -154,6 +155,7 @@ getIncidence <- function(cdm,
   attrition <- recordAttrition(
     table = studyPop,
     id = "subject_id",
+    reasonId = 12,
     reason = "Excluded due to prior event (do not pass outcome washout during study period)",
     existingAttrition = attrition
   )
@@ -195,6 +197,7 @@ getIncidence <- function(cdm,
     attrition <- recordAttrition(
       table = tibble::tibble(subject_id = integer()),
       id = "subject_id",
+      reasonId = 13,
       reason = "Not observed during the complete database interval",
       existingAttrition = attrition
     )
@@ -211,6 +214,7 @@ getIncidence <- function(cdm,
     attrition <- recordAttrition(
       table = studyPop,
       id = "subject_id",
+      reasonId = 14,
       reason = "Not observed during the complete database interval",
       existingAttrition = attrition
     )

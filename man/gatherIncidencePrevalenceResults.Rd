@@ -4,14 +4,12 @@
 \alias{gatherIncidencePrevalenceResults}
 \title{Gather incidence and prevalence results}
 \usage{
-gatherIncidencePrevalenceResults(cdm, resultList, databaseName = NULL)
+gatherIncidencePrevalenceResults(cdm, resultList)
 }
 \arguments{
 \item{cdm}{A CDM reference object}
 
 \item{resultList}{List of incidence and prevalence results}
-
-\item{databaseName}{A database name to add to to the results}
 }
 \value{
 A list of up to two tibbles, one with prevalence results and one

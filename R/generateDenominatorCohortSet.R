@@ -146,7 +146,7 @@ generateDenominatorCohortSet <- function(cdm,
   # get the overall contributing population (without stratification)
   # we need to the output the corresponding dates when getting the denominator
   if (verbose == TRUE) {
-    message("Gettng overall denominator population")
+    message("Getting overall denominator population")
   }
 
   dpop <- getDenominatorCohorts(
@@ -187,7 +187,8 @@ generateDenominatorCohortSet <- function(cdm,
 
     cohortCount <- tibble::tibble(
       cohort_definition_id = popSpecs$cohort_definition_id,
-      n = 0
+      number_records = 0,
+      number_subjects = 0
     )
   } else {
     # first, if all cohorts are Male or Female get number that will be excluded
@@ -217,24 +218,25 @@ generateDenominatorCohortSet <- function(cdm,
 
     # count dropped for sex criteria
     for (i in seq_along(dpop$attrition)) {
+
       if (popSpecs$sex[[i]] == "Male") {
-        dpop$attrition[[i]] <- dplyr::bind_rows(
-          dpop$attrition[[i]],
-          tibble::tibble(
-            current_n = .env$nMale,
-            reason = "Not Male",
-            excluded = .env$nFemale
-          )
+        dpop$attrition[[i]] <- recordAttrition(
+          table = dpop$denominator_population %>%
+            dplyr::filter(sex=="Male"),
+          id = "person_id",
+          reasonId = 8,
+          reason = "Not Male",
+          existingAttrition = dpop$attrition[[i]]
         )
       }
       if (popSpecs$sex[[i]] == "Female") {
-        dpop$attrition[[i]] <- dplyr::bind_rows(
-          dpop$attrition[[i]],
-          tibble::tibble(
-            current_n = .env$nFemale,
-            reason = "Not Female",
-            excluded = .env$nMale
-          )
+        dpop$attrition[[i]] <- recordAttrition(
+          table = dpop$denominator_population %>%
+            dplyr::filter(sex=="Female"),
+          id = "person_id",
+          reasonId = 8,
+          reason = "Not Female",
+          existingAttrition = dpop$attrition[[i]]
         )
       }
     }
@@ -274,16 +276,22 @@ generateDenominatorCohortSet <- function(cdm,
       dpop$attrition[[i]] <- recordAttrition(
         table = workingDpop,
         id = "subject_id",
+        reasonId = 10,
         reason = glue::glue("No observation time available after applying age and prior history criteria"),
         existingAttrition = dpop$attrition[[i]]
       )
 
       dpop$attrition[[i]]$cohort_definition_id <- popSpecs$cohort_definition_id[[i]]
-      workingCount <- utils::tail(dpop$attrition[[i]]$current_n, 1)
-      cohortCount[[i]] <- tibble::tibble(
-        cohort_definition_id = popSpecs$cohort_definition_id[[i]],
-        n = workingCount
-      )
+      workingCount <- utils::tail(dpop$attrition[[i]]$number_records, 1)
+      cohortCount[[i]] <- workingDpop %>%
+        dplyr::summarise(number_records = dplyr::n(),
+                         number_subjects = dplyr::n_distinct(.data$subject_id)) %>%
+        dplyr::collect() %>%
+        dplyr::mutate(
+          cohort_definition_id = popSpecs$cohort_definition_id[[i]]
+        ) %>%
+        dplyr::relocate("cohort_definition_id")
+
       if (workingCount > 0) {
         studyPops[[paste0("cohort_definition_id_", i)]] <- workingDpop %>%
           dplyr::mutate(
@@ -334,17 +342,23 @@ generateDenominatorCohortSet <- function(cdm,
   }
 
   # return results as a cohort_reference class
-  attr(studyPops, "settings") <- popSpecs %>%
-    dplyr::mutate(strata_cohort_definition_id = .env$strataCohortId) %>%
-    dplyr::mutate(strata_cohort_name = .env$strataCohortName) %>%
-    dplyr::select(!c("min_age", "max_age")) %>%
-    dplyr::relocate("cohort_definition_id")
-  attr(studyPops, "attrition") <- dplyr::bind_rows(dpop$attrition) %>%
-    dplyr::mutate(step = "Generating denominator cohort set") %>%
-    dplyr::as_tibble()
   attr(studyPops, "cohort_count") <- dplyr::bind_rows(cohortCount)
 
-  class(studyPops) <- c("IncidencePrevalenceDenominator", "GeneratedCohortSet", class(studyPops))
+  cohort_set_ref <- popSpecs %>%
+    dplyr::mutate(strata_cohort_definition_id = .env$strataCohortId) %>%
+    dplyr::mutate(strata_cohort_name = .env$strataCohortName) %>%
+    dplyr::mutate(cohort_name = paste0("Denominator cohort ", .data$cohort_definition_id)) %>%
+    dplyr::select(!c("min_age", "max_age")) %>%
+    dplyr::relocate("cohort_definition_id")%>%
+    dplyr::relocate("cohort_name", .after = "cohort_definition_id")
+  attr(studyPops, "cohort_set") <- cohort_set_ref
+
+  attr(studyPops, "cohort_attrition") <- dplyr::bind_rows(dpop$attrition) %>%
+    dplyr::as_tibble() %>%
+    dplyr::relocate("cohort_definition_id")
+
+  class(studyPops) <- c("IncidencePrevalenceDenominator", "GeneratedCohortSet",
+                        class(studyPops))
 
   return(studyPops)
 }

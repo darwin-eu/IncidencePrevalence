@@ -19,7 +19,6 @@
 #'
 #' @param cdm A CDM reference object
 #' @param resultList List of incidence and prevalence results
-#' @param databaseName A database name to add to to the results
 #'
 #' @return A list of up to two tibbles, one with prevalence results and one
 #' with incidence results. Note, where multiple results sets of the same type
@@ -54,7 +53,7 @@
 #'  )
 #'  results <- gatherIncidencePrevalenceResults(resultList=list(prev, inc))
 #' }
-gatherIncidencePrevalenceResults <- function(cdm, resultList, databaseName = NULL) {
+gatherIncidencePrevalenceResults <- function(cdm, resultList) {
   errorMessage <- checkmate::makeAssertCollection()
   cdmCheck <- inherits(cdm, "cdm_reference")
   checkmate::assertTRUE(cdmCheck,
@@ -77,10 +76,6 @@ gatherIncidencePrevalenceResults <- function(cdm, resultList, databaseName = NUL
       "- resultList must only contain incidence or prevalence results"
     )
   }
-  checkmate::assertCharacter(databaseName,
-    null.ok = TRUE,
-    add = errorMessage
-  )
   checkmate::reportAssertions(collection = errorMessage)
 
   # add analysis settings to results
@@ -88,28 +83,54 @@ gatherIncidencePrevalenceResults <- function(cdm, resultList, databaseName = NUL
   estimates <- list()
   attrition <- list()
   for (i in seq_along(resultList)) {
-    estimates[[i]] <- resultList[[i]] %>%
-      dplyr::left_join(
-        settings(resultList[[i]]) %>%
-          dplyr::mutate(
-            outcome_cohort_id =
-              as.integer(.data$outcome_cohort_id)
-          ),
-        by = "analysis_id"
-      ) %>%
-      dplyr::mutate(result_id=i) %>%
-      dplyr::relocate("result_id")
-    attrition[[i]] <- attrition(resultList[[i]]) %>%
-      dplyr::left_join(
-        settings(resultList[[i]]) %>%
-          dplyr::mutate(
-            outcome_cohort_id =
-              as.integer(.data$outcome_cohort_id)
-          ),
-        by = "analysis_id"
-      ) %>%
-      dplyr::mutate(result_id=i) %>%
-      dplyr::relocate("result_id")
+   if(inherits(resultList[[i]], "IncidenceResult")){
+      estimates[[i]] <- resultList[[i]] %>%
+        dplyr::left_join(
+          incidenceSet(resultList[[i]]) %>%
+            dplyr::mutate(
+              outcome_cohort_id =
+                as.integer(.data$outcome_cohort_id)
+            ),
+          by = "analysis_id"
+        ) %>%
+        dplyr::mutate(result_id=i) %>%
+        dplyr::relocate("result_id")
+      attrition[[i]] <- incidenceAttrition(resultList[[i]]) %>%
+        dplyr::left_join(
+          incidenceSet(resultList[[i]]) %>%
+            dplyr::mutate(
+              outcome_cohort_id =
+                as.integer(.data$outcome_cohort_id)
+            ),
+          by = "analysis_id"
+        ) %>%
+        dplyr::mutate(result_id=i) %>%
+        dplyr::relocate("result_id")
+    } else {
+      estimates[[i]] <- resultList[[i]] %>%
+        dplyr::left_join(
+          prevalenceSet(resultList[[i]]) %>%
+            dplyr::mutate(
+              outcome_cohort_id =
+                as.integer(.data$outcome_cohort_id)
+            ),
+          by = "analysis_id"
+        ) %>%
+        dplyr::mutate(result_id=i) %>%
+        dplyr::relocate("result_id")
+      attrition[[i]] <- prevalenceAttrition(resultList[[i]]) %>%
+        dplyr::left_join(
+          prevalenceSet(resultList[[i]]) %>%
+            dplyr::mutate(
+              outcome_cohort_id =
+                as.integer(.data$outcome_cohort_id)
+            ),
+          by = "analysis_id"
+        ) %>%
+        dplyr::mutate(result_id=i) %>%
+        dplyr::relocate("result_id")
+    }
+
   }
 
   # combine results of same type (incidence or prevalence)
@@ -133,12 +154,6 @@ gatherIncidencePrevalenceResults <- function(cdm, resultList, databaseName = NUL
     prevalence_attrition <- dplyr::bind_rows(
       attrition[resultType == "Prevalence"]
     )
-    if (!is.null(databaseName)) {
-      prevalence_estimates <- prevalence_estimates %>%
-        dplyr::mutate(database_name = .env$databaseName)
-      prevalence_attrition <- prevalence_attrition %>%
-        dplyr::mutate(database_name = .env$databaseName)
-    }
   }
 
   # combine any incidence results, updating analysis_id
@@ -150,34 +165,29 @@ gatherIncidencePrevalenceResults <- function(cdm, resultList, databaseName = NUL
     incidence_attrition <- dplyr::bind_rows(
       attrition[resultType == "Incidence"]
     )
-    if (!is.null(databaseName)) {
-      incidence_estimates <- incidence_estimates %>%
-        dplyr::mutate(database_name = .env$databaseName)
-      incidence_attrition <- incidence_attrition %>%
-        dplyr::mutate(database_name = .env$databaseName)
-    }
   }
 
 
   results<-list()
   if (any(resultType == "Prevalence")) {
-    results[[paste0(c("prevalence_estimates", databaseName),
+    results[[paste0(c("prevalence_estimates"),
            collapse = "_")]] <- prevalence_estimates
-    results[[paste0(c("prevalence_attrition", databaseName),
+    results[[paste0(c("prevalence_attrition"),
                     collapse = "_")]] <- prevalence_attrition
   }
   if (any(resultType == "Incidence")) {
-    results[[paste0(c("incidence_estimates", databaseName),
+    results[[paste0(c("incidence_estimates"),
                     collapse = "_")]] <- incidence_estimates
-    results[[paste0(c("incidence_attrition", databaseName),
+    results[[paste0(c("incidence_attrition"),
                     collapse = "_")]] <- incidence_attrition
   }
 
   # add cdm snapshot to output
-  results[[paste0(c("cdm_snapshot", databaseName),
+  results[[paste0(c("cdm_snapshot"),
                   collapse = "_")]]<-  dplyr::as_tibble(do.call(cbind.data.frame,
                                                   CDMConnector::snapshot(cdm)))
 
+  attr(results, "cdm_name") <- attr(cdm, "cdm_name")
   class(results) <- c("IncidencePrevalenceGatheredResult", class(results))
 
   return(results)

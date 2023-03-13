@@ -85,7 +85,7 @@ cdm$denominator %>%
 
 We can also see the settings associated with each cohort:
 ```{r}
-settings(cdm$denominator)
+cohortSet(cdm$denominator)
 ```
 
 And we can also see the count for each cohort
@@ -110,7 +110,7 @@ prev %>%
 
 ```{r, message= FALSE, warning=FALSE, echo=FALSE}
 prev %>%
-  left_join(settings(prev),
+  left_join(prevalenceSet(prev),
             by = "analysis_id") %>%
   ggplot(aes(x = prevalence_start_date, y = prevalence,
              ymin = prevalence_95CI_lower,
@@ -143,7 +143,7 @@ inc %>%
 
 ```{r, message= FALSE, warning=FALSE, echo=FALSE}
 inc %>%
-  left_join(settings(inc),
+  left_join(incidenceSet(inc),
             by = "analysis_id") %>%
   ggplot(aes(x = incidence_start_date, y = incidence_100000_pys,
              ymin = incidence_100000_pys_95CI_lower,
@@ -156,7 +156,7 @@ inc %>%
   theme(legend.title = element_blank())
 ```
 
-Once we have our estimates, we can use `gatherIncidencePrevalenceResults()` to bring together the results, adding outcome names and the database name to the output.
+Once we have our estimates, we can use `gatherIncidencePrevalenceResults()` to bring together the results.
 ```{r}
 study_results <- gatherIncidencePrevalenceResults(cdm = cdm,
                     resultList = list(inc, prev))
