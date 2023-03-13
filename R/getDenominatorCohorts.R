@@ -156,21 +156,25 @@ getDenominatorCohorts <- function(cdm,
   ## Identifying population of interest
   # filtering on database side
   # drop anyone missing year_of_birth or gender_concept_id
-  attrition <- recordAttrition(
-    table = personDb,
-    id = "person_id",
-    reason = "Starting population"
-  )
-
   studyPopDb <- personDb %>%
     dplyr::left_join(observationPeriodDb,
       by = "person_id", x_as = "x", y_as = "y"
-    ) %>%
+    )
+
+  attrition <- recordAttrition(
+    table = studyPopDb,
+    id = "person_id",
+    reasonId = 1,
+    reason = "Starting population"
+  )
+
+  studyPopDb <- studyPopDb %>%
     dplyr::filter(!is.na(.data$year_of_birth))
 
   attrition <- recordAttrition(
     table = studyPopDb,
     id = "person_id",
+    reasonId = 2,
     reason = "Missing year of birth",
     existingAttrition = attrition
   )
@@ -195,6 +199,7 @@ getDenominatorCohorts <- function(cdm,
   attrition <- recordAttrition(
     table = studyPopDb,
     id = "person_id",
+    reasonId = 3,
     reason = "Missing sex",
     existingAttrition = attrition
   )
@@ -264,6 +269,7 @@ getDenominatorCohorts <- function(cdm,
   attrition <- recordAttrition(
     table = studyPopDb,
     id = "person_id",
+    reasonId = 4,
     reason = "Cannot satisfy age criteria during the study period based on year of birth",
     existingAttrition = attrition
   )
@@ -289,6 +295,7 @@ getDenominatorCohorts <- function(cdm,
   attrition <- recordAttrition(
     table = studyPopDb,
     id = "person_id",
+    reasonId = 5,
     reason = "No observation time available during study period",
     existingAttrition = attrition
   )
@@ -355,6 +362,7 @@ getDenominatorCohorts <- function(cdm,
     attrition <- recordAttrition(
       table = studyPopDb,
       id = "person_id",
+      reasonId = 6,
       reason = "Doesn't satisfy age criteria during the study period",
       existingAttrition = attrition
     )
@@ -384,6 +392,7 @@ getDenominatorCohorts <- function(cdm,
     attrition <- recordAttrition(
       table = studyPopDb,
       id = "person_id",
+      reasonId = 7,
       reason = "Prior history requirement not fulfilled during study period",
       existingAttrition = attrition
     )

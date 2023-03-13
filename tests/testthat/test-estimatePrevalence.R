@@ -45,43 +45,14 @@ test_that("mock db: check output format", {
     "denominator_end_date",
     "cdm_name"
   ) %in%
-    names(settings(prev))))
+    names(prevalenceSet(prev))))
 
   expect_true(all(c(
-    "outcome_cohort_id",
-    "analysis_id",
-    "analysis_type",
-    "analysis_time_point",
-    "analysis_interval",
-    "analysis_full_contribution",
-    "analysis_complete_database_intervals",
-    "analysis_min_cell_count",
-    "denominator_cohort_id",
-    "denominator_age_group",
-    "denominator_sex",
-    "denominator_days_prior_history",
-    "denominator_start_date",
-    "denominator_end_date"
+    "analysis_id", "number_records", "number_subjects",
+    "reason_id","reason",
+    "excluded_records", "excluded_subjects"
   ) %in%
-    names(settings(prev, analysisId = 1))))
-
-  expect_true(all(c(
-    "analysis_id",
-    "step",
-    "current_n",
-    "reason",
-    "excluded"
-  ) %in%
-    names(attrition(prev))))
-
-  expect_true(all(c(
-    "analysis_id",
-    "step",
-    "current_n",
-    "reason",
-    "excluded"
-  ) %in%
-    names(attrition(prev, analysisId = 1))))
+    names(prevalenceAttrition(prev))))
 
   # by default we don´t return the participants
   expect_true(is.null(participants(prev, analysisId = 1)))
@@ -630,10 +601,10 @@ test_that("mock db: check fullContribution requirement", {
 
   expect_true(all(prev$n_population == c(2, 1, 1)))
 
-  expect_true(attrition(prev) %>%
+  expect_true(prevalenceAttrition(prev) %>%
     dplyr::filter(reason ==
             "Do not satisfy full contribution requirement for an interval") %>%
-    dplyr::pull(excluded) == 1)
+    dplyr::pull("excluded_subjects") == 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -970,8 +941,8 @@ test_that("mock db: check user point prevalence function", {
   )
 
   expect_true(all(names(prev) == names(prev_point)))
-  expect_true(all(names(settings(prev)) ==
-    names(settings(prev_point))))
+  expect_true(all(names(prevalenceSet(prev)) ==
+    names(prevalenceSet(prev_point))))
   expect_true(all(names(prev) ==
     names(prev_point)))
 
@@ -997,8 +968,8 @@ test_that("mock db: check user period prevalence function", {
   )
 
   expect_true(all(names(prev) == names(prev_period)))
-  expect_true(all(names(settings(prev)) ==
-    names(settings(prev_period))))
+  expect_true(all(names(prevalenceSet(prev)) ==
+    names(prevalenceSet(prev_period))))
   expect_true(all(names(prev) ==
     names(prev_period)))
 
@@ -1183,23 +1154,25 @@ test_that("mock db: check attrition", {
   )
 
   # for female cohort we should have a row for those excluded for not being male
-  expect_true(any("Not Female" == settings(prev) %>%
+  expect_true(any("Not Female" == prevalenceSet(prev) %>%
     dplyr::filter(denominator_sex == "Female") %>%
-    dplyr::inner_join(attrition(prev),
+    dplyr::inner_join(prevalenceAttrition(prev),
       by = "analysis_id", multiple = "all"
     ) %>%
     dplyr::pull(.data$reason)))
   # for male, the opposite
-  expect_true(any("Not Male" == settings(prev) %>%
+  expect_true(any("Not Male" == prevalenceSet(prev) %>%
     dplyr::filter(denominator_sex == "Male") %>%
-    dplyr::inner_join(attrition(prev),multiple = "all",
+    dplyr::inner_join(prevalenceAttrition(prev),multiple = "all",
       by = "analysis_id"
     ) %>%
     dplyr::pull(.data$reason)))
 
   # check we can pick out specific analysis attrition
-  expect_true(unique(attrition(result = prev, analysisId = 1)$analysis_id) == 1)
-  expect_true(unique(attrition(result = prev, analysisId = 2)$analysis_id) == 2)
+  expect_true(nrow(prevalenceAttrition(result = prev) %>%
+                     dplyr::filter(analysis_id == 1)) > 1)
+  expect_true(nrow(prevalenceAttrition(result = prev) %>%
+                     dplyr::filter(analysis_id == 2)) > 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -1260,9 +1233,9 @@ test_that("mock db: check attrition with complete database intervals", {
     minCellCount = 0
   )
 
-  expect_true(attrition(prev) %>%
+  expect_true(prevalenceAttrition(prev) %>%
     dplyr::filter(reason == "Not observed during the complete database interval") %>%
-    dplyr::pull(excluded) == 1)
+    dplyr::pull("excluded_subjects") == 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })

@@ -336,7 +336,7 @@ estimateIncidence <- function(cdm,
   )
   analysisSettings <- analysisSettings %>%
     dplyr::left_join(
-      settings(cdm[[denominatorTable]]) %>%
+      CDMConnector::cohortSet(cdm[[denominatorTable]]) %>%
         dplyr::rename("cohort_id" = "cohort_definition_id") %>%
         dplyr::rename_with(
           .cols = tidyselect::everything(),
@@ -352,20 +352,20 @@ estimateIncidence <- function(cdm,
   # the denominator cohort used
   for (i in seq_along(studySpecs)) {
     irsList[names(irsList) == "attrition"][[i]] <- dplyr::bind_rows(
-      attrition(cdm[[denominatorTable]]) %>%
+      CDMConnector::cohortAttrition(cdm[[denominatorTable]]) %>%
         dplyr::rename("denominator_cohort_id" = "cohort_definition_id") %>%
         dplyr::filter(.data$denominator_cohort_id ==
                       studySpecs[[i]]$denominator_cohort_id) %>%
         dplyr::mutate(analysis_id = studySpecs[[i]]$analysis_id),
-      irsList[names(irsList) == "attrition"][[i]] %>%
-        dplyr::mutate(step = "Estimating incidence")
+      irsList[names(irsList) == "attrition"][[i]]
     )
   }
   attrition <- irsList[names(irsList) == "attrition"]
   attrition <- dplyr::bind_rows(attrition,
     .id = NULL
   ) %>%
-    dplyr::select(-"denominator_cohort_id")
+    dplyr::select(-"denominator_cohort_id") %>%
+    dplyr::relocate("analysis_id")
 
 
   # incidence estimates
@@ -454,7 +454,7 @@ estimateIncidence <- function(cdm,
   attr(irs, "participants") <- participants
   }
 
-  class(irs) <- c("IncidencePrevalenceResult", class(irs))
+  class(irs) <- c("IncidencePrevalenceResult", "IncidenceResult", class(irs))
 
   if (verbose == TRUE) {
     dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))

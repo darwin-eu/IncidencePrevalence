@@ -73,8 +73,10 @@ exportIncidencePrevalenceResults <- function(result, zipName, outputFolder) {
     utils::write.csv(checkResult,
                      file = file.path(
                        tempDir,
-                       paste0(checkResultName, ".csv")
-                     ),
+                       paste0(attr(result, "cdm_name"), "_",
+                              checkResultName, "_",
+                              format(Sys.Date(), format="%Y%m%d"),
+                              ".csv")),
                      row.names = FALSE
     )
   })

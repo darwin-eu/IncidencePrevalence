@@ -31,7 +31,7 @@ test_that("mock db: check output format", {
     "denominator_strata_cohort_name",
     "cdm_name"
   ) %in%
-    names(settings(inc))))
+    names(incidenceSet(inc))))
 
   # check estimates tibble
   expect_true(all(c(
@@ -50,8 +50,13 @@ test_that("mock db: check output format", {
   ) %in%
     names(inc)))
 
-  expect_true(tibble::is_tibble(attrition(inc)))
-  expect_true(tibble::is_tibble(attrition(inc, analysisId = 1)))
+  expect_true(all(c(
+    "analysis_id", "number_records", "number_subjects",
+    "reason_id","reason",
+    "excluded_records", "excluded_subjects"
+  ) %in%
+    names(incidenceAttrition(inc))))
+
   # do not return participants as default
   expect_true(is.null(participants(inc, 1)))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
@@ -2930,23 +2935,25 @@ test_that("mock db: check attrition", {
     interval = "years"
   )
   # for female cohort we should have a row for those excluded for not being male
-  expect_true(any("Not Female" == settings(inc) %>%
+  expect_true(any("Not Female" == incidenceSet(inc) %>%
     dplyr::filter(denominator_sex == "Female") %>%
-    dplyr::inner_join(attrition(inc), multiple = "all",
+    dplyr::inner_join(incidenceAttrition(inc), multiple = "all",
       by = "analysis_id"
     ) %>%
     dplyr::pull(.data$reason)))
   # for male, the opposite
-  expect_true(any("Not Male" == settings(inc) %>%
+  expect_true(any("Not Male" == incidenceSet(inc) %>%
     dplyr::filter(denominator_sex == "Male") %>%
-    dplyr::inner_join(attrition(inc), multiple = "all",
+    dplyr::inner_join(incidenceAttrition(inc), multiple = "all",
       by = "analysis_id"
     ) %>%
     dplyr::pull(.data$reason)))
 
   # check we can pick out specific analysis attrition
-  expect_true(unique(attrition(result = inc, analysisId = 1)$analysis_id) == 1)
-  expect_true(unique(attrition(result = inc, analysisId = 2)$analysis_id) == 2)
+  expect_true(nrow(incidenceAttrition(result = inc) %>%
+                     dplyr::filter(analysis_id== 1)) > 1)
+  expect_true(nrow(incidenceAttrition(result = inc) %>%
+                     dplyr::filter(analysis_id== 2)) > 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -3004,9 +3011,9 @@ test_that("mock db: check attrition with complete database intervals", {
     interval = "years"
   )
 
-  expect_true(attrition(inc) %>%
+  expect_true(incidenceAttrition(inc) %>%
     dplyr::filter(reason == "Not observed during the complete database interval") %>%
-    dplyr::pull(excluded) == 1)
+    dplyr::pull(excluded_subjects) == 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
