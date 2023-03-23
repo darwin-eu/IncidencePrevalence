@@ -3101,6 +3101,9 @@ test_that("mock db: check participants", {
                            schema = attr(cdm, "write_schema")) %in%
                c("test_denominator",
                  "test_incidence_participants",
+                 "test_denominator_attrition",
+                 "test_denominator_set" ,
+                 "test_denominator_count",
                  "vocabulary" ,
                  "cdm_source", "outcome", "strata",
                  "observation_period", "person" )))

@@ -342,20 +342,30 @@ generateDenominatorCohortSet <- function(cdm,
   }
 
   # return results as a cohort_reference class
-  attr(studyPops, "cohort_count") <- dplyr::bind_rows(cohortCount)
+  cohortCount <- dplyr::bind_rows(cohortCount)
+  attr(studyPops, "cohort_count") <- cohortCount
 
-  cohort_set_ref <- popSpecs %>%
+  cohortSet <- popSpecs %>%
     dplyr::mutate(strata_cohort_definition_id = .env$strataCohortId) %>%
     dplyr::mutate(strata_cohort_name = .env$strataCohortName) %>%
     dplyr::mutate(cohort_name = paste0("Denominator cohort ", .data$cohort_definition_id)) %>%
     dplyr::select(!c("min_age", "max_age")) %>%
     dplyr::relocate("cohort_definition_id")%>%
     dplyr::relocate("cohort_name", .after = "cohort_definition_id")
-  attr(studyPops, "cohort_set") <- cohort_set_ref
+  attr(studyPops, "cohort_set") <- cohortSet
 
-  attr(studyPops, "cohort_attrition") <- dplyr::bind_rows(dpop$attrition) %>%
+  cohortAttrition <- dplyr::bind_rows(dpop$attrition) %>%
     dplyr::as_tibble() %>%
     dplyr::relocate("cohort_definition_id")
+  attr(studyPops, "cohort_attrition") <- cohortAttrition
+
+  if(!is.null(tablePrefix)){
+  insertAttributes(cdm = cdm,
+                   tablePrefix = tablePrefix,
+                   cohortCount = cohortCount,
+                   cohortSet = cohortSet,
+                   cohortAttrition = cohortAttrition)
+  }
 
   class(studyPops) <- c("IncidencePrevalenceDenominator", "GeneratedCohortSet",
                         class(studyPops))
@@ -461,3 +471,24 @@ unionCohorts <- function(cdm,
 
 
 }
+
+
+# insert attributes into database
+insertAttributes <- function(cdm, tablePrefix,
+                             cohortCount, cohortSet, cohortAttrition){
+  DBI::dbWriteTable(attr(cdm, "dbcon"),
+                    name = inSchema(attr(cdm, "write_schema"), paste0(tablePrefix, "_denominator_count")),
+                    value = as.data.frame(cohortCount),
+                    overwrite = TRUE)
+  DBI::dbWriteTable(attr(cdm, "dbcon"),
+                    name = inSchema(attr(cdm, "write_schema"), paste0(tablePrefix, "_denominator_set")),
+                    value = as.data.frame(cohortSet),
+                    overwrite = TRUE)
+  DBI::dbWriteTable(attr(cdm, "dbcon"),
+                    name = inSchema(attr(cdm, "write_schema"), paste0(tablePrefix, "_denominator_attrition")),
+                    value = as.data.frame(cohortAttrition),
+                    overwrite = TRUE)
+}
+
+
+
