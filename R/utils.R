@@ -22,6 +22,7 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 #' cdm$denominator <- generateDenominatorCohortSet(cdm)
 #' inc <- estimateIncidence(
@@ -31,6 +32,7 @@
 #'   interval = "overall"
 #' )
 #' incidenceAttrition(inc)
+#' }
 incidenceAttrition <- function(result) {
   UseMethod("incidenceAttrition")
 }
@@ -49,6 +51,7 @@ incidenceAttrition.IncidenceResult <- function(result) {
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 #' cdm$denominator <- generateDenominatorCohortSet(cdm)
 #' prev <- estimatePointPrevalence(
@@ -57,6 +60,7 @@ incidenceAttrition.IncidenceResult <- function(result) {
 #'   outcomeTable = "outcome"
 #' )
 #' prevalenceAttrition(prev)
+#' }
 prevalenceAttrition <- function(result) {
   UseMethod("prevalenceAttrition")
 }
@@ -76,6 +80,7 @@ prevalenceAttrition.PrevalenceResult <- function(result) {
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 #' cdm$denominator <- generateDenominatorCohortSet(cdm)
 #' inc <- estimateIncidence(
@@ -85,6 +90,7 @@ prevalenceAttrition.PrevalenceResult <- function(result) {
 #'   interval = "overall"
 #' )
 #' incidenceSet(inc)
+#' }
 incidenceSet <- function(result) {
   UseMethod("incidenceSet")
 }
@@ -103,6 +109,7 @@ incidenceSet.IncidenceResult <- function(result) {
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 #' cdm$denominator <- generateDenominatorCohortSet(cdm)
 #' prev <- estimatePointPrevalence(
@@ -111,6 +118,7 @@ incidenceSet.IncidenceResult <- function(result) {
 #'   outcomeTable = "outcome"
 #' )
 #' prevalenceSet(prev)
+#' }
 prevalenceSet <- function(result) {
   UseMethod("prevalenceSet")
 }
@@ -131,6 +139,7 @@ prevalenceSet.PrevalenceResult <- function(result) {
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 #' cdm$denominator <- generateDenominatorCohortSet(cdm)
 #' incidence <- estimateIncidence(
@@ -140,6 +149,7 @@ prevalenceSet.PrevalenceResult <- function(result) {
 #'   interval = "overall"
 #' )
 #' participants(result = incidence, analysisId = 1)
+#' }
 participants <- function(result, analysisId) {
   UseMethod("participants")
 }
