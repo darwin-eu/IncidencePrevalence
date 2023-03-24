@@ -19,6 +19,7 @@ a given analysis
 Participants contributing to an analysis
 }
 \examples{
+\dontrun{
 cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 cdm$denominator <- generateDenominatorCohortSet(cdm)
 incidence <- estimateIncidence(
@@ -28,4 +29,5 @@ incidence <- estimateIncidence(
   interval = "overall"
 )
 participants(result = incidence, analysisId = 1)
+}
 }

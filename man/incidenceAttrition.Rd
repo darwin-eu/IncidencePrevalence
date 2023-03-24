@@ -16,6 +16,7 @@ tibble with counts and reasons for attrition.
 Attrition associated with an incidence analysis
 }
 \examples{
+\dontrun{
 cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 cdm$denominator <- generateDenominatorCohortSet(cdm)
 inc <- estimateIncidence(
@@ -25,4 +26,5 @@ inc <- estimateIncidence(
   interval = "overall"
 )
 incidenceAttrition(inc)
+}
 }

@@ -1,11 +1,9 @@
 
 # IncidencePrevalence <img src='man/figures/hexsticker.png' align="right" height="139"/>
 
-[![CRAN
-status](https://www.r-pkg.org/badges/version/IncidencePrevalence)](https://CRAN.R-project.org/package=IncidencePrevalence)
 [![codecov.io](https://codecov.io/github/darwin-eu/IncidencePrevalence/coverage.svg?branch=main)](https://codecov.io/github/darwin-eu/IncidencePrevalence?branch=main)
 [![R-CMD-check](https://github.com/darwin-eu/IncidencePrevalence/workflows/R-CMD-check/badge.svg)](https://github.com/darwin-eu/IncidencePrevalence/actions)
-[![Lifecycle:Experimental](https://img.shields.io/badge/Lifecycle-Experimental-339999)](https://www.tidyverse.org/lifecycle/#experimental)
+[![Lifecycle:Experimental](https://img.shields.io/badge/Lifecycle-Experimental-339999)](https://lifecycle.r-lib.org/articles/stages.html)
 
 ## Package overview
 
@@ -85,17 +83,16 @@ This will then give us six denominator cohorts
 ``` r
 cohortSet(cdm$denominator)
 #> # A tibble: 6 × 9
-#>   cohort_d…¹ cohor…² age_g…³ sex   days_…⁴ start_date end_date   strat…⁵ strat…⁶
-#>        <int> <chr>   <chr>   <chr>   <dbl> <date>     <date>     <lgl>   <lgl>  
-#> 1          1 Denomi… 0;64    Male      180 2008-01-01 2018-01-01 NA      NA     
-#> 2          2 Denomi… 0;64    Fema…     180 2008-01-01 2018-01-01 NA      NA     
-#> 3          3 Denomi… 0;64    Both      180 2008-01-01 2018-01-01 NA      NA     
-#> 4          4 Denomi… 65;100  Male      180 2008-01-01 2018-01-01 NA      NA     
-#> 5          5 Denomi… 65;100  Fema…     180 2008-01-01 2018-01-01 NA      NA     
-#> 6          6 Denomi… 65;100  Both      180 2008-01-01 2018-01-01 NA      NA     
-#> # … with abbreviated variable names ¹​cohort_definition_id, ²​cohort_name,
-#> #   ³​age_group, ⁴​days_prior_history, ⁵​strata_cohort_definition_id,
-#> #   ⁶​strata_cohort_name
+#>   cohort_definition_id cohort_name age_group sex   days_prior_history start_date
+#>                  <int> <chr>       <chr>     <chr>              <dbl> <date>    
+#> 1                    1 Denominato… 0;64      Male                 180 2008-01-01
+#> 2                    2 Denominato… 0;64      Fema…                180 2008-01-01
+#> 3                    3 Denominato… 0;64      Both                 180 2008-01-01
+#> 4                    4 Denominato… 65;100    Male                 180 2008-01-01
+#> 5                    5 Denominato… 65;100    Fema…                180 2008-01-01
+#> 6                    6 Denominato… 65;100    Both                 180 2008-01-01
+#> # ℹ 3 more variables: end_date <date>, strata_cohort_definition_id <lgl>,
+#> #   strata_cohort_name <lgl>
 ```
 
 These cohorts will be in the typical OMOP CDM structure
@@ -116,7 +113,7 @@ cdm$denominator
 #>  8                    1 42         2008-01-01        2008-02-18     
 #>  9                    1 55         2008-05-24        2009-05-02     
 #> 10                    1 56         2012-07-24        2013-11-02     
-#> # … with more rows
+#> # ℹ more rows
 ```
 
 ### Instantiate an outcome cohort
@@ -152,7 +149,7 @@ cdm$outcome
 #>  8 1                    8          2008-09-21        2008-09-29     
 #>  9 1                    9          2019-06-26        2019-07-04     
 #> 10 1                    10         2019-03-21        2019-03-29     
-#> # … with more rows
+#> # ℹ more rows
 ```
 
 ### Estimating incidence and prevalence
