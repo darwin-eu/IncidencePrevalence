@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -58,10 +58,9 @@
 <span>  <span class="va">outcomeTable</span>,</span>
 <span>  denominatorCohortId <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  outcomeCohortId <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  outcomeCohortName <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  interval <span class="op">=</span> <span class="st">"years"</span>,</span>
 <span>  completeDatabaseIntervals <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  outcomeWashout <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  outcomeWashout <span class="op">=</span> <span class="cn">Inf</span>,</span>
 <span>  repeatedEvents <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  minCellCount <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  tablePrefix <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -99,10 +98,6 @@ cohorts of interest. If NULL all cohorts will be considered in the
 analysis.</p></dd>
 
 
-<dt>outcomeCohortName</dt>
-<dd><p>Corresponding names for each outcomeCohortId.</p></dd>
-
-
 <dt>interval</dt>
 <dd><p>Time intervals over which incidence is estimated. Can
 be "weeks", "months", "quarters", "years", or "overall". ISO weeks will
@@ -122,7 +117,7 @@ period start dates, respectively).</p></dd>
 <dt>outcomeWashout</dt>
 <dd><p>The number of days used for a 'washout' period
 between the end of one outcome and an individual starting to contribute
-time at risk. If NULL, no time can be contributed after an event has
+time at risk. If Inf, no time can be contributed after an event has
 occurred (whether during the study period or if occurring beforehand).</p></dd>
 
 
@@ -151,8 +146,7 @@ used throughout.</p></dd>
 <dd><p>Either TRUE or FALSE. If TRUE references to
 participants from the analysis will be returned allowing for further
 analysis. Note, if using permanent tables and returnParticipants is TRUE,
-one table per analysis will be kept in the cdm write schema (these
-can be dropped at subsequently using dropStemTables() function)</p></dd>
+one table per analysis will be kept in the cdm write schema.</p></dd>
 
 
 <dt>verbose</dt>
@@ -168,12 +162,8 @@ can be dropped at subsequently using dropStemTables() function)</p></dd>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="va">db</span> <span class="op">&lt;-</span> <span class="fu">DBI</span><span class="fu">::</span><span class="fu"><a href="https://dbi.r-dbi.org/reference/dbConnect.html" class="external-link">dbConnect</a></span><span class="op">(</span><span class="st">" Your database connection here "</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/cdm_from_con.html" class="external-link">cdm_from_con</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  con <span class="op">=</span> <span class="va">db</span>,</span></span>
-<span class="r-in"><span>  cdm_schema <span class="op">=</span> <span class="st">"cdm schema name"</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="mockIncidencePrevalenceRef.html">mockIncidencePrevalenceRef</a></span><span class="op">(</span>sampleSize <span class="op">=</span> <span class="fl">10000</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op">&lt;-</span> <span class="fu"><a href="generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span></span>
 <span class="r-in"><span>  startDate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2008-01-01"</span><span class="op">)</span>,</span></span>
@@ -184,7 +174,7 @@ can be dropped at subsequently using dropStemTables() function)</p></dd>
 <span class="r-in"><span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span></span>
 <span class="r-in"><span>  outcomeTable <span class="op">=</span> <span class="st">"outcome"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

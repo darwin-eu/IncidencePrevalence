@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -84,16 +84,9 @@ specify a particular cohort of interest</p></dd>
 <span class="r-in"><span>  daysPriorHistory <span class="op">=</span> <span class="fl">120</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">cohortCount</span><span class="op">(</span>cohortTable <span class="op">=</span> <span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 2 × 2</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   cohort_definition_id     n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>                    1    28</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span>                    2    22</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in cohortCount(cohortTable = cdm$denominator):</span> could not find function "cohortCount"</span>
 <span class="r-in"><span><span class="fu">cohortCount</span><span class="op">(</span>cohortTable <span class="op">=</span> <span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span>, cohortDefinitionId <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 1 × 2</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   cohort_definition_id     n</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>                    1    28</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in cohortCount(cohortTable = cdm$denominator, cohortDefinitionId = 1):</span> could not find function "cohortCount"</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

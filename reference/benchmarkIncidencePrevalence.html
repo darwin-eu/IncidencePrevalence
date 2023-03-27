@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -57,6 +57,7 @@
 <span>  startDate <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  endDate <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  tablePrefix <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  returnParticipants <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  sample <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  nOutcomes <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  prevOutcomes <span class="op">=</span> <span class="fl">0.25</span>,</span>
@@ -90,6 +91,11 @@ observation end date in the observation period  table will be used.</p></dd>
 be created. Permanent tables will be created using this stem, and any
 existing tables that start with this will be at risk of being dropped
 or overwritten. If NULL, temporary tables will be used throughout.</p></dd>
+
+
+<dt>returnParticipants</dt>
+<dd><p>Whether to return participants (Requires tablePrefix
+to have been specified)</p></dd>
 
 
 <dt>sample</dt>
@@ -134,15 +140,73 @@ prevalence, they can also provide a single integer</p></dd>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="va">con</span> <span class="op">&lt;-</span> <span class="fu">DBI</span><span class="fu">::</span><span class="fu"><a href="https://dbi.r-dbi.org/reference/dbConnect.html" class="external-link">dbConnect</a></span><span class="op">(</span><span class="fu">duckdb</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/duckdb/man/duckdb.html" class="external-link">duckdb</a></span><span class="op">(</span><span class="op">)</span>, <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/eunomia_dir.html" class="external-link">eunomia_dir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/cdm_from_con.html" class="external-link">cdm_from_con</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  con <span class="op">=</span> <span class="va">con</span>,</span></span>
-<span class="r-in"><span>  cdm_schema <span class="op">=</span> <span class="st">"main"</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span></span></span>
-<span class="r-in"><span><span class="va">timings</span> <span class="op">&lt;-</span> <span class="fu">IncidencePrevalence</span><span class="fu">::</span><span class="fu">benchmarkIncidencePrevalence</span><span class="op">(</span><span class="va">cdm</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="mockIncidencePrevalenceRef.html">mockIncidencePrevalenceRef</a></span><span class="op">(</span>sampleSize <span class="op">=</span> <span class="fl">10000</span>,</span></span>
+<span class="r-in"><span>                                  earliestObservationStartDate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2010-01-01"</span><span class="op">)</span> ,</span></span>
+<span class="r-in"><span>                                  latestObservationStartDate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2018-01-01"</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">timings</span> <span class="op">&lt;-</span> <span class="fu">IncidencePrevalence</span><span class="fu">::</span><span class="fu">benchmarkIncidencePrevalence</span><span class="op">(</span><span class="va">cdm</span>,</span></span>
+<span class="r-in"><span>                                                             verbose <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting overall denominator population</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Creating each denominator cohort of interest</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>  -- getting cohort dates for <span style="color: #00BB00;">■■■■■■■■■■■■■■■■                </span> 4 of 8 cohorts</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>  -- getting cohort dates for <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ </span> 8 of 8 cohorts</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Unioning cohorts</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken to get denominator cohorts: 0 min and 7 sec</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 1 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 2 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 3 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 4 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 5 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 6 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 7 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 8 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken to estimate prevalence: 0 mins and 8 secs</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 1 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 2 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 3 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 4 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 5 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 6 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 7 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 8 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken to estimate prevalence: 0 mins and 17 secs</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 1 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 2 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 3 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 4 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 5 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 6 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 7 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 8 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken to estimate prevalence: 0 mins and 11 secs</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 1 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 2 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 3 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 4 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 5 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 6 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 7 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 8 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken to estimate prevalence: 0 mins and 47 secs</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 1 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 2 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 3 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 4 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 5 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 6 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 7 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 8 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Overall time taken: 0 mins and 7 secs</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 1 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 2 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 3 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 4 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 5 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 6 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 7 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 8 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Overall time taken: 0 mins and 20 secs</span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -118,10 +118,10 @@ defined.</p>
 a folder called “outcome_cohorts”), we can add the cohorts to an
 existing cdm reference in a table called “outcome_table” like so:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">outcome_cohorts</span> <span class="op">&lt;-</span> <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/readCohortSet.html" class="external-link">readCohortSet</a></span><span class="op">(</span><span class="fu">here</span><span class="fu">::</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="st">"outcome_cohorts"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/generateCohortSet.html" class="external-link">generateCohortSet</a></span><span class="op">(</span><span class="va">cdm</span>,</span>
-<span>                                       <span class="va">outcome_cohorts</span>,</span>
-<span>                                       cohortTableName <span class="op">=</span> <span class="va">outcome_table</span><span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">outcome_cohorts</span> <span class="op">&lt;-</span> <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/read_cohort_set.html" class="external-link">readCohortSet</a></span><span class="op">(</span><span class="fu">here</span><span class="fu">::</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="st">"outcome_cohorts"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/generateCohortSet.html" class="external-link">generateCohortSet</a></span><span class="op">(</span>cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
+<span>                                       cohortSet <span class="op">=</span> <span class="va">outcome_cohorts</span>,</span>
+<span>                                       name <span class="op">=</span> <span class="va">outcome_table</span><span class="op">)</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="creating-outcome-cohorts-with-bespoke-code">Creating outcome cohorts with bespoke code<a class="anchor" aria-label="anchor" href="#creating-outcome-cohorts-with-bespoke-code"></a>
 </h3>

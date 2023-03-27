@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -86,42 +86,9 @@ particular analysis of interest.</p></dd>
 <span class="r-in"><span>  daysPriorHistory <span class="op">=</span> <span class="fl">120</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">attrition</span><span class="op">(</span>result <span class="op">=</span> <span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 18 × 5</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    current_n reason                                        exclu…¹ cohor…² step </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;glue&gt;</span>                                          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>       200 Starting population                                <span style="color: #BB0000;">NA</span>       1 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>       200 Missing year of birth                               0       1 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>       200 Missing sex                                         0       1 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>       101 Cannot satisfy age criteria during the study…      99       1 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>       101 No observation time available during study p…       0       1 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>       101 Doesn't satisfy age criteria during the stud…       0       1 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>        87 Prior history requirement not fulfilled duri…      14       1 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>        45 Not Female                                         42       1 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>        28 No observation time available after applying…      17       1 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>       200 Starting population                                <span style="color: #BB0000;">NA</span>       2 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">11</span>       200 Missing year of birth                               0       2 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">12</span>       200 Missing sex                                         0       2 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">13</span>       101 Cannot satisfy age criteria during the study…      99       2 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">14</span>       101 No observation time available during study p…       0       2 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">15</span>       101 Doesn't satisfy age criteria during the stud…       0       2 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">16</span>        87 Prior history requirement not fulfilled duri…      14       2 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">17</span>        42 Not Male                                           45       2 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">18</span>        22 No observation time available after applying…      20       2 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># … with abbreviated variable names ¹​excluded, ²​cohort_definition_id</span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in attrition(result = cdm$denominator):</span> could not find function "attrition"</span>
 <span class="r-in"><span><span class="fu">attrition</span><span class="op">(</span>result <span class="op">=</span> <span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span>, cohortDefinitionId <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 9 × 5</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   current_n reason                                         exclu…¹ cohor…² step </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;glue&gt;</span>                                           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">1</span>       200 Starting population                                 <span style="color: #BB0000;">NA</span>       1 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">2</span>       200 Missing year of birth                                0       1 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">3</span>       200 Missing sex                                          0       1 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">4</span>       101 Cannot satisfy age criteria during the study …      99       1 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">5</span>       101 No observation time available during study pe…       0       1 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">6</span>       101 Doesn't satisfy age criteria during the study…       0       1 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">7</span>        87 Prior history requirement not fulfilled durin…      14       1 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">8</span>        45 Not Female                                          42       1 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">9</span>        28 No observation time available after applying …      17       1 Gene…</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># … with abbreviated variable names ¹​excluded, ²​cohort_definition_id</span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in attrition(result = cdm$denominator, cohortDefinitionId = 1):</span> could not find function "attrition"</span>
 <span class="r-in"><span><span class="va">incidence</span> <span class="op">&lt;-</span> <span class="fu"><a href="estimateIncidence.html">estimateIncidence</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span></span>
 <span class="r-in"><span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span></span>
@@ -129,37 +96,9 @@ particular analysis of interest.</p></dd>
 <span class="r-in"><span>  interval <span class="op">=</span> <span class="st">"overall"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu">attrition</span><span class="op">(</span>result <span class="op">=</span> <span class="va">incidence</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 24 × 5</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    current_n reason                                        exclu…¹ step  analy…²</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;glue&gt;</span>                                          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>       200 Starting population                                <span style="color: #BB0000;">NA</span> Gene… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>       200 Missing year of birth                               0 Gene… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>       200 Missing sex                                         0 Gene… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>       101 Cannot satisfy age criteria during the study…      99 Gene… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>       101 No observation time available during study p…       0 Gene… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>       101 Doesn't satisfy age criteria during the stud…       0 Gene… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>        87 Prior history requirement not fulfilled duri…      14 Gene… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>        45 Not Female                                         42 Gene… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>        28 No observation time available after applying…      17 Gene… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>        28 Starting analysis population                       <span style="color: #BB0000;">NA</span> Esti… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># … with 14 more rows, and abbreviated variable names ¹​excluded, ²​analysis_id</span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in attrition(result = incidence):</span> could not find function "attrition"</span>
 <span class="r-in"><span><span class="fu">attrition</span><span class="op">(</span>result <span class="op">=</span> <span class="va">incidence</span>, analysisId <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 12 × 5</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>    current_n reason                                        exclu…¹ step  analy…²</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;glue&gt;</span>                                          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span>       200 Starting population                                <span style="color: #BB0000;">NA</span> Gene… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span>       200 Missing year of birth                               0 Gene… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span>       200 Missing sex                                         0 Gene… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span>       101 Cannot satisfy age criteria during the study…      99 Gene… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span>       101 No observation time available during study p…       0 Gene… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span>       101 Doesn't satisfy age criteria during the stud…       0 Gene… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span>        87 Prior history requirement not fulfilled duri…      14 Gene… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span>        45 Not Female                                         42 Gene… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span>        28 No observation time available after applying…      17 Gene… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span>        28 Starting analysis population                       <span style="color: #BB0000;">NA</span> Esti… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">11</span>        28 Excluded due to prior event (do not pass out…       0 Esti… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">12</span>        28 Not observed during the complete database in…       0 Esti… 1      </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># … with abbreviated variable names ¹​excluded, ²​analysis_id</span></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in attrition(result = incidence, analysisId = 1):</span> could not find function "attrition"</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

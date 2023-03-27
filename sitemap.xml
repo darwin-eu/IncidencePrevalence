@@ -70,6 +70,12 @@
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/generateDenominatorCohortSet.html</loc>
   </url>
   <url>
+    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/incidenceAttrition.html</loc>
+  </url>
+  <url>
+    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/incidenceSet.html</loc>
+  </url>
+  <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/index.html</loc>
   </url>
   <url>
@@ -80,6 +86,12 @@
   </url>
   <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/pipe.html</loc>
+  </url>
+  <url>
+    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/prevalenceAttrition.html</loc>
+  </url>
+  <url>
+    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/prevalenceSet.html</loc>
   </url>
   <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/recordAttrition.html</loc>

@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -79,27 +79,22 @@ of CSV files</p></dd>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="va">db</span> <span class="op">&lt;-</span> <span class="fu">DBI</span><span class="fu">::</span><span class="fu"><a href="https://dbi.r-dbi.org/reference/dbConnect.html" class="external-link">dbConnect</a></span><span class="op">(</span><span class="st">" Your database connection here "</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/cdm_from_con.html" class="external-link">cdm_from_con</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  con <span class="op">=</span> <span class="va">db</span>,</span></span>
-<span class="r-in"><span>  cdm_schema <span class="op">=</span> <span class="st">"cdm schema name"</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">dpop</span> <span class="op">&lt;-</span> <span class="fu"><a href="generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="mockIncidencePrevalenceRef.html">mockIncidencePrevalenceRef</a></span><span class="op">(</span>sampleSize <span class="op">=</span> <span class="fl">10000</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op">&lt;-</span> <span class="fu"><a href="generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span></span>
 <span class="r-in"><span>  startDate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2008-01-01"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  endDate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2018-01-01"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op">&lt;-</span> <span class="va">dpop</span><span class="op">$</span><span class="va">denominator_population</span></span></span>
 <span class="r-in"><span><span class="va">prev</span> <span class="op">&lt;-</span> <span class="fu"><a href="estimatePointPrevalence.html">estimatePointPrevalence</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>cdm <span class="op">=</span> <span class="va">cdm</span>,</span></span>
 <span class="r-in"><span>denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span></span>
 <span class="r-in"><span>outcomeTable <span class="op">=</span> <span class="st">"outcome"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span> <span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="gatherIncidencePrevalenceResults.html">gatherIncidencePrevalenceResults</a></span><span class="op">(</span>resultList<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">prev</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span> <span class="va">results</span> <span class="op">&lt;-</span> <span class="fu"><a href="gatherIncidencePrevalenceResults.html">gatherIncidencePrevalenceResults</a></span><span class="op">(</span>cdm <span class="op">=</span> <span class="va">cdm</span>, resultList<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="va">prev</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span> <span class="fu">exportIncidencePrevalenceResults</span><span class="op">(</span>result<span class="op">=</span><span class="va">results</span>, zipName<span class="op">=</span><span class="st">"test"</span>,</span></span>
 <span class="r-in"><span>                                  outputFolder<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

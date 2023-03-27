@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -58,7 +58,6 @@
 <span>  <span class="va">outcomeTable</span>,</span>
 <span>  denominatorCohortId <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  outcomeCohortId <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  outcomeCohortName <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  outcomeLookbackDays <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  interval <span class="op">=</span> <span class="st">"years"</span>,</span>
 <span>  completeDatabaseIntervals <span class="op">=</span> <span class="cn">TRUE</span>,</span>
@@ -97,10 +96,6 @@ analysis.</p></dd>
 <dd><p>The cohort definition ids of the outcome
 cohorts of interest. If NULL all cohorts will be considered in the
 analysis.</p></dd>
-
-
-<dt>outcomeCohortName</dt>
-<dd><p>Corresponding names for each outcomeCohortId.</p></dd>
 
 
 <dt>outcomeLookbackDays</dt>
@@ -148,8 +143,7 @@ used throughout.</p></dd>
 <dd><p>Either TRUE or FALSE. If TRUE references to
 participants from the analysis will be returned allowing for further
 analysis. Note, if using permanent tables and returnParticipants is TRUE,
-one table per analysis will be kept in the cdm write schema (these
-can be dropped at subsequently using dropStemTables() function)</p></dd>
+one table per analysis will be kept in the cdm write schema.</p></dd>
 
 
 <dt>verbose</dt>
@@ -165,25 +159,36 @@ can be dropped at subsequently using dropStemTables() function)</p></dd>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span></span></span>
-<span class="r-in"><span><span class="va">db</span> <span class="op">&lt;-</span> <span class="fu">DBI</span><span class="fu">::</span><span class="fu"><a href="https://dbi.r-dbi.org/reference/dbConnect.html" class="external-link">dbConnect</a></span><span class="op">(</span><span class="st">" Your database connection here "</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/cdm_from_con.html" class="external-link">cdm_from_con</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  con <span class="op">=</span> <span class="va">db</span>,</span></span>
-<span class="r-in"><span>  cdm_schema <span class="op">=</span> <span class="st">"cdm schema name"</span></span></span>
-<span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">dpop</span> <span class="op">&lt;-</span> <span class="fu"><a href="generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="mockIncidencePrevalenceRef.html">mockIncidencePrevalenceRef</a></span><span class="op">(</span>sampleSize <span class="op">=</span> <span class="fl">10000</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op">&lt;-</span> <span class="fu"><a href="generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span></span>
 <span class="r-in"><span>  startDate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2008-01-01"</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  endDate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2018-01-01"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op">&lt;-</span> <span class="va">dpop</span><span class="op">$</span><span class="va">denominator_population</span></span></span>
 <span class="r-in"><span><span class="fu">estimatePeriodPrevalence</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span></span>
 <span class="r-in"><span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span></span>
 <span class="r-in"><span>  outcomeTable <span class="op">=</span> <span class="st">"outcome"</span>,</span></span>
 <span class="r-in"><span>  interval <span class="op">=</span> <span class="st">"months"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 120 × 10</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    analysis_id prevalence_start_date prevalence_end_date n_cases n_population</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 1</span> 1           2008-01-01            2008-01-31               85         <span style="text-decoration: underline;">1</span>018</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 2</span> 1           2008-02-01            2008-02-29               54         <span style="text-decoration: underline;">1</span>000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 3</span> 1           2008-03-01            2008-03-31               73         <span style="text-decoration: underline;">1</span>023</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 4</span> 1           2008-04-01            2008-04-30               59         <span style="text-decoration: underline;">1</span>002</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 5</span> 1           2008-05-01            2008-05-31               54         <span style="text-decoration: underline;">1</span>005</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 6</span> 1           2008-06-01            2008-06-30               59          990</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 7</span> 1           2008-07-01            2008-07-31               67          975</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 8</span> 1           2008-08-01            2008-08-31               72          989</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;"> 9</span> 1           2008-09-01            2008-09-30               62          986</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 1           2008-10-01            2008-10-31               69          975</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 110 more rows</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 5 more variables: prevalence &lt;dbl&gt;, prevalence_95CI_lower &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   prevalence_95CI_upper &lt;dbl&gt;, cohort_obscured &lt;chr&gt;, result_obscured &lt;chr&gt;</span></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

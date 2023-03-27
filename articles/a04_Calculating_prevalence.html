@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -150,7 +150,7 @@ than a study period.</p>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: ??</span></span>
 <span><span class="co">#&gt; Columns: 4</span></span>
-<span><span class="co">#&gt; Database: DuckDB 0.6.2-dev1166 [unknown@Linux 5.15.0-1031-azure:R 4.2.2/:memory:]</span></span>
+<span><span class="co">#&gt; Database: DuckDB 0.7.1 [unknown@Linux 5.15.0-1034-azure:R 4.2.3/:memory:]</span></span>
 <span><span class="co">#&gt; $ cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…</span></span>
 <span><span class="co">#&gt; $ subject_id           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "2", "4", "6", "8", "12", "13", "21", "22", "24",…</span></span>
 <span><span class="co">#&gt; $ cohort_start_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2011-04-26, 2011-10-13, 2008-01-01, …</span></span>
@@ -435,7 +435,7 @@ seen in the last 30 days).</p>
 <span><span class="co">#&gt; $ result_obscured       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FALSE", "FALSE", "FA…</span></span>
 <span></span>
 <span><span class="va">prev</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attributes.html" class="external-link">attributes</a></span><span class="op">(</span><span class="va">prev</span><span class="op">)</span><span class="op">$</span><span class="va">settings</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="fu"><a href="../reference/prevalenceSet.html">prevalenceSet</a></span><span class="op">(</span><span class="va">prev</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>analysis_outcome_lookback_days <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">analysis_outcome_lookback_days</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">prevalence_start_date</span>, y <span class="op">=</span> <span class="va">prevalence</span>,</span>
 <span>             ymin <span class="op">=</span> <span class="va">prevalence_95CI_lower</span>,</span>
@@ -489,87 +489,52 @@ information on settings and attrition.</p>
 <span>  interval <span class="op">=</span> <span class="st">"Years"</span>,</span>
 <span>  fullContribution <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">TRUE</span>, <span class="cn">FALSE</span><span class="op">)</span>,</span>
 <span>  minCellCount <span class="op">=</span> <span class="fl">0</span>, </span>
+<span>  tablePrefix <span class="op">=</span> <span class="st">"example_study"</span>, <span class="co"># returnParticipants can only be TRUE if tablePrefix is not null</span></span>
 <span>  returnParticipants <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a href="../reference/settings.html">settings</a></span><span class="op">(</span><span class="va">prev</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 18</span></span></span>
-<span><span class="co">#&gt;   analysis_id outcome_…¹ outco…² analy…³ analy…⁴ analy…⁵ analy…⁶ analy…⁷ analy…⁸</span></span>
-<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 1           1          <span style="color: #BB0000;">NA</span>            0 period  years   TRUE    start   TRUE   </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 2           1          <span style="color: #BB0000;">NA</span>            0 period  years   TRUE    start   FALSE  </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># … with 9 more variables: analysis_min_cell_count &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   denominator_cohort_id &lt;int&gt;, denominator_age_group &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   denominator_sex &lt;chr&gt;, denominator_days_prior_history &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   denominator_start_date &lt;date&gt;, denominator_end_date &lt;date&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   denominator_strata_cohort_definition_id &lt;lgl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   denominator_strata_cohort_name &lt;lgl&gt;, and abbreviated variable names</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   ¹​outcome_cohort_id, ²​outcome_cohort_name, …</span></span></span>
-<span><span class="fu"><a href="../reference/attrition.html">attrition</a></span><span class="op">(</span><span class="va">prev</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 22 × 5</span></span></span>
-<span><span class="co">#&gt;    current_n reason                                        exclu…¹ step  analy…²</span></span>
-<span><span class="co">#&gt;        <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;glue&gt;</span>                                          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>     <span style="text-decoration: underline;">50</span>000 Starting population                                <span style="color: #BB0000;">NA</span> Gene… 1      </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>     <span style="text-decoration: underline;">50</span>000 Missing year of birth                               0 Gene… 1      </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>     <span style="text-decoration: underline;">50</span>000 Missing sex                                         0 Gene… 1      </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>     <span style="text-decoration: underline;">50</span>000 Cannot satisfy age criteria during the study…       0 Gene… 1      </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>     <span style="text-decoration: underline;">18</span>018 No observation time available during study p…   <span style="text-decoration: underline;">31</span>982 Gene… 1      </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>     <span style="text-decoration: underline;">18</span>018 Doesn't satisfy age criteria during the stud…       0 Gene… 1      </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>     <span style="text-decoration: underline;">18</span>018 Prior history requirement not fulfilled duri…       0 Gene… 1      </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>     <span style="text-decoration: underline;">18</span>018 No observation time available after applying…       0 Gene… 1      </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>     <span style="text-decoration: underline;">18</span>018 Starting analysis population                       <span style="color: #BB0000;">NA</span> Esti… 1      </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>     <span style="text-decoration: underline;">18</span>014 Not observed during the complete database in…       4 Esti… 1      </span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># … with 12 more rows, and abbreviated variable names ¹​excluded, ²​analysis_id</span></span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/prevalenceSet.html">prevalenceSet</a></span><span class="op">(</span><span class="va">prev</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 2 × 20</span></span></span>
+<span><span class="co">#&gt;   analysis_id outcome_cohort_id outcome_cohort_name analysis_outcome_lookback_…¹</span></span>
+<span><span class="co">#&gt;   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span>                                      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span> 1           1                 <span style="color: #BB0000;">NA</span>                                             0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span> 2           1                 <span style="color: #BB0000;">NA</span>                                             0</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ abbreviated name: ¹​analysis_outcome_lookback_days</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 16 more variables: analysis_type &lt;chr&gt;, analysis_interval &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   analysis_complete_database_intervals &lt;lgl&gt;, analysis_time_point &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   analysis_full_contribution &lt;lgl&gt;, analysis_min_cell_count &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   denominator_cohort_id &lt;int&gt;, denominator_cohort_name &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   denominator_age_group &lt;chr&gt;, denominator_sex &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   denominator_days_prior_history &lt;dbl&gt;, denominator_start_date &lt;date&gt;, …</span></span></span>
+<span><span class="fu"><a href="../reference/prevalenceAttrition.html">prevalenceAttrition</a></span><span class="op">(</span><span class="va">prev</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 22 × 7</span></span></span>
+<span><span class="co">#&gt;    analysis_id number_records number_subjects reason_id reason  excluded_records</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;glue&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 1                    <span style="text-decoration: underline;">50</span>000           <span style="text-decoration: underline;">50</span>000         1 Starti…               <span style="color: #BB0000;">NA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 1                    <span style="text-decoration: underline;">50</span>000           <span style="text-decoration: underline;">50</span>000         2 Missin…                0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 1                    <span style="text-decoration: underline;">50</span>000           <span style="text-decoration: underline;">50</span>000         3 Missin…                0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 1                    <span style="text-decoration: underline;">50</span>000           <span style="text-decoration: underline;">50</span>000         4 Cannot…                0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 1                    <span style="text-decoration: underline;">18</span>018           <span style="text-decoration: underline;">18</span>018         5 No obs…            <span style="text-decoration: underline;">31</span>982</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 1                    <span style="text-decoration: underline;">18</span>018           <span style="text-decoration: underline;">18</span>018         6 Doesn'…                0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 1                    <span style="text-decoration: underline;">18</span>018           <span style="text-decoration: underline;">18</span>018         7 Prior …                0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 1                    <span style="text-decoration: underline;">18</span>018           <span style="text-decoration: underline;">18</span>018        10 No obs…                0</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 1                    <span style="text-decoration: underline;">18</span>018           <span style="text-decoration: underline;">18</span>018        11 Starti…               <span style="color: #BB0000;">NA</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 1                    <span style="text-decoration: underline;">18</span>014           <span style="text-decoration: underline;">18</span>014        14 Not ob…                4</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 12 more rows</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: excluded_subjects &lt;dbl&gt;</span></span></span></code></pre></div>
 <p>In addition, if we set returnParticipants as TRUE as above, we can
 identify the individuals who contributed to the prevalence rate analysis
-by using `participants(), along with the start and end date of their
-contribution.</p>
+by using `participants(). For example, we can identify those people
+contributing to analysis 1 by running</p>
 <div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/participants.html">participants</a></span><span class="op">(</span><span class="va">prev</span><span class="op">)</span></span>
-<span><span class="co">#&gt; $study_population_analyis_1</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Source:   SQL [?? x 6]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.6.2-dev1166 [unknown@Linux 5.15.0-1031-azure:R 4.2.2/:memory:]</span></span></span>
-<span><span class="co">#&gt;    analysis_id subject_id cohort_start_date cohort_end_d…¹ outcome_…² outcome_…³</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 1           24         2010-10-31        2012-01-01     2011-11-29 2011-12-05</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 1           30         2009-09-16        2011-06-24     2010-04-01 2010-04-07</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 1           145        2008-12-26        2010-05-16     2010-04-01 2010-04-07</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 1           184        2008-11-04        2010-04-16     2008-12-09 2008-12-15</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 1           263        2008-06-25        2010-04-01     2008-08-21 2008-08-27</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 1           271        2008-01-01        2010-03-27     2008-10-16 2008-10-22</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 1           272        2009-05-28        2011-06-09     2009-08-23 2009-08-29</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 1           298        2009-08-05        2012-01-01     2010-11-30 2010-12-06</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 1           335        2008-09-30        2011-02-15     2010-07-10 2010-07-16</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 1           342        2008-11-28        2011-05-25     2010-11-22 2010-11-28</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># … with more rows, and abbreviated variable names ¹​cohort_end_date,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   ²​outcome_start_date, ³​outcome_end_date</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $study_population_analyis_2</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Source:   SQL [?? x 6]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.6.2-dev1166 [unknown@Linux 5.15.0-1031-azure:R 4.2.2/:memory:]</span></span></span>
-<span><span class="co">#&gt;    analysis_id subject_id cohort_start_date cohort_end_d…¹ outcome_…² outcome_…³</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 2           2          2008-01-01        2008-08-03     2008-04-18 2008-04-24</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 2           8          2008-01-01        2008-04-12     2007-08-25 2007-08-31</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 2           21         2011-06-06        2012-01-01     2013-01-12 2013-01-18</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 2           24         2010-10-31        2012-01-01     2011-11-29 2011-12-05</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 2           30         2009-09-16        2011-06-24     2010-04-01 2010-04-07</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 2           34         2008-01-01        2008-12-19     2008-11-09 2008-11-15</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 2           35         2010-06-21        2010-06-30     2010-06-29 2010-07-05</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 2           46         2008-01-01        2008-05-05     2006-12-25 2006-12-31</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 2           80         2010-11-11        2010-11-12     2010-11-12 2010-11-18</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 2           89         2011-01-10        2012-01-01     2011-03-14 2011-03-20</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># … with more rows, and abbreviated variable names ¹​cohort_end_date,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   ²​outcome_start_date, ³​outcome_end_date</span></span></span></code></pre></div>
-<p>We can find the median year of cohort entry of those people
-contributing to analysis 1 for example by</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/participants.html">participants</a></span><span class="op">(</span><span class="va">prev</span>, analysisId <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/summarise.html" class="external-link">summarise</a></span><span class="op">(</span>median_start <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="fu">year</span><span class="op">(</span><span class="va">cohort_start_date</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Source:   SQL [1 x 1]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.6.2-dev1166 [unknown@Linux 5.15.0-1031-azure:R 4.2.2/:memory:]</span></span></span>
-<span><span class="co">#&gt;   median_start</span></span>
-<span><span class="co">#&gt;          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>         <span style="text-decoration: underline;">2</span>008</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/participants.html">participants</a></span><span class="op">(</span><span class="va">prev</span>, analysisId <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Rows: ??</span></span>
+<span><span class="co">#&gt; Columns: 4</span></span>
+<span><span class="co">#&gt; Database: DuckDB 0.7.1 [unknown@Linux 5.15.0-1034-azure:R 4.2.3/:memory:]</span></span>
+<span><span class="co">#&gt; $ subject_id         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "24", "30", "145", "184", "263", "271", "272", "298…</span></span>
+<span><span class="co">#&gt; $ cohort_start_date  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2010-10-31, 2009-09-16, 2008-12-26, 2008-11-04, 20…</span></span>
+<span><span class="co">#&gt; $ cohort_end_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2011-06-24, 2010-05-16, 2010-04-16, 20…</span></span>
+<span><span class="co">#&gt; $ outcome_start_date <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2011-11-29, 2010-04-01, 2010-04-01, 2008-12-09, 20…</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
