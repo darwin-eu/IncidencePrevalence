@@ -252,7 +252,7 @@ simulated patients</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>                    1 76         2008-01-01        2008-01-16     </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ more rows</span></span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/cohortCount.html" class="external-link">cohortCount</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/cohortCount.html">cohortCount</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 3</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id number_records number_subjects</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
@@ -335,7 +335,7 @@ the end.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>                    1 105        2008-01-01        2008-05-16     </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ more rows</span></span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/cohortCount.html" class="external-link">cohortCount</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/cohortCount.html">cohortCount</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 3</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id number_records number_subjects</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
@@ -413,7 +413,7 @@ before their 66th birthday.</p>
 <span><span class="co">#&gt; $ cohort_start_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-04-20, 2008-06-08, …</span></span>
 <span><span class="co">#&gt; $ cohort_end_date      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-05-28, 2009-03-05, 2008-06-02, 2008-12-16, …</span></span>
 <span></span>
-<span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/cohortCount.html" class="external-link">cohortCount</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
+<span><span class="fu"><a href="../reference/cohortCount.html">cohortCount</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 3</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id number_records number_subjects</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
@@ -708,10 +708,10 @@ we identified 8 different cohorts:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span>                    8 Denominato… 19;100    Fema…                365 2008-01-01</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 3 more variables: end_date &lt;date&gt;, strata_cohort_definition_id &lt;lgl&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   strata_cohort_name &lt;lgl&gt;</span></span></span></code></pre></div>
-<p>With <code><a href="https://rdrr.io/pkg/CDMConnector/man/cohortCount.html" class="external-link">cohortCount()</a></code> we can see the number of individuals
+<p>With <code><a href="../reference/cohortCount.html">cohortCount()</a></code> we can see the number of individuals
 who entered each study cohort</p>
 <div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/cohortCount.html" class="external-link">cohortCount</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="../reference/cohortCount.html">cohortCount</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 8 × 3</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id number_records number_subjects</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
