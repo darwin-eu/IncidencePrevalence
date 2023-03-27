@@ -4,9 +4,16 @@
 \name{IncidencePrevalence-package}
 \alias{IncidencePrevalence}
 \alias{IncidencePrevalence-package}
-\title{IncidencePrevalence: Population Incidence and Prevalence using the OMOP Common Data Model}
+\title{IncidencePrevalence: Estimate Incidence and Prevalence using the OMOP Common Data Model}
 \description{
 Calculate incidence and prevalence using data mapped to the Observational Medical Outcomes Partnership (OMOP) common data model. Incidence and prevalence can be estimated for the total population in a database or for a stratification cohort.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://darwin-eu.github.io/IncidencePrevalence/}
+}
+
 }
 \author{
 \strong{Maintainer}: Edward Burn \email{edward.burn@ndorms.ox.ac.uk} (\href{https://orcid.org/0000-0002-9286-1128}{ORCID})

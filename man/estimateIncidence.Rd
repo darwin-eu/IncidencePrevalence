@@ -10,10 +10,9 @@ estimateIncidence(
   outcomeTable,
   denominatorCohortId = NULL,
   outcomeCohortId = NULL,
-  outcomeCohortName = NULL,
   interval = "years",
   completeDatabaseIntervals = TRUE,
-  outcomeWashout = 0,
+  outcomeWashout = Inf,
   repeatedEvents = FALSE,
   minCellCount = 5,
   tablePrefix = NULL,
@@ -39,8 +38,6 @@ analysis.}
 cohorts of interest. If NULL all cohorts will be considered in the
 analysis.}
 
-\item{outcomeCohortName}{Corresponding names for each outcomeCohortId.}
-
 \item{interval}{Time intervals over which incidence is estimated. Can
 be "weeks", "months", "quarters", "years", or "overall". ISO weeks will
 be used for weeks. Calendar months, quarters, or years can be used, or an
@@ -55,7 +52,7 @@ period start dates, respectively).}
 
 \item{outcomeWashout}{The number of days used for a 'washout' period
 between the end of one outcome and an individual starting to contribute
-time at risk. If NULL, no time can be contributed after an event has
+time at risk. If Inf, no time can be contributed after an event has
 occurred (whether during the study period or if occurring beforehand).}
 
 \item{repeatedEvents}{TRUE/ FALSE. If TRUE, an individual will be able to
@@ -76,8 +73,7 @@ used throughout.}
 \item{returnParticipants}{Either TRUE or FALSE. If TRUE references to
 participants from the analysis will be returned allowing for further
 analysis. Note, if using permanent tables and returnParticipants is TRUE,
-one table per analysis will be kept in the cdm write schema (these
-can be dropped at subsequently using dropStemTables() function)}
+one table per analysis will be kept in the cdm write schema.}
 
 \item{verbose}{Either TRUE or FALSE. If TRUE, progress will be reported.}
 }
@@ -88,12 +84,8 @@ Incidence estimates
 Collect population incidence estimates
 }
 \examples{
-\dontrun{
-db <- DBI::dbConnect(" Your database connection here ")
-cdm <- CDMConnector::cdm_from_con(
-  con = db,
-  cdm_schema = "cdm schema name"
-)
+\donttest{
+cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
 cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),

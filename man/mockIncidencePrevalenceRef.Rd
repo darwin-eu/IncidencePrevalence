@@ -90,28 +90,7 @@ Generate example subset of the OMOP CDM for
 estimating incidence and prevalence
 }
 \examples{
-\dontrun{
-library(DBI)
-library(duckdb)
-library(tibble)
-library(IncidencePrevalence)
-person_example <- tibble(
-  person_id = "1",
-  gender_concept_id = "8507",
-  year_of_birth = 2000,
-  month_of_birth = 06,
-  day_of_birth = 01
-)
-observation_period_example <- tibble(
-  observation_period_id = "1",
-  person_id = "1",
-  observation_period_start_date = as.Date("2010-01-01"),
-  observation_period_end_date = as.Date("2015-06-01")
-)
-db <- mockIncidencePrevalenceRef(
-  personTable = person_example,
-  observationPeriodTable = observation_period_example)
-)
-}
+cdm <- mockIncidencePrevalenceRef(sampleSize = 100)
+cdm
 
 }

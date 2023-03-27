@@ -58,29 +58,8 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' library(DBI)
-#' library(duckdb)
-#' library(tibble)
-#' library(IncidencePrevalence)
-#' person_example <- tibble(
-#'   person_id = "1",
-#'   gender_concept_id = "8507",
-#'   year_of_birth = 2000,
-#'   month_of_birth = 06,
-#'   day_of_birth = 01
-#' )
-#' observation_period_example <- tibble(
-#'   observation_period_id = "1",
-#'   person_id = "1",
-#'   observation_period_start_date = as.Date("2010-01-01"),
-#'   observation_period_end_date = as.Date("2015-06-01")
-#' )
-#' db <- mockIncidencePrevalenceRef(
-#'   personTable = person_example,
-#'   observationPeriodTable = observation_period_example)
-#' )
-#' }
+#' cdm <- mockIncidencePrevalenceRef(sampleSize = 100)
+#' cdm
 #'
 mockIncidencePrevalenceRef <- function(personTable = NULL,
                                        observationPeriodTable = NULL,
@@ -142,8 +121,12 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
   set.seed(seed)
 
   if (is.null(personTable) || is.null(observationPeriodTable)) {
-    # person table
+    # person table mock ids
     id <- as.character(seq(1:sampleSize))
+
+    # person table mock values
+    values <- seq(1:sampleSize)
+
     # person gender
     genderId <- sample(c("8507", "8532"),
       sampleSize,
@@ -224,19 +207,19 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
         year_of_birth = dobYear,
         month_of_birth = dobMonth,
         day_of_birth = dobDay,
-        birth_datetime = NA,
-        race_concept_id = NA,
-        ethnicity_concept_id = NA,
-        location_id = NA,
-        provider_id = NA,
-        care_site_id = NA,
-        person_source_value = NA,
-        gender_source_value = NA,
-        gender_source_concept_id = NA,
-        race_source_value = NA,
-        race_source_concept_id = NA,
-        ethnicity_source_value = NA,
-        ethnicity_source_concept_id = NA
+        birth_datetime = dateOfBirth,
+        race_concept_id = id,
+        ethnicity_concept_id = id,
+        location_id = id,
+        provider_id = id,
+        care_site_id = id,
+        person_source_value = values,
+        gender_source_value = values,
+        gender_source_concept_id = id,
+        race_source_value = values,
+        race_source_concept_id = id,
+        ethnicity_source_value = values,
+        ethnicity_source_concept_id = id
       )
     }
 

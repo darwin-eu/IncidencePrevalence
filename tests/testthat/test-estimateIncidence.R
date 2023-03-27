@@ -8,7 +8,6 @@ test_that("mock db: check output format", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortName = "test_outcome",
     interval = "months"
   )
 
@@ -29,9 +28,10 @@ test_that("mock db: check output format", {
     "denominator_start_date",
     "denominator_end_date",
     "denominator_strata_cohort_definition_id",
-    "denominator_strata_cohort_name"
+    "denominator_strata_cohort_name",
+    "cdm_name"
   ) %in%
-    names(settings(inc))))
+    names(incidenceSet(inc))))
 
   # check estimates tibble
   expect_true(all(c(
@@ -50,10 +50,15 @@ test_that("mock db: check output format", {
   ) %in%
     names(inc)))
 
-  expect_true(tibble::is_tibble(attrition(inc)))
-  expect_true(tibble::is_tibble(attrition(inc, analysisId = 1)))
+  expect_true(all(c(
+    "analysis_id", "number_records", "number_subjects",
+    "reason_id","reason",
+    "excluded_records", "excluded_subjects"
+  ) %in%
+    names(incidenceAttrition(inc))))
+
   # do not return participants as default
-  expect_true(is.null(participants(inc)))
+  expect_true(is.null(participants(inc, 1)))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   cdm <- mockIncidencePrevalenceRef()
@@ -62,11 +67,10 @@ test_that("mock db: check output format", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortName = "test_outcome",
     interval = "months",
+    tablePrefix =  "result", # returnParticipants requires use of tablePrefix
     returnParticipants = TRUE
   )
-  expect_true(is.list(participants(inc))) # list of references to participants
   expect_true(tibble::is_tibble(participants(inc, 1) %>%
                                   dplyr::collect()))
   expect_true(participants(inc, 1) %>%
@@ -126,6 +130,7 @@ test_that("mock db: checks on working example", {
 })
 
 test_that("mock db: check working example 2", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -199,7 +204,7 @@ test_that("mock db: check working example 2", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     repeatedEvents = TRUE,
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
@@ -209,7 +214,7 @@ test_that("mock db: check working example 2", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     repeatedEvents = TRUE,
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     minCellCount = 0,
     interval = "weeks",
     completeDatabaseIntervals = FALSE
@@ -220,6 +225,7 @@ test_that("mock db: check working example 2", {
 })
 
 test_that("mock db: check study periods", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -260,6 +266,7 @@ test_that("mock db: check study periods", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "months",
+    outcomeWashout = 0,
     repeatedEvents = TRUE,
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
@@ -274,6 +281,7 @@ test_that("mock db: check study periods", {
   inc <- estimateIncidence(cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
+    outcomeWashout = 0,
     interval = "months",
     repeatedEvents = TRUE,
     minCellCount = 0,
@@ -288,6 +296,7 @@ test_that("mock db: check study periods", {
 })
 
 test_that("mock db: check overall", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = "8507",
@@ -374,6 +383,7 @@ test_that("mock db: check overall", {
 })
 
 test_that("mock db: check person days", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
@@ -466,6 +476,7 @@ test_that("mock db: check person days", {
 })
 
 test_that("mock db: check periods follow calendar dates", {
+  skip_on_cran()
   # check that even if startDate as during a period
   # periods still follow calendar dates
   personTable <- tibble::tibble(
@@ -550,6 +561,7 @@ test_that("mock db: check periods follow calendar dates", {
 })
 
 test_that("mock db: check washout windows", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -639,7 +651,7 @@ test_that("mock db: check washout windows", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     repeatedEvents = TRUE,
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
@@ -702,6 +714,7 @@ test_that("mock db: check washout windows", {
 })
 
 test_that("mock db: check events overlapping with start of a period", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
@@ -744,7 +757,7 @@ test_that("mock db: check events overlapping with start of a period", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Years"),
     verbose = TRUE,
@@ -796,7 +809,7 @@ test_that("mock db: check events overlapping with start of a period", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Years"),
     verbose = TRUE,
@@ -808,6 +821,7 @@ test_that("mock db: check events overlapping with start of a period", {
 })
 
 test_that("mock db: compare results from months and years", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = rep("8507", 2),
@@ -956,6 +970,7 @@ test_that("mock db: compare results from months and years", {
 })
 
 test_that("mock db: check entry and event on same day", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -993,7 +1008,7 @@ test_that("mock db: check entry and event on same day", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     repeatedEvents = FALSE,
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     interval = "years",
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
@@ -1005,7 +1020,7 @@ test_that("mock db: check entry and event on same day", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     repeatedEvents = TRUE,
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     interval = "years",
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
@@ -1016,6 +1031,7 @@ test_that("mock db: check entry and event on same day", {
 })
 
 test_that("mock db: cohort start overlaps with the outcome", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
@@ -1070,6 +1086,7 @@ test_that("mock db: cohort start overlaps with the outcome", {
 })
 
 test_that("mock db: check outcome before observation period start", {
+  skip_on_cran()
   # 1) with outcome starting and ending before observation period start
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
@@ -1123,7 +1140,7 @@ test_that("mock db: check outcome before observation period start", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Years"),
     minCellCount = 0
@@ -1187,7 +1204,7 @@ test_that("mock db: check outcome before observation period start", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Years"),
     minCellCount = 0
@@ -1251,7 +1268,7 @@ test_that("mock db: check outcome before observation period start", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Years"),
     minCellCount = 0
@@ -1264,6 +1281,7 @@ test_that("mock db: check outcome before observation period start", {
 })
 
 test_that("mock db: check minimum counts", {
+  skip_on_cran()
   # 20 people
   personTable <- tibble::tibble(
     person_id = as.character(c(1:20)),
@@ -1363,6 +1381,7 @@ test_that("mock db: check minimum counts", {
 })
 
 test_that("mock db: multiple overlapping outcomes", {
+  skip_on_cran()
   # two
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
@@ -1469,6 +1488,7 @@ test_that("mock db: multiple overlapping outcomes", {
 })
 
 test_that("mock db: cohort before period start ending after period", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
@@ -1536,7 +1556,7 @@ test_that("mock db: cohort before period start ending after period", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = FALSE,
     interval = c("Years"),
     verbose = TRUE,
@@ -1549,6 +1569,7 @@ test_that("mock db: cohort before period start ending after period", {
 })
 
 test_that("mock db: check full period requirement - year", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
@@ -1590,7 +1611,7 @@ test_that("mock db: check full period requirement - year", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Years"),
     verbose = TRUE,
@@ -1642,7 +1663,7 @@ test_that("mock db: check full period requirement - year", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Years"),
     verbose = TRUE,
@@ -1654,6 +1675,7 @@ test_that("mock db: check full period requirement - year", {
 })
 
 test_that("mock db: check full period requirement - month", {
+  skip_on_cran()
   # expected to work
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
@@ -1696,7 +1718,7 @@ test_that("mock db: check full period requirement - month", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Months"),
     verbose = TRUE,
@@ -1748,7 +1770,7 @@ test_that("mock db: check full period requirement - month", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = NULL,
+    outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Months"),
     verbose = TRUE,
@@ -1761,6 +1783,7 @@ test_that("mock db: check full period requirement - month", {
 })
 
 test_that("mock db: check completeDatabaseIntervals", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
@@ -1806,6 +1829,7 @@ test_that("mock db: check completeDatabaseIntervals", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = c("Years"),
+    outcomeWashout = 0,
     repeatedEvents = TRUE,
     completeDatabaseIntervals = TRUE,
     minCellCount = 0
@@ -1835,6 +1859,7 @@ test_that("mock db: check completeDatabaseIntervals", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
+    outcomeWashout = 0,
     interval = c("Years"),
     repeatedEvents = TRUE,
     completeDatabaseIntervals = FALSE,
@@ -1864,6 +1889,7 @@ test_that("mock db: check completeDatabaseIntervals", {
 })
 
 test_that("mock db: check insufficient study days", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
@@ -1919,6 +1945,7 @@ test_that("mock db: check insufficient study days", {
 })
 
 test_that("mock db: check with and without study start and end date", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3", "4", "5", "6"),
     gender_concept_id = "8507",
@@ -2100,6 +2127,7 @@ test_that("mock db: check with and without study start and end date", {
 })
 
 test_that("mock db: check study start and end date 10000", {
+  skip_on_cran()
   # with one outcome per person
   cdm <- mockIncidencePrevalenceRef(
     sampleSize = 10000,
@@ -2356,6 +2384,7 @@ test_that("mock db: check study start and end date 10000", {
 })
 
 test_that("mock db: check messages when vebose is true", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -2398,6 +2427,7 @@ test_that("mock db: check messages when vebose is true", {
 })
 
 test_that("expected errors with mock", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -2476,10 +2506,20 @@ test_that("expected errors with mock", {
     outcomeCohortId = 11
   ))
 
+  # returnParticipants only works with tablePrefix
+  expect_error(estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    tablePrefix = NULL,
+    returnParticipants = TRUE
+  ))
+
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: multiple observation periods", {
+  skip_on_cran()
   # create data for hypothetical people to test
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
@@ -2851,6 +2891,7 @@ test_that("mock db: multiple observation periods", {
 })
 
 test_that("mock db: check confidence intervals", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef(
     sampleSize = 10000
   )
@@ -2882,6 +2923,7 @@ test_that("mock db: check confidence intervals", {
 })
 
 test_that("mock db: check attrition", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
@@ -2893,28 +2935,31 @@ test_that("mock db: check attrition", {
     interval = "years"
   )
   # for female cohort we should have a row for those excluded for not being male
-  expect_true(any("Not Female" == settings(inc) %>%
+  expect_true(any("Not Female" == incidenceSet(inc) %>%
     dplyr::filter(denominator_sex == "Female") %>%
-    dplyr::inner_join(attrition(inc),
+    dplyr::inner_join(incidenceAttrition(inc), multiple = "all",
       by = "analysis_id"
     ) %>%
     dplyr::pull(.data$reason)))
   # for male, the opposite
-  expect_true(any("Not Male" == settings(inc) %>%
+  expect_true(any("Not Male" == incidenceSet(inc) %>%
     dplyr::filter(denominator_sex == "Male") %>%
-    dplyr::inner_join(attrition(inc),
+    dplyr::inner_join(incidenceAttrition(inc), multiple = "all",
       by = "analysis_id"
     ) %>%
     dplyr::pull(.data$reason)))
 
   # check we can pick out specific analysis attrition
-  expect_true(unique(attrition(result = inc, analysisId = 1)$analysis_id) == 1)
-  expect_true(unique(attrition(result = inc, analysisId = 2)$analysis_id) == 2)
+  expect_true(nrow(incidenceAttrition(result = inc) %>%
+                     dplyr::filter(analysis_id== 1)) > 1)
+  expect_true(nrow(incidenceAttrition(result = inc) %>%
+                     dplyr::filter(analysis_id== 2)) > 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: check attrition with complete database intervals", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = "8507",
@@ -2966,14 +3011,15 @@ test_that("mock db: check attrition with complete database intervals", {
     interval = "years"
   )
 
-  expect_true(attrition(inc) %>%
+  expect_true(incidenceAttrition(inc) %>%
     dplyr::filter(reason == "Not observed during the complete database interval") %>%
-    dplyr::pull(excluded) == 1)
+    dplyr::pull(excluded_subjects) == 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: check compute permanent", {
+  skip_on_cran()
 
   # using temp
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
@@ -3015,7 +3061,6 @@ test_that("mock db: check compute permanent", {
   expect_false(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
                                       "dbplyr_")))
 
-
   inc <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "dpop",
@@ -3027,9 +3072,55 @@ test_that("mock db: check compute permanent", {
   expect_true(any(stringr::str_detect(
     CDMConnector::listTables(attr(cdm, "dbcon"),
                              schema = attr(cdm, "write_schema")),
-    "result_incidence_analysis_1")))
+    "result_incidence_participants")))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
 })
 
+test_that("mock db: check participants", {
+  skip_on_cran()
+
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm$dpop <- generateDenominatorCohortSet(cdm = cdm,
+                                           sex = c("Male", "Female", "Both"),
+                                           ageGroup = list(c(0,50),
+                                                           c(51,100)),
+                                           tablePrefix = "test")
+  inc <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "dpop",
+    outcomeTable = "outcome",
+    interval = "overall",
+    tablePrefix = "test",
+    returnParticipants = TRUE
+  )
+
+  # we should have cleaned up all the intermediate tables
+  expect_true(all(CDMConnector::listTables(attr(cdm, "dbcon"),
+                           schema = attr(cdm, "write_schema")) %in%
+               c("test_denominator",
+                 "test_incidence_participants",
+                 "test_denominator_attrition",
+                 "test_denominator_set" ,
+                 "test_denominator_count",
+                 "vocabulary" ,
+                 "cdm_source", "outcome", "strata",
+                 "observation_period", "person" )))
+  expect_true(all(!c("test_incidence_analysis_1",
+                    "test_incidence_working_5") %in%
+                    CDMConnector::listTables(attr(cdm, "dbcon"),
+                                             schema = attr(cdm,
+                                                           "write_schema"))))
+  expect_equal(names(participants(inc, 1) %>%
+    head(1) %>%
+    dplyr::collect()),
+    c("subject_id",
+      "cohort_start_date",
+      "cohort_end_date",
+      "outcome_start_date"
+      ))
+
+    DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+    })

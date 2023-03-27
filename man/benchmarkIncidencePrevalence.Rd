@@ -9,6 +9,7 @@ benchmarkIncidencePrevalence(
   startDate = NULL,
   endDate = NULL,
   tablePrefix = NULL,
+  returnParticipants = FALSE,
   sample = NULL,
   nOutcomes = 1,
   prevOutcomes = 0.25,
@@ -33,6 +34,9 @@ observation end date in the observation period  table will be used.}
 be created. Permanent tables will be created using this stem, and any
 existing tables that start with this will be at risk of being dropped
 or overwritten. If NULL, temporary tables will be used throughout.}
+
+\item{returnParticipants}{Whether to return participants (Requires tablePrefix
+to have been specified)}
 
 \item{sample}{An integer for which to take a random sample when generating
 the denominator cohort}
@@ -60,13 +64,11 @@ a tibble with time taken for different analyses
 Run benchmark of incidence and prevalence analyses
 }
 \examples{
-\dontrun{
-con <- DBI::dbConnect(duckdb::duckdb(), CDMConnector::eunomia_dir())
-cdm <- CDMConnector::cdm_from_con(
-  con = con,
-  cdm_schema = "main"
-)
-
-timings <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm)
+\donttest{
+cdm <- mockIncidencePrevalenceRef(sampleSize = 10000,
+                                  earliestObservationStartDate = as.Date("2010-01-01") ,
+                                  latestObservationStartDate = as.Date("2018-01-01"))
+timings <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm,
+                                                             verbose = TRUE)
 }
 }

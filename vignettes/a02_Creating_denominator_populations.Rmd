@@ -18,6 +18,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r, message= FALSE, warning=FALSE, echo=FALSE}
+library(CDMConnector)
 library(IncidencePrevalence)
 library(dbplyr)
 library(dplyr)
@@ -321,7 +322,7 @@ cdm$denominator <- generateDenominatorCohortSet(
 )
 dpop <- cdm$denominator %>%
   collect() %>%
-  left_join(settings(cdm$denominator))
+  left_join(cohortSet(cdm$denominator))
 
 dpop %>%
   glimpse()
@@ -362,7 +363,7 @@ cdm$denominator <- generateDenominatorCohortSet(
 )
 dpop <- cdm$denominator %>%
   collect() %>%
-  left_join(settings(cdm$denominator))
+  left_join(cohortSet(cdm$denominator))
 
 dpop %>% glimpse()
 
@@ -403,7 +404,7 @@ cdm$denominator <- generateDenominatorCohortSet(
 )
 dpop <- cdm$denominator %>%
   collect() %>%
-  left_join(settings(cdm$denominator))
+  left_join(cohortSet(cdm$denominator))
 
 dpop %>% glimpse()
 
@@ -450,10 +451,10 @@ cdm$denominator <- generateDenominatorCohortSet(
 head(cdm$denominator, 8)
 ```
 
-The output table will have several attributes. With `settings()` we can see the options used when defining the set of denominator populations. More than one age, sex and prior history requirements can be specified at the same time and each combination of these variables will result in a different cohort, each of which has a corresponding cohort_definition_id. In the above example, we identified 8 different cohorts:
+The output table will have several attributes. With `CDMConnector::cohortSet()` we can see the options used when defining the set of denominator populations. More than one age, sex and prior history requirements can be specified at the same time and each combination of these variables will result in a different cohort, each of which has a corresponding cohort_definition_id. In the above example, we identified 8 different cohorts:
 
 ```{r, message=TRUE, warning=FALSE}
-settings(cdm$denominator)
+cohortSet(cdm$denominator)
 ```
 
 With `cohortCount()` we can see the number of individuals who entered each study cohort
@@ -461,10 +462,10 @@ With `cohortCount()` we can see the number of individuals who entered each study
 cohortCount(cdm$denominator)
 ```
 
-With `attrition()` we can see the number of individuals in the database who were excluded from entering a given denominator population along with the reason (such as missing crucial information or not satisfying the sex or age criteria required, among others):
+With `CDMConnector::cohortAttrition()` we can see the number of individuals in the database who were excluded from entering a given denominator population along with the reason (such as missing crucial information or not satisfying the sex or age criteria required, among others):
 
 ```{r, message=TRUE, warning=FALSE}
-attrition(cdm$denominator)
+cohortAttrition(cdm$denominator)
 ```
 
 # Using generateDenominatorCohortSet() with a cohort
@@ -636,5 +637,5 @@ cdm$denominator
 In this case we have used the same strata than before, but we have restricted our analysis to females and we have limited our study period. As we can see, using this period of time we don't capture patient "2" (who was a man) and we only observe one time period for individuals "3" and "5" (who had multiple contributing time periods in the prior example).
 
 ```{r, message=FALSE, warning=FALSE}
-settings(cdm$denominator)
+cohortSet(cdm$denominator)
 ```

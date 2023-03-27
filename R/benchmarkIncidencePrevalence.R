@@ -27,6 +27,8 @@
 #' be created. Permanent tables will be created using this stem, and any
 #' existing tables that start with this will be at risk of being dropped
 #' or overwritten. If NULL, temporary tables will be used throughout.
+#' @param returnParticipants Whether to return participants (Requires tablePrefix
+#' to have been specified)
 #' @param sample An integer for which to take a random sample when generating
 #' the denominator cohort
 #' @param nOutcomes An integer specifying the number of outcomes to create in
@@ -44,19 +46,18 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' con <- DBI::dbConnect(duckdb::duckdb(), CDMConnector::eunomia_dir())
-#' cdm <- CDMConnector::cdm_from_con(
-#'   con = con,
-#'   cdm_schema = "main"
-#' )
-#'
-#' timings <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm)
+#' \donttest{
+#' cdm <- mockIncidencePrevalenceRef(sampleSize = 10000,
+#'                                   earliestObservationStartDate = as.Date("2010-01-01") ,
+#'                                   latestObservationStartDate = as.Date("2018-01-01"))
+#' timings <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm,
+#'                                                              verbose = TRUE)
 #' }
 benchmarkIncidencePrevalence <- function(cdm,
                                          startDate = NULL,
                                          endDate = NULL,
                                          tablePrefix = NULL,
+                                         returnParticipants = FALSE,
                                          sample = NULL,
                                          nOutcomes = 1,
                                          prevOutcomes = 0.25,
@@ -66,9 +67,6 @@ benchmarkIncidencePrevalence <- function(cdm,
                                          verbose = FALSE) {
   errorMessage <- checkmate::makeAssertCollection()
   cdmCheck <- inherits(cdm, "cdm_reference")
-  checkmate::assertTRUE(cdmCheck,
-    add = errorMessage
-  )
   if (!isTRUE(cdmCheck)) {
     errorMessage$push(
       "- cdm must be a CDMConnector CDM reference object"
@@ -95,9 +93,6 @@ benchmarkIncidencePrevalence <- function(cdm,
                            upper = 1
   )
   lengthpOcheck <- length(prevOutcomes) %in% c(1,nOutcomes)
-  checkmate::assertTRUE(lengthpOcheck,
-                        add = errorMessage
-  )
   if (!isTRUE(lengthpOcheck)) {
     errorMessage$push(
       "- `prevOutcomes` is not of the expected length (either 1 or nOutcomes)"
@@ -105,9 +100,6 @@ benchmarkIncidencePrevalence <- function(cdm,
   }
   analysistypeCheck <- analysisType %in% c("all", "only incidence",
                                            "only prevalence")
-  checkmate::assertTRUE(analysistypeCheck,
-                        add = errorMessage
-  )
   if (!isTRUE(analysistypeCheck)) {
     errorMessage$push(
       "- `analysisType` is not one of the possibilities
@@ -184,6 +176,7 @@ benchmarkIncidencePrevalence <- function(cdm,
                                               "cohort_end_date"))
     }
   }
+  cdm$bench_outcome <- CDMConnector::newGeneratedCohortSet(cdm$bench_outcome)
 
   # calculate prevalence if analysisType is not "only incidence"
   if(analysisType != "only incidence") {
@@ -192,6 +185,7 @@ benchmarkIncidencePrevalence <- function(cdm,
     point_prev_typical_years <- estimatePointPrevalence(
       cdm = cdm,
       tablePrefix = tablePrefix,
+      returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "years",
@@ -207,6 +201,7 @@ benchmarkIncidencePrevalence <- function(cdm,
     point_prev_typical_months <- estimatePointPrevalence(
       cdm = cdm,
       tablePrefix = tablePrefix,
+      returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "months",
@@ -223,6 +218,7 @@ benchmarkIncidencePrevalence <- function(cdm,
     period_prev_typical_years <- estimatePeriodPrevalence(
       cdm = cdm,
       tablePrefix = tablePrefix,
+      returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "years",
@@ -239,6 +235,7 @@ benchmarkIncidencePrevalence <- function(cdm,
     period_prev_typical_months <- estimatePeriodPrevalence(
       cdm = cdm,
       tablePrefix = tablePrefix,
+      returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "months",
@@ -258,6 +255,7 @@ benchmarkIncidencePrevalence <- function(cdm,
     inc_typical_years <- estimateIncidence(
       cdm = cdm,
       tablePrefix = tablePrefix,
+      returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "years",
@@ -273,6 +271,7 @@ benchmarkIncidencePrevalence <- function(cdm,
     inc_typical_months <- estimateIncidence(
       cdm = cdm,
       tablePrefix = tablePrefix,
+      returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "months",
@@ -308,6 +307,14 @@ benchmarkIncidencePrevalence <- function(cdm,
   } else {
     timings <- timings %>%
       dplyr::mutate(tables = "permanent")
+  }
+
+  if(is.null(returnParticipants)){
+    timings <- timings %>%
+      dplyr::mutate(with_participants = "No")
+  } else {
+    timings <- timings %>%
+      dplyr::mutate(with_participants = "Yes")
   }
 
   if (!is.null(outputFolder) && dir.exists(outputFolder)) {

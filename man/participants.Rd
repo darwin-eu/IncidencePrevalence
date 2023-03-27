@@ -4,7 +4,7 @@
 \alias{participants}
 \title{Participants contributing to an analysis}
 \usage{
-participants(result, analysisId = NULL)
+participants(result, analysisId)
 }
 \arguments{
 \item{result}{Result object}
@@ -19,20 +19,15 @@ a given analysis
 Participants contributing to an analysis
 }
 \examples{
+\donttest{
 cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-cdm$denominator <- generateDenominatorCohortSet(cdm,
-  startDate = NULL,
-  endDate = NULL,
-  ageGroup = list(c(18, 40)),
-  sex = c("Female", "Male"),
-  daysPriorHistory = 120
-)
+cdm$denominator <- generateDenominatorCohortSet(cdm)
 incidence <- estimateIncidence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "overall"
 )
-participants(result = incidence)
 participants(result = incidence, analysisId = 1)
+}
 }

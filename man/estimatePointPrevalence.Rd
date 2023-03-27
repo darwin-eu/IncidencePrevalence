@@ -10,7 +10,6 @@ estimatePointPrevalence(
   outcomeTable,
   denominatorCohortId = NULL,
   outcomeCohortId = NULL,
-  outcomeCohortName = NULL,
   outcomeLookbackDays = 0,
   interval = "years",
   timePoint = "start",
@@ -38,8 +37,6 @@ analysis.}
 cohorts of interest. If NULL all cohorts will be considered in the
 analysis.}
 
-\item{outcomeCohortName}{Corresponding names for each outcomeCohortId.}
-
 \item{outcomeLookbackDays}{Days lookback when considering an outcome
 as prevalent. If NULL any prior outcome will be considered as prevalent. If
 0, only ongoing outcomes will be considered as prevalent.}
@@ -64,8 +61,7 @@ used throughout.}
 \item{returnParticipants}{Either TRUE or FALSE. If TRUE references to
 participants from the analysis will be returned allowing for further
 analysis. Note, if using permanent tables and returnParticipants is TRUE,
-one table per analysis will be kept in the cdm write schema (these
-can be dropped at subsequently using dropStemTables() function)}
+one table per analysis will be kept in the cdm write schema.}
 
 \item{verbose}{Whether to report progress}
 }
@@ -76,12 +72,8 @@ Point prevalence estimates
 Estimate point prevalence
 }
 \examples{
-\dontrun{
-db <- DBI::dbConnect(" Your database connection here ")
-cdm <- CDMConnector::cdm_from_con(
-  con = db,
-  cdm_schema = "cdm schema name"
-)
+\donttest{
+cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
 cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),

@@ -8,7 +8,6 @@ test_that("mock db: check output format", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortName = "test_outcome",
     interval = "years"
   )
 
@@ -43,48 +42,20 @@ test_that("mock db: check output format", {
     "denominator_sex",
     "denominator_days_prior_history",
     "denominator_start_date",
-    "denominator_end_date"
+    "denominator_end_date",
+    "cdm_name"
   ) %in%
-    names(settings(prev))))
+    names(prevalenceSet(prev))))
 
   expect_true(all(c(
-    "outcome_cohort_id",
-    "analysis_id",
-    "analysis_type",
-    "analysis_time_point",
-    "analysis_interval",
-    "analysis_full_contribution",
-    "analysis_complete_database_intervals",
-    "analysis_min_cell_count",
-    "denominator_cohort_id",
-    "denominator_age_group",
-    "denominator_sex",
-    "denominator_days_prior_history",
-    "denominator_start_date",
-    "denominator_end_date"
+    "analysis_id", "number_records", "number_subjects",
+    "reason_id","reason",
+    "excluded_records", "excluded_subjects"
   ) %in%
-    names(settings(prev, analysisId = 1))))
-
-  expect_true(all(c(
-    "analysis_id",
-    "step",
-    "current_n",
-    "reason",
-    "excluded"
-  ) %in%
-    names(attrition(prev))))
-
-  expect_true(all(c(
-    "analysis_id",
-    "step",
-    "current_n",
-    "reason",
-    "excluded"
-  ) %in%
-    names(attrition(prev, analysisId = 1))))
+    names(prevalenceAttrition(prev))))
 
   # by default we don´t return the participants
-  expect_true(is.null(participants(prev)))
+  expect_true(is.null(participants(prev, analysisId = 1)))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
 
@@ -95,12 +66,12 @@ test_that("mock db: check output format", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeCohortName = "test_outcome",
     interval = "years",
+    tablePrefix = "result",
     returnParticipants = TRUE
   )
   # now we do return the participants
-  expect_true(is.list(participants(prev))) # list of references to participants
+  expect_true(is.list(participants(prev, 1))) # list of references to participants
   expect_true(tibble::is_tibble(participants(prev, 1) %>%
     dplyr::collect()))
   expect_true(participants(prev, 1) %>%
@@ -161,6 +132,7 @@ test_that("mock db: checks on working example", {
 })
 
 test_that("mock db: working examples 2", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -217,6 +189,7 @@ test_that("mock db: working examples 2", {
 })
 
 test_that("mock db: check outcome lookback", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -318,6 +291,7 @@ test_that("mock db: check outcome lookback", {
 })
 
 test_that("mock db: check minimum counts", {
+  skip_on_cran()
   # 20 people
   personTable <- tibble::tibble(
     person_id = as.character(c(1:20)),
@@ -423,6 +397,7 @@ test_that("mock db: check minimum counts", {
 })
 
 test_that("mock db: check study time periods", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -558,6 +533,7 @@ test_that("mock db: check study time periods", {
 })
 
 test_that("mock db: check fullContribution requirement", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3"),
     gender_concept_id = "8507",
@@ -625,15 +601,16 @@ test_that("mock db: check fullContribution requirement", {
 
   expect_true(all(prev$n_population == c(2, 1, 1)))
 
-  expect_true(attrition(prev) %>%
+  expect_true(prevalenceAttrition(prev) %>%
     dplyr::filter(reason ==
             "Do not satisfy full contribution requirement for an interval") %>%
-    dplyr::pull(excluded) == 1)
+    dplyr::pull("excluded_subjects") == 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: check periods follow calendar dates", {
+  skip_on_cran()
   # check that even if study_start_date is during a period
   # periods still follow calendar dates
   personTable <- tibble::tibble(
@@ -754,6 +731,7 @@ test_that("mock db: check periods follow calendar dates", {
 })
 
 test_that("mock db: check multiple outcome ids", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = "8507",
@@ -799,6 +777,7 @@ test_that("mock db: check multiple outcome ids", {
 })
 
 test_that("mock db: some empty result sets", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = "8507",
@@ -853,6 +832,7 @@ test_that("mock db: some empty result sets", {
 })
 
 test_that("mock db: check messages when vebose is true", {
+  skip_on_cran()
   outcomeTable <- tibble::tibble(
     cohort_definition_id = 1,
     subject_id = "1",
@@ -886,6 +866,7 @@ test_that("mock db: check messages when vebose is true", {
 })
 
 test_that("mock db: check expected errors", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -929,10 +910,21 @@ test_that("mock db: check expected errors", {
     denominatorCohortId = 1
   ))
 
+  expect_error(estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    outcomeCohortId = 1,
+    denominatorCohortId = 1,
+    tablePrefix = NULL,
+    returnParticipants = TRUE
+  ))
+
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: check user point prevalence function", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef()
 
   cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
@@ -949,8 +941,8 @@ test_that("mock db: check user point prevalence function", {
   )
 
   expect_true(all(names(prev) == names(prev_point)))
-  expect_true(all(names(settings(prev)) ==
-    names(settings(prev_point))))
+  expect_true(all(names(prevalenceSet(prev)) ==
+    names(prevalenceSet(prev_point))))
   expect_true(all(names(prev) ==
     names(prev_point)))
 
@@ -958,6 +950,7 @@ test_that("mock db: check user point prevalence function", {
 })
 
 test_that("mock db: check user period prevalence function", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef()
 
   cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
@@ -975,8 +968,8 @@ test_that("mock db: check user period prevalence function", {
   )
 
   expect_true(all(names(prev) == names(prev_period)))
-  expect_true(all(names(settings(prev)) ==
-    names(settings(prev_period))))
+  expect_true(all(names(prevalenceSet(prev)) ==
+    names(prevalenceSet(prev_period))))
   expect_true(all(names(prev) ==
     names(prev_period)))
 
@@ -984,6 +977,7 @@ test_that("mock db: check user period prevalence function", {
 })
 
 test_that("mock db: multiple observation periods", {
+  skip_on_cran()
   # create data for hypothetical people to test
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
@@ -1115,6 +1109,7 @@ test_that("mock db: multiple observation periods", {
 })
 
 test_that("mock db: check confidence intervals", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm
@@ -1144,6 +1139,7 @@ test_that("mock db: check confidence intervals", {
 })
 
 test_that("mock db: check attrition", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
   cdm$denominator <- generateDenominatorCohortSet(
     cdm = cdm,
@@ -1158,28 +1154,31 @@ test_that("mock db: check attrition", {
   )
 
   # for female cohort we should have a row for those excluded for not being male
-  expect_true(any("Not Female" == settings(prev) %>%
+  expect_true(any("Not Female" == prevalenceSet(prev) %>%
     dplyr::filter(denominator_sex == "Female") %>%
-    dplyr::inner_join(attrition(prev),
-      by = "analysis_id"
+    dplyr::inner_join(prevalenceAttrition(prev),
+      by = "analysis_id", multiple = "all"
     ) %>%
     dplyr::pull(.data$reason)))
   # for male, the opposite
-  expect_true(any("Not Male" == settings(prev) %>%
+  expect_true(any("Not Male" == prevalenceSet(prev) %>%
     dplyr::filter(denominator_sex == "Male") %>%
-    dplyr::inner_join(attrition(prev),
+    dplyr::inner_join(prevalenceAttrition(prev),multiple = "all",
       by = "analysis_id"
     ) %>%
     dplyr::pull(.data$reason)))
 
   # check we can pick out specific analysis attrition
-  expect_true(unique(attrition(result = prev, analysisId = 1)$analysis_id) == 1)
-  expect_true(unique(attrition(result = prev, analysisId = 2)$analysis_id) == 2)
+  expect_true(nrow(prevalenceAttrition(result = prev) %>%
+                     dplyr::filter(analysis_id == 1)) > 1)
+  expect_true(nrow(prevalenceAttrition(result = prev) %>%
+                     dplyr::filter(analysis_id == 2)) > 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: check attrition with complete database intervals", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = "8507",
@@ -1234,291 +1233,15 @@ test_that("mock db: check attrition with complete database intervals", {
     minCellCount = 0
   )
 
-  expect_true(attrition(prev) %>%
+  expect_true(prevalenceAttrition(prev) %>%
     dplyr::filter(reason == "Not observed during the complete database interval") %>%
-    dplyr::pull(excluded) == 1)
-
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-})
-
-test_that("mock db: multiple denominators and outcomes, lookback and time point arguments", {
-  # create data for hypothetical people to test
-  personTable <- tibble::tibble(
-    person_id = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"),
-    gender_concept_id = c("8507", "8507", "8507", "8507", "8507",
-                          "8507", "8507", "8532", "8532", "8532", "8532"),
-    year_of_birth = c(1943, 1955, 1956, 1958, 1976,
-                      1987, 1989, 1954, 1968, 1968, 1991),
-    month_of_birth = c(02, 06, 01, 03, 12, 11, 10, 10, 09, 04, 04),
-    day_of_birth = c(07, 06, 23, 10, 13, 24, 05, 17, 19, 05, 23)
-  )
-
-  # one observation period per person.
-  observationPeriodTable <- tibble::tibble(
-    observation_period_id = c("1", "2", "3", "4", "5",
-                              "6", "7", "8", "9", "10", "11"),
-    person_id = c("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"),
-    observation_period_start_date = c(
-      as.Date("2005-04-02"),
-      as.Date("2009-04-10"),
-      as.Date("1990-08-20"),
-      as.Date("1977-04-01"),
-      as.Date("2001-04-10"),
-      as.Date("2000-08-20"),
-      as.Date("2002-04-01"),
-      as.Date("1972-04-10"),
-      as.Date("1967-08-20"),
-      as.Date("2001-04-01"),
-      as.Date("2009-11-01")
-    ),
-    observation_period_end_date = c(
-      as.Date("2006-04-01"),
-      as.Date("2020-04-10"),
-      as.Date("2021-08-20"),
-      as.Date("2021-04-01"),
-      as.Date("2021-04-10"),
-      as.Date("2018-08-20"),
-      as.Date("2011-04-01"),
-      as.Date("2013-04-10"),
-      as.Date("2019-08-20"),
-      as.Date("2022-04-01"),
-      as.Date("2022-01-01")
-    )
-  )
-
-  # all outcomes in 2010 but two. Also two types.
-  outcomeTable <- tibble::tibble(
-    cohort_definition_id = c("1", "1", "1", "1", "1", "1", "1", "1", "2", "2", "2", "2", "2"),
-    subject_id = c("1", "2", "2", "5", "6", "9", "10", "11", "4", "7", "8", "10", "11"),
-    cohort_start_date = c(
-      as.Date("2005-07-01"),
-      as.Date("2010-05-10"),
-      as.Date("2010-01-20"),
-      as.Date("2010-11-06"),
-      as.Date("2010-12-11"),
-      as.Date("2010-07-12"),
-      as.Date("2010-03-03"),
-      as.Date("2010-03-22"),
-      as.Date("2010-06-17"),
-      as.Date("2010-06-05"),
-      as.Date("2010-09-02"),
-      as.Date("2010-10-26"),
-      as.Date("2009-04-01")
-    ),
-    cohort_end_date = c(
-      as.Date("2005-07-01"),
-      as.Date("2010-05-10"),
-      as.Date("2010-01-20"),
-      as.Date("2010-11-06"),
-      as.Date("2010-12-11"),
-      as.Date("2010-07-12"),
-      as.Date("2010-03-03"),
-      as.Date("2010-03-22"),
-      as.Date("2010-06-17"),
-      as.Date("2010-06-05"),
-      as.Date("2010-09-02"),
-      as.Date("2010-10-26"),
-      as.Date("2009-04-01")
-    )
-  )
-
-  cdm <- mockIncidencePrevalenceRef(
-    personTable = personTable,
-    observationPeriodTable = observationPeriodTable,
-    outcomeTable = outcomeTable
-  )
-
-  # 8 (2**3) denominator groups.
-  cdm$denominator <- generateDenominatorCohortSet(
-    cdm = cdm,
-    startDate = as.Date("2010-01-01"),
-    endDate = as.Date("2010-12-31"),
-    ageGroup = list(
-      c(0, 50),
-      c(51, 100)
-    ),
-    sex = c("Male", "Female"),
-    daysPriorHistory = c(0, 365)
-  )
-
-  ppe_fullC <- estimatePeriodPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "years",
-    fullContribution = TRUE,
-    minCellCount = 0
-  )
-  expect_true(sum(ppe_fullC$n_cases) == 18)
-  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==1)] == 2 / 3)
-  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==2)] == 2 / 3)
-  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==3)] == 1)
-  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==4)] == 1)
-  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==5)] == 1 / 3)
-  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==6)] == 0)
-  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==7)] == 0)
-  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==8)] == 0)
-  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==9)] == 1 / 3)
-  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==10)] == 1 / 3)
-  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==11)] == 1 / 3)
-  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==12)] == 1 / 2)
-  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==13)] == 1 / 3)
-  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==14)] == 1 / 2)
-  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==15)] == 1)
-  expect_true(ppe_fullC$prevalence[which(ppe_fullC$analysis_id==16)] == 1)
-
-  ppe_nofullC <- estimatePeriodPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "years",
-    minCellCount = 0
-  )
-  expect_true(sum(ppe_nofullC$n_cases) == 19)
-  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==1)] == 2 / 3)
-  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==2)] == 2 / 3)
-  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==3)] == 1)
-  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==4)] == 2 / 3)
-  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==5)] == 1 / 3)
-  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==6)] == 1 / 3)
-  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==7)] == 0)
-  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==8)] == 0)
-  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==9)] == 1 / 3)
-  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==10)] == 1 / 3)
-  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==11)] == 1 / 3)
-  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==12)] == 1 / 3)
-  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==13)] == 1 / 3)
-  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==14)] == 1 / 3)
-  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==15)] == 1)
-  expect_true(ppe_nofullC$prevalence[which(ppe_nofullC$analysis_id==16)] == 1)
-
-  ppe_fullC_m <- estimatePeriodPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    fullContribution = TRUE,
-    minCellCount = 0
-  )
-  expect_true(sum(ppe_fullC_m$n_cases) == 20)
-  expect_true(ppe_fullC_m$n_cases[111] == 2)
-  expect_true(ppe_fullC_m$n_cases[115] == 1)
-  expect_true(ppe_fullC_m$n_population[148] == 2)
-
-  ppe_nofullC_m <- estimatePeriodPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    fullContribution = FALSE,
-    minCellCount = 0
-  )
-  expect_true(sum(ppe_nofullC_m$n_cases) == 20)
-  expect_true(ppe_nofullC_m$n_cases[111] == 2)
-  expect_true(ppe_nofullC_m$n_cases[115] == 1)
-  expect_true(ppe_nofullC_m$n_population[148] == 3)
-
-
-  # do point prevalence too
-  ppo_start <- estimatePointPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "years",
-    outcomeLookbackDays = c(0, 30),
-    timePoint = "start",
-    minCellCount = 0
-  )
-  expect_true(sum(ppo_start$n_cases) == 0) # no events, either with look back or not
-
-  pop_middle <- estimatePointPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "years",
-    outcomeLookbackDays = c(0, 30),
-    timePoint = "middle",
-    minCellCount = 0
-  )
-  # mid point is 2010-07-01 so look back 30 days will show two events.
-  # As the two people have enough past data, they both are in two cohorts.
-  expect_true(sum(pop_middle$n_cases) == 4)
-
-  pop_end <- estimatePointPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "years",
-    outcomeLookbackDays = c(0, 30),
-    timePoint = "end",
-    minCellCount = 0
-  )
-  # only sees one event (both for 0 or 365 days of previous observation)
-  expect_true(sum(pop_end$n_cases) == 2)
-
-  ppo_start_m <- estimatePointPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    outcomeLookbackDays = c(0, 30),
-    timePoint = "start",
-    minCellCount = 0
-  )
-  # no events without look back and all events with look back 30 (except from the one in December)
-  expect_true(sum(ppo_start_m$n_cases) == 18)
-
-  ppo_start_m_lb10 <- estimatePointPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    outcomeLookbackDays = 10,
-    timePoint = "start",
-    minCellCount = 0
-  )
-  # two events with look back 10, one of them from a person not contributing when we ask for 365d of previous obvs
-  expect_true(sum(ppo_start_m_lb10$n_cases) == 3)
-  ppo_start_m_lb12 <- estimatePointPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    outcomeLookbackDays = 12,
-    timePoint = "start",
-    minCellCount = 0
-  )
-  # one event at day 2010-01-20 added, from a person only contirbuting when we don't ask for previous obvs
-  expect_true(sum(ppo_start_m_lb12$n_cases) == 4)
-
-  ppo_middle_m_lb10 <- estimatePointPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    outcomeLookbackDays = 10,
-    timePoint = "middle",
-    minCellCount = 0
-  )
-  # five events with look back 10 (days of the month 06 to 15)
-  expect_true(sum(ppo_middle_m_lb10$n_cases) == 10)
-
-  ppo_middle_m_lb9 <- estimatePointPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    outcomeLookbackDays = 9,
-    timePoint = "middle",
-    minCellCount = 0
-  )
-  # lost the event at 2010-01-06
-  expect_true(sum(ppo_middle_m_lb9$n_cases) == 8)
+    dplyr::pull("excluded_subjects") == 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: check compute permanent", {
+  skip_on_cran()
 
   # using temp
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
@@ -1571,7 +1294,60 @@ test_that("mock db: check compute permanent", {
   expect_true(any(stringr::str_detect(
     CDMConnector::listTables(attr(cdm, "dbcon"),
                              schema = attr(cdm, "write_schema")),
-    "result_prevalence_analysis_1")))
+    "result_prevalence_participants")))
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+})
+
+test_that("mock db: check participants", {
+  skip_on_cran()
+
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  attr(cdm, "write_schema") <- "main"
+
+  cdm$dpop <- generateDenominatorCohortSet(cdm = cdm,
+                                           tablePrefix = "test",
+                                           sex = c("Male", "Female", "Both"),
+                                           ageGroup = list(c(0,50),
+                                                           c(51,100)))
+  prev <- estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "dpop",
+    outcomeTable = "outcome",
+    tablePrefix = "test",
+    returnParticipants = TRUE
+  )
+
+  # we should have cleaned up all the intermediate tables
+  expect_true(all(CDMConnector::listTables(attr(cdm, "dbcon"),
+                                           schema = attr(cdm, "write_schema")) %in%
+                    c("test_denominator",
+                      "test_prevalence_participants",
+                      "test_denominator_attrition",
+                      "test_denominator_set" ,
+                      "test_denominator_count",
+                      "vocabulary" ,
+                      "cdm_source", "outcome", "strata",
+                      "observation_period", "person" )))
+  expect_true(all(!c("test_prevalence_analysis_1",
+                     "test_prev_working_1") %in%
+                    CDMConnector::listTables(attr(cdm, "dbcon"),
+                                             schema = attr(cdm,
+                                                           "write_schema"))))
+
+  expect_equal(names(participants(prev, 1) %>%
+                       head(1) %>%
+                       dplyr::collect()),
+               c("subject_id",
+                 "cohort_start_date",
+                 "cohort_end_date",
+                 "outcome_start_date"
+               ))
+
+ expect_true(nrow(participants(prev, 1) %>%
+    dplyr::collect() %>%
+    dplyr::filter(is.na(cohort_start_date))) == 0)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 

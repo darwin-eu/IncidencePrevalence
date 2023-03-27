@@ -13,38 +13,41 @@ test_that("mock db: check output format", {
     names(dpop %>% dplyr::collect())))
 
   expect_true(all(c(
+    "cohort_definition_id", "cohort_name",
     "age_group",
     "sex",
     "start_date",
     "end_date",
-    "days_prior_history",
-    "cohort_definition_id"
+    "days_prior_history"
   ) %in%
-    names(settings(dpop))))
+    names(CDMConnector::cohortSet(dpop))))
 
   expect_true(all(c(
-    "age_group",
-    "sex",
-    "start_date",
-    "end_date",
-    "days_prior_history",
-    "cohort_definition_id"
+    "cohort_definition_id",
+    "number_records",
+    "number_subjects"
   ) %in%
-    names(settings(dpop, cohortDefinitionId =1))))
+    names(CDMConnector::cohortCount(dpop))))
 
   # variable names
-  expect_true(length(names(dpop %>%
-    dplyr::collect())) == 4)
   expect_true(all(c(
     "cohort_definition_id", "subject_id",
     "cohort_start_date", "cohort_end_date"
   ) %in%
     names(dpop %>% dplyr::collect())))
 
-  expect_true(tibble::is_tibble(attrition(dpop)))
-  expect_true(tibble::is_tibble(attrition(dpop, cohortDefinitionId =1)))
-  expect_true(cohortCount(dpop)$n ==1)
-  expect_true(cohortCount(dpop, cohortDefinitionId =1)$n ==1)
+  expect_true(all(c(
+    "cohort_definition_id", "number_records", "number_subjects",
+    "reason_id","reason",
+    "excluded_records", "excluded_subjects"
+  ) %in%
+  names(CDMConnector::cohortAttrition(dpop))))
+
+  expect_true(tibble::is_tibble(CDMConnector::cohortAttrition(dpop)))
+  expect_true(CDMConnector::cohortCount(dpop)$number_records ==1)
+  expect_true(CDMConnector::cohortCount(dpop) %>%
+                dplyr::filter(cohort_definition_id == 1) %>%
+                dplyr::pull("number_records") == 1)
 
   # check verbose
   expect_message(generateDenominatorCohortSet(
@@ -79,21 +82,34 @@ test_that("mock db: checks on working example", {
     startDate = NULL,
     endDate = NULL,
     ageGroup = list(c(0, 59), c(60, 69)),
-    sex = c("Female", "Male", "Both"),
+    sex = c("Female", "Male"),
     verbose = TRUE
   )
-  expect_true(cdm$dpop %>%
-    dplyr::count() %>%
-    dplyr::pull() >= 1)
 
-  # all pops without anyone
+  femaleCohortIds <- CDMConnector::cohortSet(cdm$dpop) %>%
+    dplyr::filter(sex == "Female") %>%
+    dplyr::pull("cohort_definition_id")
+  maleCohortIds <- CDMConnector::cohortSet(cdm$dpop) %>%
+    dplyr::filter(sex == "Male") %>%
+    dplyr::pull("cohort_definition_id")
+
+  # Female cohorts should be empty
+  expect_true(CDMConnector::cohortCount(cdm$dpop) %>%
+    dplyr::filter(cohort_definition_id %in% femaleCohortIds) %>%
+    dplyr::summarise(n = sum(.data$number_records)) == 0)
+  # We should have people in male cohorts
+  expect_true(CDMConnector::cohortCount(cdm$dpop) %>%
+                dplyr::filter(cohort_definition_id %in% maleCohortIds) %>%
+                dplyr::summarise(n = sum(.data$number_records)) > 0)
+
+ # all pops without anyone
   expect_message(cdm$dpop <- generateDenominatorCohortSet(cdm,
     startDate = NULL,
     endDate = NULL,
     ageGroup = list(c(50, 59), c(60, 69)),
     daysPriorHistory = c(0, 365)
   ))
-  expect_true(all(cohortCount(cdm$dpop)$n == 0))
+  expect_true(all(CDMConnector::cohortCount(cdm$dpop)$number_records == 0))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   # using cohort strata
@@ -127,6 +143,7 @@ test_that("mock db: checks on working example", {
 })
 
 test_that("mock db: check example we expect to work", {
+  skip_on_cran()
   # one person, one observation periods
   personTable <- tibble::tibble(
     person_id = "1",
@@ -148,7 +165,7 @@ test_that("mock db: check example we expect to work", {
   )
 
   cdm$dpop <- generateDenominatorCohortSet(cdm = cdm)
-  expect_true(cohortCount(cdm$dpop)$n == 1)
+  expect_true(CDMConnector::cohortCount(cdm$dpop)$number_records == 1)
   expect_true(cdm$dpop %>%
     dplyr::collect() %>%
     dplyr::pull(cohort_start_date) == as.Date("2010-01-01"))
@@ -174,6 +191,7 @@ test_that("mock db: check example we expect to work", {
 })
 
 test_that("mock db: check another example we expect to work", {
+  skip_on_cran()
   # 5 person, 1 observation periods
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3", "4", "5"),
@@ -278,6 +296,7 @@ test_that("mock db: check another example we expect to work", {
 })
 
 test_that("mock db: mock example 1000", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   # all options being used except study start and end
   cdm$dpop <- generateDenominatorCohortSet(cdm,
@@ -296,7 +315,7 @@ test_that("mock db: mock example 1000", {
     daysPriorHistory = c(0, 30, 60, 90, 120, 150, 180),
     verbose=TRUE
   )
-  expect_true(any(cohortCount(cdm$dpop)$n > 0))
+  expect_true(any(CDMConnector::cohortCount(cdm$dpop)$number_records > 0))
 
   # all options being used
   cdm$dpop <- generateDenominatorCohortSet(cdm,
@@ -307,7 +326,7 @@ test_that("mock db: mock example 1000", {
     daysPriorHistory = c(0, 180),
     verbose = TRUE
   )
-  expect_true(any(cohortCount(cdm$dpop)$n > 0))
+  expect_true(any(CDMConnector::cohortCount(cdm$dpop)$number_records > 0))
   expect_true(min(cdm$dpop %>%
     dplyr::collect() %>%
     dplyr::pull(cohort_start_date)) >=
@@ -321,12 +340,13 @@ test_that("mock db: mock example 1000", {
   cdm$dpop <- generateDenominatorCohortSet(cdm,
     sample = 55
   )
-  expect_true(cohortCount(cdm$dpop)$n == 55)
+  expect_true(CDMConnector::cohortCount(cdm$dpop)$number_records == 55)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: subset denominator by cohort", {
+  skip_on_cran()
   # one person, one observation periods
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3"),
@@ -555,6 +575,7 @@ test_that("mock db: subset denominator by cohort", {
 })
 
 test_that("mock db: one male, one female", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
@@ -601,6 +622,7 @@ test_that("mock db: one male, one female", {
 })
 
 test_that("mock db: check example with restriction on sex", {
+  skip_on_cran()
   # two male, one female
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3"),
@@ -633,9 +655,9 @@ test_that("mock db: check example with restriction on sex", {
     cdm = cdm,
     sex = "Female"
   )
-  expect_true(cohortCount(cdm$dpop1)$n == 2)
-  expect_true(cohortCount(cdm$dpop2)$n == 3)
-  expect_true(cohortCount(cdm$dpop3)$n == 1)
+  expect_true(CDMConnector::cohortCount(cdm$dpop1)$number_records == 2)
+  expect_true(CDMConnector::cohortCount(cdm$dpop2)$number_records == 3)
+  expect_true(CDMConnector::cohortCount(cdm$dpop3)$number_records == 1)
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   # one male only
@@ -670,14 +692,15 @@ test_that("mock db: check example with restriction on sex", {
     cdm = cdm,
     sex = "Female"
   )
-  expect_true(cohortCount(cdm$dpop1)$n == 1)
-  expect_true(cohortCount(cdm$dpop2)$n == 1)
-  expect_true(cohortCount(cdm$dpop3)$n == 0)
+  expect_true(CDMConnector::cohortCount(cdm$dpop1)$number_records == 1)
+  expect_true(CDMConnector::cohortCount(cdm$dpop2)$number_records == 1)
+  expect_true(CDMConnector::cohortCount(cdm$dpop3)$number_records == 0)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: check example with restriction on age", {
+  skip_on_cran()
   # three people, born in 2000, 2005, and 2010
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3"),
@@ -716,10 +739,10 @@ test_that("mock db: check example with restriction on age", {
     ageGroup = list(c(40, 150))
   )
 
-  expect_true(cohortCount(cdm$dpop1)$n == 3)
-  expect_true(cohortCount(cdm$dpop2)$n == 2)
-  expect_true(cohortCount(cdm$dpop3)$n == 1)
-  expect_true(cohortCount(cdm$dpop4)$n == 0)
+  expect_true(CDMConnector::cohortCount(cdm$dpop1)$number_records == 3)
+  expect_true(CDMConnector::cohortCount(cdm$dpop2)$number_records == 2)
+  expect_true(CDMConnector::cohortCount(cdm$dpop3)$number_records == 1)
+  expect_true(CDMConnector::cohortCount(cdm$dpop4)$number_records == 0)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
@@ -769,6 +792,7 @@ test_that("mock db: check example with restriction on age", {
 })
 
 test_that("mock db: check age edge cases", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
 
   # same min and max
@@ -811,6 +835,7 @@ test_that("mock db: check age edge cases", {
 })
 
 test_that("mock db check age strata entry and exit", {
+  skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
     gender_concept_id = "8507",
@@ -862,6 +887,7 @@ test_that("mock db check age strata entry and exit", {
 })
 
 test_that("mock db: check example with multiple observation periods", {
+  skip_on_cran()
   # one person, two observation periods
   personTable <- tibble::tibble(
     person_id = "1",
@@ -891,7 +917,8 @@ test_that("mock db: check example with multiple observation periods", {
   # one per observation period
   cdm$dpop <- generateDenominatorCohortSet(cdm = cdm)
   expect_true(nrow(cdm$dpop %>% dplyr::collect()) == 2)
-  expect_true(cohortCount(cdm$dpop)$n == 1)
+  expect_true(CDMConnector::cohortCount(cdm$dpop)$number_records == 2)
+  expect_true(CDMConnector::cohortCount(cdm$dpop)$number_subjects == 1)
 
   # expect one rows- if start date is 1st Jan 2011
   cdm$dpop <- generateDenominatorCohortSet(
@@ -924,6 +951,7 @@ test_that("mock db: check example with multiple observation periods", {
 })
 
 test_that("mock db: check imputation of date of birth", {
+  skip_on_cran()
   # one person with all info, one missing month, one missing day, and one both
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3", "4"),
@@ -976,6 +1004,7 @@ test_that("mock db: check imputation of date of birth", {
 })
 
 test_that("mock db: check edge cases (zero results expected)", {
+  skip_on_cran()
   # one person, one observation periods
   personTable <- tibble::tibble(
     person_id = "1",
@@ -1000,19 +1029,19 @@ test_that("mock db: check edge cases (zero results expected)", {
     cdm = cdm,
     startDate = as.Date("2100-01-01")
   )
-  expect_true(cohortCount(cdm$dpop)$n == 0)
+  expect_true(CDMConnector::cohortCount(cdm$dpop)$number_records == 0)
 
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     endDate = as.Date("1800-01-01")
   )
-  expect_true(cohortCount(cdm$dpop)$n == 0)
+  expect_true(CDMConnector::cohortCount(cdm$dpop)$number_records == 0)
 
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroup = list(c(155, 200))
   )
-  expect_true(cohortCount(cdm$dpop)$n == 0)
+  expect_true(CDMConnector::cohortCount(cdm$dpop)$number_records == 0)
 
   # note could include people as it would go up to day before first birthday
   # but given observation period, here we would expect a null
@@ -1020,7 +1049,7 @@ test_that("mock db: check edge cases (zero results expected)", {
     cdm = cdm,
     ageGroup = list(c(0, 1))
   )
-  expect_true(cohortCount(cdm$dpop)$n == 0)
+  expect_true(CDMConnector::cohortCount(cdm$dpop)$number_records == 0)
 
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
@@ -1028,12 +1057,13 @@ test_that("mock db: check edge cases (zero results expected)", {
     daysPriorHistory = 365000,
     verbose = FALSE
   )
-  expect_true(cohortCount(cdm$dpop)$n == 0)
+  expect_true(CDMConnector::cohortCount(cdm$dpop)$number_records == 0)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: check expected errors", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef()
 
   # not a cdm reference
@@ -1096,16 +1126,11 @@ test_that("mock db: check expected errors", {
     start_date = as.Date("2012-06-06"),
     end_date = as.Date("2013-06-06")
   )
-  cdm <- mockIncidencePrevalenceRef(strataTable = strataTable)
-  testthat::expect_error(generateDenominatorCohortSet(
-    cdm = cdm,
-    strataTable = "strata"
-  ))
-
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  testthat::expect_error(mockIncidencePrevalenceRef(strataTable = strataTable))
 })
 
 test_that("mock db: check attrition table logic", {
+  skip_on_cran()
   # 7 person, 1 observation periods
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3", "4", "5", "6", "7"),
@@ -1138,28 +1163,40 @@ test_that("mock db: check attrition table logic", {
 
   # check last n_current equals the number of rows of the denominator pop
   expect_true(nrow(cdm$dpop %>% dplyr::collect()) ==
-    attrition(cdm$dpop)$current_n[7])
+    CDMConnector::cohortAttrition(cdm$dpop)$number_records[7])
 
   # check missings
   cdm$dpop <- generateDenominatorCohortSet(cdm = cdm)
-  expect_true(attrition(cdm$dpop)$excluded[2] == 1)
-  expect_true(attrition(cdm$dpop)$excluded[3] == 1)
+  expect_true(CDMConnector::cohortAttrition(cdm$dpop)$excluded_records[2] == 1)
+  expect_true(CDMConnector::cohortAttrition(cdm$dpop)$excluded_records[3] == 1)
 
   # check sex criteria
+  cdm$dpop <- generateDenominatorCohortSet(
+    cdm = cdm,
+    sex = "Male"
+  )
+  expect_true(nrow(cdm$dpop %>% dplyr::collect()) ==
+                tail(CDMConnector::cohortAttrition(cdm$dpop)$number_records, 1))
+  expect_true(CDMConnector::cohortAttrition(cdm$dpop) %>%
+                dplyr::filter(reason == "Not Male") %>%
+                dplyr::pull("excluded_records") == 3)
+
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     sex = "Female"
   )
   expect_true(nrow(cdm$dpop %>% dplyr::collect()) ==
-    attrition(cdm$dpop)$current_n[8])
-  expect_true(attrition(cdm$dpop)$excluded[8] == 2)
+    tail(CDMConnector::cohortAttrition(cdm$dpop)$number_records, 1))
+  expect_true(CDMConnector::cohortAttrition(cdm$dpop) %>%
+                dplyr::filter(reason == "Not Female") %>%
+                dplyr::pull("excluded_records") == 2)
 
   # check age criteria
   cdm$dpop <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroup = list(c(24, 25))
   )
-  expect_true(attrition(cdm$dpop)$excluded[3] == 1)
+  expect_true(CDMConnector::cohortAttrition(cdm$dpop)$excluded_records[3] == 1)
 
   # check observation criteria
   cdm$dpop <- generateDenominatorCohortSet(
@@ -1167,7 +1204,7 @@ test_that("mock db: check attrition table logic", {
     startDate = as.Date("2010-01-01"),
     endDate = as.Date("2012-01-01")
   )
-  expect_true(attrition(cdm$dpop)$excluded[5] == 2)
+  expect_true(CDMConnector::cohortAttrition(cdm$dpop)$excluded_records[5] == 2)
 
   # check prior observation criteria
   cdm$dpop <- generateDenominatorCohortSet(
@@ -1176,7 +1213,7 @@ test_that("mock db: check attrition table logic", {
     endDate = as.Date("2016-06-30"),
     daysPriorHistory = 365
   )
-  expect_true(attrition(cdm$dpop)$excluded[7] == 1)
+  expect_true(CDMConnector::cohortAttrition(cdm$dpop)$excluded_records[7] == 1)
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   # multiple observation periods per person
@@ -1207,12 +1244,14 @@ test_that("mock db: check attrition table logic", {
     observationPeriodTable = observationPeriodTable
   )
   dpop <- generateDenominatorCohortSet(cdm = cdm)
-  expect_true(all(attrition(dpop)$current_n == 1))
+  expect_true(all(CDMConnector::cohortAttrition(dpop)$number_records == 3))
+  expect_true(all(CDMConnector::cohortAttrition(dpop)$number_subjects == 1))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: check attrition with multiple cohorts", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
 
   cdm$dpop <- generateDenominatorCohortSet(cdm,
@@ -1222,41 +1261,41 @@ test_that("mock db: check attrition with multiple cohorts", {
     verbose = TRUE
   )
   # for male cohort we should have a row for those excluded for not being male
-  expect_true(any("Not Male" == settings(cdm$dpop) %>%
+  expect_true(any("Not Male" == CDMConnector::cohortSet(cdm$dpop) %>%
     dplyr::filter(sex == "Male") %>%
-    dplyr::inner_join(attrition(cdm$dpop),
+    dplyr::inner_join(CDMConnector::cohortAttrition(cdm$dpop),multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::pull(.data$reason)) == TRUE)
-  expect_true(any("Not Female" == settings(cdm$dpop) %>%
+  expect_true(any("Not Female" == CDMConnector::cohortSet(cdm$dpop) %>%
     dplyr::filter(sex == "Male") %>%
-    dplyr::inner_join(attrition(cdm$dpop),
+    dplyr::inner_join(CDMConnector::cohortAttrition(cdm$dpop),multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::pull(.data$reason)) == FALSE)
   # for female cohort we should have a row for those excluded for not being male
-  expect_true(any("Not Male" == settings(cdm$dpop) %>%
+  expect_true(any("Not Male" == CDMConnector::cohortSet(cdm$dpop) %>%
     dplyr::filter(sex == "Female") %>%
-    dplyr::inner_join(attrition(cdm$dpop),
+    dplyr::inner_join(CDMConnector::cohortAttrition(cdm$dpop),multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::pull(.data$reason)) == FALSE)
-  expect_true(any("Not Female" == settings(cdm$dpop) %>%
+  expect_true(any("Not Female" == CDMConnector::cohortSet(cdm$dpop) %>%
     dplyr::filter(sex == "Female") %>%
-    dplyr::inner_join(attrition(cdm$dpop),
+    dplyr::inner_join(CDMConnector::cohortAttrition(cdm$dpop),multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::pull(.data$reason)) == TRUE)
   # for both cohort we should have a row for those excluded for not being male
-  expect_true(any("Not Male" == settings(cdm$dpop) %>%
+  expect_true(any("Not Male" == CDMConnector::cohortSet(cdm$dpop) %>%
     dplyr::filter(sex == "Both") %>%
-    dplyr::inner_join(attrition(cdm$dpop),
+    dplyr::inner_join(CDMConnector::cohortAttrition(cdm$dpop),multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::pull(.data$reason)) == FALSE)
-  expect_true(any("Not Female" == settings(cdm$dpop) %>%
+  expect_true(any("Not Female" == CDMConnector::cohortSet(cdm$dpop) %>%
     dplyr::filter(sex == "Both") %>%
-    dplyr::inner_join(attrition(cdm$dpop),
+    dplyr::inner_join(CDMConnector::cohortAttrition(cdm$dpop),multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::pull(.data$reason)) == FALSE)
@@ -1269,27 +1308,28 @@ test_that("mock db: check attrition with multiple cohorts", {
   )
 
   # nobody dropped for prior hist when req is 0
-  expect_true(settings(cdm$dpop) %>%
-    dplyr::inner_join(attrition(cdm$dpop),
+  expect_true(CDMConnector::cohortSet(cdm$dpop) %>%
+    dplyr::inner_join(CDMConnector::cohortAttrition(cdm$dpop),multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::filter(days_prior_history == 0) %>%
     dplyr::filter(reason == "No observation time available after applying age and prior history criteria") %>%
-    dplyr::pull(.data$excluded) == 0)
+    dplyr::pull(.data$excluded_records) == 0)
   # some people dropped for prior hist when req is 365
-  expect_true(settings(cdm$dpop) %>%
-    dplyr::inner_join(attrition(cdm$dpop),
+  expect_true(CDMConnector::cohortSet(cdm$dpop) %>%
+    dplyr::inner_join(CDMConnector::cohortAttrition(cdm$dpop),multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::filter(days_prior_history == 365) %>%
     dplyr::filter(reason == "No observation time available after applying age and prior history criteria") %>%
-    dplyr::pull(.data$excluded) > 0)
+    dplyr::pull(.data$excluded_records) > 0)
 
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
 test_that("mock db: check compute permanent", {
+  skip_on_cran()
 
   # using temp
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
@@ -1325,6 +1365,23 @@ test_that("mock db: check compute permanent", {
   expect_true(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
                           "dbplyr_",
                           negate = TRUE)))
+
+
+  expect_true(tibble::is_tibble(CDMConnector::cohortSet(cdm$dpop_perm)))
+  expect_true(tibble::is_tibble(CDMConnector::cohortCount(cdm$dpop_perm)))
+  expect_true(tibble::is_tibble(CDMConnector::cohortAttrition(cdm$dpop_perm)))
+
+  # # reconnect
+  # cdmReconn <- CDMConnector::cdm_from_con(con = attr(cdm, "dbcon"),
+  #                    cdm_tables = c("person", "observation_period",
+  #                                   "cdm_source","vocabulary"),
+  #                    cohort_tables = c("example_denominator"),
+  #                    write_schema = "main"
+  # )
+  #
+  # expect_true(tibble::is_tibble(CDMConnector::cohortSet(cdmReconn$example_denominator)))
+  # expect_true(tibble::is_tibble(CDMConnector::cohortCount(cdmReconn$example_denominator)))
+  # expect_true(tibble::is_tibble(CDMConnector::cohortAttrition(cdmReconn$example_denominator)))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 

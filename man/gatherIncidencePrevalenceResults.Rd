@@ -4,14 +4,12 @@
 \alias{gatherIncidencePrevalenceResults}
 \title{Gather incidence and prevalence results}
 \usage{
-gatherIncidencePrevalenceResults(cdm, resultList, databaseName = NULL)
+gatherIncidencePrevalenceResults(cdm, resultList)
 }
 \arguments{
 \item{cdm}{A CDM reference object}
 
 \item{resultList}{List of incidence and prevalence results}
-
-\item{databaseName}{A database name to add to to the results}
 }
 \value{
 A list of up to two tibbles, one with prevalence results and one
@@ -23,18 +21,13 @@ updated
 Gather incidence and prevalence results
 }
 \examples{
-\dontrun{
-db <- DBI::dbConnect(" Your database connection here ")
-cdm <- CDMConnector::cdm_from_con(
-  con = db,
-  cdm_schema = "cdm schema name"
-)
-dpop <- generateDenominatorCohortSet(
+\donttest{
+cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
   endDate = as.Date("2018-01-01")
 )
-cdm$denominator <- dpop$denominator_population
 prev <- estimatePointPrevalence(
 cdm = cdm,
 denominatorTable = "denominator",
@@ -47,6 +40,7 @@ inc <- estimateIncidence(
  interval = "months",
  outcomeWashout = 0
  )
- results <- gatherIncidencePrevalenceResults(resultList=list(prev, inc))
+ results <- gatherIncidencePrevalenceResults(cdm = cdm,
+                 resultList=list(prev, inc))
 }
 }

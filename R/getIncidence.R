@@ -66,6 +66,7 @@ getIncidence <- function(cdm,
   attrition <- recordAttrition(
     table = studyPop,
     id = "subject_id",
+    reasonId = 11,
     reason = "Starting analysis population"
   )
 
@@ -119,11 +120,26 @@ getIncidence <- function(cdm,
         dplyr::mutate(events_post = sum(dplyr::if_else(
           !is.na(.data$outcome_start_date), 1, 0
         ), na.rm = TRUE))
+
+      studyPopOutcomeWH <- studyPopOutcome %>%
+        dplyr::group_by(.data$subject_id) %>%
+        dplyr::filter(.data$events_post == 0)
+
+      if(is.null(tablePrefix)){
+        studyPopOutcomeWH <- studyPopOutcomeWH %>%
+          CDMConnector::computeQuery()
+      } else {
+        studyPopOutcomeWH <- studyPopOutcomeWH %>%
+          CDMConnector::computeQuery(name = paste0(tablePrefix,
+                                                   "_incidence_working_5a"),
+                                     temporary = FALSE,
+                                     schema = attr(cdm, "write_schema"),
+                                     overwrite = TRUE)
+      }
+
       studyPopOutcome <- dplyr::union_all(
         # with history of outcome, without outcome in follow up
-        studyPopOutcome %>%
-          dplyr::group_by(.data$subject_id) %>%
-          dplyr::filter(.data$events_post == 0),
+        studyPopOutcomeWH,
         # with outcome in follow up - limit to first
         studyPopOutcome %>%
           dplyr::filter(.data$events_post >= 1) %>%
@@ -154,6 +170,7 @@ getIncidence <- function(cdm,
   attrition <- recordAttrition(
     table = studyPop,
     id = "subject_id",
+    reasonId = 12,
     reason = "Excluded due to prior event (do not pass outcome washout during study period)",
     existingAttrition = attrition
   )
@@ -195,6 +212,7 @@ getIncidence <- function(cdm,
     attrition <- recordAttrition(
       table = tibble::tibble(subject_id = integer()),
       id = "subject_id",
+      reasonId = 13,
       reason = "Not observed during the complete database interval",
       existingAttrition = attrition
     )
@@ -211,6 +229,7 @@ getIncidence <- function(cdm,
     attrition <- recordAttrition(
       table = studyPop,
       id = "subject_id",
+      reasonId = 14,
       reason = "Not observed during the complete database interval",
       existingAttrition = attrition
     )
@@ -295,29 +314,39 @@ getIncidence <- function(cdm,
     )
 
 
-  if(!is.null(tablePrefix)){
-
-    if(returnParticipants==TRUE){
-      # if using permanent tables (that get overwritten)
-      # we need to keep a permanent one for a given analysis
-      # so that we can refer back to it (e.g when using participants() function)
-      studyPopDb <- studyPopDb %>%
-        CDMConnector::computeQuery(name = paste0(tablePrefix,
-                                                 "_incidence_analysis_",
-                                                 analysisId),
-                                   temporary = FALSE,
-                                   schema = attr(cdm, "write_schema"),
-                                   overwrite = TRUE)
-    }
-  }
-
   # return list
   results <- list()
   results[["ir"]] <- ir
   results[["analysis_settings"]] <- analysisSettings
   results[["attrition"]] <- attrition
-  if(returnParticipants == TRUE){
-    results[["person_table"]] <- studyPopDb
+
+  if(returnParticipants==TRUE){
+    # keep a table permanent one for the given analysis
+    # so that we can refer back to it (e.g when using participants() function)
+
+
+    studyPopDb <- studyPopDb %>%
+      dplyr::select(!"outcome_prev_end_date") %>%
+      dplyr::rename(!!paste0("cohort_start_date",
+                             "_analysis_",
+                             analysisId) := "cohort_start_date",
+                    !!paste0("cohort_end_date",
+                             "_analysis_",
+                             analysisId) := "cohort_end_date",
+                    !!paste0("outcome_start_date",
+                             "_analysis_",
+                             analysisId) := "outcome_start_date"
+                    ) %>%
+      CDMConnector::computeQuery(name = paste0(tablePrefix,
+                                               "_incidence_analysis_",
+                                               analysisId),
+                                 temporary = FALSE,
+                                 schema = attr(cdm, "write_schema"),
+                                 overwrite = TRUE)
+    # keep a record of the table name
+    results[["person_table"]] <- paste0(tablePrefix,
+                                        "_incidence_analysis_",
+                                        analysisId)
   }
 
   return(results)

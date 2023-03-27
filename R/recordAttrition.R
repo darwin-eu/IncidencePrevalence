@@ -15,23 +15,18 @@
 # limitations under the License.
 
 
-#' Record attrition in tibble
-#'
-#' @param table table that contains a person_id
-#' @param id id variable
-#' @param reason the reason for the attrition
-#' @param existingAttrition previous attrition to append results
-#' @return a tibble
 recordAttrition <- function(table,
                             id = "person_id",
-                            reason = NULL,
-                            existingAttrition = NULL) {
+                            existingAttrition = NULL,
+                            reasonId,
+                            reason) {
 
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(any(class(table) %in%
                               c("tbl_dbi", "tbl", "data.frame", "tibble")))
-  checkmate::assert_character(id, add = errorMessage)
-  checkmate::assert_character(reason, null.ok = TRUE, add = errorMessage)
+  checkmate::assertCharacter(id, add = errorMessage)
+  checkmate::assertIntegerish(reasonId, add = errorMessage)
+  checkmate::assertCharacter(reason, null.ok = TRUE, add = errorMessage)
   if (!is.null(existingAttrition)) {
     checkmate::assertTRUE(any(class(existingAttrition) %in%
                                 c("data.frame", "tbl")))
@@ -39,20 +34,28 @@ recordAttrition <- function(table,
   checkmate::reportAssertions(collection = errorMessage)
 
   attrition <- tibble::tibble(
-    current_n = table %>%
+    number_records = table %>%
+      dplyr::tally() %>%
+      dplyr::pull(),
+    number_subjects = table %>%
       dplyr::select(.env$id) %>%
       dplyr::distinct() %>%
       dplyr::tally() %>%
       dplyr::pull(),
-    reason = reason
+    reason_id = .env$reasonId,
+    reason = .env$reason
   )
 
   if (!is.null(existingAttrition)) {
     attrition <- dplyr::bind_rows(existingAttrition, attrition) %>%
-      dplyr::mutate(excluded = dplyr::lag(.data$current_n) - .data$current_n)
+      dplyr::mutate(excluded_records =
+                      dplyr::lag(.data$number_records) - .data$number_records) %>%
+      dplyr::mutate(excluded_subjects =
+                      dplyr::lag(.data$number_subjects) - .data$number_subjects)
   } else {
     attrition <- attrition %>%
-      dplyr::mutate(excluded = NA)
+      dplyr::mutate(excluded_records = NA) %>%
+      dplyr::mutate(excluded_subjects = NA)
   }
 
   return(attrition)
