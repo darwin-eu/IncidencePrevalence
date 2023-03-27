@@ -19,7 +19,7 @@ a given analysis
 Participants contributing to an analysis
 }
 \examples{
-\dontrun{
+\donttest{
 cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 cdm$denominator <- generateDenominatorCohortSet(cdm)
 incidence <- estimateIncidence(

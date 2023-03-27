@@ -27,18 +27,13 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' db <- DBI::dbConnect(" Your database connection here ")
-#' cdm <- CDMConnector::cdm_from_con(
-#'   con = db,
-#'   cdm_schema = "cdm schema name"
-#' )
-#' dpop <- generateDenominatorCohortSet(
+#' \donttest{
+#' cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+#' cdm$denominator <- generateDenominatorCohortSet(
 #'   cdm = cdm,
 #'   startDate = as.Date("2008-01-01"),
 #'   endDate = as.Date("2018-01-01")
 #' )
-#' cdm$denominator <- dpop$denominator_population
 #' prev <- estimatePointPrevalence(
 #' cdm = cdm,
 #' denominatorTable = "denominator",
@@ -51,7 +46,8 @@
 #'  interval = "months",
 #'  outcomeWashout = 0
 #'  )
-#'  results <- gatherIncidencePrevalenceResults(resultList=list(prev, inc))
+#'  results <- gatherIncidencePrevalenceResults(cdm = cdm,
+#'                  resultList=list(prev, inc))
 #' }
 gatherIncidencePrevalenceResults <- function(cdm, resultList) {
   errorMessage <- checkmate::makeAssertCollection()

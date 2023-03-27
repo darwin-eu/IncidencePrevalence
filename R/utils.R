@@ -22,7 +22,7 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 #' cdm$denominator <- generateDenominatorCohortSet(cdm)
 #' inc <- estimateIncidence(
@@ -51,7 +51,7 @@ incidenceAttrition.IncidenceResult <- function(result) {
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 #' cdm$denominator <- generateDenominatorCohortSet(cdm)
 #' prev <- estimatePointPrevalence(
@@ -80,7 +80,7 @@ prevalenceAttrition.PrevalenceResult <- function(result) {
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 #' cdm$denominator <- generateDenominatorCohortSet(cdm)
 #' inc <- estimateIncidence(
@@ -109,7 +109,7 @@ incidenceSet.IncidenceResult <- function(result) {
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 #' cdm$denominator <- generateDenominatorCohortSet(cdm)
 #' prev <- estimatePointPrevalence(
@@ -139,7 +139,7 @@ prevalenceSet.PrevalenceResult <- function(result) {
 #' @export
 #'
 #' @examples
-#' \dontrun{
+#' \donttest{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 #' cdm$denominator <- generateDenominatorCohortSet(cdm)
 #' incidence <- estimateIncidence(

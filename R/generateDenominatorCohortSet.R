@@ -61,14 +61,9 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' con <- DBI::dbConnect(duckdb::duckdb(), CDMConnector::eunomia_dir())
-#' cdm <- CDMConnector::cdm_from_con(
-#'   con = con,
-#'   cdm_schema = "main"
-#' )
-#'
-#' dpop <- generateDenominatorCohortSet(
+#' \donttest{
+#' cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+#' cdm$denominator <- generateDenominatorCohortSet(
 #'   cdm = cdm,
 #'   startDate = as.Date("2008-01-01"),
 #'   endDate = as.Date("2018-01-01")

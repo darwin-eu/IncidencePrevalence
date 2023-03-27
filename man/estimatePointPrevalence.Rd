@@ -72,12 +72,8 @@ Point prevalence estimates
 Estimate point prevalence
 }
 \examples{
-\dontrun{
-db <- DBI::dbConnect(" Your database connection here ")
-cdm <- CDMConnector::cdm_from_con(
-  con = db,
-  cdm_schema = "cdm schema name"
-)
+\donttest{
+cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
 cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
   startDate = as.Date("2008-01-01"),
