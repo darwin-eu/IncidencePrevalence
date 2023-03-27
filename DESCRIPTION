@@ -59,7 +59,6 @@ Suggests:
     tictoc,
     testthat (>= 0.3.1),
     spelling
-Remotes: darwin-eu/CDMConnector
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 Language: en-US

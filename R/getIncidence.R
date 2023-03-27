@@ -120,11 +120,26 @@ getIncidence <- function(cdm,
         dplyr::mutate(events_post = sum(dplyr::if_else(
           !is.na(.data$outcome_start_date), 1, 0
         ), na.rm = TRUE))
+
+      studyPopOutcomeWH <- studyPopOutcome %>%
+        dplyr::group_by(.data$subject_id) %>%
+        dplyr::filter(.data$events_post == 0)
+
+      if(is.null(tablePrefix)){
+        studyPopOutcomeWH <- studyPopOutcomeWH %>%
+          CDMConnector::computeQuery()
+      } else {
+        studyPopOutcomeWH <- studyPopOutcomeWH %>%
+          CDMConnector::computeQuery(name = paste0(tablePrefix,
+                                                   "_incidence_working_5a"),
+                                     temporary = FALSE,
+                                     schema = attr(cdm, "write_schema"),
+                                     overwrite = TRUE)
+      }
+
       studyPopOutcome <- dplyr::union_all(
         # with history of outcome, without outcome in follow up
-        studyPopOutcome %>%
-          dplyr::group_by(.data$subject_id) %>%
-          dplyr::filter(.data$events_post == 0),
+        studyPopOutcomeWH,
         # with outcome in follow up - limit to first
         studyPopOutcome %>%
           dplyr::filter(.data$events_post >= 1) %>%

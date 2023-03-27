@@ -16,6 +16,7 @@ tibble with settings used when estimating prevalence
 Settings associated with a prevalence analysis
 }
 \examples{
+\donttest{
 cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 cdm$denominator <- generateDenominatorCohortSet(cdm)
 prev <- estimatePointPrevalence(
@@ -24,4 +25,5 @@ prev <- estimatePointPrevalence(
   outcomeTable = "outcome"
 )
 prevalenceSet(prev)
+}
 }

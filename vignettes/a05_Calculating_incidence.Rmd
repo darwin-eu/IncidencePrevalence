@@ -77,7 +77,7 @@ Considering all the above, we only recommend restricting outcome definitions to 
 
 
 # Using estimateIncidence()
-`estimateIncidence()` is the function we use to estimate incidence rates. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `mockIncidencePrevalenceRef()` function, from whom we´ll create a denominator population without adding any restrictions other than a study period.
+`estimateIncidence()` is the function we use to estimate incidence rates. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `mockIncidencePrevalenceRef()` function, from whom we´ll create a denominator population without adding any restrictions other than a study period. In this example we'll specify a `tablePrefix` whcih will be used to create permanent tables in the database (rather than temp tables which are used by default).   
 
 ```{r setup}
 library(IncidencePrevalence)
@@ -96,7 +96,8 @@ cdm$denominator <- generateDenominatorCohortSet(
   endDate = as.Date("2012-01-01"),
   ageGroup = list(c(0, 150)),
   sex = "Both",
-  daysPriorHistory = 0
+  daysPriorHistory = 0, 
+  tablePrefix = "example_inc"
 )
 
 cdm$denominator %>%
@@ -112,7 +113,8 @@ inc <- estimateIncidence(
   outcomeTable = "outcome",
   interval = "years",
   outcomeWashout = 0,
-  repeatedEvents = FALSE
+  repeatedEvents = FALSE,
+  tablePrefix = "example_inc"
 )
 
 inc %>%
@@ -128,7 +130,7 @@ inc %>%
   theme_minimal()
 ```
 
-Now with a washout of all prior history while still not allowing repetitive events. Here we use `Inf` to specifify that we will use a washout of all prior history for an individual.
+Now with a washout of all prior history while still not allowing repetitive events. Here we use `Inf` to specify that we will use a washout of all prior history for an individual.
 ```{r, message= FALSE, warning=FALSE}
 inc <- estimateIncidence(
   cdm = cdm,
@@ -136,7 +138,8 @@ inc <- estimateIncidence(
   outcomeTable = "outcome",
   interval = "years",
   outcomeWashout = Inf,
-  repeatedEvents = FALSE
+  repeatedEvents = FALSE,
+  tablePrefix = "example_inc"
 )
 
 inc %>%
@@ -160,7 +163,8 @@ inc <- estimateIncidence(
   outcomeTable = "outcome",
   interval = "years",
   outcomeWashout = 180,
-  repeatedEvents = FALSE
+  repeatedEvents = FALSE,
+  tablePrefix = "example_inc"
 )
 
 inc %>%
@@ -184,7 +188,8 @@ inc <- estimateIncidence(
   outcomeTable = "outcome",
   interval = "years",
   outcomeWashout = 180,
-  repeatedEvents = TRUE
+  repeatedEvents = TRUE,
+  tablePrefix = "example_inc"
 )
 
 inc %>%
@@ -218,7 +223,7 @@ inc <- estimateIncidence(
   outcomeWashout = 180,
   repeatedEvents = TRUE,
   minCellCount = 0,
-  verbose = TRUE
+  tablePrefix = "example_inc"
 )
 ```
 
@@ -244,4 +249,12 @@ As with incidence, if we set returnParticipants as TRUE, we can identify the ind
 ```{r, message= FALSE, warning=FALSE}
 participants(inc, analysisId = 1) %>% 
   glimpse()
+```
+
+As we;ve used permanent tables for this example, we can drop these after running our analysis (all of the tables created will start with prefix we specified earlier).
+
+```{r, message= FALSE, warning=FALSE}
+CDMConnector::listTables(attr(cdm, "dbcon"))
+CDMConnector::dropTable(cdm = cdm, name = starts_with("example"))
+CDMConnector::listTables(attr(cdm, "dbcon"))
 ```

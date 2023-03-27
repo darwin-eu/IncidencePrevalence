@@ -46,14 +46,12 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
-#' con <- DBI::dbConnect(duckdb::duckdb(), CDMConnector::eunomia_dir())
-#' cdm <- CDMConnector::cdm_from_con(
-#'   con = con,
-#'   cdm_schema = "main"
-#' )
-#'
-#' timings <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm)
+#' \donttest{
+#' cdm <- mockIncidencePrevalenceRef(sampleSize = 10000,
+#'                                   earliestObservationStartDate = as.Date("2010-01-01") ,
+#'                                   latestObservationStartDate = as.Date("2018-01-01"))
+#' timings <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm,
+#'                                                              verbose = TRUE)
 #' }
 benchmarkIncidencePrevalence <- function(cdm,
                                          startDate = NULL,

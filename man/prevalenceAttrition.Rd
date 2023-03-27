@@ -16,6 +16,7 @@ tibble with counts and reasons for attrition.
 Attrition associated with an prevalence analysis
 }
 \examples{
+\donttest{
 cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 cdm$denominator <- generateDenominatorCohortSet(cdm)
 prev <- estimatePointPrevalence(
@@ -24,4 +25,5 @@ prev <- estimatePointPrevalence(
   outcomeTable = "outcome"
 )
 prevalenceAttrition(prev)
+}
 }

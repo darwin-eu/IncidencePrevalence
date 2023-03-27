@@ -1366,6 +1366,23 @@ test_that("mock db: check compute permanent", {
                           "dbplyr_",
                           negate = TRUE)))
 
+
+  expect_true(tibble::is_tibble(CDMConnector::cohortSet(cdm$dpop_perm)))
+  expect_true(tibble::is_tibble(CDMConnector::cohortCount(cdm$dpop_perm)))
+  expect_true(tibble::is_tibble(CDMConnector::cohortAttrition(cdm$dpop_perm)))
+
+  # # reconnect
+  # cdmReconn <- CDMConnector::cdm_from_con(con = attr(cdm, "dbcon"),
+  #                    cdm_tables = c("person", "observation_period",
+  #                                   "cdm_source","vocabulary"),
+  #                    cohort_tables = c("example_denominator"),
+  #                    write_schema = "main"
+  # )
+  #
+  # expect_true(tibble::is_tibble(CDMConnector::cohortSet(cdmReconn$example_denominator)))
+  # expect_true(tibble::is_tibble(CDMConnector::cohortCount(cdmReconn$example_denominator)))
+  # expect_true(tibble::is_tibble(CDMConnector::cohortAttrition(cdmReconn$example_denominator)))
+
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
 })
