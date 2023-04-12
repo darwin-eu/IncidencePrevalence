@@ -1,4 +1,3 @@
-## Resubmission
-This is a resubmission. In this version I have:
+## R CMD check results
 
-* Replaced \dontrun with \donttest in all cases
+This is a new release.
