@@ -40,13 +40,7 @@
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/IncidencePrevalence-package.html</loc>
   </url>
   <url>
-    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/attrition.html</loc>
-  </url>
-  <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/benchmarkIncidencePrevalence.html</loc>
-  </url>
-  <url>
-    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/cohortCount.html</loc>
   </url>
   <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/dropStemTables.html</loc>
@@ -92,11 +86,5 @@
   </url>
   <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/prevalenceSet.html</loc>
-  </url>
-  <url>
-    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/recordAttrition.html</loc>
-  </url>
-  <url>
-    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/settings.html</loc>
   </url>
 </urlset>
