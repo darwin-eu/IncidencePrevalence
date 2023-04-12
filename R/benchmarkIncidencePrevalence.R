@@ -176,7 +176,7 @@ benchmarkIncidencePrevalence <- function(cdm,
                                               "cohort_end_date"))
     }
   }
-  cdm$bench_outcome <- CDMConnector::newGeneratedCohortSet(cdm$bench_outcome)
+  cdm$bench_outcome <- addCohortCountAttr(cdm$bench_outcome)
 
   # calculate prevalence if analysisType is not "only incidence"
   if(analysisType != "only incidence") {

@@ -247,23 +247,22 @@ estimatePrevalence <- function(cdm,
 
   # if not given, use all denominator and outcome cohorts
   if (is.null(denominatorCohortId)) {
-    denominatorCohortId <- cdm[[denominatorTable]] %>%
-      dplyr::select("cohort_definition_id") %>%
-      dplyr::distinct() %>%
-      dplyr::collect() %>%
-      dplyr::pull()
+    denominatorCohortId <-  CDMConnector::cohortCount(cdm[[denominatorTable]]) %>%
+      dplyr::filter(.data$number_records > 0) %>%
+      dplyr::pull("cohort_definition_id")
   }
   if (is.null(outcomeCohortId)) {
-    outcomeCohortId <- cdm[[outcomeTable]] %>%
-      dplyr::select("cohort_definition_id") %>%
-      dplyr::distinct() %>%
-      dplyr::collect() %>%
-      dplyr::pull()
+    outcomeCohortId <- CDMConnector::cohortCount(cdm[[outcomeTable]]) %>%
+      dplyr::filter(.data$number_records > 0) %>%
+      dplyr::pull("cohort_definition_id")
   }
 
   ## add outcome from attribute
   if(!is.null(CDMConnector::cohortSet(cdm[[outcomeTable]]))){
-    outcomeCohortName <- CDMConnector::cohortSet(cdm[[outcomeTable]]) %>%
+    outcomeCohortName <- CDMConnector::cohortCount(cdm[[outcomeTable]]) %>%
+      dplyr::filter(.data$number_records > 0) %>%
+      dplyr::left_join(CDMConnector::cohortSet(cdm[[outcomeTable]]),
+                       by = "cohort_definition_id") %>%
       dplyr::pull("cohort_name")
   } else {
     outcomeCohortName <- NA
