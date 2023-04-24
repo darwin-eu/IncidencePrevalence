@@ -22,13 +22,13 @@ test_that("check with mock db", {
     denominatorTable = "denominator",
     outcomeTable = "outcome"
   ) %>%
-    filter(row_number() == 1)
+    dplyr::filter(dplyr::row_number() == 1)
   inc2 <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome"
   ) %>%
-    filter(row_number() == 1)
+    dplyr::filter(dplyr::row_number() == 1)
   expect_no_error(incCombined <- bindIncidenceEstimates(inc1, inc2))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
