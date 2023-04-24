@@ -47,10 +47,10 @@ bindIncidenceEstimates <- function(...) {
   checkNotEmpty(result, label)
   names <- deparse(substitute(list(...))) %>%
     {
-      gsub("list\\(", "", .)
+      gsub("list\\(", "", .data)
     } %>%
     {
-      gsub("\\)", "", .)
+      gsub("\\)", "", .data)
     } %>%
     stringr::str_split(", ") %>%
     unlist()
