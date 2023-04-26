@@ -113,10 +113,20 @@ bindEstimates <- function(result, names, label) {
   settings <- NULL
   attrition <- NULL
   for (k in seq_along(result)) {
-    settings <- dplyr::bind_rows(settings, attr(result[[k]], "settings"))
-    attrition <- dplyr::bind_rows(attrition, attr(result[[k]], "attrition"))
+    settings <- dplyr::bind_rows(
+      settings,
+      attr(result[[k]], "settings") %>%
+        dplyr::mutate(result_id = .env$k) %>%
+        dplyr::relocate("result_id")
+    )
+    attrition <- dplyr::bind_rows(
+      attrition,
+      attr(result[[k]], "attrition") %>%
+        dplyr::mutate(result_id = .env$k) %>%
+        dplyr::relocate("result_id")
+    )
   }
-  result <- dplyr::bind_rows(result)
+  result <- dplyr::bind_rows(result, .id = "result_id")
   attr(result, "settings") <- settings
   attr(result, "attrition") <- attrition
   return(result)
