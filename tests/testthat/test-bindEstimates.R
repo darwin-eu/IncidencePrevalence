@@ -72,12 +72,12 @@ test_that("simple example", {
   expect_true("IncidencePrevalenceResult" %in% class(incCombined))
   expect_true("settings" %in% names(attributes(incCombined)))
   expect_true("attrition" %in% names(attributes(incCombined)))
-  expectedInc <- dplyr::bind_rows(x, y)
+  expectedInc <- dplyr::bind_rows(x, y, .id = "result_id")
   attr(expectedInc, "attrition") <- dplyr::bind_rows(
-    attr(x, "attrition"), attr(y, "attrition")
+    attr(x, "attrition"), attr(y, "attrition"), .id = "result_id"
   )
   attr(expectedInc, "settings") <- dplyr::bind_rows(
-    attr(x, "settings"), attr(y, "settings")
+    attr(x, "settings"), attr(y, "settings"), .id = "result_id"
   )
   expect_equal(incCombined, expectedInc)
 
@@ -89,12 +89,12 @@ test_that("simple example", {
   expect_true("IncidencePrevalenceResult" %in% class(prevCombined))
   expect_true("settings" %in% names(attributes(prevCombined)))
   expect_true("attrition" %in% names(attributes(prevCombined)))
-  expectedPrev <- dplyr::bind_rows(x, y)
+  expectedPrev <- dplyr::bind_rows(x, y, .id = "result_id")
   attr(expectedPrev, "attrition") <- dplyr::bind_rows(
-    attr(x, "attrition"), attr(y, "attrition")
+    attr(x, "attrition"), attr(y, "attrition"), .id = "result_id"
   )
   attr(expectedPrev, "settings") <- dplyr::bind_rows(
-    attr(x, "settings"), attr(y, "settings")
+    attr(x, "settings"), attr(y, "settings"), .id = "result_id"
   )
   expect_equal(prevCombined, expectedPrev)
 })

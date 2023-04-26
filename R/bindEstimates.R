@@ -106,26 +106,17 @@ bindEstimates <- function(result, names, label) {
   class1 <- checkClass(result, label)
   class2 <- checkClass(result, "IncidencePrevalenceResult")
   if (!all(class1 & class2)) {
-    names <- names[!(class1 & class2)] %>%
-      paste0(collapse = ", ")
+    names <- names[!(class1 & class2)] %>% paste0(collapse = ", ")
     cli::cli_abort(paste0("Not valid ", label, "s: ", names))
   }
-  settings <- NULL
-  attrition <- NULL
-  for (k in seq_along(result)) {
-    settings <- dplyr::bind_rows(
-      settings,
-      attr(result[[k]], "settings") %>%
-        dplyr::mutate(result_id = .env$k) %>%
-        dplyr::relocate("result_id")
-    )
-    attrition <- dplyr::bind_rows(
-      attrition,
-      attr(result[[k]], "attrition") %>%
-        dplyr::mutate(result_id = .env$k) %>%
-        dplyr::relocate("result_id")
-    )
-  }
+  settings <- dplyr::bind_rows(
+    lapply(result, attr, which = "settings"),
+    .id = "result_id"
+  )
+  attrition <- dplyr::bind_rows(
+    lapply(result, attr, which = "attrition"),
+    .id = "result_id"
+  )
   result <- dplyr::bind_rows(result, .id = "result_id")
   attr(result, "settings") <- settings
   attr(result, "attrition") <- attrition
