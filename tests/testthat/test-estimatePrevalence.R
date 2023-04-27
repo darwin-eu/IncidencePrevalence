@@ -22,13 +22,7 @@ test_that("mock db: check output format", {
     "prevalence_start_date",
     "prevalence_end_date",
     "cohort_obscured",
-    "result_obscured"
-  ) %in%
-    names(prev)))
-
-  # check analysis settings tibble::tibble
-  expect_true(all(c(
-    "analysis_id",
+    "result_obscured",
     "outcome_cohort_id",
     "outcome_cohort_name",
     "analysis_type",
@@ -45,12 +39,27 @@ test_that("mock db: check output format", {
     "denominator_end_date",
     "cdm_name"
   ) %in%
-    names(prevalenceSet(prev))))
+    names(prev)))
 
   expect_true(all(c(
     "analysis_id", "number_records", "number_subjects",
     "reason_id","reason",
-    "excluded_records", "excluded_subjects"
+    "excluded_records", "excluded_subjects",
+    "outcome_cohort_id",
+    "outcome_cohort_name",
+    "analysis_type",
+    "analysis_time_point",
+    "analysis_interval",
+    "analysis_full_contribution",
+    "analysis_complete_database_intervals",
+    "analysis_min_cell_count",
+    "denominator_cohort_id",
+    "denominator_age_group",
+    "denominator_sex",
+    "denominator_days_prior_history",
+    "denominator_start_date",
+    "denominator_end_date",
+    "cdm_name"
   ) %in%
     names(prevalenceAttrition(prev))))
 
@@ -941,8 +950,6 @@ test_that("mock db: check user point prevalence function", {
   )
 
   expect_true(all(names(prev) == names(prev_point)))
-  expect_true(all(names(prevalenceSet(prev)) ==
-    names(prevalenceSet(prev_point))))
   expect_true(all(names(prev) ==
     names(prev_point)))
 
@@ -968,8 +975,6 @@ test_that("mock db: check user period prevalence function", {
   )
 
   expect_true(all(names(prev) == names(prev_period)))
-  expect_true(all(names(prevalenceSet(prev)) ==
-    names(prevalenceSet(prev_period))))
   expect_true(all(names(prev) ==
     names(prev_period)))
 
@@ -1154,18 +1159,12 @@ test_that("mock db: check attrition", {
   )
 
   # for female cohort we should have a row for those excluded for not being male
-  expect_true(any("Not Female" == prevalenceSet(prev) %>%
+  expect_true(any("Not Female" == prevalenceAttrition(prev) %>%
     dplyr::filter(denominator_sex == "Female") %>%
-    dplyr::inner_join(prevalenceAttrition(prev),
-      by = "analysis_id", multiple = "all"
-    ) %>%
     dplyr::pull(.data$reason)))
   # for male, the opposite
-  expect_true(any("Not Male" == prevalenceSet(prev) %>%
+  expect_true(any("Not Male" == prevalenceAttrition(prev)%>%
     dplyr::filter(denominator_sex == "Male") %>%
-    dplyr::inner_join(prevalenceAttrition(prev),multiple = "all",
-      by = "analysis_id"
-    ) %>%
     dplyr::pull(.data$reason)))
 
   # check we can pick out specific analysis attrition
@@ -1352,3 +1351,21 @@ test_that("mock db: check participants", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
 })
+
+test_that("mock db: if missing cohort attributes", {
+
+  cdm <- mockIncidencePrevalenceRef()
+
+  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  attr(cdm$outcome, "cohort_set") <- NULL
+  prev <- estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years")
+
+  expect_true(is.na(prev$outcome_cohort_name))
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+

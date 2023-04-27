@@ -11,9 +11,20 @@ test_that("mock db: check output format", {
     interval = "months"
   )
 
-  # check analysis settings tibble
+  # check estimates tibble
   expect_true(all(c(
     "analysis_id",
+    "n_persons",
+    "person_days",
+    "person_years",
+    "n_events",
+    "incidence_100000_pys",
+    "incidence_100000_pys_95CI_lower",
+    "incidence_100000_pys_95CI_upper",
+    "incidence_start_date",
+    "incidence_end_date",
+    "cohort_obscured",
+    "result_obscured",
     "analysis_outcome_washout",
     "analysis_repeated_events",
     "analysis_interval",
@@ -31,29 +42,28 @@ test_that("mock db: check output format", {
     "denominator_strata_cohort_name",
     "cdm_name"
   ) %in%
-    names(incidenceSet(inc))))
-
-  # check estimates tibble
-  expect_true(all(c(
-    "analysis_id",
-    "n_persons",
-    "person_days",
-    "person_years",
-    "n_events",
-    "incidence_100000_pys",
-    "incidence_100000_pys_95CI_lower",
-    "incidence_100000_pys_95CI_upper",
-    "incidence_start_date",
-    "incidence_end_date",
-    "cohort_obscured",
-    "result_obscured"
-  ) %in%
     names(inc)))
 
   expect_true(all(c(
     "analysis_id", "number_records", "number_subjects",
     "reason_id","reason",
-    "excluded_records", "excluded_subjects"
+    "excluded_records", "excluded_subjects",
+    "analysis_outcome_washout",
+    "analysis_repeated_events",
+    "analysis_interval",
+    "analysis_complete_database_intervals",
+    "analysis_min_cell_count",
+    "outcome_cohort_id",
+    "outcome_cohort_name",
+    "denominator_cohort_id",
+    "denominator_age_group",
+    "denominator_sex",
+    "denominator_days_prior_history",
+    "denominator_start_date",
+    "denominator_end_date",
+    "denominator_strata_cohort_definition_id",
+    "denominator_strata_cohort_name",
+    "cdm_name"
   ) %in%
     names(incidenceAttrition(inc))))
 
@@ -2935,18 +2945,13 @@ test_that("mock db: check attrition", {
     interval = "years"
   )
   # for female cohort we should have a row for those excluded for not being male
-  expect_true(any("Not Female" == incidenceSet(inc) %>%
+  expect_true(any("Not Female" ==
+                    incidenceAttrition(inc) %>%
     dplyr::filter(denominator_sex == "Female") %>%
-    dplyr::inner_join(incidenceAttrition(inc), multiple = "all",
-      by = "analysis_id"
-    ) %>%
     dplyr::pull(.data$reason)))
   # for male, the opposite
-  expect_true(any("Not Male" == incidenceSet(inc) %>%
-    dplyr::filter(denominator_sex == "Male") %>%
-    dplyr::inner_join(incidenceAttrition(inc), multiple = "all",
-      by = "analysis_id"
-    ) %>%
+  expect_true(any("Not Male" == incidenceAttrition(inc)  %>%
+                    dplyr::filter(denominator_sex == "Male") %>%
     dplyr::pull(.data$reason)))
 
   # check we can pick out specific analysis attrition
@@ -3124,3 +3129,20 @@ test_that("mock db: check participants", {
     DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
     })
+
+test_that("mock db: if missing cohort attributes", {
+
+  cdm <- mockIncidencePrevalenceRef()
+
+  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  attr(cdm$outcome, "cohort_set") <- NULL
+  inc <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "overall")
+
+  expect_true(is.na(inc$outcome_cohort_name))
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})

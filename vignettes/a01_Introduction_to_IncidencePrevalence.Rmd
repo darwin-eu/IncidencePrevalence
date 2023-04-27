@@ -110,8 +110,6 @@ prev %>%
 
 ```{r, message= FALSE, warning=FALSE, echo=FALSE}
 prev %>%
-  left_join(prevalenceSet(prev),
-            by = "analysis_id") %>%
   ggplot(aes(x = prevalence_start_date, y = prevalence,
              ymin = prevalence_95CI_lower,
              ymax = prevalence_95CI_upper,
@@ -143,8 +141,6 @@ inc %>%
 
 ```{r, message= FALSE, warning=FALSE, echo=FALSE}
 inc %>%
-  left_join(incidenceSet(inc),
-            by = "analysis_id") %>%
   ggplot(aes(x = incidence_start_date, y = incidence_100000_pys,
              ymin = incidence_100000_pys_95CI_lower,
              ymax = incidence_100000_pys_95CI_upper,
@@ -156,17 +152,10 @@ inc %>%
   theme(legend.title = element_blank())
 ```
 
-Once we have our estimates, we can use `gatherIncidencePrevalenceResults()` to bring together the results.
-```{r}
-study_results <- gatherIncidencePrevalenceResults(cdm = cdm,
-                    resultList = list(inc, prev))
-dplyr::glimpse(study_results$incidence_estimates)
-dplyr::glimpse(study_results$prevalence_estimates)
-```
-
 After gathering results, we can export them as CSVs in a zip folder using the `exportIncidencePrevalenceResults()` function. 
 ```{r, eval=FALSE}
-exportIncidencePrevalenceResults(result = study_results,
+exportIncidencePrevalenceResults(resultList = list("incidence" = inc, 
+                                                   "prevalence" = prev),
                   zipName = "example_results",
                   outputFolder = here::here())
 ```

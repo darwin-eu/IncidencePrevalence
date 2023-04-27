@@ -18,6 +18,7 @@ test_that("full benchmark", {
   # using permanent tables
   timings_perm<-benchmarkIncidencePrevalence(cdm,
                                              tablePrefix = "stem",
+                                             returnParticipants = TRUE,
                                         outputFolder = tempdir(),
                                         fileName = "bench_perm",
                                         verbose = TRUE)

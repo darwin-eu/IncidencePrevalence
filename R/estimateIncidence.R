@@ -438,17 +438,25 @@ estimateIncidence <- function(cdm,
   }
 
 
-  # return results as an IncidencePrevalenceResult class
-  attr(irs, "settings") <- analysisSettings %>%
+  analysisSettings <- analysisSettings %>%
     dplyr::left_join(outcomeRef, by = "outcome_cohort_id") %>%
     dplyr::relocate("outcome_cohort_id", .after = "analysis_id") %>%
     dplyr::relocate("outcome_cohort_name", .after = "outcome_cohort_id") %>%
     dplyr::mutate(cdm_name = attr(cdm, "cdm_name"))
+
+  # add settings to estimates and attrition
+  if (nrow(irs) >= 1) {
+  irs <- irs %>%
+    dplyr::left_join(analysisSettings, by = "analysis_id")
+  }
+  attrition <- attrition %>%
+    dplyr::left_join(analysisSettings, by = "analysis_id")
+
+  # return results as an IncidencePrevalenceResult class
   attr(irs, "attrition") <- attrition
   if(returnParticipants == TRUE){
-  attr(irs, "participants") <- participants
+    attr(irs, "participants") <- participants
   }
-
   class(irs) <- c("IncidencePrevalenceResult", "IncidenceResult", class(irs))
 
   if (verbose == TRUE) {

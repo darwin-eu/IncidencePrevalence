@@ -146,23 +146,13 @@ prev_period <- estimatePeriodPrevalence(
 dplyr::glimpse(prev_period)
 ```
 
-### Combining and exporting results
-After running different analyses We can use `gatherIncidencePrevalenceResults()` to bring together the results, adding outcome names and the database name to the output.
-```{r}
-study_results <- gatherIncidencePrevalenceResults(
-  cdm = cdm,
-  resultList = list(inc, prev_point, prev_period)
-)
-dplyr::glimpse(study_results$incidence_estimates)
-dplyr::glimpse(study_results$incidence_attrition)
-dplyr::glimpse(study_results$prevalence_estimates)
-dplyr::glimpse(study_results$prevalence_attrition)
-```
-
-After gathering results, we can export them as CSVs in a zip folder using the `exportIncidencePrevalenceResults()` function. 
+### Exporting results
+We can export our results as CSVs in a zip folder using the `exportIncidencePrevalenceResults()` function. 
 ```{r, eval=FALSE}
 exportIncidencePrevalenceResults(
-  result = study_results,
+  resultList = list("incidence" = inc, 
+                     "point_prevalence" = prev_point, 
+                     "period_prevalence" = prev_period),
   zipName = "example_results",
   outputFolder = here::here()
 )

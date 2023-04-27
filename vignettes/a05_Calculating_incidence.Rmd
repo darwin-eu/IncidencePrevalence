@@ -20,7 +20,6 @@ knitr::opts_chunk$set(
 
 ```{r, message= FALSE, warning=FALSE, echo=FALSE}
 library(here)
-library(ggplot2)
 library(DBI)
 library(dbplyr)
 library(dplyr)
@@ -83,7 +82,6 @@ Considering all the above, we only recommend restricting outcome definitions to 
 library(IncidencePrevalence)
 library(dplyr)
 library(tidyr)
-library(ggplot2)
 
 cdm <- mockIncidencePrevalenceRef(
   sampleSize = 50000,
@@ -120,14 +118,7 @@ inc <- estimateIncidence(
 inc %>%
   glimpse()
 
-inc %>%
-  ggplot(aes(x = incidence_start_date, y = incidence_100000_pys,
-             ymin = incidence_100000_pys_95CI_lower,
-             ymax = incidence_100000_pys_95CI_upper)) +
-  geom_point() +
-  geom_errorbar(width = 0) +
-  scale_y_continuous(limits = c(0, NA)) +
-  theme_minimal()
+plotIncidence(inc)
 ```
 
 Now with a washout of all prior history while still not allowing repetitive events. Here we use `Inf` to specify that we will use a washout of all prior history for an individual.
@@ -145,14 +136,8 @@ inc <- estimateIncidence(
 inc %>%
   glimpse()
 
-inc %>%
-  ggplot(aes(x = incidence_start_date, y = incidence_100000_pys,
-             ymin = incidence_100000_pys_95CI_lower,
-             ymax = incidence_100000_pys_95CI_upper)) +
-  geom_point() +
-  geom_errorbar(width = 0) +
-  scale_y_continuous(limits = c(0, NA)) +
-  theme_minimal()
+plotIncidence(inc)
+
 ```
 
 Now we´ll set the washout to 180 days while still not allowing repetitive events
@@ -170,14 +155,7 @@ inc <- estimateIncidence(
 inc %>%
   glimpse()
 
-inc %>%
-  ggplot(aes(x = incidence_start_date, y = incidence_100000_pys,
-             ymin = incidence_100000_pys_95CI_lower,
-             ymax = incidence_100000_pys_95CI_upper)) +
-  geom_point() +
-  geom_errorbar(width = 0) +
-  scale_y_continuous(limits = c(0, NA)) +
-  theme_minimal()
+plotIncidence(inc)
 ```
 
 And finally we´ll set the washout to 180 days and allow repetitive events
@@ -195,14 +173,8 @@ inc <- estimateIncidence(
 inc %>%
   glimpse()
 
-inc %>%
-  ggplot(aes(x = incidence_start_date, y = incidence_100000_pys,
-             ymin = incidence_100000_pys_95CI_lower,
-             ymax = incidence_100000_pys_95CI_upper)) +
-  geom_point() +
-  geom_errorbar(width = 0) +
-  scale_y_continuous(limits = c(0, NA)) +
-  theme_minimal()
+plotIncidence(inc)
+
 ```
 
 
@@ -241,7 +213,6 @@ inc <- estimateIncidence(
   tablePrefix = "example_study", # returnParticipants can only be TRUE if tablePrefix is not null
   returnParticipants = TRUE
 )
-incidenceSet(inc)
 incidenceAttrition(inc)
 ```
 

@@ -4,10 +4,11 @@
 \alias{exportIncidencePrevalenceResults}
 \title{Export IncidencePrevalence results}
 \usage{
-exportIncidencePrevalenceResults(result, zipName, outputFolder)
+exportIncidencePrevalenceResults(resultList, zipName, outputFolder)
 }
 \arguments{
-\item{result}{IncidencePrevalence results from gatherResults()}
+\item{resultList}{Named list with results from estimateIncidence,
+estimatePointPrevalence, or estimatePeriodPrevalence}
 
 \item{zipName}{name to give zip folder}
 
@@ -33,8 +34,8 @@ cdm = cdm,
 denominatorTable = "denominator",
 outcomeTable = "outcome"
 )
- results <- gatherIncidencePrevalenceResults(cdm = cdm, resultList=list(prev))
- exportIncidencePrevalenceResults(result=results, zipName="test",
-                                  outputFolder=tempdir())
+exportIncidencePrevalenceResults(resultList=list("prevalence" = prev),
+                                zipName="test",
+                                outputFolder=tempdir())
 }
 }

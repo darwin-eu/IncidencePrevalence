@@ -425,7 +425,7 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
 
 
   # add other tables required for snapshot
-  cdmSource <- tibble::tibble(cdm_source_name="test database",
+  cdmSource <- tibble::tibble(cdm_source_name="test_database",
                               cdm_source_abbreviation = NA,
                               cdm_holder = NA,
                               source_description = NA,
