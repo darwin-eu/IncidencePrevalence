@@ -10,7 +10,6 @@ benchmarkIncidencePrevalence(
   endDate = NULL,
   tablePrefix = NULL,
   returnParticipants = FALSE,
-  sample = NULL,
   nOutcomes = 1,
   prevOutcomes = 0.25,
   analysisType = "all",
@@ -37,9 +36,6 @@ or overwritten. If NULL, temporary tables will be used throughout.}
 
 \item{returnParticipants}{Whether to return participants (Requires tablePrefix
 to have been specified)}
-
-\item{sample}{An integer for which to take a random sample when generating
-the denominator cohort}
 
 \item{nOutcomes}{An integer specifying the number of outcomes to create in
 the denominator cohort}

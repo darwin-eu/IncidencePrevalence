@@ -14,7 +14,6 @@ generateDenominatorCohortSet(
   strataTable = NULL,
   strataCohortId = NULL,
   strataCohortName = NULL,
-  sample = NULL,
   tablePrefix = NULL,
   verbose = FALSE
 )
@@ -51,10 +50,6 @@ cohort when they are contributing to the cohort in the strata table).}
 in the strata table. Only one stratifying cohort is supported.}
 
 \item{strataCohortName}{Corresponding name for the strata cohort.}
-
-\item{sample}{An integer for which to take a random sample, using
-\code{dplyr::slice_sample()}, of the people in the person table eligible to be
-included in the cohort set.}
 
 \item{tablePrefix}{The stem for the permanent tables that will
 be created when creating the denominator cohorts. Permanent tables will be

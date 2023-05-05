@@ -47,7 +47,7 @@ test_that("benchmark multiple outcomes, prevalences and analysis types", {
                                     maxDaysToObservationEnd = 364,
                                     outPre = 0.1 )
 
-  timings = benchmarkIncidencePrevalence(cdm,sample = NULL, nOutcomes = 2,
+  timings = benchmarkIncidencePrevalence(cdm, nOutcomes = 2,
                                          prevOutcomes = c(0.1),
                                          analysisType = "only incidence",
                                          verbose = TRUE)
@@ -56,7 +56,7 @@ test_that("benchmark multiple outcomes, prevalences and analysis types", {
   expect_true("monthly incidence, 2 outcome(s)" %in% timings$task)
   expect_false("yearly point prevalence, 2 outcome(s)" %in% timings$task)
 
-  timings = benchmarkIncidencePrevalence(cdm,sample = NULL, nOutcomes = 1,
+  timings = benchmarkIncidencePrevalence(cdm, nOutcomes = 1,
                                          prevOutcomes = 0.15, analysisType = "all",
                                          verbose = TRUE)
 

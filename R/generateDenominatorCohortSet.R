@@ -46,9 +46,6 @@
 #' @param strataCohortId The cohort definition id for the cohort of interest
 #'  in the strata table. Only one stratifying cohort is supported.
 #' @param strataCohortName Corresponding name for the strata cohort.
-#' @param sample An integer for which to take a random sample, using
-#' `dplyr::slice_sample()`, of the people in the person table eligible to be
-#' included in the cohort set.
 #' @param tablePrefix The stem for the permanent tables that will
 #' be created when creating the denominator cohorts. Permanent tables will be
 #' created using this stem, and any existing tables that start with this
@@ -78,7 +75,6 @@ generateDenominatorCohortSet <- function(cdm,
                                          strataTable = NULL,
                                          strataCohortId = NULL,
                                          strataCohortName = NULL,
-                                         sample = NULL,
                                          tablePrefix = NULL,
                                          verbose = FALSE) {
   if (verbose == TRUE) {
@@ -89,7 +85,7 @@ generateDenominatorCohortSet <- function(cdm,
     cdm, startDate, endDate,
     ageGroup, sex, daysPriorHistory,
     strataTable, strataCohortId, strataCohortName,
-    sample, tablePrefix, verbose
+    tablePrefix, verbose
   )
   if (!is.null(tablePrefix)) {
     # drop table stem if exists
@@ -153,7 +149,6 @@ generateDenominatorCohortSet <- function(cdm,
     daysPriorHistory = unique(popSpecs$days_prior_history),
     strataTable = strataTable,
     strataCohortId = strataCohortId,
-    sample = sample,
     tablePrefix
   )
 
@@ -312,13 +307,6 @@ generateDenominatorCohortSet <- function(cdm,
                             name = tablePrefix)
     CDMConnector::dropTable(cdm = cdm,
                             name = tidyselect::starts_with(paste0(tablePrefix, "_i_")))
-    if(!is.null(sample)){
-    CDMConnector::dropTable(cdm = cdm,
-                            name = paste0(
-                              tablePrefix,
-                              "_person_sample"
-                            ))
-    }
   }
 
   if (verbose == TRUE) {

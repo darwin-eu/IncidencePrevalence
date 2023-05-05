@@ -336,12 +336,6 @@ test_that("mock db: mock example 1000", {
     dplyr::pull(cohort_end_date)) <=
     as.Date("2013-06-15"))
 
-  # with sampling
-  cdm$dpop <- generateDenominatorCohortSet(cdm,
-    sample = 55
-  )
-  expect_true(CDMConnector::cohortCount(cdm$dpop)$number_records == 55)
-
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
@@ -1334,7 +1328,7 @@ test_that("mock db: check compute permanent", {
   # using temp
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
   attr(cdm, "write_schema") <- "main"
-  cdm$dpop_temp <- generateDenominatorCohortSet(cdm = cdm,sample = 1000,
+  cdm$dpop_temp <- generateDenominatorCohortSet(cdm = cdm,
                                                 ageGroup = list(c(0,10), c(11,20),
                                                                 c(21,30), c(31,40),
                                                                 c(41,50), c(51,60)),
@@ -1350,7 +1344,7 @@ test_that("mock db: check compute permanent", {
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
   attr(cdm, "write_schema") <- "main"
 
-  cdm$dpop_perm <- generateDenominatorCohortSet(cdm = cdm,sample = 1000,
+  cdm$dpop_perm <- generateDenominatorCohortSet(cdm = cdm,
                                                 ageGroup = list(c(0,10), c(11,20),
                                                                 c(21,30), c(31,40),
                                                                 c(41,50), c(51,60)),

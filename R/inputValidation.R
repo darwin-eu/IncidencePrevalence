@@ -7,7 +7,6 @@ checkInputGenerateDCS <- function(cdm,
                                   strataTable,
                                   strataCohortId,
                                   strataCohortName,
-                                  sample,
                                   tablePrefix,
                                   verbose) {
 
@@ -101,10 +100,6 @@ checkInputGenerateDCS <- function(cdm,
                              len = 1,
                              add = errorMessage,
                              null.ok = TRUE
-  )
-  checkmate::assertNumeric(sample,
-                           add = errorMessage,
-                           null.ok = TRUE
   )
   checkmate::assertCharacter(tablePrefix,
                              len = 1,

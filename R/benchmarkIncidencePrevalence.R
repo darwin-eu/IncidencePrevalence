@@ -29,8 +29,6 @@
 #' or overwritten. If NULL, temporary tables will be used throughout.
 #' @param returnParticipants Whether to return participants (Requires tablePrefix
 #' to have been specified)
-#' @param sample An integer for which to take a random sample when generating
-#' the denominator cohort
 #' @param nOutcomes An integer specifying the number of outcomes to create in
 #' the denominator cohort
 #' @param prevOutcomes An array of integers for the prevalence of the outcomes
@@ -58,7 +56,6 @@ benchmarkIncidencePrevalence <- function(cdm,
                                          endDate = NULL,
                                          tablePrefix = NULL,
                                          returnParticipants = FALSE,
-                                         sample = NULL,
                                          nOutcomes = 1,
                                          prevOutcomes = 0.25,
                                          analysisType = "all",
@@ -76,11 +73,6 @@ benchmarkIncidencePrevalence <- function(cdm,
                              len = 1,
                              add = errorMessage,
                              null.ok = TRUE
-  )
-  checkmate::assertNumeric(sample,
-                           lower = 0,
-                           add = errorMessage,
-                           null.ok = TRUE
   )
   checkmate::assertIntegerish(nOutcomes,
                            lower = 0,
@@ -135,7 +127,6 @@ benchmarkIncidencePrevalence <- function(cdm,
       c(0, 25), c(26, 64),
       c(65, 79), c(80, 150)
     ),
-    sample = sample,
     tablePrefix = tablePrefix,
     verbose = verbose
   )
