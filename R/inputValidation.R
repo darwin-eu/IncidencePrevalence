@@ -156,6 +156,19 @@ checkInputEstimateIncidence <- function(cdm,
       "- `outcomeTable` is not found in cdm"
     )
   }
+  outcomeAttributeCheck <-  (!is.null(attr(cdm[[outcomeTable]],
+                                           "cohort_count")) &
+                               !is.null(attr(cdm[[outcomeTable]],
+                                             "cohort_set")))
+  checkmate::assertTRUE(outcomeAttributeCheck,
+                        add = errorMessage
+  )
+  if (!isTRUE(outcomeAttributeCheck)) {
+    errorMessage$push(
+      "- `outcomeTable` is missing cohort_count or cohort_set attribute"
+    )
+  }
+
   checkmate::assertIntegerish(outcomeCohortId,
     add = errorMessage,
     null.ok = TRUE
@@ -274,6 +287,18 @@ checkInputEstimatePrevalence <- function(cdm,
   if (!isTRUE(outcomeCheck)) {
     errorMessage$push(
       "- `outcomeTable` is not found in cdm"
+    )
+  }
+  outcomeAttributeCheck <-  (!is.null(attr(cdm[[outcomeTable]],
+                                           "cohort_count")) &
+                               !is.null(attr(cdm[[outcomeTable]],
+                                             "cohort_set")))
+  checkmate::assertTRUE(outcomeAttributeCheck,
+                        add = errorMessage
+  )
+  if (!isTRUE(outcomeAttributeCheck)) {
+    errorMessage$push(
+      "- `outcomeTable` is missing cohort_count or cohort_set attribute"
     )
   }
   checkmate::assertIntegerish(outcomeCohortId,

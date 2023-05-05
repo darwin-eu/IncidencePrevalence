@@ -29,7 +29,7 @@ RoxygenNote: 7.2.3
 Depends: 
     R (>= 4.0)
 Imports: 
-    CDMConnector (>= 0.5.0),
+    CDMConnector (>= 0.6.0),
     checkmate (>= 2.0.0),
     cli (>= 3.0.0),
     DBI (>= 1.0.0),

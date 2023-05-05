@@ -1354,18 +1354,26 @@ test_that("mock db: check participants", {
 
 test_that("mock db: if missing cohort attributes", {
 
+  # missing cohort_set
   cdm <- mockIncidencePrevalenceRef()
-
   cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
   attr(cdm$outcome, "cohort_set") <- NULL
-  prev <- estimatePrevalence(
+  expect_error(estimatePrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    interval = "years")
+    interval = "years"))
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
-  expect_true(is.na(prev$outcome_cohort_name))
-
+  # missing cohort_count
+  cdm <- mockIncidencePrevalenceRef()
+  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  attr(cdm$outcome, "cohort_count") <- NULL
+  expect_error(estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years"))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 

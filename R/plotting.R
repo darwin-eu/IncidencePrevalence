@@ -119,7 +119,8 @@ plotEstimates <- function(result,
                            colour_name){
 
   errorMessage <- checkmate::makeAssertCollection()
-  # ADD INPUT VALIDATION
+  checkmate::assertTRUE(inherits(result, "IncidencePrevalenceResult"))
+  checkmate::assertTRUE(all(c(x,y) %in% colnames(result)))
   checkmate::reportAssertions(collection = errorMessage)
 
   plot_data <- getPlotData(estimates = result,

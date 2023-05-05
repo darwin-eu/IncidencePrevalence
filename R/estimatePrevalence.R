@@ -258,15 +258,11 @@ estimatePrevalence <- function(cdm,
   }
 
   ## add outcome from attribute
-  if(!is.null(CDMConnector::cohortSet(cdm[[outcomeTable]]))){
-    outcomeCohortName <- CDMConnector::cohortCount(cdm[[outcomeTable]]) %>%
+  outcomeCohortName <- CDMConnector::cohortCount(cdm[[outcomeTable]]) %>%
       dplyr::filter(.data$number_records > 0) %>%
       dplyr::left_join(CDMConnector::cohortSet(cdm[[outcomeTable]]),
                        by = "cohort_definition_id") %>%
       dplyr::pull("cohort_name")
-  } else {
-    outcomeCohortName <- NA
-  }
 
   outcomeRef <- tibble::tibble(
     outcome_cohort_id = .env$outcomeCohortId,
