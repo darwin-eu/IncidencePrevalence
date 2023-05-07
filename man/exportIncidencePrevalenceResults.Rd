@@ -24,10 +24,8 @@ Export IncidencePrevalence results
 \examples{
 \donttest{
 cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-cdm$denominator <- generateDenominatorCohortSet(
-  cdm = cdm,
-  startDate = as.Date("2008-01-01"),
-  endDate = as.Date("2018-01-01")
+cdm <- generateDenominatorCohortSet(
+  cdm = cdm, name = "denominator"
 )
 prev <- estimatePointPrevalence(
 cdm = cdm,

@@ -12,10 +12,8 @@ test_that("test input format errors", {
 
 test_that("check with mock db", {
   cdm <- mockIncidencePrevalenceRef(sampleSize = 100)
-  cdm$denominator <- generateDenominatorCohortSet(
-    cdm = cdm,
-    startDate = as.Date("2008-01-01"),
-    endDate = as.Date("2018-01-01")
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
   )
   inc1 <- estimateIncidence(
     cdm = cdm,
@@ -33,10 +31,9 @@ test_that("check with mock db", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   cdm <- mockIncidencePrevalenceRef(sampleSize = 100)
-  cdm$denominator <- generateDenominatorCohortSet(
-    cdm = cdm,
-    startDate = as.Date("2008-01-01"),
-    endDate = as.Date("2018-01-01")
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, cohortDateRange = c(as.Date("2008-01-01"),
+    endDate = as.Date("2018-01-01"))
   )
   prev1 <- estimatePeriodPrevalence(
     cdm = cdm,

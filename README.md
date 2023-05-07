@@ -2,7 +2,7 @@
 # IncidencePrevalence <img src='man/figures/hexsticker.png' align="right" height="139"/>
 
 [![CRANstatus](https://www.r-pkg.org/badges/version/IncidencePrevalence)](https://CRAN.R-project.org/package=IncidencePrevalence)
-[![codecov.io](https://codecov.io/github/darwin-eu/IncidencePrevalence/coverage.svg?branch=main)](https://codecov.io/github/darwin-eu/IncidencePrevalence?branch=main)
+[![codecov.io](https://codecov.io/github/darwin-eu/IncidencePrevalence/coverage.svg?branch=main)](https://app.codecov.io/github/darwin-eu/IncidencePrevalence?branch=main)
 [![R-CMD-check](https://github.com/darwin-eu/IncidencePrevalence/workflows/R-CMD-check/badge.svg)](https://github.com/darwin-eu/IncidencePrevalence/actions)
 [![Lifecycle:Experimental](https://img.shields.io/badge/Lifecycle-Experimental-339999)](https://lifecycle.r-lib.org/articles/stages.html)
 
@@ -68,10 +68,10 @@ and multiple sex criteria (one cohort only males, one only females, and
 one with both sexes included).
 
 ``` r
-cdm$denominator <- generateDenominatorCohortSet(
-  cdm = cdm,
-  startDate = as.Date("2008-01-01"),
-  endDate = as.Date("2018-01-01"),
+cdm <- generateDenominatorCohortSet(
+  cdm = cdm, 
+  name = "denominator", 
+  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01")),
   ageGroup = list(c(0,64),
                   c(65,100)),
   sex = c("Male", "Female", "Both"),
@@ -127,7 +127,7 @@ use the CDMConnector package to read in and generate the cohorts.
 outcome_cohorts <- CDMConnector::readCohortSet("path_to_outcome_cohort_definitions")
 cdm <- CDMConnector::generateCohortSet(cdm = cdm, 
                                        cohortSet = outcome_cohorts,
-                                       cohortTableName = "outcome_table_name"
+                                       name = "outcome_table_name"
                                        )
 ```
 
@@ -208,7 +208,7 @@ dplyr::glimpse(inc)
 #> $ denominator_end_date                    <date> 2018-01-01, 2018-01-01, 2018-…
 #> $ denominator_strata_cohort_definition_id <lgl> NA, NA, NA, NA, NA, NA, NA, NA…
 #> $ denominator_strata_cohort_name          <lgl> NA, NA, NA, NA, NA, NA, NA, NA…
-#> $ cdm_name                                <chr> "test database", "test databas…
+#> $ cdm_name                                <chr> "test_database", "test_databas…
 ```
 
 We could also estimate point prevalence, as of the start of each
@@ -254,7 +254,7 @@ dplyr::glimpse(prev_point)
 #> $ denominator_end_date                    <date> 2018-01-01, 2018-01-01, 2018-…
 #> $ denominator_strata_cohort_definition_id <lgl> NA, NA, NA, NA, NA, NA, NA, NA…
 #> $ denominator_strata_cohort_name          <lgl> NA, NA, NA, NA, NA, NA, NA, NA…
-#> $ cdm_name                                <chr> "test database", "test databas…
+#> $ cdm_name                                <chr> "test_database", "test_databas…
 ```
 
 And annual period prevalence where we again require complete database
@@ -302,7 +302,7 @@ dplyr::glimpse(prev_period)
 #> $ denominator_end_date                    <date> 2018-01-01, 2018-01-01, 2018-…
 #> $ denominator_strata_cohort_definition_id <lgl> NA, NA, NA, NA, NA, NA, NA, NA…
 #> $ denominator_strata_cohort_name          <lgl> NA, NA, NA, NA, NA, NA, NA, NA…
-#> $ cdm_name                                <chr> "test database", "test databas…
+#> $ cdm_name                                <chr> "test_database", "test_databas…
 ```
 
 ### Exporting results

@@ -7,58 +7,76 @@ test_that("eunomia test - some empty cohorts", {
     cdm_schema = "main",
     write_schema = "main"
   )
-  cdm$dpop <- generateDenominatorCohortSet(cdm)
 
+  # outcome cohorts
+  celecoxib_codes <- tibble::tibble("concept_id" = c(1118084))
+  diclofenac_codes <- tibble::tibble("concept_id" = c(1124300))
 
-# set of 3 cohorts, the last of which should be empty
-  asthma_cohort1 <- Capr::cohort(entry = Capr::entry(
-    Capr::condition(Capr::cs(Capr::descendants(317009))),
-    primaryCriteriaLimit = "First"
-  ))
-  asthma_cohort2 <- Capr::cohort(entry = Capr::entry(
-    Capr::condition(Capr::cs(Capr::descendants(317009)),
-                    Capr::age(Capr::gte(18))),
-    primaryCriteriaLimit = "First"
-  ))
-  asthma_cohort3 <- Capr::cohort(entry = Capr::entry(
-    Capr::condition(Capr::cs(Capr::descendants(317009)),
-                    Capr::age(Capr::gte(180))),
-    primaryCriteriaLimit = "First"
-  ))
+  # celecoxib
+  cdm$celecoxib <- cdm$drug_era %>%
+    inner_join(celecoxib_codes %>%
+                 select(concept_id),
+               by = c("drug_concept_id"="concept_id"),
+               copy = TRUE) %>%
+    rename("subject_id" = "person_id",
+           "cohort_start_date" = "drug_era_start_date",
+           "cohort_end_date" = "drug_era_end_date") %>%
+    mutate(cohort_definition_id = 1L) %>%
+    select("cohort_definition_id", "subject_id",
+           "cohort_start_date", "cohort_end_date") %>%
+    compute()
 
+  # diclofenac
+  cdm$diclofenac <- cdm$drug_era %>%
+    inner_join(diclofenac_codes %>%
+                 select(concept_id),
+               by = c("drug_concept_id"="concept_id"),
+               copy = TRUE) %>%
+    rename("subject_id" = "person_id",
+           "cohort_start_date" = "drug_era_start_date",
+           "cohort_end_date" = "drug_era_end_date") %>%
+    mutate(cohort_definition_id = 2L) %>%
+    select("cohort_definition_id", "subject_id",
+           "cohort_start_date", "cohort_end_date") %>%
+    compute()
 
-  path <- file.path(tempdir(), "asthma_cohorts")
-  dir.create(path)
+  cdm$exposure_cohort <- union_all(cdm$celecoxib,
+                                   cdm$diclofenac) %>%
+    compute()
+  cdm$outcome_cohort <- newGeneratedCohortSet(cdm$exposure_cohort)
+  cdm$outcome_cohort <- addCohortCountAttr(cdm$outcome_cohort)
 
-  Capr::writeCohort(asthma_cohort1, file.path(path, "asthma_cohort1.json"))
-  Capr::writeCohort(asthma_cohort2, file.path(path, "asthma_cohort2.json"))
-  Capr::writeCohort(asthma_cohort3, file.path(path, "asthma_cohort3.json"))
-
-  asthma_cohort_set <- CDMConnector::readCohortSet(path = path)
-
-  cdm <- CDMConnector::generateCohortSet(
-    cdm,
-    asthma_cohort_set,
-    name = "asthma",
-    computeAttrition = TRUE,
-    overwrite = TRUE
-  )
+  #denominator
+  cdm <- generateDenominatorCohortSet(cdm,
+                                      name = "denominator",
+                                      cohortDateRange = c(as.Date("2000-01-01"),
+                                                          as.Date("2020-01-01")),
+                                      sex = c("Male", "Female"))
 
   inc <- estimateIncidence(
     cdm = cdm,
-    denominatorTable = "dpop",
-    outcomeTable = "asthma",
+    denominatorTable = "denominator",
+    outcomeTable = "outcome_cohort",
     interval = "years"
   )
   expect_true(nrow(inc) > 0)
 
-  prev <- estimatePointPrevalence(
+  prev <- estimatePeriodPrevalence(
     cdm = cdm,
-    denominatorTable = "dpop",
-    outcomeTable = "asthma",
+    denominatorTable = "denominator",
+    outcomeTable = "outcome_cohort",
     interval = "years"
   )
   expect_true(nrow(prev) > 0)
+
+  plotIncidence(inc, facet = c("outcome_cohort_name", "denominator_sex"),
+                colour = "denominator_sex",
+                colour_name = "Sex")
+
+  plotPrevalence(prev, facet = c("outcome_cohort_name", "denominator_sex"),
+                colour = "denominator_sex",
+                colour_name = "Sex")
+
 
   })
 

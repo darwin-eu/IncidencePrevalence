@@ -93,10 +93,9 @@ cdm <- mockIncidencePrevalenceRef(sampleSize = 500)
 We can get a denominator population without including any particular requirements like so
 
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator <- generateDenominatorCohortSet(
+cdm <- generateDenominatorCohortSet(
   cdm = cdm,
-  startDate = NULL,
-  endDate = NULL,
+  cohortDateRange = NULL,
   ageGroup = list(c(0, 150)),
   sex = "Both",
   daysPriorHistory = 0
@@ -149,10 +148,9 @@ cdm$denominator %>%
 We can get specify a study period like so
 
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator <- generateDenominatorCohortSet(
+cdm <- generateDenominatorCohortSet(
   cdm = cdm,
-  startDate = as.Date("2008-01-01"),
-  endDate = as.Date("2010-01-01"),
+  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2010-01-01")),
   ageGroup = list(c(0, 150)),
   sex = "Both",
   daysPriorHistory = 0
@@ -208,10 +206,9 @@ cdm$denominator %>%
 We can add some requirement of prior history
 
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator <- generateDenominatorCohortSet(
+cdm <- generateDenominatorCohortSet(
   cdm = cdm,
-  startDate = as.Date("2008-01-01"),
-  endDate = as.Date("2010-01-01"),
+  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2010-01-01")),
   ageGroup = list(c(0, 150)),
   sex = "Both",
   daysPriorHistory = 365
@@ -266,10 +263,9 @@ cdm$denominator %>%
 In addition to all the above we could also add some requirements around age and sex. One thing to note is that the age upper limit will include time from a person up to the day before their reach the age upper limit + 1 year. For instance, when the upper limit is 65, that means we will include time from a person up to and including the day before their 66th birthday.
 
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator <- generateDenominatorCohortSet(
+cdm <- generateDenominatorCohortSet(
   cdm = cdm,
-  startDate = as.Date("2008-01-01"),
-  endDate = as.Date("2010-01-01"),
+  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2010-01-01")),
   ageGroup = list(c(18, 65)),
   sex = "Female",
   daysPriorHistory = 365
@@ -309,10 +305,9 @@ cdm$denominator %>%
 ### Multiple options to return multiple denominator populations 
 More than one age, sex and prior history requirements can be specified at the same time. First, we can take a look at having two age groups. We can see below that those individuals who have their 41st birthday during the study period will go from the first cohort (age_group: 0;40) to the second (age_group: 41;100) on this day.
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator <- generateDenominatorCohortSet(
+cdm <- generateDenominatorCohortSet(
   cdm = cdm,
-  startDate = as.Date("2008-01-01"),
-  endDate = as.Date("2010-01-01"),
+  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2010-01-01")),
   ageGroup = list(
     c(0, 40),
     c(41, 100)
@@ -350,10 +345,9 @@ dpop %>%
 
 We can then also 
 ```{r, message=FALSE, warning=FALSE, fig.height=8}
-cdm$denominator <- generateDenominatorCohortSet(
+cdm <- generateDenominatorCohortSet(
   cdm = cdm,
-  startDate = as.Date("2008-01-01"),
-  endDate = as.Date("2010-01-01"),
+  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2010-01-01")),
   ageGroup = list(
     c(0, 40),
     c(41, 100)
@@ -391,10 +385,9 @@ dpop %>%
 
 And then also specifying multiple prior history requirements 
 ```{r, message=FALSE, warning=FALSE, fig.height=10}
-cdm$denominator <- generateDenominatorCohortSet(
+cdm <- generateDenominatorCohortSet(
   cdm = cdm,
-  startDate = as.Date("2008-01-01"),
-  endDate = as.Date("2010-01-01"),
+  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2010-01-01")),
   ageGroup = list(
     c(0, 40),
     c(41, 100)
@@ -436,10 +429,9 @@ dpop %>%
 Considering the following example, we can see:
 
 ```{r, message=TRUE, warning=FALSE}
-cdm$denominator <- generateDenominatorCohortSet(
+cdm <- generateDenominatorCohortSet(
   cdm = cdm,
-  startDate = as.Date("2008-01-01"),
-  endDate = as.Date("2010-01-01"),
+  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2010-01-01")),
   ageGroup = list(
     c(0, 18),
     c(19, 100)
@@ -560,11 +552,10 @@ observationPeriodTable
 Let's suppose we want to subset our population based on a non-time varying characteristic such as ethnicity, which corresponds to strataCohortId "1" in our simulated strata table.
 
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator <- generateDenominatorCohortSet(
+cdm <- generateDenominatorCohortSet(
   cdm = cdm,
   strataTable = "strata",
-  strataCohortId = 1,
-  strataCohortName = "strata_cohort_1"
+  strataCohortId = 1
 )
 cdm$denominator
 ```
@@ -580,11 +571,10 @@ observationPeriodTable %>%
 Now say we want to subset our population based on a time varying characteristic such a particular condition (strataCohortId "2" in our simulated strata table).
 
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator <- generateDenominatorCohortSet(
+cdm <- generateDenominatorCohortSet(
   cdm = cdm,
   strataTable = "strata",
-  strataCohortId = 2,
-  strataCohortName = "strata_cohort_2"
+  strataCohortId = 2
 )
 cdm$denominator
 ```
@@ -600,11 +590,10 @@ conditionX %>%
 Depending in which condition we're interested in, people might experience the same condition multiple times. Let's use strataCohortId "3" to illustrate this example. 
 
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator <- generateDenominatorCohortSet(
+cdm <- generateDenominatorCohortSet(
   cdm = cdm,
   strataTable = "strata",
-  strataCohortId = 3,
-  strataCohortName = "strata_cohort_2"
+  strataCohortId = 3
 )
 cdm$denominator
 ```
@@ -621,12 +610,11 @@ In both examples, the study period can be restricted to a particular period of i
 
 
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator <- generateDenominatorCohortSet(
+cdm <- generateDenominatorCohortSet(
   cdm = cdm,
   strataTable = "strata",
   strataCohortId = 3,
-  startDate = as.Date("2014-01-01"),
-  endDate = as.Date("2016-01-01"),
+  cohortDateRange = c(as.Date("2014-01-01"), as.Date("2016-01-01")),
   ageGroup = list(c(0, 150)),
   sex = "Female",
   daysPriorHistory = 0

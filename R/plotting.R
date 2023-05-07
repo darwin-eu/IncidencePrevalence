@@ -15,10 +15,9 @@
 #' @examples
 #' \donttest{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-#' cdm$denominator <- generateDenominatorCohortSet(
-#'   cdm = cdm,
-#'   startDate = as.Date("2008-01-01"),
-#'   endDate = as.Date("2018-01-01")
+#' cdm <- generateDenominatorCohortSet(
+#'   cdm = cdm, name = "denominator",
+#'   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
 #' )
 #' inc <- estimateIncidence(
 #'   cdm = cdm,
@@ -66,10 +65,9 @@ plotEstimates(result = result,
 #' @examples
 #' \donttest{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-#' cdm$denominator <- generateDenominatorCohortSet(
-#'   cdm = cdm,
-#'   startDate = as.Date("2014-01-01"),
-#'   endDate = as.Date("2018-01-01")
+#' cdm <- generateDenominatorCohortSet(
+#'   cdm = cdm, name = "denominator",
+#'   cohortDateRange = c(as.Date("2014-01-01"), as.Date("2018-01-01"))
 #' )
 #' prev <- estimatePointPrevalence(
 #'   cdm = cdm,
@@ -229,5 +227,5 @@ addRibbon <- function(plot, yLower, yUpper){
       ggplot2::aes(ymin = !!rlang::sym(yLower),
                    ymax = !!rlang::sym(yUpper)),
       alpha = .3, color = NA, show.legend = FALSE) +
-    ggplot2::geom_line(size = 0.25)
+    ggplot2::geom_line(linewidth = 0.25)
 }

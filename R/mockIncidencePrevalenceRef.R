@@ -462,6 +462,7 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
     write_schema = "main"
   )
   cdm$outcome <- addCohortCountAttr(cdm$outcome)
+  cdm$strata <- addCohortCountAttr(cdm$strata)
 
   return(cdm)
 }

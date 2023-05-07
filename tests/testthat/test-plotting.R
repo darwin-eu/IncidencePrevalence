@@ -1,10 +1,8 @@
 test_that("basic incidence plot", {
 
 cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-cdm$denominator <- generateDenominatorCohortSet(
-    cdm = cdm,
-    startDate = as.Date("2008-01-01"),
-    endDate = as.Date("2018-01-01")
+cdm <- generateDenominatorCohortSet(
+    cdm = cdm, cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
   )
 inc <- estimateIncidence(
     cdm = cdm,
@@ -15,7 +13,7 @@ plot <- plotIncidence(inc)
 expect_true(ggplot2::is.ggplot(plot))
 
 # with a different x axis
-cdm$denominator <- generateDenominatorCohortSet(
+cdm <- generateDenominatorCohortSet(
   cdm = cdm,
   ageGroup = list(c(0, 30),
                   c(31, 100))
@@ -35,10 +33,8 @@ DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 test_that("basic prevalence plot", {
 
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  cdm$denominator <- generateDenominatorCohortSet(
-    cdm = cdm,
-    startDate = as.Date("2008-01-01"),
-    endDate = as.Date("2018-01-01")
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, cohortDateRange = c(as.Date("2008-01-01"),as.Date("2018-01-01"))
   )
   prev <- estimatePrevalence(
     cdm = cdm, interval = "years",
@@ -49,9 +45,8 @@ test_that("basic prevalence plot", {
   expect_true(ggplot2::is.ggplot(plot))
 
   # with a different x axis
-  cdm$denominator <- generateDenominatorCohortSet(
-    cdm = cdm,startDate = as.Date("2010-01-01"),
-    endDate = as.Date("2010-06-01"),
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm,cohortDateRange = c(as.Date("2010-01-01"),as.Date("2010-06-01")),
     ageGroup = list(c(0, 30),
                     c(31, 100))
   )
@@ -72,7 +67,7 @@ test_that("basic prevalence plot", {
 test_that("plot facets", {
 
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroup = list(c(0, 30),
                     c(31, 100))
@@ -87,7 +82,7 @@ test_that("plot facets", {
   expect_true(ggplot2::is.ggplot(plot))
 
   # multiple facet grouping
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroup = list(c(0, 30),
                     c(31, 100)),
@@ -112,7 +107,7 @@ test_that("plot facets", {
 test_that("plot colour", {
 
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroup = list(c(0, 30),
                     c(31, 100))
@@ -128,7 +123,7 @@ test_that("plot colour", {
   expect_true(ggplot2::is.ggplot(plot))
 
   # multiple grouping
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroup = list(c(0, 30),
                     c(31, 100)),

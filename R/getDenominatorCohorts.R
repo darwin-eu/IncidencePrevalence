@@ -445,7 +445,7 @@ getDenominatorCohorts <- function(cdm,
          CDMConnector::computeQuery()
      } else {
        studyPopDb <- studyPopDb %>%
-         CDMConnector::computeQuery(name = tablePrefix,
+         CDMConnector::computeQuery(name = paste0(tablePrefix,"_cohorts"),
                                     temporary = FALSE,
                                     schema = attr(cdm, "write_schema"),
                                     overwrite = TRUE)

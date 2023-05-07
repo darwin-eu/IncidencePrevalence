@@ -12,7 +12,8 @@ test_that("dbms test", {
   cdm <- CDMConnector::cdm_from_con(
     con = db,
     cdm_schema = "public",
-    write_schema = "results"
+    write_schema = "results",
+    write_prefix = "incprev_bench_"
   )
 
   # run for a random sample of 1,000,000 people from the person table
@@ -22,64 +23,78 @@ test_that("dbms test", {
   # the outcome cohort used is a sample of the denominator cohort
   # (so as to ensure that)
 
+
+  cdm <- CDMConnector::cdm_sample(cdm = cdm, n = 1000000)
+  dplyr::count(cdm$person)
+
   # using temp tables
   timings_temp <- benchmarkIncidencePrevalence(cdm,
-                                               startDate = as.Date("2012-01-01"),
-                                               endDate = as.Date("2015-12-31"),
-                                               tablePrefix = NULL,
-                                               sample=1000000,
+                                               cohortDateRange = c(as.Date("2012-01-01"),
+                                                                   as.Date("2015-12-31")),
+                                               temporary = TRUE,
                                                nOutcomes = 1,
-                                               prevOutcomes = 0.10,
-                                               verbose = TRUE)
+                                               prevOutcomes = 0.10)
   expect_true(tibble::is_tibble(timings_temp))
 
   # using permanent tables
   timings_perm <- benchmarkIncidencePrevalence(cdm,
-                                               startDate = as.Date("2012-01-01"),
-                                               endDate = as.Date("2015-12-31"),
-                                               tablePrefix = "incprev_bench",
-                                               sample=1000000,
+                                               cohortDateRange = c(as.Date("2012-01-01"),
+                                                                   as.Date("2015-12-31")),
+                                               temporary = FALSE,
                                                nOutcomes = 1,
-                                               prevOutcomes = 0.10,
-                                               verbose = TRUE)
+                                               prevOutcomes = 0.10)
   expect_true(tibble::is_tibble(timings_perm))
 
   # returning participants
-  timings_perm <- benchmarkIncidencePrevalence(cdm,
-                                               startDate = as.Date("2012-01-01"),
-                                               endDate = as.Date("2015-12-31"),
-                                               tablePrefix = "incprev_bench",
-                                               returnParticipants = TRUE,
-                                               sample=1000000,
+  timings_perm2 <- benchmarkIncidencePrevalence(cdm,
+                                               cohortDateRange = c(as.Date("2012-01-01"),
+                                                                   as.Date("2015-12-31")),
+                                               temporary = FALSE,
                                                nOutcomes = 1,
                                                prevOutcomes = 0.10,
-                                               verbose = TRUE)
-  expect_true(tibble::is_tibble(timings_perm))
+                                               returnParticipants = TRUE)
 
-  # 23rd January 2023, CPRD GOLD, Postgres
-  timings_temp
-  # A tibble: 7 × 8
-  # task                                                    time_taken_mins
-  # <chr>                                                             <dbl>
-  # 1 generating typical denominator (32 cohorts)                      1.30
-  # 2 yearly point prevalence, one outcome                             1.14
-  # 3 monthly point prevalence, one outcome                            1.94
-  # 4 yearly period prevalence, one outcome                            1.31
-  # 5 monthly period prevalence, one outcome                           2.10
-  # 6 yearly incidence, one outcome                                    0.903
-  # 7 monthly incidence, one outcome                                   1.84
+  expect_true(tibble::is_tibble(timings_perm2))
 
-  timings_perm
-  # A tibble: 7 × 9
-  # task                                                    time_taken_mins
-  # <chr>                                                             <dbl>
-  # 1 generating typical denominator (24 cohorts)                     1.03
-  # 2 yearly point prevalence, 1 outcome(s)                           1.31
-  # 3 monthly point prevalence, 1 outcome(s)                          2.18
-  # 4 yearly period prevalence, 1 outcome(s)                          1.61
-  # 5 monthly period prevalence, 1 outcome(s)                         2.29
-  # 6 yearly incidence, 1 outcome(s)                                  1.05
-  # 7 monthly incidence, 1 outcome(s)                                 1.95
+
+  # Drop permanent tables created
+  CDMConnector::listTables(attr(cdm, "dbcon"),
+                           schema = attr(cdm, "write_schema"))
+  CDMConnector::dropTable(cdm = cdm, name = starts_with("incprev_bench_"))
+
+  # 06 May 2023, CPRD GOLD, Postgres
+  timings_temp %>% dplyr::select("task", "time_taken_mins")
+  # task                                    time_taken_mins
+  # <chr>                                             <dbl>
+  # 1 generating denominator (8 cohorts)                 1.79
+  # 2 yearly point prevalence, 1 outcome(s)              0.47
+  # 3 monthly point prevalence, 1 outcome(s)             0.64
+  # 4 yearly period prevalence, 1 outcome(s)             0.5
+  # 5 monthly period prevalence, 1 outcome(s)            0.73
+  # 6 yearly incidence, 1 outcome(s)                     0.26
+  # 7 monthly incidence, 1 outcome(s)                    0.42
+
+  timings_perm %>% dplyr::select("task", "time_taken_mins")
+  # task                                    time_taken_mins
+  # <chr>                                             <dbl>
+  # 1 generating denominator (8 cohorts)                 1.67
+  # 2 yearly point prevalence, 1 outcome(s)              0.53
+  # 3 monthly point prevalence, 1 outcome(s)             0.69
+  # 4 yearly period prevalence, 1 outcome(s)             0.62
+  # 5 monthly period prevalence, 1 outcome(s)            0.83
+  # 6 yearly incidence, 1 outcome(s)                     0.31
+  # 7 monthly incidence, 1 outcome(s)                    0.48
+
+  timings_perm2 %>% dplyr::select("task", "time_taken_mins")
+  # task                                    time_taken_mins
+  # <chr>                                             <dbl>
+  # 1 generating denominator (8 cohorts)                 1.69
+  # 2 yearly point prevalence, 1 outcome(s)              0.7
+  # 3 monthly point prevalence, 1 outcome(s)             0.86
+  # 4 yearly period prevalence, 1 outcome(s)             0.8
+  # 5 monthly period prevalence, 1 outcome(s)            1.01
+  # 6 yearly incidence, 1 outcome(s)                     0.48
+  # 7 monthly incidence, 1 outcome(s)                    0.66
 
 })
 

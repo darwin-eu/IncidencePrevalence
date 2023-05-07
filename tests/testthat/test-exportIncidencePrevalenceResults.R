@@ -1,6 +1,6 @@
 test_that("writing results", {
   cdm <- mockIncidencePrevalenceRef()
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
   inc <- estimateIncidence(
     cdm = cdm,
     interval = "overall",
@@ -23,7 +23,7 @@ test_that("writing results", {
 
 test_that("writing results- expected errors", {
   cdm <- mockIncidencePrevalenceRef()
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
   prev <- estimatePointPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
