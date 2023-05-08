@@ -6,29 +6,27 @@
 \usage{
 generateDenominatorCohortSet(
   cdm,
-  startDate = NULL,
-  endDate = NULL,
+  name = "denominator",
+  cohortDateRange = NULL,
   ageGroup = list(c(0, 150)),
   sex = "Both",
   daysPriorHistory = 0,
   strataTable = NULL,
   strataCohortId = NULL,
-  strataCohortName = NULL,
-  sample = NULL,
-  tablePrefix = NULL,
-  verbose = FALSE
+  temporary = TRUE
 )
 }
 \arguments{
 \item{cdm}{A CDM reference object}
 
-\item{startDate}{A date indicating the start of the study
-period. If NULL, the earliest observation_start_date in the
-observation_period table will be used.}
+\item{name}{Name of the cohort table to be created.}
 
-\item{endDate}{A date indicating the end of the study
-period. If NULL, the latest observation end date in the observation period
-table will be used.}
+\item{cohortDateRange}{Two dates. The first indicating the earliest cohort
+start date and the second indicating the latest possible cohort end date. If
+NULL or the first date is set as missing, the earliest observation_start_date
+in the observation_period table will be used for the former. If  NULL or the
+second date is set as missing, the latest observation_end_date in the
+observation_period table will be used for the latter.}
 
 \item{ageGroup}{A list of age groups for which cohorts will be generated. A
 value of \code{list(c(0,17), c(18,30))} would, for example, lead to the creation
@@ -48,21 +46,14 @@ to limit cohort entry and exit (with individuals only contributing to a
 cohort when they are contributing to the cohort in the strata table).}
 
 \item{strataCohortId}{The cohort definition id for the cohort of interest
-in the strata table. Only one stratifying cohort is supported.}
+in the strata table. If strataTable is specified, a single strataCohortId
+must also be specified.}
 
-\item{strataCohortName}{Corresponding name for the strata cohort.}
-
-\item{sample}{An integer for which to take a random sample, using
-\code{dplyr::slice_sample()}, of the people in the person table eligible to be
-included in the cohort set.}
-
-\item{tablePrefix}{The stem for the permanent tables that will
-be created when creating the denominator cohorts. Permanent tables will be
-created using this stem, and any existing tables that start with this
-will be at risk of being dropped or overwritten. If NULL, temporary
-tables will be used throughout.}
-
-\item{verbose}{Either TRUE or FALSE. If TRUE, progress will be reported.}
+\item{temporary}{If TRUE, temporary tables will be used throughout. If
+FALSE, permanent tables will be created in the write_schema of the cdm
+using the write_prefix (if specified). Note existing permanent tables in
+the write schema starting with the write_prefix will be at risk of being
+dropped or overwritten.}
 }
 \value{
 A cohort reference
@@ -78,8 +69,7 @@ or \code{estimatePeriodPrevalence()}.
 cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
 cdm$denominator <- generateDenominatorCohortSet(
   cdm = cdm,
-  startDate = as.Date("2008-01-01"),
-  endDate = as.Date("2018-01-01")
+  cohortDateRange = as.Date(c("2008-01-01", "2018-01-01"))
 )
 }
 }

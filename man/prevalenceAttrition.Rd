@@ -18,7 +18,7 @@ Attrition associated with an prevalence analysis
 \examples{
 \donttest{
 cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-cdm$denominator <- generateDenominatorCohortSet(cdm)
+cdm <- generateDenominatorCohortSet(cdm, name = "denominator")
 prev <- estimatePointPrevalence(
   cdm = cdm,
   denominatorTable = "denominator",

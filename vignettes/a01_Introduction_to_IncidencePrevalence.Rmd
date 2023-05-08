@@ -59,18 +59,18 @@ Importantly this example data already includes an outcome cohort. In practice, s
 
 ```{r eval=FALSE}
 outcome_cohorts <- CDMConnector::readCohortSet(here::here("outcome_cohorts"))
-cdm <- CDMConnector::generateCohortSet(cdm,
-                                       outcome_cohorts,
-                                       cohortTableName = outcome_table)
+cdm <- CDMConnector::generateCohortSet(cdm = cdm,
+                                       cohortSet = outcome_cohorts,
+                                       name = outcome_table)
 ```
 
 Once we have a connection to the database set-up, we can use the `generateDenominatorCohortSet()` to identify a denominator cohort to use later when calculating incidence and prevalence. In this case we identify three denominator cohorts one with males, one with females, and one with both males and females included. For each of these cohorts only those aged between 18 and 65 from 2008 to 2012, and who had 365 days of prior history available are included.
 
 ```{r, message= FALSE, warning=FALSE}
-cdm$denominator <- generateDenominatorCohortSet(
+cdm <- generateDenominatorCohortSet(
   cdm = cdm,
-  startDate = as.Date("2008-01-01"),
-  endDate = as.Date("2012-01-01"),
+  name ="denominator",
+  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2012-01-01")),
   ageGroup = list(c(18, 65)),
   sex = c("Male", "Female", "Both"),
   daysPriorHistory = 365
@@ -110,8 +110,6 @@ prev %>%
 
 ```{r, message= FALSE, warning=FALSE, echo=FALSE}
 prev %>%
-  left_join(prevalenceSet(prev),
-            by = "analysis_id") %>%
   ggplot(aes(x = prevalence_start_date, y = prevalence,
              ymin = prevalence_95CI_lower,
              ymax = prevalence_95CI_upper,
@@ -143,8 +141,6 @@ inc %>%
 
 ```{r, message= FALSE, warning=FALSE, echo=FALSE}
 inc %>%
-  left_join(incidenceSet(inc),
-            by = "analysis_id") %>%
   ggplot(aes(x = incidence_start_date, y = incidence_100000_pys,
              ymin = incidence_100000_pys_95CI_lower,
              ymax = incidence_100000_pys_95CI_upper,
@@ -156,17 +152,10 @@ inc %>%
   theme(legend.title = element_blank())
 ```
 
-Once we have our estimates, we can use `gatherIncidencePrevalenceResults()` to bring together the results.
-```{r}
-study_results <- gatherIncidencePrevalenceResults(cdm = cdm,
-                    resultList = list(inc, prev))
-dplyr::glimpse(study_results$incidence_estimates)
-dplyr::glimpse(study_results$prevalence_estimates)
-```
-
 After gathering results, we can export them as CSVs in a zip folder using the `exportIncidencePrevalenceResults()` function. 
 ```{r, eval=FALSE}
-exportIncidencePrevalenceResults(result = study_results,
+exportIncidencePrevalenceResults(resultList = list("incidence" = inc, 
+                                                   "prevalence" = prev),
                   zipName = "example_results",
                   outputFolder = here::here())
 ```

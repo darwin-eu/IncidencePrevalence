@@ -15,9 +15,8 @@ estimateIncidence(
   outcomeWashout = Inf,
   repeatedEvents = FALSE,
   minCellCount = 5,
-  tablePrefix = NULL,
-  returnParticipants = FALSE,
-  verbose = FALSE
+  temporary = TRUE,
+  returnParticipants = FALSE
 )
 }
 \arguments{
@@ -64,18 +63,16 @@ first event during the study period.}
 \item{minCellCount}{The minimum number of events to reported, below which
 results will be obscured. If 0, all results will be reported.}
 
-\item{tablePrefix}{The stem for the permanent tables that will
-be created when running the analysis. Permanent tables will be created using
-this prefix, and any existing tables that start with this will be at risk of
-being dropped or overwritten. If NULL, temporary tables will be
-used throughout.}
+\item{temporary}{If TRUE, temporary tables will be used throughout. If
+FALSE, permanent tables will be created in the write_schema of the cdm
+using the write_prefix (if specified). Note existing permanent tables in
+the write schema starting with the write_prefix will be at risk of being
+dropped or overwritten.}
 
 \item{returnParticipants}{Either TRUE or FALSE. If TRUE references to
 participants from the analysis will be returned allowing for further
 analysis. Note, if using permanent tables and returnParticipants is TRUE,
 one table per analysis will be kept in the cdm write schema.}
-
-\item{verbose}{Either TRUE or FALSE. If TRUE, progress will be reported.}
 }
 \value{
 Incidence estimates
@@ -86,10 +83,9 @@ Collect population incidence estimates
 \examples{
 \donttest{
 cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-cdm$denominator <- generateDenominatorCohortSet(
-  cdm = cdm,
-  startDate = as.Date("2008-01-01"),
-  endDate = as.Date("2018-01-01")
+cdm <- generateDenominatorCohortSet(
+  cdm = cdm, name = "denominator",
+  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
 )
 inc <- estimateIncidence(
   cdm = cdm,

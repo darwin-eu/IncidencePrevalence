@@ -50,16 +50,15 @@
 #' first event during the study period.
 #' @param minCellCount The minimum number of events to reported, below which
 #' results will be obscured. If 0, all results will be reported.
-#' @param tablePrefix The stem for the permanent tables that will
-#' be created when running the analysis. Permanent tables will be created using
-#' this prefix, and any existing tables that start with this will be at risk of
-#' being dropped or overwritten. If NULL, temporary tables will be
-#' used throughout.
+#' @param temporary If TRUE, temporary tables will be used throughout. If
+#' FALSE, permanent tables will be created in the write_schema of the cdm
+#' using the write_prefix (if specified). Note existing permanent tables in
+#' the write schema starting with the write_prefix will be at risk of being
+#' dropped or overwritten.
 #' @param returnParticipants Either TRUE or FALSE. If TRUE references to
 #' participants from the analysis will be returned allowing for further
 #' analysis. Note, if using permanent tables and returnParticipants is TRUE,
 #' one table per analysis will be kept in the cdm write schema.
-#' @param verbose Either TRUE or FALSE. If TRUE, progress will be reported.
 #'
 #' @return Incidence estimates
 #' @export
@@ -67,10 +66,9 @@
 #' @examples
 #' \donttest{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-#' cdm$denominator <- generateDenominatorCohortSet(
-#'   cdm = cdm,
-#'   startDate = as.Date("2008-01-01"),
-#'   endDate = as.Date("2018-01-01")
+#' cdm <- generateDenominatorCohortSet(
+#'   cdm = cdm, name = "denominator",
+#'   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
 #' )
 #' inc <- estimateIncidence(
 #'   cdm = cdm,
@@ -88,12 +86,11 @@ estimateIncidence <- function(cdm,
                               outcomeWashout = Inf,
                               repeatedEvents = FALSE,
                               minCellCount = 5,
-                              tablePrefix = NULL,
-                              returnParticipants = FALSE,
-                              verbose = FALSE) {
-  if (verbose == TRUE) {
+                              temporary = TRUE,
+                              returnParticipants = FALSE) {
+
     startCollect <- Sys.time()
-  }
+
   # help to avoid formatting errors
   if (is.character(interval)) {
     interval <- tolower(interval)
@@ -102,8 +99,8 @@ estimateIncidence <- function(cdm,
   checkInputEstimateIncidence(
     cdm, denominatorTable, outcomeTable, denominatorCohortId,
     outcomeCohortId, interval, completeDatabaseIntervals,
-    outcomeWashout, repeatedEvents, minCellCount, tablePrefix,
-    returnParticipants, verbose
+    outcomeWashout, repeatedEvents, minCellCount, temporary,
+    returnParticipants
   )
 
   # if not given, use all denominator and outcome cohorts
@@ -119,15 +116,12 @@ estimateIncidence <- function(cdm,
   }
 
  ## add outcome from attribute
-  if(!is.null(CDMConnector::cohortSet(cdm[[outcomeTable]]))){
   outcomeCohortName <- CDMConnector::cohortCount(cdm[[outcomeTable]]) %>%
     dplyr::filter(.data$number_records > 0) %>%
     dplyr::left_join(CDMConnector::cohortSet(cdm[[outcomeTable]]),
                      by = "cohort_definition_id") %>%
     dplyr::pull("cohort_name")
-  } else {
-    outcomeCohortName <- NA
-  }
+
 
    outcomeRef <- tibble::tibble(
       outcome_cohort_id = .env$outcomeCohortId,
@@ -139,12 +133,21 @@ estimateIncidence <- function(cdm,
      cdm, denominatorTable, outcomeTable, denominatorCohortId,
      outcomeCohortId)
 
+   # tablePrefix to use
+   if(isTRUE(temporary)){
+     tablePrefix <- NULL
+   } else {
+     tablePrefix <- paste0(attr(cdm, "write_prefix"),
+                           "inc")
+   }
+
+
   # get outcomes + cohort_start_date & cohort_end_date
   outcome <- cdm[[outcomeTable]] %>%
     dplyr::filter(.data$cohort_definition_id %in% .env$outcomeCohortId) %>%
-    dplyr::rename("outcome_cohort_id" = "cohort_definition_id") %>%
-    dplyr::rename("outcome_start_date" = "cohort_start_date") %>%
-    dplyr::rename("outcome_end_date" = "cohort_end_date") %>%
+    dplyr::rename("outcome_cohort_id" = "cohort_definition_id",
+                  "outcome_start_date" = "cohort_start_date",
+                  "outcome_end_date" = "cohort_end_date") %>%
     dplyr::inner_join(
       cdm[[denominatorTable]] %>%
         dplyr::filter(.data$cohort_definition_id %in%
@@ -160,7 +163,7 @@ estimateIncidence <- function(cdm,
   } else {
     outcome <- outcome %>%
       CDMConnector::computeQuery(name = paste0(tablePrefix,
-                                               "_incidence_working_1"),
+                                               "_inc_1"),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
                                  overwrite = TRUE)
@@ -189,7 +192,7 @@ estimateIncidence <- function(cdm,
   } else {
     outcome <- outcome %>%
       CDMConnector::computeQuery(name = paste0(tablePrefix,
-                                               "_incidence_working_2"),
+                                               "_inc_2"),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
                                  overwrite = TRUE)
@@ -211,7 +214,7 @@ estimateIncidence <- function(cdm,
   } else {
     outcome <- outcome %>%
       CDMConnector::computeQuery(name = paste0(tablePrefix,
-                                               "_incidence_working_3"),
+                                               "_inc_3"),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
                                  overwrite = TRUE)
@@ -238,7 +241,7 @@ estimateIncidence <- function(cdm,
   } else {
     outcome <- outcome %>%
       CDMConnector::computeQuery(name = paste0(tablePrefix,
-                                               "_incidence_working_4"),
+                                               "_inc_4"),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
                                  overwrite = TRUE)
@@ -266,12 +269,11 @@ estimateIncidence <- function(cdm,
   # get irs
   counter <- 0
   irsList <- lapply(studySpecs, function(x) {
-    if (verbose == TRUE) {
       counter <<- counter + 1
       message(glue::glue(
         "Getting incidence for analysis {counter} of {length(studySpecs)}"
       ))
-    }
+
 
     workingInc <- getIncidence(
       cdm = cdm,
@@ -285,8 +287,7 @@ estimateIncidence <- function(cdm,
       repeatedEvents = x$repeated_events,
       tablePrefix = tablePrefix,
       returnParticipants = returnParticipants,
-      analysisId = x$analysis_id,
-      verbose = verbose
+      analysisId = x$analysis_id
     )
 
     workingIncIr <- workingInc[["ir"]] %>%
@@ -391,7 +392,7 @@ estimateIncidence <- function(cdm,
   # combine to a single participants
   # from 1st analysis
   participants <- dplyr::tbl(attr(cdm, "dbcon"),
-                             inSchema(attr(cdm, "write_schema"),
+                             CDMConnector::inSchema(attr(cdm, "write_schema"),
                                    participantTables[[1]]))
 
 
@@ -401,12 +402,12 @@ estimateIncidence <- function(cdm,
     for (i in seq_along(participantTables)) {
       participants <- participants %>%
         dplyr::full_join(dplyr::tbl(attr(cdm, "dbcon"),
-                                    inSchema(attr(cdm, "write_schema"),
+                                    CDMConnector::inSchema(attr(cdm, "write_schema"),
                                                           participantTables[[i]])),
           by = "subject_id"
         ) %>%
         CDMConnector::computeQuery(name = paste0(tablePrefix,
-                                                 "_incidence_participants_", i),
+                                                 "_p_", i),
                                    temporary = FALSE,
                                    schema = attr(cdm, "write_schema"),
                                    overwrite = TRUE)
@@ -416,47 +417,61 @@ estimateIncidence <- function(cdm,
 
   }
 
+  # make sure to not overwrite any existing participant table (from
+  # previous function calls)
+  p <- 1 + length(stringr::str_subset(
+    CDMConnector::listTables(attr(cdm, "dbcon"),
+                             schema = attr(cdm,"write_schema")),
+    paste0(tablePrefix, "_participants")))
+
   participants <- participants %>%
     CDMConnector::computeQuery(name = paste0(tablePrefix,
-                                             "_incidence_participants"),
+                                             "_participants", p),
                                temporary = FALSE,
                                schema = attr(cdm, "write_schema"),
-                               overwrite = TRUE)
+                               overwrite = FALSE)
   CDMConnector::dropTable(cdm = cdm,
                           name = tidyselect::starts_with(paste0(tablePrefix,
-                                                    "_incidence_participants_")))
+                                                    "_p_")))
 
   }
 
   if(!is.null(tablePrefix)){
     CDMConnector::dropTable(cdm = cdm,
                             name = tidyselect::starts_with(paste0(tablePrefix,
-                                                      "_incidence_working_")))
+                                                      "_inc_")))
     CDMConnector::dropTable(cdm = cdm,
                             name = tidyselect::starts_with(paste0(tablePrefix,
-                                                      "_incidence_analysis_")))
+                                                      "_analysis_")))
   }
 
 
-  # return results as an IncidencePrevalenceResult class
-  attr(irs, "settings") <- analysisSettings %>%
+  analysisSettings <- analysisSettings %>%
     dplyr::left_join(outcomeRef, by = "outcome_cohort_id") %>%
     dplyr::relocate("outcome_cohort_id", .after = "analysis_id") %>%
     dplyr::relocate("outcome_cohort_name", .after = "outcome_cohort_id") %>%
     dplyr::mutate(cdm_name = attr(cdm, "cdm_name"))
+
+  # add settings to estimates and attrition
+  if (nrow(irs) >= 1) {
+  irs <- irs %>%
+    dplyr::left_join(analysisSettings, by = "analysis_id")
+  }
+  attrition <- attrition %>%
+    dplyr::left_join(analysisSettings, by = "analysis_id")
+
+  # return results as an IncidencePrevalenceResult class
   attr(irs, "attrition") <- attrition
   if(returnParticipants == TRUE){
-  attr(irs, "participants") <- participants
+    attr(irs, "participants") <- participants
   }
-
   class(irs) <- c("IncidencePrevalenceResult", "IncidenceResult", class(irs))
 
-  if (verbose == TRUE) {
     dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
     message(glue::glue(
       "Overall time taken: {floor(dur/60)} mins and {dur %% 60 %/% 1} secs"
     ))
-  }
+
   return(irs)
 }
 

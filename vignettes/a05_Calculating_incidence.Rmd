@@ -20,7 +20,6 @@ knitr::opts_chunk$set(
 
 ```{r, message= FALSE, warning=FALSE, echo=FALSE}
 library(here)
-library(ggplot2)
 library(DBI)
 library(dbplyr)
 library(dplyr)
@@ -77,27 +76,25 @@ Considering all the above, we only recommend restricting outcome definitions to 
 
 
 # Using estimateIncidence()
-`estimateIncidence()` is the function we use to estimate incidence rates. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `mockIncidencePrevalenceRef()` function, from whom we´ll create a denominator population without adding any restrictions other than a study period. In this example we'll specify a `tablePrefix` whcih will be used to create permanent tables in the database (rather than temp tables which are used by default).   
+`estimateIncidence()` is the function we use to estimate incidence rates. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `mockIncidencePrevalenceRef()` function, from whom we´ll create a denominator population without adding any restrictions other than a study period. In this example we'll use permanent tables (rather than temporary tables which would be used by default).   
 
 ```{r setup}
 library(IncidencePrevalence)
 library(dplyr)
 library(tidyr)
-library(ggplot2)
 
 cdm <- mockIncidencePrevalenceRef(
   sampleSize = 50000,
   outPre = 0.5
 )
 
-cdm$denominator <- generateDenominatorCohortSet(
-  cdm = cdm,
-  startDate = as.Date("2008-01-01"),
-  endDate = as.Date("2012-01-01"),
+cdm <- generateDenominatorCohortSet(
+  cdm = cdm, name = "denominator",
+  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2012-01-01")),
   ageGroup = list(c(0, 150)),
   sex = "Both",
   daysPriorHistory = 0, 
-  tablePrefix = "example_inc"
+  temporary =  FALSE,
 )
 
 cdm$denominator %>%
@@ -114,20 +111,13 @@ inc <- estimateIncidence(
   interval = "years",
   outcomeWashout = 0,
   repeatedEvents = FALSE,
-  tablePrefix = "example_inc"
+  temporary = FALSE
 )
 
 inc %>%
   glimpse()
 
-inc %>%
-  ggplot(aes(x = incidence_start_date, y = incidence_100000_pys,
-             ymin = incidence_100000_pys_95CI_lower,
-             ymax = incidence_100000_pys_95CI_upper)) +
-  geom_point() +
-  geom_errorbar(width = 0) +
-  scale_y_continuous(limits = c(0, NA)) +
-  theme_minimal()
+plotIncidence(inc)
 ```
 
 Now with a washout of all prior history while still not allowing repetitive events. Here we use `Inf` to specify that we will use a washout of all prior history for an individual.
@@ -139,20 +129,14 @@ inc <- estimateIncidence(
   interval = "years",
   outcomeWashout = Inf,
   repeatedEvents = FALSE,
-  tablePrefix = "example_inc"
+  temporary = FALSE
 )
 
 inc %>%
   glimpse()
 
-inc %>%
-  ggplot(aes(x = incidence_start_date, y = incidence_100000_pys,
-             ymin = incidence_100000_pys_95CI_lower,
-             ymax = incidence_100000_pys_95CI_upper)) +
-  geom_point() +
-  geom_errorbar(width = 0) +
-  scale_y_continuous(limits = c(0, NA)) +
-  theme_minimal()
+plotIncidence(inc)
+
 ```
 
 Now we´ll set the washout to 180 days while still not allowing repetitive events
@@ -164,20 +148,13 @@ inc <- estimateIncidence(
   interval = "years",
   outcomeWashout = 180,
   repeatedEvents = FALSE,
-  tablePrefix = "example_inc"
+  temporary = FALSE
 )
 
 inc %>%
   glimpse()
 
-inc %>%
-  ggplot(aes(x = incidence_start_date, y = incidence_100000_pys,
-             ymin = incidence_100000_pys_95CI_lower,
-             ymax = incidence_100000_pys_95CI_upper)) +
-  geom_point() +
-  geom_errorbar(width = 0) +
-  scale_y_continuous(limits = c(0, NA)) +
-  theme_minimal()
+plotIncidence(inc)
 ```
 
 And finally we´ll set the washout to 180 days and allow repetitive events
@@ -189,20 +166,14 @@ inc <- estimateIncidence(
   interval = "years",
   outcomeWashout = 180,
   repeatedEvents = TRUE,
-  tablePrefix = "example_inc"
+  temporary = FALSE
 )
 
 inc %>%
   glimpse()
 
-inc %>%
-  ggplot(aes(x = incidence_start_date, y = incidence_100000_pys,
-             ymin = incidence_100000_pys_95CI_lower,
-             ymax = incidence_100000_pys_95CI_upper)) +
-  geom_point() +
-  geom_errorbar(width = 0) +
-  scale_y_continuous(limits = c(0, NA)) +
-  theme_minimal()
+plotIncidence(inc)
+
 ```
 
 
@@ -223,7 +194,7 @@ inc <- estimateIncidence(
   outcomeWashout = 180,
   repeatedEvents = TRUE,
   minCellCount = 0,
-  tablePrefix = "example_inc"
+  temporary = FALSE
 )
 ```
 
@@ -238,10 +209,9 @@ inc <- estimateIncidence(
   interval = c("Years"),
   outcomeWashout = c(0, 180),
   repeatedEvents = TRUE,
-  tablePrefix = "example_study", # returnParticipants can only be TRUE if tablePrefix is not null
+  temporary = FALSE,
   returnParticipants = TRUE
 )
-incidenceSet(inc)
 incidenceAttrition(inc)
 ```
 
@@ -251,10 +221,11 @@ participants(inc, analysisId = 1) %>%
   glimpse()
 ```
 
-As we;ve used permanent tables for this example, we can drop these after running our analysis (all of the tables created will start with prefix we specified earlier).
+As we;ve used permanent tables for this example, we can drop these after running our analysis.
 
 ```{r, message= FALSE, warning=FALSE}
 CDMConnector::listTables(attr(cdm, "dbcon"))
-CDMConnector::dropTable(cdm = cdm, name = starts_with("example"))
+CDMConnector::dropTable(cdm = cdm, name = starts_with("denominator"))
+CDMConnector::dropTable(cdm = cdm, name = starts_with("inc_participants"))
 CDMConnector::listTables(attr(cdm, "dbcon"))
 ```

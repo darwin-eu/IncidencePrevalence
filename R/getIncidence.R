@@ -25,8 +25,7 @@ getIncidence <- function(cdm,
                          repeatedEvents,
                          tablePrefix,
                          returnParticipants,
-                         analysisId,
-                         verbose) {
+                         analysisId) {
   if (!is.null(outcomeWashout)) {
     if (is.na(outcomeWashout)) {
       outcomeWashout <- NULL
@@ -57,7 +56,7 @@ getIncidence <- function(cdm,
   } else {
     studyPop <- studyPop %>%
       CDMConnector::computeQuery(name = paste0(tablePrefix,
-                                               "_incidence_working_5"),
+                                               "_inc_5"),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
                                  overwrite = TRUE)
@@ -131,7 +130,7 @@ getIncidence <- function(cdm,
       } else {
         studyPopOutcomeWH <- studyPopOutcomeWH %>%
           CDMConnector::computeQuery(name = paste0(tablePrefix,
-                                                   "_incidence_working_5a"),
+                                                   "_inc_5a"),
                                      temporary = FALSE,
                                      schema = attr(cdm, "write_schema"),
                                      overwrite = TRUE)
@@ -338,14 +337,14 @@ getIncidence <- function(cdm,
                              analysisId) := "outcome_start_date"
                     ) %>%
       CDMConnector::computeQuery(name = paste0(tablePrefix,
-                                               "_incidence_analysis_",
+                                               "_analysis_",
                                                analysisId),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
                                  overwrite = TRUE)
     # keep a record of the table name
     results[["person_table"]] <- paste0(tablePrefix,
-                                        "_incidence_analysis_",
+                                        "_analysis_",
                                         analysisId)
   }
 

@@ -2,7 +2,7 @@
 test_that("mock db: check output format", {
   cdm <- mockIncidencePrevalenceRef()
 
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
 
   inc <- estimateIncidence(
     cdm = cdm,
@@ -11,9 +11,20 @@ test_that("mock db: check output format", {
     interval = "months"
   )
 
-  # check analysis settings tibble
+  # check estimates tibble
   expect_true(all(c(
     "analysis_id",
+    "n_persons",
+    "person_days",
+    "person_years",
+    "n_events",
+    "incidence_100000_pys",
+    "incidence_100000_pys_95CI_lower",
+    "incidence_100000_pys_95CI_upper",
+    "incidence_start_date",
+    "incidence_end_date",
+    "cohort_obscured",
+    "result_obscured",
     "analysis_outcome_washout",
     "analysis_repeated_events",
     "analysis_interval",
@@ -31,29 +42,28 @@ test_that("mock db: check output format", {
     "denominator_strata_cohort_name",
     "cdm_name"
   ) %in%
-    names(incidenceSet(inc))))
-
-  # check estimates tibble
-  expect_true(all(c(
-    "analysis_id",
-    "n_persons",
-    "person_days",
-    "person_years",
-    "n_events",
-    "incidence_100000_pys",
-    "incidence_100000_pys_95CI_lower",
-    "incidence_100000_pys_95CI_upper",
-    "incidence_start_date",
-    "incidence_end_date",
-    "cohort_obscured",
-    "result_obscured"
-  ) %in%
     names(inc)))
 
   expect_true(all(c(
     "analysis_id", "number_records", "number_subjects",
     "reason_id","reason",
-    "excluded_records", "excluded_subjects"
+    "excluded_records", "excluded_subjects",
+    "analysis_outcome_washout",
+    "analysis_repeated_events",
+    "analysis_interval",
+    "analysis_complete_database_intervals",
+    "analysis_min_cell_count",
+    "outcome_cohort_id",
+    "outcome_cohort_name",
+    "denominator_cohort_id",
+    "denominator_age_group",
+    "denominator_sex",
+    "denominator_days_prior_history",
+    "denominator_start_date",
+    "denominator_end_date",
+    "denominator_strata_cohort_definition_id",
+    "denominator_strata_cohort_name",
+    "cdm_name"
   ) %in%
     names(incidenceAttrition(inc))))
 
@@ -62,13 +72,13 @@ test_that("mock db: check output format", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   cdm <- mockIncidencePrevalenceRef()
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
   inc <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "months",
-    tablePrefix =  "result", # returnParticipants requires use of tablePrefix
+    temporary = FALSE,
     returnParticipants = TRUE
   )
   expect_true(tibble::is_tibble(participants(inc, 1) %>%
@@ -116,7 +126,7 @@ test_that("mock db: checks on working example", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
 
   inc <- estimateIncidence(
     cdm = cdm,
@@ -165,7 +175,7 @@ test_that("mock db: check working example 2", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
 
   inc <- estimateIncidence(cdm,
     denominatorTable = "denominator",
@@ -260,7 +270,7 @@ test_that("mock db: check study periods", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
 
   inc <- estimateIncidence(cdm,
     denominatorTable = "denominator",
@@ -337,9 +347,8 @@ test_that("mock db: check overall", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
-    cdm = cdm,
-    startDate = as.Date("2007-01-01")
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, cohortDateRange = c(as.Date("2007-01-01"), as.Date(NA))
   )
 
   inc <- estimateIncidence(cdm,
@@ -417,7 +426,7 @@ test_that("mock db: check person days", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroup = list(c(20, 30))
   )
@@ -428,7 +437,6 @@ test_that("mock db: check person days", {
     outcomeTable = "outcome",
     repeatedEvents = FALSE,
     interval = c("Years"),
-    verbose = TRUE,
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
@@ -516,9 +524,8 @@ test_that("mock db: check periods follow calendar dates", {
   )
 
   # startDate during a year (with year as interval)
-  cdm$denominator <- generateDenominatorCohortSet(
-    cdm = cdm,
-    startDate = as.Date("2010-02-01")
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, cohortDateRange = c(as.Date("2010-02-01"), as.Date(NA))
   )
 
   inc <- estimateIncidence(
@@ -528,7 +535,6 @@ test_that("mock db: check periods follow calendar dates", {
     repeatedEvents = TRUE,
     outcomeWashout = 0,
     interval = c("Years"),
-    verbose = TRUE,
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
@@ -537,9 +543,8 @@ test_that("mock db: check periods follow calendar dates", {
 
 
   # startDate during a month (with month as interval)
-  cdm$denominator <- generateDenominatorCohortSet(
-    cdm = cdm,
-    startDate = as.Date("2011-01-15")
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, cohortDateRange = c(as.Date("2011-01-15"), as.Date(NA))
   )
 
   inc <- estimateIncidence(
@@ -549,7 +554,6 @@ test_that("mock db: check periods follow calendar dates", {
     repeatedEvents = TRUE,
     outcomeWashout = 0,
     interval = c("months"),
-    verbose = TRUE,
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
@@ -601,7 +605,7 @@ test_that("mock db: check washout windows", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
 
   incW0 <- estimateIncidence(cdm,
     denominatorTable = "denominator",
@@ -697,7 +701,7 @@ test_that("mock db: check washout windows", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
 
   incW365 <- estimateIncidence(cdm,
                                denominatorTable = "denominator",
@@ -748,7 +752,7 @@ test_that("mock db: check events overlapping with start of a period", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroup = list(c(20, 30))
   )
@@ -760,7 +764,6 @@ test_that("mock db: check events overlapping with start of a period", {
     outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Years"),
-    verbose = TRUE,
     minCellCount = 0
   )
 
@@ -800,7 +803,7 @@ test_that("mock db: check events overlapping with start of a period", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroup = list(c(20, 30))
   )
@@ -812,7 +815,6 @@ test_that("mock db: check events overlapping with start of a period", {
     outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Years"),
-    verbose = TRUE,
     minCellCount = 0
   )
   expect_true(all(inc2$n_persons == 1))
@@ -856,10 +858,8 @@ test_that("mock db: compare results from months and years", {
     observationPeriodTable = observationPeriodTable,
     outcomeTable = outcomeTable
   )
-  cdm$denominator <- generateDenominatorCohortSet(
-    cdm = cdm,
-    startDate = as.Date("2010-01-01"),
-    endDate = as.Date("2011-12-31")
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, cohortDateRange = c(as.Date("2010-01-01"), as.Date("2011-12-31"))
   )
 
   incMonths <- estimateIncidence(
@@ -892,10 +892,8 @@ test_that("mock db: compare results from months and years", {
 
 
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  cdm$denominator <- generateDenominatorCohortSet(
-    cdm = cdm,
-    startDate = as.Date("2010-01-01"),
-    endDate = as.Date("2011-12-31")
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, cohortDateRange = c(as.Date("2010-01-01"), as.Date("2011-12-31"))
   )
 
   incWeeks <- estimateIncidence(
@@ -1001,7 +999,7 @@ test_that("mock db: check entry and event on same day", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
 
   incWithoutRep <- estimateIncidence(
     cdm = cdm,
@@ -1064,7 +1062,7 @@ test_that("mock db: cohort start overlaps with the outcome", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroup = list(c(20, 30))
   )
@@ -1076,7 +1074,6 @@ test_that("mock db: cohort start overlaps with the outcome", {
     outcomeWashout = 180,
     repeatedEvents = TRUE,
     interval = c("Years"),
-    verbose = TRUE,
     minCellCount = 0
   )
 
@@ -1120,10 +1117,8 @@ test_that("mock db: check outcome before observation period start", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
-    cdm = cdm,
-    startDate = as.Date("2000-01-01"),
-    endDate = as.Date("2004-01-01")
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, cohortDateRange = c(as.Date("2000-01-01"), as.Date("2004-01-01"))
   )
 
   # with rep events - should have both people
@@ -1184,10 +1179,8 @@ test_that("mock db: check outcome before observation period start", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
-    cdm = cdm,
-    startDate = as.Date("2000-01-01"),
-    endDate = as.Date("2004-01-01")
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, cohortDateRange = c(as.Date("2000-01-01"),as.Date("2004-01-01"))
   )
 
   # with rep events - should have one person for rep, both people in second
@@ -1248,10 +1241,8 @@ test_that("mock db: check outcome before observation period start", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
-    cdm = cdm,
-    startDate = as.Date("2000-01-01"),
-    endDate = as.Date("2004-01-01")
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, cohortDateRange = c(as.Date("2000-01-01"), as.Date("2004-01-01"))
   )
 
   # with rep events - should have both people
@@ -1327,7 +1318,7 @@ test_that("mock db: check minimum counts", {
     observationPeriodTable = observationPeriodTable,
     outcomeTable = outcomeTable
   )
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
 
   inc <- estimateIncidence(
     cdm = cdm,
@@ -1415,7 +1406,7 @@ test_that("mock db: multiple overlapping outcomes", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
 
   inc <- estimateIncidence(
     cdm = cdm,
@@ -1424,7 +1415,6 @@ test_that("mock db: multiple overlapping outcomes", {
     outcomeWashout = 180,
     repeatedEvents = TRUE,
     interval = c("Years"),
-    verbose = TRUE,
     minCellCount = 0
   )
   expect_true(all(inc$n_persons) == 1)
@@ -1471,7 +1461,7 @@ test_that("mock db: multiple overlapping outcomes", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
 
   inc <- estimateIncidence(
     cdm = cdm,
@@ -1527,10 +1517,8 @@ test_that("mock db: cohort before period start ending after period", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
-    cdm = cdm,
-    startDate = as.Date(as.Date("2001-01-01")),
-    endDate = as.Date(as.Date("2001-12-31"))
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, cohortDateRange = c(as.Date("2001-01-01"), as.Date("2001-12-31"))
   )
 
   # regardless of washout we expect one event
@@ -1545,7 +1533,6 @@ test_that("mock db: cohort before period start ending after period", {
     outcomeWashout = 0,
     repeatedEvents = FALSE,
     interval = c("Years"),
-    verbose = TRUE,
     completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
@@ -1559,7 +1546,6 @@ test_that("mock db: cohort before period start ending after period", {
     outcomeWashout = Inf,
     repeatedEvents = FALSE,
     interval = c("Years"),
-    verbose = TRUE,
     completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
@@ -1602,7 +1588,7 @@ test_that("mock db: check full period requirement - year", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroup = list(c(20, 30))
   )
@@ -1614,7 +1600,6 @@ test_that("mock db: check full period requirement - year", {
     outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Years"),
-    verbose = TRUE,
     minCellCount = 0
   )
   expect_true(inc$n_persons[1] == 1)
@@ -1654,7 +1639,7 @@ test_that("mock db: check full period requirement - year", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroup = list(c(20, 30))
   )
@@ -1666,7 +1651,6 @@ test_that("mock db: check full period requirement - year", {
     outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Years"),
-    verbose = TRUE,
     minCellCount = 0
   )
   expect_true(inc$n_persons[1] == 1)
@@ -1709,7 +1693,7 @@ test_that("mock db: check full period requirement - month", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroup = list(c(20, 30))
   )
@@ -1721,7 +1705,6 @@ test_that("mock db: check full period requirement - month", {
     outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Months"),
-    verbose = TRUE,
     minCellCount = 0
   )
   expect_true(nrow(inc) >= 1)
@@ -1761,7 +1744,7 @@ test_that("mock db: check full period requirement - month", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroup = list(c(20, 30))
   )
@@ -1773,7 +1756,6 @@ test_that("mock db: check full period requirement - month", {
     outcomeWashout = Inf,
     repeatedEvents = TRUE,
     interval = c("Months"),
-    verbose = TRUE,
     minCellCount = 0
   )
   expect_true(inc$n_persons == 1)
@@ -1816,7 +1798,7 @@ test_that("mock db: check completeDatabaseIntervals", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm
   )
 
@@ -1922,7 +1904,7 @@ test_that("mock db: check insufficient study days", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm
   )
 
@@ -2023,12 +2005,11 @@ test_that("mock db: check with and without study start and end date", {
   )
 
   # no study period required
-  cdm$denominator1 <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator1")
   # study period
-  cdm$denominator2 <- generateDenominatorCohortSet(
-    cdm = cdm,
-    startDate = as.Date("2009-01-01"),
-    endDate = as.Date("2011-01-01")
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, name = "denominator2",
+    cohortDateRange = c(as.Date("2009-01-01"), as.Date("2011-01-01"))
   )
 
   # no washout, repetitive events
@@ -2139,12 +2120,11 @@ test_that("mock db: check study start and end date 10000", {
   )
 
   # no study period required
-  cdm$denominator1 <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator1")
   # study period
-  cdm$denominator2 <- generateDenominatorCohortSet(
-    cdm = cdm,
-    startDate = as.Date("2009-01-01"),
-    endDate = as.Date("2011-01-01")
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, name = "denominator2",
+    cohortDateRange = c(as.Date("2009-01-01"), as.Date("2011-01-01"))
   )
 
   # no washout, repetitive events
@@ -2266,12 +2246,12 @@ test_that("mock db: check study start and end date 10000", {
   )
 
   # no study period required
-  cdm$denominator1 <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm,
+                                                   name = "denominator1")
   # study period
-  cdm$denominator2 <- generateDenominatorCohortSet(
-    cdm = cdm,
-    startDate = as.Date("2009-01-01"),
-    endDate = as.Date("2011-01-01")
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, name = "denominator2",
+    cohortDateRange = c(as.Date("2009-01-01"), as.Date("2011-01-01"))
   )
 
   # no washout, repetitive events
@@ -2415,12 +2395,11 @@ test_that("mock db: check messages when vebose is true", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
 
   expect_message(estimateIncidence(cdm,
     denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    verbose = TRUE
+    outcomeTable = "outcome"
   ))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
@@ -2461,7 +2440,7 @@ test_that("expected errors with mock", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
 
   # not a cdm reference
   expect_error(estimateIncidence(
@@ -2506,12 +2485,12 @@ test_that("expected errors with mock", {
     outcomeCohortId = 11
   ))
 
-  # returnParticipants only works with tablePrefix
+  # returnParticipants only works with permanent tables
   expect_error(estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    tablePrefix = NULL,
+    temporary = TRUE,
     returnParticipants = TRUE
   ))
 
@@ -2584,7 +2563,7 @@ test_that("mock db: multiple observation periods", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
     strataCohortId = 1
@@ -2628,7 +2607,7 @@ test_that("mock db: multiple observation periods", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
     strataCohortId = 1
@@ -2675,7 +2654,7 @@ test_that("mock db: multiple observation periods", {
     strataTable = conditionX,
     outcomeTable = outcomeTable
   )
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
     strataCohortId = 1
@@ -2715,7 +2694,7 @@ test_that("mock db: multiple observation periods", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
     strataCohortId = 1
@@ -2769,7 +2748,7 @@ test_that("mock db: multiple observation periods", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
     strataCohortId = 1
@@ -2854,7 +2833,7 @@ test_that("mock db: multiple observation periods", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     strataTable = "strata",
     strataCohortId = 1
@@ -2895,10 +2874,9 @@ test_that("mock db: check confidence intervals", {
   cdm <- mockIncidencePrevalenceRef(
     sampleSize = 10000
   )
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
-    startDate = as.Date("2008-01-01"),
-    endDate = as.Date("2011-01-01")
+    cohortDateRange = c(as.Date("2008-01-01"), as.Date("2011-01-01"))
   )
   inc <- estimateIncidence(cdm,
     denominatorTable = "denominator",
@@ -2925,7 +2903,7 @@ test_that("mock db: check confidence intervals", {
 test_that("mock db: check attrition", {
   skip_on_cran()
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  cdm$denominator <- generateDenominatorCohortSet(
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     sex = c("Male", "Female")
   )
@@ -2935,18 +2913,13 @@ test_that("mock db: check attrition", {
     interval = "years"
   )
   # for female cohort we should have a row for those excluded for not being male
-  expect_true(any("Not Female" == incidenceSet(inc) %>%
+  expect_true(any("Not Female" ==
+                    incidenceAttrition(inc) %>%
     dplyr::filter(denominator_sex == "Female") %>%
-    dplyr::inner_join(incidenceAttrition(inc), multiple = "all",
-      by = "analysis_id"
-    ) %>%
     dplyr::pull(.data$reason)))
   # for male, the opposite
-  expect_true(any("Not Male" == incidenceSet(inc) %>%
-    dplyr::filter(denominator_sex == "Male") %>%
-    dplyr::inner_join(incidenceAttrition(inc), multiple = "all",
-      by = "analysis_id"
-    ) %>%
+  expect_true(any("Not Male" == incidenceAttrition(inc)  %>%
+                    dplyr::filter(denominator_sex == "Male") %>%
     dplyr::pull(.data$reason)))
 
   # check we can pick out specific analysis attrition
@@ -3000,11 +2973,7 @@ test_that("mock db: check attrition with complete database intervals", {
     outcomeTable = outcomeTable
   )
 
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
-
-  cdm$denominator <- generateDenominatorCohortSet(
-    cdm = cdm
-  )
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
   inc <- estimateIncidence(cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
@@ -3025,10 +2994,10 @@ test_that("mock db: check compute permanent", {
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
   attr(cdm, "write_schema") <- "main"
 
-  cdm$dpop <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
   inc <- estimateIncidence(
     cdm = cdm,
-    denominatorTable = "dpop",
+    denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "overall"
   )
@@ -3040,39 +3009,33 @@ test_that("mock db: check compute permanent", {
 
   # using permanent
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  attr(cdm, "write_schema") <- "main"
-
-  cdm$dpop <- generateDenominatorCohortSet(cdm = cdm,
-                                           tablePrefix =  "result")
+  cdm <- generateDenominatorCohortSet(cdm = cdm, temporary =  FALSE)
   inc <- estimateIncidence(
     cdm = cdm,
-    denominatorTable = "dpop",
+    denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "overall",
-    tablePrefix =  "result"
+    temporary =  FALSE
   )
 
-  # we´ll now have the stem table
-  expect_true(any(stringr::str_detect(
-    CDMConnector::listTables(attr(cdm, "dbcon"),
-                             schema = attr(cdm, "write_schema")),
-    "result")))
-  # with no temp tables created by dbplyr
+  # no temp tables created by dbplyr
   expect_false(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
                                       "dbplyr_")))
 
   inc <- estimateIncidence(
     cdm = cdm,
-    denominatorTable = "dpop",
+    denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "overall",
-    tablePrefix =  "result",
+    temporary =  FALSE,
     returnParticipants = TRUE
   )
   expect_true(any(stringr::str_detect(
     CDMConnector::listTables(attr(cdm, "dbcon"),
                              schema = attr(cdm, "write_schema")),
-    "result_incidence_participants")))
+    "inc_participants")))
+  expect_false(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
+                                       "dbplyr_")))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
@@ -3082,28 +3045,29 @@ test_that("mock db: check participants", {
   skip_on_cran()
 
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  cdm$dpop <- generateDenominatorCohortSet(cdm = cdm,
+  attr(cdm, "write_prefix") <- "test_"
+  cdm <- generateDenominatorCohortSet(cdm = cdm, name ="dpop",
                                            sex = c("Male", "Female", "Both"),
                                            ageGroup = list(c(0,50),
                                                            c(51,100)),
-                                           tablePrefix = "test")
+                                      temporary = FALSE)
   inc <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "dpop",
     outcomeTable = "outcome",
     interval = "overall",
-    tablePrefix = "test",
+    temporary = FALSE,
     returnParticipants = TRUE
   )
 
   # we should have cleaned up all the intermediate tables
   expect_true(all(CDMConnector::listTables(attr(cdm, "dbcon"),
                            schema = attr(cdm, "write_schema")) %in%
-               c("test_denominator",
-                 "test_incidence_participants",
-                 "test_denominator_attrition",
-                 "test_denominator_set" ,
-                 "test_denominator_count",
+               c("test_dpop",
+                 "test_inc_participants1",
+                 "test_dpop_attrition",
+                 "test_dpop_set" ,
+                 "test_dpop_count",
                  "vocabulary" ,
                  "cdm_source", "outcome", "strata",
                  "observation_period", "person" )))
@@ -3124,3 +3088,72 @@ test_that("mock db: check participants", {
     DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
     })
+
+test_that("mock db: overwriting participants", {
+  skip_on_cran()
+
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  attr(cdm, "write_schema") <- "main"
+  attr(cdm, "write_prefix") <- "test_"
+
+  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "dpop",
+                                      temporary = FALSE,
+                                      ageGroup = list(c(0,50),
+                                                      c(51,100)))
+  inc1 <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "dpop",
+    denominatorCohortId = 1,
+    outcomeTable = "outcome",
+    temporary = FALSE,
+    returnParticipants = TRUE
+  )
+  inc1_count <- nrow(participants(inc1, 1) %>% dplyr::collect())
+
+  inc2 <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "dpop",
+    denominatorCohortId = 2,
+    outcomeTable = "outcome",
+    temporary = FALSE,
+    returnParticipants = TRUE
+  )
+  # participants from prev1 should still be the same
+  # (ie no interference from having rerun the function)
+  expect_true(nrow(participants(inc1, 1) %>% dplyr::collect()) == inc1_count)
+
+  # we should have two tables with participants
+  # one for each function call
+  expect_true(length(stringr::str_subset(
+    CDMConnector::listTables(attr(cdm, "dbcon"),
+                             schema = attr(cdm,"write_schema")),
+    "participants")) == 2)
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+})
+
+test_that("mock db: if missing cohort attributes", {
+
+  # missing cohort_set
+  cdm <- mockIncidencePrevalenceRef()
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
+  attr(cdm$outcome, "cohort_set") <- NULL
+  expect_error(estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "overall"))
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+  # missing cohort_count
+  cdm <- mockIncidencePrevalenceRef()
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
+  attr(cdm$outcome, "cohort_count") <- NULL
+  expect_error(estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "overall"))
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})

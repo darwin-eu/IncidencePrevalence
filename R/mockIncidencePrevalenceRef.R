@@ -425,7 +425,7 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
 
 
   # add other tables required for snapshot
-  cdmSource <- tibble::tibble(cdm_source_name="test database",
+  cdmSource <- tibble::tibble(cdm_source_name="test_database",
                               cdm_source_abbreviation = NA,
                               cdm_holder = NA,
                               source_description = NA,
@@ -462,6 +462,7 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
     write_schema = "main"
   )
   cdm$outcome <- addCohortCountAttr(cdm$outcome)
+  cdm$strata <- addCohortCountAttr(cdm$strata)
 
   return(cdm)
 }

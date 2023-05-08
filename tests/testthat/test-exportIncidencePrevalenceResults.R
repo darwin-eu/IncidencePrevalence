@@ -1,14 +1,19 @@
 test_that("writing results", {
   cdm <- mockIncidencePrevalenceRef()
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
+  inc <- estimateIncidence(
+    cdm = cdm,
+    interval = "overall",
+    denominatorTable = "denominator",
+    outcomeTable = "outcome"
+  )
   prev <- estimatePointPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome"
   )
-  results <- gatherIncidencePrevalenceResults(cdm=cdm, resultList = list(prev))
   exportIncidencePrevalenceResults(
-    result = results, zipName = "test",
+    resultList = list("incidence_estimate" = inc), zipName = "test",
     outputFolder = tempdir()
   )
   expect_true("test.zip" %in% list.files(tempdir()))
@@ -18,17 +23,20 @@ test_that("writing results", {
 
 test_that("writing results- expected errors", {
   cdm <- mockIncidencePrevalenceRef()
-  cdm$denominator <- generateDenominatorCohortSet(cdm = cdm)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
   prev <- estimatePointPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome"
   )
-  results <- gatherIncidencePrevalenceResults(cdm=cdm,
-                                              resultList = list(prev))
-  # not a gathered result
+  # not a  result
   expect_error(exportIncidencePrevalenceResults(
     result = "a",
+    zipName = "test_should_fail",
+    outputFolder = tempdir()
+  ))
+  expect_error(exportIncidencePrevalenceResults(
+    result = list(prev, "a"),
     zipName = "test_should_fail",
     outputFolder = tempdir()
   ))
