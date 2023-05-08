@@ -3,7 +3,7 @@ output: github_document
 ---
 
 ```{r, include = FALSE}
-knitr::opts_chunk$set(warning = FALSE,
+knitr::opts_chunk$set(warning = FALSE, message = FALSE,
   collapse = TRUE,
   comment = "#>",
 fig.path = "man/figures/README-",
@@ -13,7 +13,7 @@ out.width = "100%"
 
 # IncidencePrevalence <img src='man/figures/hexsticker.png' align="right" height="139"/>
 [![CRANstatus](https://www.r-pkg.org/badges/version/IncidencePrevalence)](https://CRAN.R-project.org/package=IncidencePrevalence) 
-[![codecov.io](https://codecov.io/github/darwin-eu/IncidencePrevalence/coverage.svg?branch=main)](https://codecov.io/github/darwin-eu/IncidencePrevalence?branch=main)
+[![codecov.io](https://codecov.io/github/darwin-eu/IncidencePrevalence/coverage.svg?branch=main)](https://app.codecov.io/github/darwin-eu/IncidencePrevalence?branch=main)
 [![R-CMD-check](https://github.com/darwin-eu/IncidencePrevalence/workflows/R-CMD-check/badge.svg)](https://github.com/darwin-eu/IncidencePrevalence/actions)
 [![Lifecycle:Experimental](https://img.shields.io/badge/Lifecycle-Experimental-339999)](https://lifecycle.r-lib.org/articles/stages.html)
 
@@ -62,10 +62,10 @@ cdm <- mockIncidencePrevalenceRef(sampleSize = 5000)
 To identify a set of denominator cohorts we can use the `generateDenominatorCohortSet` function. Here we want to identify denominator populations for a study period between 2008 and 2018 and with 180 days of prior history (observation time in the database). We also wish to consider multiple age groups (from 0 to 64, and 65 to 100) and multiple sex criteria (one cohort only males, one only females, and one with both sexes included).  
 
 ```{r}
-cdm$denominator <- generateDenominatorCohortSet(
-  cdm = cdm,
-  startDate = as.Date("2008-01-01"),
-  endDate = as.Date("2018-01-01"),
+cdm <- generateDenominatorCohortSet(
+  cdm = cdm, 
+  name = "denominator", 
+  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01")),
   ageGroup = list(c(0,64),
                   c(65,100)),
   sex = c("Male", "Female", "Both"),
@@ -90,7 +90,7 @@ Outcome cohorts for which we want to estimate incidence or prevalence need to be
 outcome_cohorts <- CDMConnector::readCohortSet("path_to_outcome_cohort_definitions")
 cdm <- CDMConnector::generateCohortSet(cdm = cdm, 
                                        cohortSet = outcome_cohorts,
-                                       cohortTableName = "outcome_table_name"
+                                       name = "outcome_table_name"
                                        )
 ```
 
@@ -146,23 +146,13 @@ prev_period <- estimatePeriodPrevalence(
 dplyr::glimpse(prev_period)
 ```
 
-### Combining and exporting results
-After running different analyses We can use `gatherIncidencePrevalenceResults()` to bring together the results, adding outcome names and the database name to the output.
-```{r}
-study_results <- gatherIncidencePrevalenceResults(
-  cdm = cdm,
-  resultList = list(inc, prev_point, prev_period)
-)
-dplyr::glimpse(study_results$incidence_estimates)
-dplyr::glimpse(study_results$incidence_attrition)
-dplyr::glimpse(study_results$prevalence_estimates)
-dplyr::glimpse(study_results$prevalence_attrition)
-```
-
-After gathering results, we can export them as CSVs in a zip folder using the `exportIncidencePrevalenceResults()` function. 
+### Exporting results
+We can export our results as CSVs in a zip folder using the `exportIncidencePrevalenceResults()` function. 
 ```{r, eval=FALSE}
 exportIncidencePrevalenceResults(
-  result = study_results,
+  resultList = list("incidence" = inc, 
+                     "point_prevalence" = prev_point, 
+                     "period_prevalence" = prev_period),
   zipName = "example_results",
   outputFolder = here::here()
 )

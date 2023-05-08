@@ -6,40 +6,34 @@
 \usage{
 benchmarkIncidencePrevalence(
   cdm,
-  startDate = NULL,
-  endDate = NULL,
-  tablePrefix = NULL,
+  cohortDateRange = NULL,
+  temporary = TRUE,
   returnParticipants = FALSE,
-  sample = NULL,
   nOutcomes = 1,
   prevOutcomes = 0.25,
   analysisType = "all",
   outputFolder = NULL,
-  fileName = NULL,
-  verbose = FALSE
+  fileName = NULL
 )
 }
 \arguments{
 \item{cdm}{A CDM reference object}
 
-\item{startDate}{A date indicating the start of the study
-period to be used for the denominator cohort. If NULL, the earliest
-observation_start_date in the observation_period table will be used.}
+\item{cohortDateRange}{Two dates. The first indicating the earliest cohort
+start date and the second indicating the latest possible cohort end date. If
+NULL or the first date is set as missing, the earliest observation_start_date
+in the observation_period table will be used for the former. If  NULL or the
+second date is set as missing, the latest observation_end_date in the
+observation_period table will be used for the latter.}
 
-\item{endDate}{A date indicating the end of the study
-period to be used for the denominator cohort. If NULL, the latest
-observation end date in the observation period  table will be used.}
+\item{temporary}{If TRUE, temporary tables will be used throughout. If
+FALSE, permanent tables will be created in the write_schema of the cdm
+using the write_prefix (if specified). Note existing permanent tables in
+the write schema starting with the write_prefix will be at risk of being
+dropped or overwritten.}
 
-\item{tablePrefix}{The stem for the permanent tables that will
-be created. Permanent tables will be created using this stem, and any
-existing tables that start with this will be at risk of being dropped
-or overwritten. If NULL, temporary tables will be used throughout.}
-
-\item{returnParticipants}{Whether to return participants (Requires tablePrefix
-to have been specified)}
-
-\item{sample}{An integer for which to take a random sample when generating
-the denominator cohort}
+\item{returnParticipants}{Whether to return participants (requires temporary
+to be FALSE)}
 
 \item{nOutcomes}{An integer specifying the number of outcomes to create in
 the denominator cohort}
@@ -54,8 +48,6 @@ prevalence, they can also provide a single integer}
 \item{outputFolder}{Folder to save results as CSV}
 
 \item{fileName}{Name given to CSV with results}
-
-\item{verbose}{Either TRUE or FALSE. If TRUE, progress will be reported.}
 }
 \value{
 a tibble with time taken for different analyses
@@ -68,7 +60,6 @@ Run benchmark of incidence and prevalence analyses
 cdm <- mockIncidencePrevalenceRef(sampleSize = 10000,
                                   earliestObservationStartDate = as.Date("2010-01-01") ,
                                   latestObservationStartDate = as.Date("2018-01-01"))
-timings <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm,
-                                                             verbose = TRUE)
+timings <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm)
 }
 }

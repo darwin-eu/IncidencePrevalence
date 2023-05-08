@@ -21,7 +21,7 @@ Participants contributing to an analysis
 \examples{
 \donttest{
 cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-cdm$denominator <- generateDenominatorCohortSet(cdm)
+cdm <- generateDenominatorCohortSet(cdm, name = "denominator")
 incidence <- estimateIncidence(
   cdm = cdm,
   denominatorTable = "denominator",

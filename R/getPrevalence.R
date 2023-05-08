@@ -304,7 +304,7 @@ getPrevalence <- function(cdm,
                              analysisId) := "outcome_start_date"
       ) %>%
       CDMConnector::computeQuery(name = paste0(tablePrefix,
-                                               "_prevalence_analysis_",
+                                               "_analysis_",
                                                analysisId),
                                  temporary = FALSE,
                                  schema = attr(cdm, "write_schema"),
@@ -323,7 +323,7 @@ getPrevalence <- function(cdm,
   results[["attrition"]] <- attrition
   if(returnParticipants==TRUE){
     results[["person_table"]] <- paste0(tablePrefix,
-                                        "_prevalence_analysis_",
+                                        "_analysis_",
                                         analysisId)
   }
 

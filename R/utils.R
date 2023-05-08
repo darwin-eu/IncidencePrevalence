@@ -24,7 +24,7 @@
 #' @examples
 #' \donttest{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-#' cdm$denominator <- generateDenominatorCohortSet(cdm)
+#' cdm <- generateDenominatorCohortSet(cdm, name = "denominator")
 #' inc <- estimateIncidence(
 #'   cdm = cdm,
 #'   denominatorTable = "denominator",
@@ -53,7 +53,7 @@ incidenceAttrition.IncidenceResult <- function(result) {
 #' @examples
 #' \donttest{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-#' cdm$denominator <- generateDenominatorCohortSet(cdm)
+#' cdm <- generateDenominatorCohortSet(cdm, name = "denominator")
 #' prev <- estimatePointPrevalence(
 #'   cdm = cdm,
 #'   denominatorTable = "denominator",
@@ -82,7 +82,7 @@ prevalenceAttrition.PrevalenceResult <- function(result) {
 #' @examples
 #' \donttest{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-#' cdm$denominator <- generateDenominatorCohortSet(cdm)
+#' cdm <- generateDenominatorCohortSet(cdm, name = "denominator")
 #' inc <- estimateIncidence(
 #'   cdm = cdm,
 #'   denominatorTable = "denominator",
@@ -111,7 +111,7 @@ incidenceSet.IncidenceResult <- function(result) {
 #' @examples
 #' \donttest{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-#' cdm$denominator <- generateDenominatorCohortSet(cdm)
+#' cdm <- generateDenominatorCohortSet(cdm, name = "denominator")
 #' prev <- estimatePointPrevalence(
 #'   cdm = cdm,
 #'   denominatorTable = "denominator",
@@ -141,7 +141,7 @@ prevalenceSet.PrevalenceResult <- function(result) {
 #' @examples
 #' \donttest{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-#' cdm$denominator <- generateDenominatorCohortSet(cdm)
+#' cdm <- generateDenominatorCohortSet(cdm, name = "denominator")
 #' incidence <- estimateIncidence(
 #'   cdm = cdm,
 #'   denominatorTable = "denominator",
@@ -209,13 +209,4 @@ participants.IncidencePrevalenceResult <- function(result,
   return(included)
 }
 
-# Helper function to deal with compound schemas
-inSchema <- function(schema, table) {
-  checkmate::assertCharacter(schema, min.len = 1, max.len = 2)
-  checkmate::assertCharacter(table, len = 1)
-  if (length(schema) == 2) {
-    return(DBI::Id(catalog = schema[1], schema = schema[2], table = table))
-  } else {
-    return(DBI::Id(schema = schema, table = table))
-  }
-}
+

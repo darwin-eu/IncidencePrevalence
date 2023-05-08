@@ -24,7 +24,6 @@ getDenominatorCohorts <- function(cdm,
                               daysPriorHistory,
                               strataTable,
                               strataCohortId,
-                              sample,
                               tablePrefix) {
 
   # make sure names are lowercase and keep variables required
@@ -41,25 +40,6 @@ getDenominatorCohorts <- function(cdm,
       "observation_period_start_date",
       "observation_period_end_date"
     )
-
-  # sample
-  if (!is.null(sample)) {
-    personDb <- personDb %>%
-      dplyr::slice_sample(n = sample)
-
-    if(is.null(tablePrefix)){
-      personDb <- personDb %>%
-        CDMConnector::computeQuery()
-    } else {
-      personDb <- personDb %>%
-        CDMConnector::computeQuery(name = paste0(tablePrefix,
-                                                 "_person_sample"),
-                                   temporary = FALSE,
-                                   schema = attr(cdm, "write_schema"),
-                                   overwrite = TRUE)
-    }
-
-  }
 
   # stratify population on cohort
   if (!is.null(strataTable)) {
@@ -465,7 +445,7 @@ getDenominatorCohorts <- function(cdm,
          CDMConnector::computeQuery()
      } else {
        studyPopDb <- studyPopDb %>%
-         CDMConnector::computeQuery(name = tablePrefix,
+         CDMConnector::computeQuery(name = paste0(tablePrefix,"_cohorts"),
                                     temporary = FALSE,
                                     schema = attr(cdm, "write_schema"),
                                     overwrite = TRUE)

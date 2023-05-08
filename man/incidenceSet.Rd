@@ -18,7 +18,7 @@ Settings associated with an incidence analysis
 \examples{
 \donttest{
 cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-cdm$denominator <- generateDenominatorCohortSet(cdm)
+cdm <- generateDenominatorCohortSet(cdm, name = "denominator")
 inc <- estimateIncidence(
   cdm = cdm,
   denominatorTable = "denominator",

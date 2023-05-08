@@ -17,7 +17,8 @@
 
 #' Export IncidencePrevalence results
 #'
-#' @param result IncidencePrevalence results from gatherResults()
+#' @param resultList Named list with results from estimateIncidence,
+#' estimatePointPrevalence, or estimatePeriodPrevalence
 #' @param zipName name to give zip folder
 #' @param outputFolder directory to save zip folder containing results as a set
 #' of CSV files
@@ -28,29 +29,37 @@
 #' @examples
 #' \donttest{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-#' cdm$denominator <- generateDenominatorCohortSet(
-#'   cdm = cdm,
-#'   startDate = as.Date("2008-01-01"),
-#'   endDate = as.Date("2018-01-01")
+#' cdm <- generateDenominatorCohortSet(
+#'   cdm = cdm, name = "denominator"
 #' )
 #' prev <- estimatePointPrevalence(
 #' cdm = cdm,
 #' denominatorTable = "denominator",
 #' outcomeTable = "outcome"
 #' )
-#'  results <- gatherIncidencePrevalenceResults(cdm = cdm, resultList=list(prev))
-#'  exportIncidencePrevalenceResults(result=results, zipName="test",
-#'                                   outputFolder=tempdir())
+#'exportIncidencePrevalenceResults(resultList=list("prevalence" = prev),
+#'                                 zipName="test",
+#'                                 outputFolder=tempdir())
 #' }
-exportIncidencePrevalenceResults <- function(result, zipName, outputFolder) {
+exportIncidencePrevalenceResults <- function(resultList, zipName, outputFolder) {
 
   errorMessage <- checkmate::makeAssertCollection()
-  checkmate::assertTRUE(
-    inherits(result, "IncidencePrevalenceGatheredResult"),
+
+  checkResultType <- list()
+  for(i in seq_along(resultList)){
+    checkResultType[[i]] <- inherits(resultList[[i]],
+                                     "IncidencePrevalenceResult") &
+      nrow(resultList[[i]] >= 1)
+  }
+  checkResultType <- all(unlist(checkResultType)) == TRUE
+  if (!isTRUE(checkResultType)) {
+    errorMessage$push(
+      "- All objects in resultList must be an IncidencePrevalenceResult"
+    )
+  }
+  checkmate::assertTRUE(checkResultType,
                         add = errorMessage
   )
-  checkmate::assertCharacter(zipName, len = 1,
-                             add = errorMessage)
   checkmate::assertDirectoryExists(outputFolder,
                               add = errorMessage)
   checkmate::reportAssertions(collection = errorMessage)
@@ -63,23 +72,27 @@ exportIncidencePrevalenceResults <- function(result, zipName, outputFolder) {
   }
 
   # write results to disk
-  lapply(names(result), FUN = function(checkResultName) {
-    checkResult <- result[[checkResultName]]
-    utils::write.csv(checkResult,
+  for(i in seq_along(resultList)){
+    workingResult <- resultList[[i]]
+    workingName <- names(resultList)[[i]]
+    if(is.null(workingName)){
+      workingName <- paste0("result_", i)
+    }
+    utils::write.csv(workingResult,
                      file = file.path(
                        tempDir,
-                       paste0(attr(result, "cdm_name"), "_",
-                              checkResultName, "_",
-                              format(Sys.Date(), format="%Y%m%d"),
+                       paste0(unique(workingResult$cdm_name), "_",
+                              workingName, "_",
+                              format(Sys.Date(), format="%Y_%m_%d"),
                               ".csv")),
                      row.names = FALSE
     )
-  })
+  }
   zip::zip(zipfile = file.path(outputFolder, paste0(zipName, ".zip")),
            files = list.files(tempDir, full.names = TRUE))
   if (tempDirCreated) {
     unlink(tempDir, recursive = TRUE)
   }
 
-  invisible(result)
+  invisible(resultList)
 }
