@@ -43,7 +43,10 @@
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/benchmarkIncidencePrevalence.html</loc>
   </url>
   <url>
-    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/dropStemTables.html</loc>
+    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/bindIncidenceEstimates.html</loc>
+  </url>
+  <url>
+    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/bindPrevalenceEstimates.html</loc>
   </url>
   <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/estimateIncidence.html</loc>
@@ -56,9 +59,6 @@
   </url>
   <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/exportIncidencePrevalenceResults.html</loc>
-  </url>
-  <url>
-    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/gatherIncidencePrevalenceResults.html</loc>
   </url>
   <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/generateDenominatorCohortSet.html</loc>
@@ -80,6 +80,12 @@
   </url>
   <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/pipe.html</loc>
+  </url>
+  <url>
+    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/plotIncidence.html</loc>
+  </url>
+  <url>
+    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/plotPrevalence.html</loc>
   </url>
   <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/prevalenceAttrition.html</loc>

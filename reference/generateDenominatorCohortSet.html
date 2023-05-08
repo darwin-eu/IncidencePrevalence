@@ -16,7 +16,7 @@ or estimatePeriodPrevalence()."><!-- mathjax --><script src="https://cdnjs.cloud
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.2.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,17 +63,14 @@ or <code><a href="estimatePeriodPrevalence.html">estimatePeriodPrevalence()</a><
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">generateDenominatorCohortSet</span><span class="op">(</span></span>
 <span>  <span class="va">cdm</span>,</span>
-<span>  startDate <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  endDate <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  name <span class="op">=</span> <span class="st">"denominator"</span>,</span>
+<span>  cohortDateRange <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  ageGroup <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  sex <span class="op">=</span> <span class="st">"Both"</span>,</span>
 <span>  daysPriorHistory <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  strataTable <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  strataCohortId <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  strataCohortName <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  sample <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  tablePrefix <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  temporary <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -83,16 +80,17 @@ or <code><a href="estimatePeriodPrevalence.html">estimatePeriodPrevalence()</a><
 <dd><p>A CDM reference object</p></dd>
 
 
-<dt>startDate</dt>
-<dd><p>A date indicating the start of the study
-period. If NULL, the earliest observation_start_date in the
-observation_period table will be used.</p></dd>
+<dt>name</dt>
+<dd><p>Name of the cohort table to be created.</p></dd>
 
 
-<dt>endDate</dt>
-<dd><p>A date indicating the end of the study
-period. If NULL, the latest observation end date in the observation period
-table will be used.</p></dd>
+<dt>cohortDateRange</dt>
+<dd><p>Two dates. The first indicating the earliest cohort
+start date and the second indicating the latest possible cohort end date. If
+NULL or the first date is set as missing, the earliest observation_start_date
+in the observation_period table will be used for the former. If  NULL or the
+second date is set as missing, the latest observation_end_date in the
+observation_period table will be used for the latter.</p></dd>
 
 
 <dt>ageGroup</dt>
@@ -122,29 +120,16 @@ cohort when they are contributing to the cohort in the strata table).</p></dd>
 
 <dt>strataCohortId</dt>
 <dd><p>The cohort definition id for the cohort of interest
-in the strata table. Only one stratifying cohort is supported.</p></dd>
+in the strata table. If strataTable is specified, a single strataCohortId
+must also be specified.</p></dd>
 
 
-<dt>strataCohortName</dt>
-<dd><p>Corresponding name for the strata cohort.</p></dd>
-
-
-<dt>sample</dt>
-<dd><p>An integer for which to take a random sample, using
-<code><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">dplyr::slice_sample()</a></code>, of the people in the person table eligible to be
-included in the cohort set.</p></dd>
-
-
-<dt>tablePrefix</dt>
-<dd><p>The stem for the permanent tables that will
-be created when creating the denominator cohorts. Permanent tables will be
-created using this stem, and any existing tables that start with this
-will be at risk of being dropped or overwritten. If NULL, temporary
-tables will be used throughout.</p></dd>
-
-
-<dt>verbose</dt>
-<dd><p>Either TRUE or FALSE. If TRUE, progress will be reported.</p></dd>
+<dt>temporary</dt>
+<dd><p>If TRUE, temporary tables will be used throughout. If
+FALSE, permanent tables will be created in the write_schema of the cdm
+using the write_prefix (if specified). Note existing permanent tables in
+the write schema starting with the write_prefix will be at risk of being
+dropped or overwritten.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -160,9 +145,10 @@ tables will be used throughout.</p></dd>
 <span class="r-in"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="mockIncidencePrevalenceRef.html">mockIncidencePrevalenceRef</a></span><span class="op">(</span>sampleSize <span class="op">=</span> <span class="fl">10000</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op">&lt;-</span> <span class="fu">generateDenominatorCohortSet</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span></span>
-<span class="r-in"><span>  startDate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2008-01-01"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  endDate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2018-01-01"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2008-01-01"</span>, <span class="st">"2018-01-01"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Creating denominator cohorts</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken to get cohorts: 0 min and 2 sec</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
