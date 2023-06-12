@@ -1353,14 +1353,12 @@ test_that("mock db: check compute permanent", {
   expect_true(tibble::is_tibble(CDMConnector::cohortAttrition(cdm$denominator_perm)))
   # reconnect
   cdmReconn <- CDMConnector::cdm_from_con(con = attr(cdm, "dbcon"),
-                     cdm_tables = c("person", "observation_period",
-                                    "cdm_source","vocabulary"),
                      cohort_tables = c("denominator_perm"),
                      write_schema = "main"
   )
-  expect_true(tibble::is_tibble(CDMConnector::cohortSet(cdmReconn$denominator)))
-  expect_true(tibble::is_tibble(CDMConnector::cohortCount(cdmReconn$denominator)))
-  expect_true(tibble::is_tibble(CDMConnector::cohortAttrition(cdmReconn$denominator)))
+  expect_true(tibble::is_tibble(CDMConnector::cohortSet(cdmReconn$denominator_perm)))
+  expect_true(tibble::is_tibble(CDMConnector::cohortCount(cdmReconn$denominator_perm)))
+  expect_true(tibble::is_tibble(CDMConnector::cohortAttrition(cdmReconn$denominator_perm)))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
 
@@ -1399,17 +1397,15 @@ test_that("mock db: check compute permanent", {
   expect_true(tibble::is_tibble(CDMConnector::cohortSet(cdm$denominator_perm)))
   expect_true(tibble::is_tibble(CDMConnector::cohortCount(cdm$denominator_perm)))
   expect_true(tibble::is_tibble(CDMConnector::cohortAttrition(cdm$denominator_perm)))
-  # # reconnect
-  # cdmReconn <- CDMConnector::cdm_from_con(con = attr(cdm, "dbcon"),
-  #                                         cdm_tables = c("person", "observation_period",
-  #                                                        "cdm_source","vocabulary"),
-  #                                         cohort_tables = c("denominator"),
-  #                                         write_schema = "main",
-  #                                         write_prefix = "prefix"
-  # )
-  # expect_true(tibble::is_tibble(CDMConnector::cohortSet(cdmReconn$denominator)))
-  # expect_true(tibble::is_tibble(CDMConnector::cohortCount(cdmReconn$denominator)))
-  # expect_true(tibble::is_tibble(CDMConnector::cohortAttrition(cdmReconn$denominator)))
+  # reconnect
+  cdmReconn <- CDMConnector::cdm_from_con(con = attr(cdm, "dbcon"),
+                                          cohort_tables = c("denominator_perm"),
+                                          write_schema = c("schema" = "main",
+                                                           "prefix" = "prefix_")
+  )
+  expect_true(tibble::is_tibble(CDMConnector::cohortSet(cdmReconn$denominator_perm)))
+  expect_true(tibble::is_tibble(CDMConnector::cohortCount(cdmReconn$denominator_perm)))
+  expect_true(tibble::is_tibble(CDMConnector::cohortAttrition(cdmReconn$denominator_perm)))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
 })
