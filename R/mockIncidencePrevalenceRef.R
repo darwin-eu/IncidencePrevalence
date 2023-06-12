@@ -456,8 +456,6 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
 
   cdm <- CDMConnector::cdm_from_con(
     db,
-    cdm_tables = c("person", "observation_period",
-                   "cdm_source","vocabulary"),
     cohort_tables = c("strata", "outcome"),
     write_schema = "main"
   )

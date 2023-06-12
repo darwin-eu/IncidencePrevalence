@@ -1326,7 +1326,9 @@ test_that("mock db: check participants", {
                       "test_dpop_set" ,
                       "test_dpop_count",
                       "vocabulary" ,
-                      "cdm_source", "outcome", "strata",
+                      "cdm_source", "outcome","outcome_set", "outcome_count",
+                      "strata",
+                      "strata_set", "strata_count",
                       "observation_period", "person" )))
   expect_true(all(!c("test_prevalence_analysis_1",
                      "test_prev_working_1") %in%
