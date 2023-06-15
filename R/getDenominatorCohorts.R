@@ -101,14 +101,9 @@ getDenominatorCohorts <- function(cdm,
         .data$cohort_start_date &
         .data$observation_period_end_date >= .data$cohort_start_date)
 
+    # set observation end to whatever came first of cohort end or obs end
     observationPeriodDb <- observationPeriodDb %>%
       dplyr::mutate(
-        observation_period_start_date =
-          dplyr::if_else(.data$observation_period_start_date <=
-            .data$cohort_start_date,
-          .data$cohort_start_date,
-          .data$observation_period_start_date
-          ),
         observation_period_end_date =
           dplyr::if_else(.data$observation_period_end_date >=
             .data$cohort_end_date,
@@ -116,7 +111,8 @@ getDenominatorCohorts <- function(cdm,
           .data$observation_period_end_date
           )
       ) %>%
-      dplyr::select(!c("cohort_start_date", "cohort_end_date"))
+      dplyr::select(!c("cohort_end_date")) %>%
+      dplyr::rename("strata_start_date" = "cohort_start_date")
 
     if(is.null(tablePrefix)){
       observationPeriodDb <- observationPeriodDb %>%
@@ -347,9 +343,24 @@ getDenominatorCohorts <- function(cdm,
       existingAttrition = attrition
     )
 
-    # satisfy prior history criteria at some point in the study
+
     varLowerPriorHistory <-
       glue::glue("date_with_prior_history{min(daysPriorHistory)}")
+
+    if (!is.null(strataTable)) {
+      #update prior history date to whatever came first, that or strata entry
+      studyPopDb <- studyPopDb %>%
+        dplyr::mutate(
+          !! varLowerPriorHistory :=
+            dplyr::if_else(.data$strata_start_date >=
+                             .data[[varLowerPriorHistory]],
+                           .data$strata_start_date,
+                           .data[[varLowerPriorHistory]]
+            )
+        )
+    }
+
+    # satisfy prior history criteria at some point in the study
     studyPopDb <- studyPopDb %>%
       dplyr::filter(
       .data[[!!rlang::sym(varLowerPriorHistory)]] <=
