@@ -871,6 +871,112 @@ test_that("mock db check age strata entry and exit", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
+test_that("mock db check strata prior history requirement", {
+  skip_on_cran()
+  personTable <- tibble::tibble(
+    person_id = "1",
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id = "1",
+    person_id = "1",
+    observation_period_start_date = as.Date("2010-07-01"),
+    observation_period_end_date = as.Date("2018-06-01")
+  )
+  strataTable <- tibble::tibble( # same as obs period
+    cohort_definition_id = 1,
+    subject_id = c("1", "2"),
+    cohort_start_date = as.Date("2012-01-01"),
+    cohort_end_date = as.Date("2018-06-01")
+  )
+
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    strataTable = strataTable
+  )
+
+  # if we have one age group 11 to 12
+  # we expect the person to be in the first cohort up
+  # to the day before their 13th birthday
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm,
+    ageGroup = list(
+      c(11, 12)
+    )
+  )
+  expect_true(cdm$denominator %>%
+                dplyr::filter(cohort_definition_id==1) %>%
+                dplyr::select(cohort_start_date) %>%
+                dplyr::pull() == as.Date("2011-01-01"))
+ # add prior history requirement
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm,
+    ageGroup = list(
+      c(11, 12)
+    ), daysPriorHistory = 365
+  )
+  expect_true(cdm$denominator %>%
+                dplyr::filter(cohort_definition_id==1) %>%
+                dplyr::select(cohort_start_date) %>%
+                dplyr::pull() == as.Date("2011-07-01"))
+
+  #with strata cohort
+  # result should be unaffected
+  # (as prior history based on obs period achieved before strata cohort start)
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, strataTable = "strata",
+    strataCohortId = 1,
+    ageGroup = list(
+      c(11, 12)
+    ), daysPriorHistory = 0
+  )
+  expect_true(cdm$denominator %>%
+                dplyr::filter(cohort_definition_id==1) %>%
+                dplyr::select(cohort_start_date) %>%
+                dplyr::pull() == as.Date("2012-01-01"))
+
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, strataTable = "strata",
+    strataCohortId = 1,
+    ageGroup = list(
+      c(11, 12)
+    ), daysPriorHistory = 365
+  )
+  expect_true(cdm$denominator %>%
+                dplyr::filter(cohort_definition_id==1) %>%
+                dplyr::select(cohort_start_date) %>%
+                dplyr::pull() == as.Date("2012-01-01"))
+
+  # only if requirement exceeds prior history from obs period
+  # will start date change
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, strataTable = "strata",
+    strataCohortId = 1,
+    ageGroup = list(
+      c(11, 12)
+    ), daysPriorHistory = 600
+  )
+  expect_true(cdm$denominator %>% # still contributes
+                dplyr::filter(cohort_definition_id==1) %>%
+                dplyr::select(cohort_start_date) %>%
+                dplyr::pull() > as.Date("2012-01-01"))
+
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, strataTable = "strata",
+    strataCohortId = 1,
+    ageGroup = list(
+      c(11, 12)
+    ), daysPriorHistory = 10000
+  )
+  expect_true(nrow(cdm$denominator %>% dplyr::collect()) == 0)
+
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
 test_that("mock db: check example with multiple observation periods", {
   skip_on_cran()
   # one person, two observation periods
