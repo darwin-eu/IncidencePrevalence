@@ -1,5 +1,4 @@
 test_that("dbms test", {
-
   # Update  to your database details as appropriate here
   skip_if(Sys.getenv("DB_SERVER_cdmgold202007_dbi") == "")
   db <- DBI::dbConnect(RPostgres::Postgres(),
@@ -29,37 +28,47 @@ test_that("dbms test", {
 
   # using temp tables
   timings_temp <- benchmarkIncidencePrevalence(cdm,
-                                               cohortDateRange = c(as.Date("2012-01-01"),
-                                                                   as.Date("2015-12-31")),
-                                               temporary = TRUE,
-                                               nOutcomes = 1,
-                                               prevOutcomes = 0.10)
+    cohortDateRange = c(
+      as.Date("2012-01-01"),
+      as.Date("2015-12-31")
+    ),
+    temporary = TRUE,
+    nOutcomes = 1,
+    prevOutcomes = 0.10
+  )
   expect_true(tibble::is_tibble(timings_temp))
 
   # using permanent tables
   timings_perm <- benchmarkIncidencePrevalence(cdm,
-                                               cohortDateRange = c(as.Date("2012-01-01"),
-                                                                   as.Date("2015-12-31")),
-                                               temporary = FALSE,
-                                               nOutcomes = 1,
-                                               prevOutcomes = 0.10)
+    cohortDateRange = c(
+      as.Date("2012-01-01"),
+      as.Date("2015-12-31")
+    ),
+    temporary = FALSE,
+    nOutcomes = 1,
+    prevOutcomes = 0.10
+  )
   expect_true(tibble::is_tibble(timings_perm))
 
   # returning participants
   timings_perm2 <- benchmarkIncidencePrevalence(cdm,
-                                               cohortDateRange = c(as.Date("2012-01-01"),
-                                                                   as.Date("2015-12-31")),
-                                               temporary = FALSE,
-                                               nOutcomes = 1,
-                                               prevOutcomes = 0.10,
-                                               returnParticipants = TRUE)
+    cohortDateRange = c(
+      as.Date("2012-01-01"),
+      as.Date("2015-12-31")
+    ),
+    temporary = FALSE,
+    nOutcomes = 1,
+    prevOutcomes = 0.10,
+    returnParticipants = TRUE
+  )
 
   expect_true(tibble::is_tibble(timings_perm2))
 
 
   # Drop permanent tables created
   CDMConnector::listTables(attr(cdm, "dbcon"),
-                           schema = attr(cdm, "write_schema"))
+    schema = attr(cdm, "write_schema")
+  )
   CDMConnector::dropTable(cdm = cdm, name = starts_with("incprev_bench_"))
 
   # 06 May 2023, CPRD GOLD, Postgres
@@ -95,7 +104,4 @@ test_that("dbms test", {
   # 5 monthly period prevalence, 1 outcome(s)            1.01
   # 6 yearly incidence, 1 outcome(s)                     0.48
   # 7 monthly incidence, 1 outcome(s)                    0.66
-
 })
-
-

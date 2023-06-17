@@ -68,7 +68,7 @@ cdm <- generateDenominatorCohortSet(
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2012-01-01")),
   ageGroup = list(c(0, 150)),
   sex = "Both",
-  daysPriorHistory = 0, 
+  daysPriorHistory = 0,
   temporary = FALSE
 )
 
@@ -84,14 +84,14 @@ prev <- estimatePointPrevalence(
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "Years",
-  minCellCount = 0, 
+  minCellCount = 0,
   temporary = FALSE
 )
 
 prev %>%
   glimpse()
 
-plotPrevalence(prev, ylim =  c(0, NA))
+plotPrevalence(prev, ylim = c(0, NA))
 ```
 
 We can also calculate point prevalence by calendar month.
@@ -101,14 +101,14 @@ prev <- estimatePointPrevalence(
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "Months",
-  minCellCount = 0, 
+  minCellCount = 0,
   temporary = FALSE
 )
 
 prev %>%
   glimpse()
 
-plotPrevalence(prev, ylim =  c(0, NA))
+plotPrevalence(prev, ylim = c(0, NA))
 ```
 
 By using the estimatePointPrevalence() function, we can further specify where to compute point prevalence in each time interval (start, middle, end). By default, this parameter is set to start. But we can use middle instead like so:
@@ -120,14 +120,14 @@ prev <- estimatePointPrevalence(
   outcomeTable = "outcome",
   interval = "Years",
   timePoint = "middle",
-  minCellCount = 0, 
+  minCellCount = 0,
   temporary = FALSE
 )
 
 prev %>%
   glimpse()
 
-plotPrevalence(prev, ylim =  c(0, NA))
+plotPrevalence(prev, ylim = c(0, NA))
 ```
 
 ## Using estimatePeriodPrevalence()
@@ -138,14 +138,14 @@ prev <- estimatePeriodPrevalence(
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "Years",
-  minCellCount = 0, 
+  minCellCount = 0,
   temporary = FALSE
 )
 
 prev %>%
   glimpse()
 
-plotPrevalence(prev, ylim =  c(0.1, 0.3))
+plotPrevalence(prev, ylim = c(0.1, 0.3))
 ```
 
 
@@ -156,15 +156,14 @@ prev <- estimatePeriodPrevalence(
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "Months",
-  minCellCount = 0, 
+  minCellCount = 0,
   temporary = FALSE
 )
 
 prev %>%
   glimpse()
 
-plotPrevalence(prev, ylim =  c(0, NA))
-
+plotPrevalence(prev, ylim = c(0, NA))
 ```
 
 When using the estimatePeriodPrevalence() function, we can set the fullContribution parameter to decide whether individuals are required to be present in the database throughout the interval of interest in order to be included (fullContribution=TRUE). If not, individuals will only be required to be present for one day of the interval to contribute (fullContribution=FALSE), which would be specified like so:  
@@ -176,7 +175,7 @@ prev <- estimatePeriodPrevalence(
   outcomeTable = "outcome",
   interval = "Months",
   fullContribution = FALSE,
-  minCellCount = 0, 
+  minCellCount = 0,
   temporary = FALSE
 )
 
@@ -184,7 +183,8 @@ prev %>%
   glimpse()
 
 plotPrevalence(prev,
-               ylim = c(0,0.07))
+  ylim = c(0, 0.07)
+)
 ```
 
 ## Other parameters
@@ -197,7 +197,7 @@ prev <- estimatePointPrevalence(
   outcomeTable = "outcome",
   interval = "Years",
   outcomeLookbackDays = c(0, 30),
-  minCellCount = 0, 
+  minCellCount = 0,
   temporary = FALSE
 )
 
@@ -205,9 +205,10 @@ prev %>%
   glimpse()
 
 plotPrevalence(prev,
-               colour = "analysis_outcome_lookback_days", 
-               colour_name = "Outcome lookback days",
-               ylim = c(0,NA))
+  colour = "analysis_outcome_lookback_days",
+  colour_name = "Outcome lookback days",
+  ylim = c(0, NA)
+)
 ```
 
 In the examples above, we have used calculated prevalence by months and years, but it can be also calculated by weeks, months or for the entire time period observed (overall). In addition, the user can decide whether to include time intervals that are not fully captured in the database (e.g., having data up to June for the last study year when computing period prevalence rates). By default, incidence will only be estimated for those intervals where the database captures all the interval (completeDatabaseIntervals=TRUE).
@@ -225,7 +226,7 @@ prev <- estimatePeriodPrevalence(
   outcomeTable = "outcome",
   interval = "Years",
   fullContribution = c(TRUE, FALSE),
-  minCellCount = 0, 
+  minCellCount = 0,
   temporary = FALSE, # returnParticipants can only be TRUE with temporary = FALSE
   returnParticipants = TRUE
 )
@@ -234,7 +235,7 @@ prevalenceAttrition(prev)
 
 In addition, if we set returnParticipants as TRUE as above, we can identify the individuals who contributed to the prevalence rate analysis by using `participants(). For example, we can identify those people contributing to analysis 1 by running
 ```{r, message= FALSE, warning=FALSE}
-participants(prev, analysisId = 1) %>% 
+participants(prev, analysisId = 1) %>%
   glimpse()
 ```
 
@@ -244,12 +245,19 @@ when creating the cdm reference).
 ```{r, message= FALSE, warning=FALSE}
 CDMConnector::listTables(attr(cdm, "dbcon"), schema = attr(cdm, "write_schema"))
 # drop tables created when instantiating denominator cohorts
-CDMConnector::dropTable(cdm = cdm, 
-              name = dplyr::starts_with(paste0(attr(cdm, "write_prefix"), 
-                            "denominator"))) 
+CDMConnector::dropTable(
+  cdm = cdm,
+  name = dplyr::starts_with(paste0(
+    attr(cdm, "write_prefix"),
+    "denominator"
+  ))
+)
 # drop table with study participants when returnParticipants = TRUE
-CDMConnector::dropTable(cdm = cdm, 
-              name = paste0(attr(cdm, "write_prefix"), 
-                            "period_prev_participants1")) 
-
+CDMConnector::dropTable(
+  cdm = cdm,
+  name = paste0(
+    attr(cdm, "write_prefix"),
+    "period_prev_participants1"
+  )
+)
 ```

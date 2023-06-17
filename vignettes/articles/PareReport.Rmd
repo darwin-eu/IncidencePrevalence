@@ -1,0 +1,285 @@
+---
+title: "PaRe Report: IncidencePrevalence [0.3.1]"
+author: "`r paste('PaRe', packageVersion('PaRe'))`"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    theme: cosmo
+vignette: >
+  %\VignetteIndexEntry{IncidencePrevalence [0.3.1]}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+library(PaRe)
+library(dplyr)
+```
+
+```{r, echo=FALSE}
+repo <- PaRe::Repository$new(here::here())
+```
+
+## Package overview
+```{r packageDiagram, out.width="100%", warning=FALSE, echo=FALSE}
+repo %>%
+  PaRe::pkgDiagram() %>%
+  DiagrammeRsvg::export_svg() %>%
+  charToRaw() %>%
+  magick::image_read()
+```
+
+## Summary of package functions
+```{r getDefinedFunctionsPkg, message=FALSE, warning=FALSE, echo=FALSE}
+defFuns <- PaRe::getDefinedFunctions(repo)
+
+defFuns <- defFuns %>%
+  dplyr::mutate(size = lineEnd - lineStart + 1)
+```
+
+```{r summaryDefFunStats, echo=FALSE}
+DT::datatable(
+  data.frame(
+    min = c(
+      min(defFuns$nArgs, na.rm = TRUE),
+      min(defFuns$size, na.rm = TRUE),
+      min(defFuns$cycloComp, na.rm = TRUE)
+    ),
+    median = c(
+      median(defFuns$nArgs, na.rm = TRUE),
+      median(defFuns$size, na.rm = TRUE),
+      median(defFuns$cycloComp, na.rm = TRUE)
+    ),
+    max = c(
+      max(defFuns$nArgs, na.rm = TRUE),
+      max(defFuns$size, na.rm = TRUE),
+      max(defFuns$cycloComp, na.rm = TRUE)
+    ),
+    row.names = c(
+      "Number of arguments",
+      "Lines of code",
+      "Cyclomatic complexity"
+    )
+  ),
+  options = list(dom = "t")
+)
+```
+
+```{r echo=FALSE}
+gg_nArgs <- defFuns %>%
+  ggplot2::ggplot() +
+  ggplot2::geom_histogram(ggplot2::aes(nArgs),
+    binwidth = 1,
+    colour = "black",
+    fill = "grey"
+  ) +
+  ggplot2::theme_minimal() +
+  ggplot2::xlab("Number of arguments")
+
+gg_size <- defFuns %>%
+  ggplot2::ggplot() +
+  ggplot2::geom_histogram(ggplot2::aes(size),
+    binwidth = 1,
+    colour = "black",
+    fill = "grey"
+  ) +
+  ggplot2::theme_minimal() +
+  ggplot2::xlab("Lines of code")
+
+gg_cycloComp <- defFuns %>%
+  ggplot2::ggplot() +
+  ggplot2::geom_histogram(ggplot2::aes(cycloComp),
+    binwidth = 1,
+    colour = "black",
+    fill = "grey"
+  ) +
+  ggplot2::theme_minimal() +
+  ggplot2::xlab("Cyclomatic complexity")
+
+cowplot::plot_grid(gg_nArgs, gg_size, gg_cycloComp, nrow = 3)
+```
+
+```{r, warning=FALSE, message=FALSE, echo=FALSE}
+p <- defFuns %>%
+  ggplot2::ggplot(ggplot2::aes(group = name)) +
+  ggplot2::geom_point(
+    ggplot2::aes(size, cycloComp,
+      colour = nArgs
+    ),
+    size = 3
+  ) +
+  ggplot2::scale_colour_gradient(
+    name = "Number of\nargruments",
+    low = "blue", high = "red"
+  ) +
+  ggplot2::theme_minimal() +
+  ggplot2::xlab("Lines of code") +
+  ggplot2::ylab("Cyclomatic complexity") +
+  ggplot2::theme(legend.position = "top")
+
+plotly::ggplotly(p,
+  tooltip = c(
+    "group", "colour",
+    "x", "y"
+  )
+)
+```
+
+## Function details
+```{r definedFunctions, echo=FALSE}
+colours <- c("", "#81d4fa", "#03a9f4")
+argBreaks <- c(5, 7)
+complexBreaks <- c(15, 30)
+lineBreaks <- c(100, 200)
+
+DT::datatable(
+  defFuns %>%
+    dplyr::mutate(file_start = paste0(.data$fileName, " (from line: ", lineStart, ")")) %>%
+    dplyr::select("name", "nArgs", "size", "cycloComp", "file_start") %>%
+    dplyr::rename(
+      "Function" = "name",
+      "Number of arguments" = "nArgs",
+      "Lines of code" = "size",
+      "Cyclomatic complexity" = "cycloComp",
+      "Location" = "file_start"
+    ),
+  rownames = FALSE
+) %>%
+  DT::formatStyle("Number of arguments", backgroundColor = DT::styleInterval(argBreaks, colours)) %>%
+  DT::formatStyle("Cyclomatic complexity", backgroundColor = DT::styleInterval(complexBreaks, colours)) %>%
+  DT::formatStyle("Lines of code", backgroundColor = DT::styleInterval(lineBreaks, colours))
+```
+
+## Use of other programming languages
+```{r countLines, echo=FALSE}
+DT::datatable(
+  PaRe::countPackageLines(repo),
+  rownames = "# lines of code"
+)
+```
+
+## Style adherence, syntax errors and possible semantic issues
+### Summary
+```{r lintScores, message=FALSE, warning=FALSE, echo=FALSE}
+lintMsgs <- PaRe::lintRepo(repo)
+
+DT::datatable(
+  PaRe::lintScore(repo, lintMsgs) %>%
+    dplyr::rename("Percentage of lines assessed" = "pct"),
+  rownames = FALSE
+)
+```
+
+### Warnings
+```{r lintMessages warnings, message=FALSE, warning=FALSE, echo=FALSE}
+DT::datatable(
+  lintMsgs %>%
+    dplyr::filter(type == "warning") %>%
+    dplyr::group_by(message) %>%
+    dplyr::tally(sort = TRUE),
+  rownames = FALSE
+)
+```
+
+### Style
+```{r lintMessages style, message=FALSE, warning=FALSE, echo=FALSE}
+DT::datatable(
+  lintMsgs %>%
+    dplyr::filter(type == "style") %>%
+    dplyr::group_by(message) %>%
+    dplyr::tally(sort = TRUE),
+  rownames = FALSE
+)
+```
+
+## Dependency review
+### Check dependencies against whitelist
+```{r checkDependencies, warning=FALSE, echo=FALSE}
+DT::datatable(PaRe::checkDependencies(repo = repo, verbose = FALSE))
+```
+
+### Dependency characteristics
+- **countVertices**: The amount of recursive dependencies `r repo$getName()` depends on.
+- **countEdges**: The total amount of imports of all dependencies.
+- **meanDegree**: The average amount of imports per dependency.
+- **meanDistance**: The average dependency layers between `r repo$getName()` and all other recursive dependencies.
+```{r dependencyGraphStats, message=FALSE, warning=FALSE, echo=FALSE}
+graphData <- PaRe::getGraphData(repo = repo)
+
+DT::datatable(
+  data.frame(
+    countVertices = length(igraph::V(graphData)),
+    countEdges = length(igraph::E(graphData)),
+    meanDegree = round(mean(igraph::degree(graphData)), 2),
+    meanDistance = round(mean(igraph::distances(graphData)), 2)
+  ),
+  rownames = FALSE
+)
+```
+
+### Function use per dependency
+```{r summariseFunctionUse, message=FALSE, warning=FALSE, echo=FALSE}
+funsUsed <- PaRe::getFunctionUse(repo = repo)
+
+DT::datatable(
+  funsUsed,
+  rownames = FALSE
+)
+```
+
+```{r plotFunctionUse, dpi=100, fig.height=25, out.width="100%", message=FALSE, warning=FALSE, echo=FALSE}
+function_sub <- funsUsed %>%
+  dplyr::filter(!pkg %in% c("base"))
+
+fun_counts <- function_sub %>%
+  dplyr::group_by(fun, pkg, name = "n") %>%
+  dplyr::tally()
+
+# Filter functions that are defined in the package
+nonPkgFuns <- fun_counts[!fun_counts$fun %in% defFuns$fun, ]
+
+ggplot2::ggplot(
+  data = nonPkgFuns,
+  mapping = ggplot2::aes(x = .data$fun, y = .data$n, fill = .data$pkg)
+) +
+  ggplot2::geom_col() +
+  ggplot2::facet_wrap(
+    dplyr::vars(.data$pkg),
+    scales = "free_x",
+    ncol = 2
+  ) +
+  ggplot2::theme_bw() +
+  ggplot2::theme(
+    legend.position = "none",
+    axis.text.x = (ggplot2::element_text(angle = 45, hjust = 1, vjust = 1))
+  )
+```
+
+## Further reading
+### Style Guide
+The styling is based on the following style guide:
+
+- [Tidyverse styleguide](https://style.tidyverse.org/syntax.html)
+- [HADES styleguide](https://ohdsi.github.io/Hades/codeStyle.html)
+
+### Cyclomatic Complexity
+>[Cyclomatic Complexity](https://en.wikipedia.org/wiki/Cyclomatic_complexity) is a software metric used to indicate the complexity of a program. It is a quantitative measure of the number of linearly independent paths through a program's source code. It was developed by Thomas J. McCabe, Sr. in 1976.
+
+And is calculated as follows: $M = E - N + 2P$
+
+The complexity score is interpreted as follows:
+
+> 
+> - 1-10 Simple procedure, little risk
+> - 11-20 More complex, moderate risk
+> - 21-50 Complex, high risk
+> - \>50 Untestable code, very high risk
+> 
+
+[link, 2023-02-10](https://en.wikipedia.org/wiki/Cyclomatic_complexity#Interpretation)

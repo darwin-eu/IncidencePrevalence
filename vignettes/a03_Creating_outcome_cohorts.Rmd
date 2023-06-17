@@ -32,9 +32,11 @@ Once we have a set of cohort definitions expressed as JSONs (saved in a folder c
 
 ```{r eval=FALSE}
 outcome_cohorts <- CDMConnector::readCohortSet(here::here("outcome_cohorts"))
-cdm <- CDMConnector::generateCohortSet(cdm = cdm,
-                                       cohortSet = outcome_cohorts,
-                                       name = outcome_table)
+cdm <- CDMConnector::generateCohortSet(
+  cdm = cdm,
+  cohortSet = outcome_cohorts,
+  name = outcome_table
+)
 ```
 
 ### Creating outcome cohorts with bespoke code

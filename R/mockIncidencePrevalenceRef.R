@@ -80,7 +80,6 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
                                        minOutcomeDays = 1,
                                        maxOutcomeDays = 10,
                                        maxOutcomes = 1) {
-
   rlang::check_installed("duckdb")
 
   errorMessage <- checkmate::makeAssertCollection()
@@ -110,7 +109,7 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
   if (!is.null(earliestObservationStartDate) &&
     !is.null(latestObservationStartDate)) {
     checkmate::assertTRUE(latestObservationStartDate >=
-                            earliestObservationStartDate)
+      earliestObservationStartDate)
   }
   if (!is.null(minDaysToObservationEnd) &&
     !is.null(maxDaysToObservationEnd)) {
@@ -187,8 +186,8 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
       maxDaysToObservationEnd <- 1000
     }
 
-    if(minDaysToObservationEnd==maxDaysToObservationEnd){
-      obsEndDate <- obsStartDate +lubridate::days(minDaysToObservationEnd)
+    if (minDaysToObservationEnd == maxDaysToObservationEnd) {
+      obsEndDate <- obsStartDate + lubridate::days(minDaysToObservationEnd)
     } else {
       obsEndDate <-
         obsStartDate + lubridate::days(
@@ -201,7 +200,7 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
     }
 
     if (is.null(personTable)) {
-      personTable <- tibble::tibble(
+      personTable <- dplyr::tibble(
         person_id = id,
         gender_concept_id = genderId,
         year_of_birth = dobYear,
@@ -224,12 +223,12 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
     }
 
     if (is.null(observationPeriodTable)) {
-      observationPeriodTable <- tibble::tibble(
+      observationPeriodTable <- dplyr::tibble(
         observation_period_id = id,
         person_id = id,
         observation_period_start_date = obsStartDate,
         observation_period_end_date = obsEndDate,
-        period_type_concept_id=NA
+        period_type_concept_id = NA
       )
     }
   }
@@ -278,19 +277,19 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
         )) / 52.25)) %>%
         # standardizing age variable to have mean 0
         dplyr::mutate_at("age", ~ (scale(.) %>%
-                                     as.vector())) %>%
+          as.vector())) %>%
         # binary variable for gender
         dplyr::mutate(male_flag = ifelse(genderId == "8507", 1, 0)) %>%
         dplyr::mutate(
           pre = exp(
-              .env$ageBeta * .data$age +
+            .env$ageBeta * .data$age +
               .env$genderBeta * .data$male_flag +
               .env$intercept
           ) / (
             1 + exp(
               .env$ageBeta * .data$age +
-              .env$genderBeta * .data$male_flag +
-              .env$intercept
+                .env$genderBeta * .data$male_flag +
+                .env$intercept
             )
           )
         ) %>% # outcome pre calculator for each person in the person table
@@ -341,7 +340,8 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
       seedOutcome <- sample(1:99999, 1000)
       # work out minimum outcome start date for each subject in outcome table
       minOutStartDate <- stats::aggregate(cohort_end_date ~ subject_id,
-                         data = outcomeTable, max)
+        data = outcomeTable, max
+      )
 
       for (i in 1:(maxOutcomes)) {
         set.seed(seedOutcome[i])
@@ -349,10 +349,12 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
         minOutStartDate <-
           minOutStartDate %>%
           dplyr::mutate(cohort_start_date = .data$cohort_end_date +
-                          lubridate::days(sample(1:100, 1))) %>%
+            lubridate::days(sample(1:100, 1))) %>%
           dplyr::mutate(cohort_end_date = .data$cohort_start_date +
-                          lubridate::days(sample(minOutcomeDays:maxOutcomeDays,
-                                                 1)))
+            lubridate::days(sample(
+              minOutcomeDays:maxOutcomeDays,
+              1
+            )))
 
         # randomly select which subject to have extra outcome                                                                                                                        )))
         dupOutcome <-
@@ -370,7 +372,8 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
         # minimum outcome start date for each subject in new outcome table
         minOutStartDate <-
           stats::aggregate(cohort_end_date ~ subject_id,
-                           data = rbind(outcomeTable, outcome1), max)
+            data = rbind(outcomeTable, outcome1), max
+          )
       }
 
       outcomeTable <- rbind(outcomeTable, outcome1)
@@ -425,32 +428,36 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
 
 
   # add other tables required for snapshot
-  cdmSource <- tibble::tibble(cdm_source_name="test_database",
-                              cdm_source_abbreviation = NA,
-                              cdm_holder = NA,
-                              source_description = NA,
-                              source_documentation_reference = NA,
-                              cdm_etl_reference = NA,
-                              source_release_date = NA,
-                              cdm_release_date = NA,
-                              cdm_version = NA,
-                              vocabulary_version = NA)
+  cdmSource <- dplyr::tibble(
+    cdm_source_name = "test_database",
+    cdm_source_abbreviation = NA,
+    cdm_holder = NA,
+    source_description = NA,
+    source_documentation_reference = NA,
+    cdm_etl_reference = NA,
+    source_release_date = NA,
+    cdm_release_date = NA,
+    cdm_version = NA,
+    vocabulary_version = NA
+  )
   DBI::dbWithTransaction(db, {
     DBI::dbWriteTable(db, "cdm_source",
-                      cdmSource,
-                      overwrite = TRUE
+      cdmSource,
+      overwrite = TRUE
     )
   })
 
-  vocabulary <- tibble::tibble(vocabulary_id = "None",
-                               vocabulary_name=NA,
-                               vocabulary_reference=NA,
-                               vocabulary_version ="test",
-                               vocabulary_concept_id=NA)
+  vocabulary <- dplyr::tibble(
+    vocabulary_id = "None",
+    vocabulary_name = NA,
+    vocabulary_reference = NA,
+    vocabulary_version = "test",
+    vocabulary_concept_id = NA
+  )
   DBI::dbWithTransaction(db, {
     DBI::dbWriteTable(db, "vocabulary",
-                      vocabulary,
-                      overwrite = TRUE
+      vocabulary,
+      overwrite = TRUE
     )
   })
 

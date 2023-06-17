@@ -28,12 +28,14 @@ cdm <- generateDenominatorCohortSet(
   cdm = cdm, name = "denominator"
 )
 prev <- estimatePointPrevalence(
-cdm = cdm,
-denominatorTable = "denominator",
-outcomeTable = "outcome"
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome"
 )
-exportIncidencePrevalenceResults(resultList=list("prevalence" = prev),
-                                zipName="test",
-                                outputFolder=tempdir())
+exportIncidencePrevalenceResults(
+  resultList = list("prevalence" = prev),
+  zipName = "test",
+  outputFolder = tempdir()
+)
 }
 }

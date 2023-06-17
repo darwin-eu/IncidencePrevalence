@@ -83,8 +83,7 @@ generateDenominatorCohortSet <- function(cdm,
                                          strataCohortId = NULL,
                                          closedCohort = FALSE,
                                          temporary = TRUE) {
-
- startCollect <- Sys.time()
+  startCollect <- Sys.time()
 
   checkInputGenerateDCS(
     cdm = cdm,
@@ -131,21 +130,24 @@ generateDenominatorCohortSet <- function(cdm,
   ageGrDf <- data.frame(do.call(rbind, ageGroup)) %>%
     dplyr::mutate(age_group = paste0(.data$X1, ";", .data$X2))
 
-  popSpecs <- buildPopSpecs(ageGrDf = ageGrDf,
-              sex = sex,
-              daysPriorHistory = daysPriorHistory,
-              requirementInteractions = requirementInteractions
-                ) %>%
-    dplyr::mutate(min_age = as.numeric(.data$min_age),
-                  max_age = as.numeric(.data$max_age),
-                  start_date = .env$startDate,
-                  end_date = .env$endDate,
-                  cohort_definition_id = dplyr::row_number())
+  popSpecs <- buildPopSpecs(
+    ageGrDf = ageGrDf,
+    sex = sex,
+    daysPriorHistory = daysPriorHistory,
+    requirementInteractions = requirementInteractions
+  ) %>%
+    dplyr::mutate(
+      min_age = as.numeric(.data$min_age),
+      max_age = as.numeric(.data$max_age),
+      start_date = .env$startDate,
+      end_date = .env$endDate,
+      cohort_definition_id = dplyr::row_number()
+    )
 
   # get the overall contributing population (without stratification)
   # we need to the output the corresponding dates when getting the denominator
 
-  if(isTRUE(temporary)){
+  if (isTRUE(temporary)) {
     tablePrefix <- NULL
   } else {
     tablePrefix <- paste0(attr(cdm, "write_prefix"), name)
@@ -168,7 +170,7 @@ generateDenominatorCohortSet <- function(cdm,
     dplyr::pull()
 
   # build each of the cohorts of interest
-    message("Creating denominator cohorts")
+  message("Creating denominator cohorts")
 
   if (denominatorPopulationNrows == 0) {
     message("- No people found for any denominator population")
@@ -217,11 +219,10 @@ generateDenominatorCohortSet <- function(cdm,
 
     # count dropped for sex criteria
     for (i in seq_along(dpop$attrition)) {
-
       if (popSpecs$sex[[i]] == "Male") {
         dpop$attrition[[i]] <- recordAttrition(
           table = dpop$denominator_population %>%
-            dplyr::filter(sex=="Male"),
+            dplyr::filter(sex == "Male"),
           id = "person_id",
           reasonId = 8,
           reason = "Not Male",
@@ -231,7 +232,7 @@ generateDenominatorCohortSet <- function(cdm,
       if (popSpecs$sex[[i]] == "Female") {
         dpop$attrition[[i]] <- recordAttrition(
           table = dpop$denominator_population %>%
-            dplyr::filter(sex=="Female"),
+            dplyr::filter(sex == "Female"),
           id = "person_id",
           reasonId = 8,
           reason = "Not Female",
@@ -279,7 +280,7 @@ generateDenominatorCohortSet <- function(cdm,
       )
 
 
-      if(isTRUE(closedCohort)){
+      if (isTRUE(closedCohort)) {
         workingDpop <- workingDpop %>%
           dplyr::filter(.data$cohort_start_date == .env$startDate)
 
@@ -295,8 +296,10 @@ generateDenominatorCohortSet <- function(cdm,
       dpop$attrition[[i]]$cohort_definition_id <- popSpecs$cohort_definition_id[[i]]
       workingCount <- utils::tail(dpop$attrition[[i]]$number_records, 1)
       cohortCount[[i]] <- workingDpop %>%
-        dplyr::summarise(number_records = dplyr::n(),
-                         number_subjects = dplyr::n_distinct(.data$subject_id)) %>%
+        dplyr::summarise(
+          number_records = dplyr::n(),
+          number_subjects = dplyr::n_distinct(.data$subject_id)
+        ) %>%
         dplyr::collect() %>%
         dplyr::mutate(
           cohort_definition_id = popSpecs$cohort_definition_id[[i]]
@@ -314,32 +317,37 @@ generateDenominatorCohortSet <- function(cdm,
     }
     cli::cli_progress_done()
 
-    studyPops <- unionCohorts(cdm,
-                              studyPops,
-                              tablePrefix)
-
+    studyPops <- unionCohorts(
+      cdm,
+      studyPops,
+      tablePrefix
+    )
   }
 
 
   if (!is.null(tablePrefix)) {
     # drop the intermediate tables that may have been created
-    CDMConnector::dropTable(cdm = cdm,
-                            name = paste0(tablePrefix, "_cohorts"))
-    CDMConnector::dropTable(cdm = cdm,
-                            name = tidyselect::starts_with(paste0(tablePrefix, "_i_")))
+    CDMConnector::dropTable(
+      cdm = cdm,
+      name = paste0(tablePrefix, "_cohorts")
+    )
+    CDMConnector::dropTable(
+      cdm = cdm,
+      name = tidyselect::starts_with(paste0(tablePrefix, "_i_"))
+    )
   }
 
 
-    if (length(studyPops) == 0) {
-      message("- No people found for any denominator population")
-      studyPops <- dplyr::tibble()
-    }
+  if (length(studyPops) == 0) {
+    message("- No people found for any denominator population")
+    studyPops <- dplyr::tibble()
+  }
 
   # add strata info to settings
   if (is.null(strataTable)) {
     strataCohortId <- NA
     strataCohortName <- NA
-  } else{
+  } else {
     strataCohortName <- attr(cdm[[strataTable]], "cohort_set") %>%
       dplyr::filter(.data$cohort_definition_id == .env$strataCohortId) %>%
       dplyr::pull("cohort_name")
@@ -354,11 +362,13 @@ generateDenominatorCohortSet <- function(cdm,
     dplyr::mutate(strata_cohort_definition_id = .env$strataCohortId) %>%
     dplyr::mutate(strata_cohort_name = .env$strataCohortName) %>%
     dplyr::mutate(closed_cohort = .env$closedCohort) %>%
-    dplyr::mutate(cohort_name = paste0("Denominator cohort ", .data$cohort_definition_id)) %>%
+    dplyr::mutate(cohort_name = paste0("Denominator cohort ",
+                                       .data$cohort_definition_id)) %>%
     dplyr::select(!c("min_age", "max_age")) %>%
     dplyr::relocate("cohort_definition_id") %>%
     dplyr::relocate("cohort_name", .after = "cohort_definition_id") %>%
-    dplyr::mutate(age_group = stringr::str_replace(.data$age_group, ";", " to "))
+    dplyr::mutate(age_group =
+                    stringr::str_replace(.data$age_group, ";", " to "))
   attr(studyPops, "cohort_set") <- cohortSet
 
   cohortAttrition <- dplyr::bind_rows(dpop$attrition) %>%
@@ -366,17 +376,21 @@ generateDenominatorCohortSet <- function(cdm,
     dplyr::relocate("cohort_definition_id")
   attr(studyPops, "cohort_attrition") <- cohortAttrition
 
-  if(!is.null(tablePrefix)){
-  insertAttributes(cdm = cdm,
-                   tablePrefix = tablePrefix,
-                   name = name,
-                   cohortCount = cohortCount,
-                   cohortSet = cohortSet,
-                   cohortAttrition = cohortAttrition)
+  if (!is.null(tablePrefix)) {
+    insertAttributes(
+      cdm = cdm,
+      tablePrefix = tablePrefix,
+      name = name,
+      cohortCount = cohortCount,
+      cohortSet = cohortSet,
+      cohortAttrition = cohortAttrition
+    )
   }
 
-  class(studyPops) <- c("IncidencePrevalenceDenominator", "GeneratedCohortSet",
-                        class(studyPops))
+  class(studyPops) <- c(
+    "IncidencePrevalenceDenominator", "GeneratedCohortSet",
+    class(studyPops)
+  )
 
   cdm[[name]] <- studyPops
 
@@ -393,40 +407,41 @@ generateDenominatorCohortSet <- function(cdm,
 buildPopSpecs <- function(ageGrDf,
                           sex,
                           daysPriorHistory,
-                          requirementInteractions){
-
-  if(isTRUE(requirementInteractions)){
+                          requirementInteractions) {
+  if (isTRUE(requirementInteractions)) {
     popSpecs <- tidyr::expand_grid(
       age_group = ageGrDf$age_group,
       sex = .env$sex,
       days_prior_history = .env$daysPriorHistory
-    )} else {
-      popSpecs <- dplyr::bind_rows(
-        dplyr::tibble(
-          age_group = ageGrDf$age_group,
-          sex = .env$sex[1],
-          days_prior_history = .env$daysPriorHistory[1]
-        ),
-        dplyr::tibble(
-          age_group = ageGrDf$age_group[1],
-          sex = .env$sex,
-          days_prior_history = .env$daysPriorHistory[1]
-        ),
-        dplyr::tibble(
-          age_group = ageGrDf$age_group[1],
-          sex = .env$sex[1],
-          days_prior_history = .env$daysPriorHistory
-        )) %>%
-        dplyr::distinct()}
+    )
+  } else {
+    popSpecs <- dplyr::bind_rows(
+      dplyr::tibble(
+        age_group = ageGrDf$age_group,
+        sex = .env$sex[1],
+        days_prior_history = .env$daysPriorHistory[1]
+      ),
+      dplyr::tibble(
+        age_group = ageGrDf$age_group[1],
+        sex = .env$sex,
+        days_prior_history = .env$daysPriorHistory[1]
+      ),
+      dplyr::tibble(
+        age_group = ageGrDf$age_group[1],
+        sex = .env$sex[1],
+        days_prior_history = .env$daysPriorHistory
+      )
+    ) %>%
+      dplyr::distinct()
+  }
 
   popSpecs <- popSpecs %>%
     tidyr::separate(.data$age_group,
-                    c("min_age", "max_age"),
-                    remove = FALSE
+      c("min_age", "max_age"),
+      remove = FALSE
     )
 
   return(popSpecs)
-
 }
 
 
@@ -434,9 +449,7 @@ buildPopSpecs <- function(ageGrDf,
 # combine the set of separate cohort tables into a single table
 unionCohorts <- function(cdm,
                          studyPops,
-                         tablePrefix
-                         ){
-
+                         tablePrefix) {
   if (length(studyPops) != 0 && length(studyPops) < 10) {
     studyPops <- Reduce(dplyr::union_all, studyPops)
     if (is.null(tablePrefix)) {
@@ -505,32 +518,36 @@ unionCohorts <- function(cdm,
 
     # drop any batch permanent tables
     if (!is.null(tablePrefix)) {
-      CDMConnector::dropTable(cdm = cdm,
-                              name = tidyselect::starts_with(paste0(tablePrefix, "_batch_")))
+      CDMConnector::dropTable(
+        cdm = cdm,
+        name = tidyselect::starts_with(paste0(tablePrefix, "_batch_"))
+      )
     }
   }
 
   return(studyPops)
-
 }
 
 
 # insert attributes into database
 insertAttributes <- function(cdm, tablePrefix, name,
-                             cohortCount, cohortSet, cohortAttrition){
+                             cohortCount, cohortSet, cohortAttrition) {
   DBI::dbWriteTable(attr(cdm, "dbcon"),
-                    name = CDMConnector::inSchema(attr(cdm, "write_schema"), paste0(tablePrefix, "_count")),
-                    value = as.data.frame(cohortCount),
-                    overwrite = TRUE)
+    name = CDMConnector::inSchema(attr(cdm, "write_schema"),
+                                  paste0(tablePrefix, "_count")),
+    value = as.data.frame(cohortCount),
+    overwrite = TRUE
+  )
   DBI::dbWriteTable(attr(cdm, "dbcon"),
-                    name = CDMConnector::inSchema(attr(cdm, "write_schema"), paste0(tablePrefix, "_set")),
-                    value = as.data.frame(cohortSet),
-                    overwrite = TRUE)
+    name = CDMConnector::inSchema(attr(cdm, "write_schema"),
+                                  paste0(tablePrefix, "_set")),
+    value = as.data.frame(cohortSet),
+    overwrite = TRUE
+  )
   DBI::dbWriteTable(attr(cdm, "dbcon"),
-                    name = CDMConnector::inSchema(attr(cdm, "write_schema"), paste0(tablePrefix, "_attrition")),
-                    value = as.data.frame(cohortAttrition),
-                    overwrite = TRUE)
+    name = CDMConnector::inSchema(attr(cdm, "write_schema"),
+                                  paste0(tablePrefix, "_attrition")),
+    value = as.data.frame(cohortAttrition),
+    overwrite = TRUE
+  )
 }
-
-
-

@@ -93,8 +93,8 @@ cdm <- generateDenominatorCohortSet(
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2012-01-01")),
   ageGroup = list(c(0, 150)),
   sex = "Both",
-  daysPriorHistory = 0, 
-  temporary =  FALSE,
+  daysPriorHistory = 0,
+  temporary = FALSE,
 )
 
 cdm$denominator %>%
@@ -136,7 +136,6 @@ inc %>%
   glimpse()
 
 plotIncidence(inc)
-
 ```
 
 Now we´ll set the washout to 180 days while still not allowing repetitive events
@@ -173,7 +172,6 @@ inc %>%
   glimpse()
 
 plotIncidence(inc)
-
 ```
 
 
@@ -217,7 +215,7 @@ incidenceAttrition(inc)
 
 As with incidence, if we set returnParticipants as TRUE, we can identify the individuals who contributed to the prevalence rate analysis by using `participants(). For example, we can identify those people contributing to analysis 1 by running
 ```{r, message= FALSE, warning=FALSE}
-participants(inc, analysisId = 1) %>% 
+participants(inc, analysisId = 1) %>%
   glimpse()
 ```
 
