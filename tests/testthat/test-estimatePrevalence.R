@@ -36,6 +36,9 @@ test_that("mock db: check output format", {
     "denominator_days_prior_history",
     "denominator_start_date",
     "denominator_end_date",
+    "denominator_strata_cohort_definition_id",
+    "denominator_strata_cohort_name",
+    "denominator_closed_cohort",
     "cdm_name"
   ) %in%
     names(prev)))
@@ -58,6 +61,9 @@ test_that("mock db: check output format", {
     "denominator_days_prior_history",
     "denominator_start_date",
     "denominator_end_date",
+    "denominator_strata_cohort_definition_id",
+    "denominator_strata_cohort_name",
+    "denominator_closed_cohort",
     "cdm_name"
   ) %in%
     names(prevalenceAttrition(prev))))

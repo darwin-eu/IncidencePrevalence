@@ -4,8 +4,10 @@ checkInputGenerateDCS <- function(cdm,
                                   ageGroup,
                                   sex,
                                   daysPriorHistory,
+                                  requirementInteractions,
                                   strataTable,
                                   strataCohortId,
+                                  closedCohort,
                                   temporary) {
 
   cdmCheck(cdm)
@@ -65,6 +67,8 @@ checkInputGenerateDCS <- function(cdm,
       "- daysPriorHistory cannot be negative"
     )
   }
+  checkmate::assert_logical(requirementInteractions, len = 1,
+                            add = errorMessage)
   if (!is.null(strataTable)) {
     strataTableCheck <- inherits(cdm[[strataTable]], "tbl_dbi")
     checkmate::assertTRUE(strataTableCheck, add = errorMessage)
@@ -94,6 +98,18 @@ checkInputGenerateDCS <- function(cdm,
                               null.ok = FALSE
   )
   }
+
+  checkmate::assert_logical(closedCohort, len = 1, add = errorMessage)
+  if(isTRUE(closedCohort)){
+    if(isFALSE(inherits(cohortDateRange[1], "Date"))){
+     cli::cli_abort(c(
+        "Study start must be specified if defining a closed cohort.",
+        "x" = "You need to specify a start date for cohortDateRange
+        if closedCohort is TRUE."
+      ))
+    }
+  }
+
   checkmate::assert_logical(temporary, len = 1, add = errorMessage)
   return(checkmate::reportAssertions(collection = errorMessage))
 }

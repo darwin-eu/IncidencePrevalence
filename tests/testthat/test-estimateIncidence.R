@@ -40,6 +40,7 @@ test_that("mock db: check output format", {
     "denominator_end_date",
     "denominator_strata_cohort_definition_id",
     "denominator_strata_cohort_name",
+    "denominator_closed_cohort",
     "cdm_name"
   ) %in%
     names(inc)))
@@ -63,6 +64,7 @@ test_that("mock db: check output format", {
     "denominator_end_date",
     "denominator_strata_cohort_definition_id",
     "denominator_strata_cohort_name",
+    "denominator_closed_cohort",
     "cdm_name"
   ) %in%
     names(incidenceAttrition(inc))))

@@ -41,12 +41,19 @@
 #' @param daysPriorHistory The number of days of prior history observed in
 #' the database required for an individual to start contributing time in
 #' a cohort.
+#' @param requirementInteractions If TRUE, cohorts will be created for
+#' all combinations of ageGroup, sex, and daysPriorHistory. If FALSE, only the
+#' first value specified for the other factors will be used. Consequently,
+#' order of values matters when requirementInteractions is FALSE.
 #' @param strataTable A cohort table in the cdm reference to use
 #' to limit cohort entry and exit (with individuals only contributing to a
 #' cohort when they are contributing to the cohort in the strata table).
 #' @param strataCohortId The cohort definition id for the cohort of interest
 #'  in the strata table. If strataTable is specified, a single strataCohortId
 #'  must also be specified.
+#' @param closedCohort If TRUE, a closed cohort will be defined where only
+#' those individuals satisfying eligibility criteria on the start date
+#' given in cohortDateRange are included.
 #' @param temporary If TRUE, temporary tables will be used throughout. If
 #' FALSE, permanent tables will be created in the write_schema of the cdm
 #' using the write_prefix (if specified). Note existing permanent tables in
@@ -71,18 +78,26 @@ generateDenominatorCohortSet <- function(cdm,
                                          ageGroup = list(c(0, 150)),
                                          sex = "Both",
                                          daysPriorHistory = 0,
+                                         requirementInteractions = TRUE,
                                          strataTable = NULL,
                                          strataCohortId = NULL,
+                                         closedCohort = FALSE,
                                          temporary = TRUE) {
 
  startCollect <- Sys.time()
 
   checkInputGenerateDCS(
-    cdm, name,
-    cohortDateRange,
-    ageGroup, sex, daysPriorHistory,
-    strataTable, strataCohortId,
-    temporary
+    cdm = cdm,
+    name = name,
+    cohortDateRange = cohortDateRange,
+    ageGroup = ageGroup,
+    sex = sex,
+    daysPriorHistory = daysPriorHistory,
+    requirementInteractions = requirementInteractions,
+    strataTable = strataTable,
+    strataCohortId = strataCohortId,
+    closedCohort = closedCohort,
+    temporary = temporary
   )
 
   # add broadest possible age group if no age strata were given
@@ -112,24 +127,20 @@ generateDenominatorCohortSet <- function(cdm,
     endDate <- cohortDateRange[2]
   }
 
-  # summarise combinations of inputs
+  # define cohorts to generate
   ageGrDf <- data.frame(do.call(rbind, ageGroup)) %>%
     dplyr::mutate(age_group = paste0(.data$X1, ";", .data$X2))
-  popSpecs <- tidyr::expand_grid(
-    age_group = ageGrDf$age_group,
-    sex = .env$sex,
-    days_prior_history = .env$daysPriorHistory,
-    start_date = .env$startDate,
-    end_date = .env$endDate
-  )
-  popSpecs <- popSpecs %>%
-    tidyr::separate(.data$age_group,
-      c("min_age", "max_age"),
-      remove = FALSE
-    ) %>%
-    dplyr::mutate(min_age = as.numeric(.data$min_age)) %>%
-    dplyr::mutate(max_age = as.numeric(.data$max_age)) %>%
-    dplyr::mutate(cohort_definition_id = dplyr::row_number())
+
+  popSpecs <- buildPopSpecs(ageGrDf = ageGrDf,
+              sex = sex,
+              daysPriorHistory = daysPriorHistory,
+              requirementInteractions = requirementInteractions
+                ) %>%
+    dplyr::mutate(min_age = as.numeric(.data$min_age),
+                  max_age = as.numeric(.data$max_age),
+                  start_date = .env$startDate,
+                  end_date = .env$endDate,
+                  cohort_definition_id = dplyr::row_number())
 
   # get the overall contributing population (without stratification)
   # we need to the output the corresponding dates when getting the denominator
@@ -267,6 +278,20 @@ generateDenominatorCohortSet <- function(cdm,
         existingAttrition = dpop$attrition[[i]]
       )
 
+
+      if(isTRUE(closedCohort)){
+        workingDpop <- workingDpop %>%
+          dplyr::filter(.data$cohort_start_date == .env$startDate)
+
+        dpop$attrition[[i]] <- recordAttrition(
+          table = workingDpop,
+          id = "subject_id",
+          reasonId = 10,
+          reason = glue::glue("Excluded after applying closed cohort restriction"),
+          existingAttrition = dpop$attrition[[i]]
+        )
+      }
+
       dpop$attrition[[i]]$cohort_definition_id <- popSpecs$cohort_definition_id[[i]]
       workingCount <- utils::tail(dpop$attrition[[i]]$number_records, 1)
       cohortCount[[i]] <- workingDpop %>%
@@ -304,10 +329,11 @@ generateDenominatorCohortSet <- function(cdm,
                             name = tidyselect::starts_with(paste0(tablePrefix, "_i_")))
   }
 
-    dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
-    message(glue::glue(
-      "Time taken to get cohorts: {floor(dur/60)} min and {dur %% 60 %/% 1} sec"
-    ))
+
+    if (length(studyPops) == 0) {
+      message("- No people found for any denominator population")
+      studyPops <- dplyr::tibble()
+    }
 
   # add strata info to settings
   if (is.null(strataTable)) {
@@ -327,10 +353,12 @@ generateDenominatorCohortSet <- function(cdm,
   cohortSet <- popSpecs %>%
     dplyr::mutate(strata_cohort_definition_id = .env$strataCohortId) %>%
     dplyr::mutate(strata_cohort_name = .env$strataCohortName) %>%
+    dplyr::mutate(closed_cohort = .env$closedCohort) %>%
     dplyr::mutate(cohort_name = paste0("Denominator cohort ", .data$cohort_definition_id)) %>%
     dplyr::select(!c("min_age", "max_age")) %>%
-    dplyr::relocate("cohort_definition_id")%>%
-    dplyr::relocate("cohort_name", .after = "cohort_definition_id")
+    dplyr::relocate("cohort_definition_id") %>%
+    dplyr::relocate("cohort_name", .after = "cohort_definition_id") %>%
+    dplyr::mutate(age_group = stringr::str_replace(.data$age_group, ";", " to "))
   attr(studyPops, "cohort_set") <- cohortSet
 
   cohortAttrition <- dplyr::bind_rows(dpop$attrition) %>%
@@ -352,11 +380,54 @@ generateDenominatorCohortSet <- function(cdm,
 
   cdm[[name]] <- studyPops
 
-
+  dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
+  message(glue::glue(
+    "Time taken to get cohorts: {floor(dur/60)} min and {dur %% 60 %/% 1} sec"
+  ))
 
   return(cdm)
 }
 
+
+# cohort specifications
+buildPopSpecs <- function(ageGrDf,
+                          sex,
+                          daysPriorHistory,
+                          requirementInteractions){
+
+  if(isTRUE(requirementInteractions)){
+    popSpecs <- tidyr::expand_grid(
+      age_group = ageGrDf$age_group,
+      sex = .env$sex,
+      days_prior_history = .env$daysPriorHistory
+    )} else {
+      popSpecs <- dplyr::bind_rows(
+        dplyr::tibble(
+          age_group = ageGrDf$age_group,
+          sex = .env$sex[1],
+          days_prior_history = .env$daysPriorHistory[1]
+        ),
+        dplyr::tibble(
+          age_group = ageGrDf$age_group[1],
+          sex = .env$sex,
+          days_prior_history = .env$daysPriorHistory[1]
+        ),
+        dplyr::tibble(
+          age_group = ageGrDf$age_group[1],
+          sex = .env$sex[1],
+          days_prior_history = .env$daysPriorHistory
+        )) %>%
+        dplyr::distinct()}
+
+  popSpecs <- popSpecs %>%
+    tidyr::separate(.data$age_group,
+                    c("min_age", "max_age"),
+                    remove = FALSE
+    )
+
+  return(popSpecs)
+
+}
 
 
 # union cohort tables
