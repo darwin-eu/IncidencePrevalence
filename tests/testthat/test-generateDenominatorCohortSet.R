@@ -1015,8 +1015,8 @@ test_that("mock db: strataRequirementsAtEntry", {
                                       strataRequirementsAtEntry = FALSE
   )
   # enter when they satisfy prior hist reqs
-  cdm$denom_reqs_any_time %>%
-    pull("cohort_start_date") == as.Date("2012-01-21")
+ expect_true(cdm$denom_reqs_any_time %>%
+    dplyr::pull("cohort_start_date") == as.Date("2012-01-21"))
 
 
 
@@ -1071,8 +1071,8 @@ test_that("mock db: strataRequirementsAtEntry", {
                                       strataRequirementsAtEntry = FALSE
   )
   # enter when they satisfy prior hist reqs
-  cdm$denom_reqs_any_time %>%
-    pull("cohort_start_date") == as.Date("2010-02-02")
+  expect_true(cdm$denom_reqs_any_time %>%
+    dplyr::pull("cohort_start_date") == as.Date("2010-02-02"))
 
 
   cdm <- generateDenominatorCohortSet(cdm,
