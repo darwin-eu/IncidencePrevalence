@@ -929,7 +929,7 @@ test_that("mock db check strata prior history requirement", {
   # (as prior history based on obs period achieved before strata cohort start)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, strataTable = "strata",
-    strataCohortId = 1,
+    strataCohortId = 1, strataRequirementsAtEntry = FALSE,
     ageGroup = list(
       c(11, 12)
     ), daysPriorHistory = 0
@@ -941,7 +941,7 @@ test_that("mock db check strata prior history requirement", {
 
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, strataTable = "strata",
-    strataCohortId = 1,
+    strataCohortId = 1,strataRequirementsAtEntry = FALSE,
     ageGroup = list(
       c(11, 12)
     ), daysPriorHistory = 365
@@ -955,7 +955,7 @@ test_that("mock db check strata prior history requirement", {
   # will start date change
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, strataTable = "strata",
-    strataCohortId = 1,
+    strataCohortId = 1,strataRequirementsAtEntry = FALSE,
     ageGroup = list(
       c(11, 12)
     ), daysPriorHistory = 600
@@ -967,7 +967,7 @@ test_that("mock db check strata prior history requirement", {
 
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, strataTable = "strata",
-    strataCohortId = 1,
+    strataCohortId = 1,strataRequirementsAtEntry = FALSE,
     ageGroup = list(
       c(11, 12)
     ), daysPriorHistory = 10000
@@ -975,6 +975,135 @@ test_that("mock db check strata prior history requirement", {
   expect_true(nrow(cdm$denominator %>% dplyr::collect()) == 0)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
+
+test_that("mock db: strataRequirementsAtEntry", {
+  skip_on_cran()
+
+  #prior history
+  personTable <- tibble::tibble(
+    person_id = "1",
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id = "1",
+    person_id = "1",
+    observation_period_start_date = as.Date("2012-01-01"),
+    observation_period_end_date = as.Date("2018-06-01")
+  )
+  strataTable <- tibble::tibble(
+    cohort_definition_id = 1,
+    subject_id = c("1", "2"),
+    cohort_start_date = as.Date("2012-01-05"),
+    cohort_end_date = as.Date("2018-06-01")
+  )
+
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    strataTable = strataTable
+  )
+
+  cdm <- generateDenominatorCohortSet(cdm,
+                                      name = "denom_reqs_any_time",
+                                      daysPriorHistory = 20,
+                                      strataTable = "strata",
+                                      strataCohortId = 1,
+                                      strataRequirementsAtEntry = FALSE
+  )
+  # enter when they satisfy prior hist reqs
+  cdm$denom_reqs_any_time %>%
+    pull("cohort_start_date") == as.Date("2012-01-21")
+
+
+
+  cdm <- generateDenominatorCohortSet(cdm,
+                                      name = "denom_reqs_cohort_entry",
+                                      daysPriorHistory = 20,
+                                      strataTable = "strata",
+                                      strataCohortId = 1,
+                                      strataRequirementsAtEntry = TRUE
+  )
+  # don´t enter
+  # they satisfy prior hist req on cohort start date
+  expect_true(cdm$denom_reqs_cohort_entry %>%
+                dplyr::tally() %>%
+                dplyr::pull("n") == 0)
+
+  CDMConnector::cdmDisconnect(cdm)
+
+
+  ## Age
+  personTable <- tibble::tibble(
+    person_id = "1",
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 02,
+    day_of_birth = 02
+  )
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id = "1",
+    person_id = "1",
+    observation_period_start_date = as.Date("2005-01-01"),
+    observation_period_end_date = as.Date("2018-06-01")
+  )
+  strataTable <- tibble::tibble(
+    cohort_definition_id = 1,
+    subject_id = c("1", "2"),
+    cohort_start_date = as.Date("2010-01-01"),
+    cohort_end_date = as.Date("2018-06-01")
+  )
+
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    strataTable = strataTable
+  )
+
+  cdm <- generateDenominatorCohortSet(cdm,
+                                      name = "denom_reqs_any_time",
+                                      ageGroup = list(c(10,100)),
+                                      strataTable = "strata",
+                                      strataCohortId = 1,
+                                      strataRequirementsAtEntry = FALSE
+  )
+  # enter when they satisfy prior hist reqs
+  cdm$denom_reqs_any_time %>%
+    pull("cohort_start_date") == as.Date("2010-02-02")
+
+
+  cdm <- generateDenominatorCohortSet(cdm,
+                                      name = "denom_reqs_cohort_entry",
+                                      ageGroup = list(c(10,100)),
+                                      strataTable = "strata",
+                                      strataCohortId = 1,
+                                      strataRequirementsAtEntry = TRUE
+  )
+  # don´t enter
+  # they don´t satisfy age req on cohort start date
+  expect_true(cdm$denom_reqs_cohort_entry %>%
+                dplyr::tally() %>%
+                dplyr::pull("n") == 0)
+
+  cdm <- generateDenominatorCohortSet(cdm,
+                                      name = "denom_reqs_cohort_entry",
+                                      ageGroup = list(c(09,100)),
+                                      strataTable = "strata",
+                                      strataCohortId = 1,
+                                      strataRequirementsAtEntry = TRUE
+  )
+  # does enter
+  # they satisfy age on cohort start date
+  expect_true(cdm$denom_reqs_cohort_entry %>%
+                dplyr::tally() %>%
+                dplyr::pull("n") == 1)
+
+
+
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check example with multiple observation periods", {
@@ -1723,3 +1852,6 @@ test_that("mock db: requirement interactions", {
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
+
+
+
