@@ -93,16 +93,20 @@ test_that("check working example sample size and outcome prevalence option", {
 
 test_that("outcome varies by gender and age option", {
   skip_on_cran()
-  db <- mockIncidencePrevalenceRef(sampleSize = 100,
-                                              outPre = 0.2,
-                                              genderBeta = -1,
-                                              ageBeta = 1,
-                                              intercept = -1)
+  db <- mockIncidencePrevalenceRef(
+    sampleSize = 100,
+    outPre = 0.2,
+    genderBeta = -1,
+    ageBeta = 1,
+    intercept = -1
+  )
 
-  db2 <- mockIncidencePrevalenceRef(sampleSize = 100,
-                                               outPre = 0.2,
-                                               genderBeta = -1,
-                                               ageBeta = 1)
+  db2 <- mockIncidencePrevalenceRef(
+    sampleSize = 100,
+    outPre = 0.2,
+    genderBeta = -1,
+    ageBeta = 1
+  )
 
   expect_true(nrow(db$person %>%
     dplyr::collect()) == 100)
@@ -138,25 +142,25 @@ test_that("multiple outcomes", {
     mockIncidencePrevalenceRef(
       sampleSize = 200,
       outPre = 0.2,
-      maxOutcomes  = 1
+      maxOutcomes = 1
     )
   db2 <-
     mockIncidencePrevalenceRef(
       sampleSize = 200,
       outPre = 0.2,
-      maxOutcomes  = 2
+      maxOutcomes = 2
     )
   db3 <-
     mockIncidencePrevalenceRef(
       sampleSize = 200,
       outPre = 0.2,
-      maxOutcomes  = 3
+      maxOutcomes = 3
     )
   db4 <-
     mockIncidencePrevalenceRef(
       sampleSize = 1,
       outPre = 1,
-      maxOutcomes  = 10
+      maxOutcomes = 10
     )
 
   expect_true(nrow(db$outcome %>%

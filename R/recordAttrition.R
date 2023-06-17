@@ -20,20 +20,19 @@ recordAttrition <- function(table,
                             existingAttrition = NULL,
                             reasonId,
                             reason) {
-
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(any(class(table) %in%
-                              c("tbl_dbi", "tbl", "data.frame", "tibble")))
+    c("tbl_dbi", "tbl", "data.frame", "tibble")))
   checkmate::assertCharacter(id, add = errorMessage)
   checkmate::assertIntegerish(reasonId, add = errorMessage)
   checkmate::assertCharacter(reason, null.ok = TRUE, add = errorMessage)
   if (!is.null(existingAttrition)) {
     checkmate::assertTRUE(any(class(existingAttrition) %in%
-                                c("data.frame", "tbl")))
+      c("data.frame", "tbl")))
   }
   checkmate::reportAssertions(collection = errorMessage)
 
-  attrition <- tibble::tibble(
+  attrition <- dplyr::tibble(
     number_records = table %>%
       dplyr::tally() %>%
       dplyr::pull(),
@@ -48,10 +47,14 @@ recordAttrition <- function(table,
 
   if (!is.null(existingAttrition)) {
     attrition <- dplyr::bind_rows(existingAttrition, attrition) %>%
-      dplyr::mutate(excluded_records =
-                      dplyr::lag(.data$number_records) - .data$number_records) %>%
-      dplyr::mutate(excluded_subjects =
-                      dplyr::lag(.data$number_subjects) - .data$number_subjects)
+      dplyr::mutate(
+        excluded_records =
+          dplyr::lag(.data$number_records) - .data$number_records
+      ) %>%
+      dplyr::mutate(
+        excluded_subjects =
+          dplyr::lag(.data$number_subjects) - .data$number_subjects
+      )
   } else {
     attrition <- attrition %>%
       dplyr::mutate(excluded_records = NA) %>%

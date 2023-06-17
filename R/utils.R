@@ -157,56 +157,51 @@ participants <- function(result, analysisId) {
 #' @export
 participants.IncidencePrevalenceResult <- function(result,
                                                    analysisId) {
-
   checkmate::assertIntegerish(analysisId)
 
-  if(!is.null(attr(result, "participants"))){
-
-  included <- attr(result, "participants") %>%
-    dplyr::select(
-      "subject_id",
-      paste0(
-        "cohort_start_date",
-        "_analysis_",
-        analysisId
-      ),
-      paste0(
-        "cohort_end_date",
-        "_analysis_",
-        analysisId
-      ),
-      paste0(
-        "outcome_start_date",
-        "_analysis_",
-        analysisId
+  if (!is.null(attr(result, "participants"))) {
+    included <- attr(result, "participants") %>%
+      dplyr::select(
+        "subject_id",
+        paste0(
+          "cohort_start_date",
+          "_analysis_",
+          analysisId
+        ),
+        paste0(
+          "cohort_end_date",
+          "_analysis_",
+          analysisId
+        ),
+        paste0(
+          "outcome_start_date",
+          "_analysis_",
+          analysisId
+        )
+      ) %>%
+      dplyr::rename(
+        "cohort_start_date" = paste0(
+          "cohort_start_date",
+          "_analysis_",
+          analysisId
+        ),
+        "cohort_end_date" = paste0(
+          "cohort_end_date",
+          "_analysis_",
+          analysisId
+        ),
+        "outcome_start_date" = paste0(
+          "outcome_start_date",
+          "_analysis_",
+          analysisId
+        )
       )
-    ) %>%
-    dplyr::rename(
-      "cohort_start_date" = paste0(
-        "cohort_start_date",
-        "_analysis_",
-        analysisId
-      ),
-      "cohort_end_date" = paste0(
-        "cohort_end_date",
-        "_analysis_",
-        analysisId
-      ),
-      "outcome_start_date" = paste0(
-        "outcome_start_date",
-        "_analysis_",
-        analysisId
-      )
-    )
 
-  included <- included %>%
-    dplyr::filter(!is.na(.data$cohort_start_date))
-
-  } else{
+    included <- included %>%
+      dplyr::filter(!is.na(.data$cohort_start_date))
+  } else {
     included <- NULL
-}
+  }
 
   return(included)
 }
-
-

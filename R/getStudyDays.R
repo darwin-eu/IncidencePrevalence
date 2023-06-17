@@ -18,10 +18,12 @@
 #'
 #' @param startDate start date of the study
 #' @param endDate end date of the study
-#' @param timeInterval interval to compute, can be "weeks", "months", "quarters", "years"
+#' @param timeInterval interval to compute, can be "weeks", "months",
+#' "quarters", "years"
 #' @param completeDatabaseIntervals whether full periods are required
 #' @param type point or period, default value is period
-#' @param timePoint timePoint of computation in case type = point, can be "start", "middle", "end"
+#' @param timePoint timePoint of computation in case type = point,
+#' can be "start", "middle", "end"
 #'
 #' @noRd
 getStudyDays <- function(startDate,

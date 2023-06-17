@@ -40,13 +40,14 @@ test_that("mock db: check output format", {
     "denominator_end_date",
     "denominator_strata_cohort_definition_id",
     "denominator_strata_cohort_name",
+    "denominator_closed_cohort",
     "cdm_name"
   ) %in%
     names(inc)))
 
   expect_true(all(c(
     "analysis_id", "number_records", "number_subjects",
-    "reason_id","reason",
+    "reason_id", "reason",
     "excluded_records", "excluded_subjects",
     "analysis_outcome_washout",
     "analysis_repeated_events",
@@ -63,6 +64,7 @@ test_that("mock db: check output format", {
     "denominator_end_date",
     "denominator_strata_cohort_definition_id",
     "denominator_strata_cohort_name",
+    "denominator_closed_cohort",
     "cdm_name"
   ) %in%
     names(incidenceAttrition(inc))))
@@ -82,11 +84,11 @@ test_that("mock db: check output format", {
     returnParticipants = TRUE
   )
   expect_true(tibble::is_tibble(participants(inc, 1) %>%
-                                  dplyr::collect()))
+    dplyr::collect()))
   expect_true(participants(inc, 1) %>%
-                dplyr::collect() %>%
-                dplyr::select("subject_id") %>%
-                dplyr::pull() == 1)
+    dplyr::collect() %>%
+    dplyr::select("subject_id") %>%
+    dplyr::pull() == 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -704,17 +706,16 @@ test_that("mock db: check washout windows", {
   cdm <- generateDenominatorCohortSet(cdm = cdm)
 
   incW365 <- estimateIncidence(cdm,
-                               denominatorTable = "denominator",
-                               outcomeTable = "outcome",
-                               repeatedEvents = TRUE,
-                               outcomeWashout = 36500,
-                               completeDatabaseIntervals = FALSE,
-                               minCellCount = 0
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = TRUE,
+    outcomeWashout = 36500,
+    completeDatabaseIntervals = FALSE,
+    minCellCount = 0
   )
   expect_true(nrow(incW365) == 0)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-
 })
 
 test_that("mock db: check events overlapping with start of a period", {
@@ -901,7 +902,7 @@ test_that("mock db: compare results from months and years", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = c("weeks"),
-    completeDatabaseIntervals =FALSE,
+    completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
   incQuarters <- estimateIncidence(
@@ -909,7 +910,7 @@ test_that("mock db: compare results from months and years", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = c("quarters"),
-    completeDatabaseIntervals =FALSE,
+    completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
   incMonths <- estimateIncidence(
@@ -917,7 +918,7 @@ test_that("mock db: compare results from months and years", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = c("months"),
-    completeDatabaseIntervals =FALSE,
+    completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
   incYears <- estimateIncidence(
@@ -925,17 +926,17 @@ test_that("mock db: compare results from months and years", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = c("years"),
-    completeDatabaseIntervals =FALSE,
+    completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
 
   # consistent results for months and years
   expect_true(sum(incWeeks$n_events) ==
-                sum(incYears$n_events))
+    sum(incYears$n_events))
   expect_true(sum(incQuarters$n_events) ==
-                sum(incYears$n_events))
+    sum(incYears$n_events))
   expect_true(sum(incMonths$n_events) ==
-                sum(incYears$n_events))
+    sum(incYears$n_events))
 
   expect_equal(
     sum(incWeeks$person_days),
@@ -1180,7 +1181,7 @@ test_that("mock db: check outcome before observation period start", {
   )
 
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm, cohortDateRange = c(as.Date("2000-01-01"),as.Date("2004-01-01"))
+    cdm = cdm, cohortDateRange = c(as.Date("2000-01-01"), as.Date("2004-01-01"))
   )
 
   # with rep events - should have one person for rep, both people in second
@@ -2246,8 +2247,10 @@ test_that("mock db: check study start and end date 10000", {
   )
 
   # no study period required
-  cdm <- generateDenominatorCohortSet(cdm = cdm,
-                                                   name = "denominator1")
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm,
+    name = "denominator1"
+  )
   # study period
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator2",
@@ -2555,7 +2558,9 @@ test_that("mock db: multiple observation periods", {
     )
   )
 
-  # should only pick up one of the four observation periods, as the inclusion of the cohorts is only well defined for one (entry event in the observation period)
+  # should only pick up one of the four observation periods,
+  # as the inclusion of the cohorts is only well defined for one
+  # (entry event in the observation period)
   cdm <- mockIncidencePrevalenceRef(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable,
@@ -2721,11 +2726,24 @@ test_that("mock db: multiple observation periods", {
   # we should have 4 events with washout 0, but 3 events with washout 30
   expect_true(sum(inc_Mult1_W0$n_events) == 4)
   expect_true(sum(inc_Mult1_W30$n_events) == 3)
-  expect_true(inc_Mult1_W0 %>% dplyr::select(person_days) %>% sum() == as.numeric(difftime(as.Date("2005-08-11"), as.Date("2005-06-19"))) + 1 + as.numeric(difftime(as.Date("2015-01-02"), as.Date("2009-04-10"))) + 1 + as.numeric(difftime(as.Date("2011-12-11"), as.Date("2010-12-11"))) + 1)
-  expect_true(inc_Mult1_W30 %>% dplyr::select(person_days) %>% sum() == as.numeric(difftime(as.Date("2005-08-11"), as.Date("2005-06-19"))) - 30 + as.numeric(difftime(as.Date("2015-01-02"), as.Date("2009-04-10"))) + 1 - 30 + as.numeric(difftime(as.Date("2011-12-11"), as.Date("2010-12-11"))) + 1 - 30)
+  expect_true(inc_Mult1_W0 %>% dplyr::select(person_days) %>%
+                sum() == as.numeric(difftime(as.Date("2005-08-11"),
+                                             as.Date("2005-06-19"))) + 1 +
+                as.numeric(difftime(as.Date("2015-01-02"),
+                                    as.Date("2009-04-10"))) + 1 +
+                as.numeric(difftime(as.Date("2011-12-11"),
+                                    as.Date("2010-12-11"))) + 1)
+  expect_true(inc_Mult1_W30 %>% dplyr::select(person_days) %>%
+                sum() == as.numeric(difftime(as.Date("2005-08-11"),
+                                             as.Date("2005-06-19"))) - 30 +
+                as.numeric(difftime(as.Date("2015-01-02"),
+                                    as.Date("2009-04-10"))) +
+                1 - 30 + as.numeric(difftime(as.Date("2011-12-11"),
+                                             as.Date("2010-12-11"))) + 1 - 30)
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
-  # The first event of person 1 will not be included in the observation period but should also influence the second event with the washout
+  # The first event of person 1 will not be included in the observation period
+  # but should also influence the second event with the washout
   conditionX <- tibble::tibble(
     cohort_definition_id = c(1, 1, 1),
     subject_id = c("1", "1", "2"),
@@ -2765,10 +2783,17 @@ test_that("mock db: multiple observation periods", {
 
   # we should have 2 events with washout 30
   expect_true(sum(inc_PreWashEv$n_events) == 2)
-  expect_true(inc_PreWashEv %>% dplyr::select(person_days) %>% sum() == as.numeric(difftime(as.Date("2005-08-11"), as.Date("2005-07-19"))) - 30 + 7 + as.numeric(difftime(as.Date("2015-01-02"), as.Date("2009-04-10"))) + 1 - 30 + as.numeric(difftime(as.Date("2011-12-11"), as.Date("2010-12-11"))) + 1 - 30)
+  expect_true(inc_PreWashEv %>% dplyr::select(person_days) %>% sum() ==
+                as.numeric(difftime(as.Date("2005-08-11"),
+                                    as.Date("2005-07-19"))) - 30 + 7 +
+                as.numeric(difftime(as.Date("2015-01-02"),
+                                    as.Date("2009-04-10"))) + 1 - 30 +
+                as.numeric(difftime(as.Date("2011-12-11"),
+                                    as.Date("2010-12-11"))) + 1 - 30)
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
-  # three observation periods for 1 person and a couple of consecutive events lost to washout
+  # three observation periods for 1 person and a
+  # couple of consecutive events lost to washout
   observationPeriodTable <- tibble::tibble(
     observation_period_id = c("1", "2", "3", "4"),
     person_id = c("1", "1", "1", "2"),
@@ -2914,19 +2939,19 @@ test_that("mock db: check attrition", {
   )
   # for female cohort we should have a row for those excluded for not being male
   expect_true(any("Not Female" ==
-                    incidenceAttrition(inc) %>%
-    dplyr::filter(denominator_sex == "Female") %>%
-    dplyr::pull(.data$reason)))
+    incidenceAttrition(inc) %>%
+      dplyr::filter(denominator_sex == "Female") %>%
+      dplyr::pull(.data$reason)))
   # for male, the opposite
-  expect_true(any("Not Male" == incidenceAttrition(inc)  %>%
-                    dplyr::filter(denominator_sex == "Male") %>%
+  expect_true(any("Not Male" == incidenceAttrition(inc) %>%
+    dplyr::filter(denominator_sex == "Male") %>%
     dplyr::pull(.data$reason)))
 
   # check we can pick out specific analysis attrition
   expect_true(nrow(incidenceAttrition(result = inc) %>%
-                     dplyr::filter(analysis_id== 1)) > 1)
+    dplyr::filter(analysis_id == 1)) > 1)
   expect_true(nrow(incidenceAttrition(result = inc) %>%
-                     dplyr::filter(analysis_id== 2)) > 1)
+    dplyr::filter(analysis_id == 2)) > 1)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -3003,42 +3028,49 @@ test_that("mock db: check compute permanent", {
   )
   # if using temp tables
   # we have temp tables created by dbplyr
-  expect_true(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
-                                      "dbplyr_")))
+  expect_true(any(stringr::str_starts(
+    CDMConnector::listTables(attr(cdm, "dbcon")),
+    "dbplyr_"
+  )))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   # using permanent
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  cdm <- generateDenominatorCohortSet(cdm = cdm, temporary =  FALSE)
+  cdm <- generateDenominatorCohortSet(cdm = cdm, temporary = FALSE)
   inc <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "overall",
-    temporary =  FALSE
+    temporary = FALSE
   )
 
   # no temp tables created by dbplyr
-  expect_false(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
-                                      "dbplyr_")))
+  expect_false(any(stringr::str_starts(
+    CDMConnector::listTables(attr(cdm, "dbcon")),
+    "dbplyr_"
+  )))
 
   inc <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "overall",
-    temporary =  FALSE,
+    temporary = FALSE,
     returnParticipants = TRUE
   )
   expect_true(any(stringr::str_detect(
     CDMConnector::listTables(attr(cdm, "dbcon"),
-                             schema = attr(cdm, "write_schema")),
-    "inc_participants")))
-  expect_false(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
-                                       "dbplyr_")))
+      schema = attr(cdm, "write_schema")
+    ),
+    "inc_participants"
+  )))
+  expect_false(any(stringr::str_starts(
+    CDMConnector::listTables(attr(cdm, "dbcon")),
+    "dbplyr_"
+  )))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-
 })
 
 test_that("mock db: check participants", {
@@ -3046,11 +3078,15 @@ test_that("mock db: check participants", {
 
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
   attr(cdm, "write_prefix") <- "test_"
-  cdm <- generateDenominatorCohortSet(cdm = cdm, name ="dpop",
-                                           sex = c("Male", "Female", "Both"),
-                                           ageGroup = list(c(0,50),
-                                                           c(51,100)),
-                                      temporary = FALSE)
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, name = "dpop",
+    sex = c("Male", "Female", "Both"),
+    ageGroup = list(
+      c(0, 50),
+      c(51, 100)
+    ),
+    temporary = FALSE
+  )
   inc <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "dpop",
@@ -3062,34 +3098,44 @@ test_that("mock db: check participants", {
 
   # we should have cleaned up all the intermediate tables
   expect_true(all(CDMConnector::listTables(attr(cdm, "dbcon"),
-                           schema = attr(cdm, "write_schema")) %in%
-               c("test_dpop",
-                 "test_inc_participants1",
-                 "test_dpop_attrition",
-                 "test_dpop_set" ,
-                 "test_dpop_count",
-                 "vocabulary" ,
-                 "cdm_source", "outcome", "outcome_set", "outcome_count",
-                 "strata",
-                 "strata_set", "strata_count",
-                 "observation_period", "person" )))
-  expect_true(all(!c("test_incidence_analysis_1",
-                    "test_incidence_working_5") %in%
-                    CDMConnector::listTables(attr(cdm, "dbcon"),
-                                             schema = attr(cdm,
-                                                           "write_schema"))))
-  expect_equal(names(participants(inc, 1) %>%
-    head(1) %>%
-    dplyr::collect()),
-    c("subject_id",
+    schema = attr(cdm, "write_schema")
+  ) %in%
+    c(
+      "test_dpop",
+      "test_inc_participants1",
+      "test_dpop_attrition",
+      "test_dpop_set",
+      "test_dpop_count",
+      "vocabulary",
+      "cdm_source", "outcome", "outcome_set", "outcome_count",
+      "strata",
+      "strata_set", "strata_count",
+      "observation_period", "person"
+    )))
+  expect_true(all(!c(
+    "test_incidence_analysis_1",
+    "test_incidence_working_5"
+  ) %in%
+    CDMConnector::listTables(attr(cdm, "dbcon"),
+      schema = attr(
+        cdm,
+        "write_schema"
+      )
+    )))
+  expect_equal(
+    names(participants(inc, 1) %>%
+      head(1) %>%
+      dplyr::collect()),
+    c(
+      "subject_id",
       "cohort_start_date",
       "cohort_end_date",
       "outcome_start_date"
-      ))
+    )
+  )
 
-    DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-
-    })
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+})
 
 test_that("mock db: overwriting participants", {
   skip_on_cran()
@@ -3098,10 +3144,14 @@ test_that("mock db: overwriting participants", {
   attr(cdm, "write_schema") <- "main"
   attr(cdm, "write_prefix") <- "test_"
 
-  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "dpop",
-                                      temporary = FALSE,
-                                      ageGroup = list(c(0,50),
-                                                      c(51,100)))
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, name = "dpop",
+    temporary = FALSE,
+    ageGroup = list(
+      c(0, 50),
+      c(51, 100)
+    )
+  )
   inc1 <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "dpop",
@@ -3128,15 +3178,15 @@ test_that("mock db: overwriting participants", {
   # one for each function call
   expect_true(length(stringr::str_subset(
     CDMConnector::listTables(attr(cdm, "dbcon"),
-                             schema = attr(cdm,"write_schema")),
-    "participants")) == 2)
+      schema = attr(cdm, "write_schema")
+    ),
+    "participants"
+  )) == 2)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-
 })
 
 test_that("mock db: if missing cohort attributes", {
-
   # missing cohort_set
   cdm <- mockIncidencePrevalenceRef()
   cdm <- generateDenominatorCohortSet(cdm = cdm)
@@ -3145,7 +3195,8 @@ test_that("mock db: if missing cohort attributes", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    interval = "overall"))
+    interval = "overall"
+  ))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
   # missing cohort_count
@@ -3156,6 +3207,7 @@ test_that("mock db: if missing cohort attributes", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    interval = "overall"))
+    interval = "overall"
+  ))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
