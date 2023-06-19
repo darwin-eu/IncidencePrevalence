@@ -51,6 +51,10 @@
 #' @param strataCohortId The cohort definition id for the cohort of interest
 #'  in the strata table. If strataTable is specified, a single strataCohortId
 #'  must also be specified.
+#' @param strataRequirementsAtEntry If TRUE, individuals will only be
+#' included if they satisfy time varying requirements on their strata cohort
+#' start date. If FALSE, individuals will enter the denominator cohort once
+#' they satisfy requirements.
 #' @param closedCohort If TRUE, a closed cohort will be defined where only
 #' those individuals satisfying eligibility criteria on the start date
 #' given in cohortDateRange are included.
@@ -81,6 +85,7 @@ generateDenominatorCohortSet <- function(cdm,
                                          requirementInteractions = TRUE,
                                          strataTable = NULL,
                                          strataCohortId = NULL,
+                                         strataRequirementsAtEntry = TRUE,
                                          closedCohort = FALSE,
                                          temporary = TRUE) {
   startCollect <- Sys.time()
@@ -268,7 +273,8 @@ generateDenominatorCohortSet <- function(cdm,
             ),
           "subject_id" = "person_id"
         ) %>%
-        dplyr::select("subject_id", "cohort_start_date", "cohort_end_date") %>%
+        dplyr::select(dplyr::any_of(c("subject_id", "cohort_start_date", "cohort_end_date",
+                      "strata_start_date")))  %>%
         dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
 
       dpop$attrition[[i]] <- recordAttrition(
@@ -279,6 +285,24 @@ generateDenominatorCohortSet <- function(cdm,
         existingAttrition = dpop$attrition[[i]]
       )
 
+      if(!is.null(strataTable) && isTRUE(strataRequirementsAtEntry)){
+        workingDpop <- workingDpop %>%
+          dplyr::filter(.data$cohort_start_date ==
+                          .data$strata_start_date) %>%
+          dplyr::select(dplyr::any_of(c("subject_id",
+                                        "cohort_start_date",
+                                        "cohort_end_date")))
+
+        dpop$attrition[[i]] <- recordAttrition(
+          table = workingDpop,
+          id = "subject_id",
+          reasonId = 11,
+          reason = glue::glue("Excluded after requiring requirements on strata cohort start date"),
+          existingAttrition = dpop$attrition[[i]]
+        )
+
+      }
+
 
       if (isTRUE(closedCohort)) {
         workingDpop <- workingDpop %>%
@@ -287,7 +311,7 @@ generateDenominatorCohortSet <- function(cdm,
         dpop$attrition[[i]] <- recordAttrition(
           table = workingDpop,
           id = "subject_id",
-          reasonId = 10,
+          reasonId = 12,
           reason = glue::glue("Excluded after applying closed cohort restriction"),
           existingAttrition = dpop$attrition[[i]]
         )
