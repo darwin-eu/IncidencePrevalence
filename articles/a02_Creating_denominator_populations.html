@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -172,30 +172,30 @@ requirements like so</p>
 <span><span class="op">)</span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;dbplyr_008&gt; [?? x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.7.1 [unknown@Linux 5.15.0-1036-azure:R 4.3.0/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.8.0 [unknown@Linux 5.15.0-1039-azure:R 4.3.1/:memory:]</span></span></span>
 <span><span class="co">#&gt;    cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>                    1 2          2018-11-27        2020-07-15     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>                    1 4          2016-02-24        2016-07-14     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>                    1 6          2006-04-29        2007-03-15     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>                    1 9          2006-11-14        2008-09-29     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>                    1 10         2009-12-16        2011-11-26     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>                    1 12         2015-05-09        2016-03-25     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>                    1 14         2013-07-23        2014-07-01     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>                    1 15         2005-06-30        2007-05-16     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>                    1 17         2011-06-19        2012-03-16     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>                    1 19         2013-09-21        2014-12-02     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>                    1 3          2008-04-30        2008-09-19     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>                    1 4          2016-02-24        2016-07-14     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>                    1 6          2006-04-29        2007-03-15     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>                    1 7          2014-05-19        2016-03-09     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>                    1 8          2016-05-19        2018-01-01     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>                    1 9          2006-11-14        2008-09-29     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>                    1 10         2009-12-16        2011-11-26     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>                    1 11         2011-12-20        2012-07-30     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>                    1 12         2015-05-09        2016-03-25     </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ more rows</span></span></span>
 <span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">subject_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>, <span class="st">"5"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># Source:   SQL [5 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.7.1 [unknown@Linux 5.15.0-1036-azure:R 4.3.0/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.8.0 [unknown@Linux 5.15.0-1039-azure:R 4.3.1/:memory:]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 2          2018-11-27        2020-07-15     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    1 4          2016-02-24        2016-07-14     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    1 3          2008-04-30        2008-09-19     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    1 3          2008-04-30        2008-09-19     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    1 4          2016-02-24        2016-07-14     </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>                    1 5          2019-03-01        2019-03-18     </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>                    1 1          2008-10-12        2010-01-09</span></span></code></pre></div>
 <p>Let´s have a look at the included time of the first five patients</p>
@@ -235,19 +235,19 @@ simulated patients</p>
 <span><span class="op">)</span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;dbplyr_016&gt; [?? x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.7.1 [unknown@Linux 5.15.0-1036-azure:R 4.3.0/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.8.0 [unknown@Linux 5.15.0-1039-azure:R 4.3.1/:memory:]</span></span></span>
 <span><span class="co">#&gt;    cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>                    1 9          2008-01-01        2008-09-29     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>                    1 10         2009-12-16        2010-01-01     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>                    1 20         2008-01-01        2008-05-28     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>                    1 22         2008-10-23        2008-12-12     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>                    1 24         2008-01-01        2008-06-21     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>                    1 35         2008-02-29        2008-08-09     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>                    1 43         2008-08-01        2009-01-20     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>                    1 48         2008-01-01        2009-02-19     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>                    1 54         2008-01-01        2009-04-03     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>                    1 76         2008-01-01        2008-01-16     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>                    1 3          2008-04-30        2008-09-19     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>                    1 9          2008-01-01        2008-09-29     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>                    1 10         2009-12-16        2010-01-01     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>                    1 20         2008-01-01        2008-05-28     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>                    1 22         2008-10-23        2008-12-12     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>                    1 24         2008-01-01        2008-06-21     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>                    1 35         2008-02-29        2008-08-09     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>                    1 43         2008-08-01        2009-01-20     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>                    1 48         2008-01-01        2009-02-19     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>                    1 54         2008-01-01        2009-04-03     </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ more rows</span></span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/cohortCount.html" class="external-link">cohortCount</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
@@ -259,7 +259,7 @@ simulated patients</p>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">subject_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>, <span class="st">"5"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># Source:   SQL [2 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.7.1 [unknown@Linux 5.15.0-1036-azure:R 4.3.0/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.8.0 [unknown@Linux 5.15.0-1039-azure:R 4.3.1/:memory:]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 3          2008-04-30        2008-09-19     </span></span>
@@ -317,7 +317,7 @@ the end.</p>
 <span><span class="op">)</span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;dbplyr_024&gt; [?? x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.7.1 [unknown@Linux 5.15.0-1036-azure:R 4.3.0/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.8.0 [unknown@Linux 5.15.0-1039-azure:R 4.3.1/:memory:]</span></span></span>
 <span><span class="co">#&gt;    cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>                    1 9          2008-01-01        2008-09-29     </span></span>
@@ -341,7 +341,7 @@ the end.</p>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">subject_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>, <span class="st">"5"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># Source:   SQL [1 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.7.1 [unknown@Linux 5.15.0-1036-azure:R 4.3.0/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.8.0 [unknown@Linux 5.15.0-1039-azure:R 4.3.1/:memory:]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 1          2009-10-12        2010-01-01</span></span></code></pre></div>
@@ -403,9 +403,9 @@ before their 66th birthday.</p>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: ??</span></span>
 <span><span class="co">#&gt; Columns: 4</span></span>
-<span><span class="co">#&gt; Database: DuckDB 0.7.1 [unknown@Linux 5.15.0-1036-azure:R 4.3.0/:memory:]</span></span>
+<span><span class="co">#&gt; Database: DuckDB 0.8.0 [unknown@Linux 5.15.0-1039-azure:R 4.3.1/:memory:]</span></span>
 <span><span class="co">#&gt; $ cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…</span></span>
-<span><span class="co">#&gt; $ subject_id           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "20", "54", "78", "99", "168", "176", "182", "231…</span></span>
+<span><span class="co">#&gt; $ subject_id           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "20", "54", "78", "99", "155", "168", "176", "182…</span></span>
 <span><span class="co">#&gt; $ cohort_start_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-04-20, 2008-06-08, …</span></span>
 <span><span class="co">#&gt; $ cohort_end_date      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-05-28, 2009-03-05, 2008-06-02, 2008-12-16, …</span></span>
 <span></span>
@@ -418,7 +418,7 @@ before their 66th birthday.</p>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">subject_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>, <span class="st">"5"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># Source:   SQL [0 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.7.1 [unknown@Linux 5.15.0-1036-azure:R 4.3.0/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.8.0 [unknown@Linux 5.15.0-1039-azure:R 4.3.1/:memory:]</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 4 variables: cohort_definition_id &lt;int&gt;, subject_id &lt;chr&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   cohort_start_date &lt;date&gt;, cohort_end_date &lt;date&gt;</span></span></span></code></pre></div>
 <p>Now none of the original first five are included and we´re including
@@ -444,6 +444,44 @@ before their 66th birthday.</p>
 <p><img src="a02_Creating_denominator_populations_files/figure-html/unnamed-chunk-22-1.png" width="672"></p>
 </div>
 <div class="section level4">
+<h4 id="creating-a-closed-cohort">Creating a closed cohort<a class="anchor" aria-label="anchor" href="#creating-a-closed-cohort"></a>
+</h4>
+<p>A closed cohort is one where membership begins at a defined time. No
+one can be added to the cohort after this time. A closed cohort can be
+defined by setting closedCohort to TRUE. Note a start date for the
+cohortDateRange must have been specified as this will be the date in
+which cohort membership will be defined. Only individuals satisfying
+eligibility criteria on this day will be included.</p>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="va">cdm</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
+<span>    name <span class="op">=</span> <span class="st">"denominator_open"</span>,</span>
+<span>    cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2008-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2010-01-01"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    closedCohort <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  <span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
+<span>    name <span class="op">=</span> <span class="st">"denominator_closed"</span>,</span>
+<span>    cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2008-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2010-01-01"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    closedCohort <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span>  <span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/bind_rows.html" class="external-link">bind_rows</a></span><span class="op">(</span></span>
+<span>  <span class="va">cdm</span><span class="op">$</span><span class="va">denominator_open</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>cohort <span class="op">=</span> <span class="st">"Open cohort"</span><span class="op">)</span>,</span>
+<span>  <span class="va">cdm</span><span class="op">$</span><span class="va">denominator_closed</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>    <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>cohort <span class="op">=</span> <span class="st">"Closed cohort"</span><span class="op">)</span></span>
+<span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_histogram.html" class="external-link">geom_histogram</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span><span class="va">cohort_start_date</span><span class="op">)</span>,</span>
+<span>    colour <span class="op">=</span> <span class="st">"black"</span>, fill <span class="op">=</span> <span class="st">"grey"</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">cohort</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<p><img src="a02_Creating_denominator_populations_files/figure-html/unnamed-chunk-24-1.png" width="672"></p>
+</div>
+<div class="section level4">
 <h4 id="multiple-options-to-return-multiple-denominator-populations">Multiple options to return multiple denominator populations<a class="anchor" aria-label="anchor" href="#multiple-options-to-return-multiple-denominator-populations"></a>
 </h4>
 <p>More than one age, sex and prior history requirements can be
@@ -451,7 +489,7 @@ specified at the same time. First, we can take a look at having two age
 groups. We can see below that those individuals who have their 41st
 birthday during the study period will go from the first cohort
 (age_group: 0;40) to the second (age_group: 41;100) on this day.</p>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2008-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2010-01-01"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -469,19 +507,20 @@ birthday during the study period will go from the first cohort
 <span><span class="va">dpop</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 106</span></span>
-<span><span class="co">#&gt; Columns: 12</span></span>
+<span><span class="co">#&gt; Columns: 13</span></span>
 <span><span class="co">#&gt; $ cohort_definition_id        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …</span></span>
-<span><span class="co">#&gt; $ subject_id                  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "24", "43", "48", "76", "78", "79", "87", …</span></span>
-<span><span class="co">#&gt; $ cohort_start_date           <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-08-01, 2008-01-01, 2008-…</span></span>
-<span><span class="co">#&gt; $ cohort_end_date             <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-06-21, 2009-01-20, 2009-02-19, 2008-…</span></span>
+<span><span class="co">#&gt; $ subject_id                  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "3", "24", "43", "48", "76", "78", "79", "…</span></span>
+<span><span class="co">#&gt; $ cohort_start_date           <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-04-30, 2008-01-01, 2008-08-01, 2008-…</span></span>
+<span><span class="co">#&gt; $ cohort_end_date             <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-09-19, 2008-06-21, 2009-01-20, 2009-…</span></span>
 <span><span class="co">#&gt; $ cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Denominator cohort 1", "Denominator cohor…</span></span>
-<span><span class="co">#&gt; $ age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0;40", "0;40", "0;40", "0;40", "0;40", "0…</span></span>
+<span><span class="co">#&gt; $ age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0 to 40", "0 to 40", "0 to 40", "0 to 40"…</span></span>
 <span><span class="co">#&gt; $ sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Both", "Both", "Both", "Both", "Both", "B…</span></span>
 <span><span class="co">#&gt; $ days_prior_history          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …</span></span>
 <span><span class="co">#&gt; $ start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-01-01, 2008-…</span></span>
 <span><span class="co">#&gt; $ end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2010-01-01, 2010-01-01, 2010-01-01, 2010-…</span></span>
 <span><span class="co">#&gt; $ strata_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ strata_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ closed_cohort               <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …</span></span>
 <span></span>
 <span><span class="va">dpop</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">cohort_definition_id</span>, <span class="va">age_group</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -490,8 +529,8 @@ birthday during the study period will go from the first cohort
 <span><span class="co">#&gt; <span style="color: #949494;"># Groups:   cohort_definition_id [2]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id age_group     n</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 0;40         50</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    2 41;100       56</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 0 to 40      50</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    2 41 to 100    56</span></span>
 <span></span>
 <span><span class="va">dpop</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">subject_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"3"</span>, <span class="st">"57"</span>, <span class="st">"353"</span>, <span class="st">"393"</span>, <span class="st">"496"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -508,9 +547,9 @@ birthday during the study period will go from the first cohort
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">"Year"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_flip.html" class="external-link">coord_flip</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a02_Creating_denominator_populations_files/figure-html/unnamed-chunk-23-1.png" width="672"></p>
+<p><img src="a02_Creating_denominator_populations_files/figure-html/unnamed-chunk-25-1.png" width="672"></p>
 <p>We can then also</p>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2008-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2010-01-01"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -527,19 +566,20 @@ birthday during the study period will go from the first cohort
 <span></span>
 <span><span class="va">dpop</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 212</span></span>
-<span><span class="co">#&gt; Columns: 12</span></span>
+<span><span class="co">#&gt; Columns: 13</span></span>
 <span><span class="co">#&gt; $ cohort_definition_id        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …</span></span>
-<span><span class="co">#&gt; $ subject_id                  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "48", "87", "194", "203", "219", "303", "3…</span></span>
-<span><span class="co">#&gt; $ cohort_start_date           <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-11-07, 2008-01-01, 2008-…</span></span>
-<span><span class="co">#&gt; $ cohort_end_date             <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2009-02-19, 2010-01-01, 2010-01-01, 2009-…</span></span>
+<span><span class="co">#&gt; $ subject_id                  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "3", "48", "87", "191", "194", "203", "219…</span></span>
+<span><span class="co">#&gt; $ cohort_start_date           <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-04-30, 2008-01-01, 2008-11-07, 2008-…</span></span>
+<span><span class="co">#&gt; $ cohort_end_date             <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-09-19, 2009-02-19, 2010-01-01, 2010-…</span></span>
 <span><span class="co">#&gt; $ cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Denominator cohort 1", "Denominator cohor…</span></span>
-<span><span class="co">#&gt; $ age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0;40", "0;40", "0;40", "0;40", "0;40", "0…</span></span>
+<span><span class="co">#&gt; $ age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0 to 40", "0 to 40", "0 to 40", "0 to 40"…</span></span>
 <span><span class="co">#&gt; $ sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Male", "Male", "Male", "Male", "Male", "M…</span></span>
 <span><span class="co">#&gt; $ days_prior_history          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …</span></span>
 <span><span class="co">#&gt; $ start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-01-01, 2008-…</span></span>
 <span><span class="co">#&gt; $ end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2010-01-01, 2010-01-01, 2010-01-01, 2010-…</span></span>
 <span><span class="co">#&gt; $ strata_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ strata_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ closed_cohort               <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …</span></span>
 <span></span>
 <span><span class="va">dpop</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">cohort_definition_id</span>, <span class="va">age_group</span>, <span class="va">sex</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -548,12 +588,12 @@ birthday during the study period will go from the first cohort
 <span><span class="co">#&gt; <span style="color: #949494;"># Groups:   cohort_definition_id, age_group [6]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id age_group sex        n</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 0;40      Male      19</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    2 0;40      Female    31</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    3 0;40      Both      50</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>                    4 41;100    Male      31</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>                    5 41;100    Female    25</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>                    6 41;100    Both      56</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 0 to 40   Male      19</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    2 0 to 40   Female    31</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    3 0 to 40   Both      50</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>                    4 41 to 100 Male      31</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>                    5 41 to 100 Female    25</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>                    6 41 to 100 Both      56</span></span>
 <span></span>
 <span><span class="va">dpop</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">subject_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"3"</span>, <span class="st">"57"</span>, <span class="st">"353"</span>, <span class="st">"393"</span>, <span class="st">"496"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -570,9 +610,9 @@ birthday during the study period will go from the first cohort
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">"Year"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_flip.html" class="external-link">coord_flip</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a02_Creating_denominator_populations_files/figure-html/unnamed-chunk-24-1.png" width="672"></p>
+<p><img src="a02_Creating_denominator_populations_files/figure-html/unnamed-chunk-26-1.png" width="672"></p>
 <p>And then also specifying multiple prior history requirements</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2008-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2010-01-01"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -589,19 +629,20 @@ birthday during the study period will go from the first cohort
 <span></span>
 <span><span class="va">dpop</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 326</span></span>
-<span><span class="co">#&gt; Columns: 12</span></span>
+<span><span class="co">#&gt; Columns: 13</span></span>
 <span><span class="co">#&gt; $ cohort_definition_id        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …</span></span>
-<span><span class="co">#&gt; $ subject_id                  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "48", "87", "194", "203", "219", "303", "3…</span></span>
-<span><span class="co">#&gt; $ cohort_start_date           <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-11-07, 2008-01-01, 2008-…</span></span>
-<span><span class="co">#&gt; $ cohort_end_date             <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2009-02-19, 2010-01-01, 2010-01-01, 2009-…</span></span>
+<span><span class="co">#&gt; $ subject_id                  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "3", "48", "87", "191", "194", "203", "219…</span></span>
+<span><span class="co">#&gt; $ cohort_start_date           <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-04-30, 2008-01-01, 2008-11-07, 2008-…</span></span>
+<span><span class="co">#&gt; $ cohort_end_date             <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-09-19, 2009-02-19, 2010-01-01, 2010-…</span></span>
 <span><span class="co">#&gt; $ cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Denominator cohort 1", "Denominator cohor…</span></span>
-<span><span class="co">#&gt; $ age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0;40", "0;40", "0;40", "0;40", "0;40", "0…</span></span>
+<span><span class="co">#&gt; $ age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0 to 40", "0 to 40", "0 to 40", "0 to 40"…</span></span>
 <span><span class="co">#&gt; $ sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Male", "Male", "Male", "Male", "Male", "M…</span></span>
 <span><span class="co">#&gt; $ days_prior_history          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …</span></span>
 <span><span class="co">#&gt; $ start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-01-01, 2008-…</span></span>
 <span><span class="co">#&gt; $ end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2010-01-01, 2010-01-01, 2010-01-01, 2010-…</span></span>
 <span><span class="co">#&gt; $ strata_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ strata_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ closed_cohort               <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …</span></span>
 <span></span>
 <span><span class="va">dpop</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">cohort_definition_id</span>, <span class="va">age_group</span>, <span class="va">sex</span>, <span class="va">days_prior_history</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -610,18 +651,18 @@ birthday during the study period will go from the first cohort
 <span><span class="co">#&gt; <span style="color: #949494;"># Groups:   cohort_definition_id, age_group, sex [12]</span></span></span>
 <span><span class="co">#&gt;    cohort_definition_id age_group sex    days_prior_history     n</span></span>
 <span><span class="co">#&gt;                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>                    1 0;40      Male                    0    19</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>                    2 0;40      Male                  365    14</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>                    3 0;40      Female                  0    31</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>                    4 0;40      Female                365    16</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>                    5 0;40      Both                    0    50</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>                    6 0;40      Both                  365    30</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>                    7 41;100    Male                    0    31</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>                    8 41;100    Male                  365    13</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>                    9 41;100    Female                  0    25</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>                   10 41;100    Female                365    14</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span>                   11 41;100    Both                    0    56</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span>                   12 41;100    Both                  365    27</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>                    1 0 to 40   Male                    0    19</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>                    2 0 to 40   Male                  365    14</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>                    3 0 to 40   Female                  0    31</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>                    4 0 to 40   Female                365    16</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>                    5 0 to 40   Both                    0    50</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>                    6 0 to 40   Both                  365    30</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>                    7 41 to 100 Male                    0    31</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>                    8 41 to 100 Male                  365    13</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>                    9 41 to 100 Female                  0    25</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>                   10 41 to 100 Female                365    14</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">11</span>                   11 41 to 100 Both                    0    56</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">12</span>                   12 41 to 100 Both                  365    27</span></span>
 <span></span>
 <span><span class="va">dpop</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">subject_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"3"</span>, <span class="st">"57"</span>, <span class="st">"353"</span>, <span class="st">"393"</span>, <span class="st">"496"</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -638,7 +679,81 @@ birthday during the study period will go from the first cohort
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">"Year"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_flip.html" class="external-link">coord_flip</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a02_Creating_denominator_populations_files/figure-html/unnamed-chunk-25-1.png" width="672"></p>
+<p><img src="a02_Creating_denominator_populations_files/figure-html/unnamed-chunk-27-1.png" width="672"></p>
+<p>Note, setting requirementInteractions to FALSE would mean that only
+the first value of other age, sex, and prior history requirements are
+considered for a given characteristic. In this case the order of the
+values will be important and generally the first vlaues will be the
+primary analysis settings while subsequent values are for secondary
+analyses.</p>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
+<span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
+<span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2008-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2010-01-01"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  ageGroup <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">100</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">40</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">41</span>, <span class="fl">100</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  sex <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Both"</span>, <span class="st">"Male"</span>, <span class="st">"Female"</span><span class="op">)</span>,</span>
+<span>  daysPriorHistory <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">365</span><span class="op">)</span>,</span>
+<span>  requirementInteractions <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">dpop</span> <span class="op">&lt;-</span> <span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate-joins.html" class="external-link">left_join</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/cohortSet.html" class="external-link">cohortSet</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">dpop</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Rows: 375</span></span>
+<span><span class="co">#&gt; Columns: 13</span></span>
+<span><span class="co">#&gt; $ cohort_definition_id        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …</span></span>
+<span><span class="co">#&gt; $ subject_id                  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "3", "9", "10", "20", "22", "24", "35", "4…</span></span>
+<span><span class="co">#&gt; $ cohort_start_date           <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-04-30, 2008-01-01, 2009-12-16, 2008-…</span></span>
+<span><span class="co">#&gt; $ cohort_end_date             <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-09-19, 2008-09-29, 2010-01-01, 2008-…</span></span>
+<span><span class="co">#&gt; $ cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Denominator cohort 1", "Denominator cohor…</span></span>
+<span><span class="co">#&gt; $ age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0 to 100", "0 to 100", "0 to 100", "0 to …</span></span>
+<span><span class="co">#&gt; $ sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Both", "Both", "Both", "Both", "Both", "B…</span></span>
+<span><span class="co">#&gt; $ days_prior_history          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …</span></span>
+<span><span class="co">#&gt; $ start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-01-01, 2008-…</span></span>
+<span><span class="co">#&gt; $ end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2010-01-01, 2010-01-01, 2010-01-01, 2010-…</span></span>
+<span><span class="co">#&gt; $ strata_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ strata_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ closed_cohort               <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE, FALSE, FALSE, …</span></span>
+<span></span>
+<span><span class="va">dpop</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/group_by.html" class="external-link">group_by</a></span><span class="op">(</span><span class="va">cohort_definition_id</span>, <span class="va">age_group</span>, <span class="va">sex</span>, <span class="va">days_prior_history</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">tally</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 6 × 5</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Groups:   cohort_definition_id, age_group, sex [6]</span></span></span>
+<span><span class="co">#&gt;   cohort_definition_id age_group sex    days_prior_history     n</span></span>
+<span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 0 to 100  Both                    0   106</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    2 0 to 40   Both                    0    50</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    3 41 to 100 Both                    0    56</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>                    4 0 to 100  Male                    0    50</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>                    5 0 to 100  Female                  0    56</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>                    6 0 to 100  Both                  365    57</span></span>
+<span></span>
+<span><span class="va">dpop</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/slice.html" class="external-link">slice_sample</a></span><span class="op">(</span>prop <span class="op">=</span> <span class="fl">0.1</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"cohort_start_date"</span>,</span>
+<span>    <span class="st">"cohort_end_date"</span></span>
+<span>  <span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>cohort_definition_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="va">cohort_definition_id</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">subject_id</span>, y <span class="op">=</span> <span class="va">value</span>, colour <span class="op">=</span> <span class="va">cohort_definition_id</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_grid.html" class="external-link">facet_grid</a></span><span class="op">(</span><span class="va">sex</span> <span class="op">+</span> <span class="va">days_prior_history</span> <span class="op">~</span> <span class="va">age_group</span>, space <span class="op">=</span> <span class="st">"free_y"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span>position <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/position_dodge.html" class="external-link">position_dodge</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>position <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/position_dodge.html" class="external-link">position_dodge</a></span><span class="op">(</span>width <span class="op">=</span> <span class="fl">0.5</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_bw</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span></span>
+<span>    axis.text.y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    axis.ticks.y <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/element.html" class="external-link">element_blank</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>    legend.position <span class="op">=</span> <span class="st">"top"</span></span>
+<span>  <span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">"Year"</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/coord_flip.html" class="external-link">coord_flip</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p><img src="a02_Creating_denominator_populations_files/figure-html/unnamed-chunk-28-1.png" width="672"></p>
 </div>
 <div class="section level4">
 <h4 id="output">Output<a class="anchor" aria-label="anchor" href="#output"></a>
@@ -653,7 +768,7 @@ different row. For those databases that allow individuals to have
 multiple non-overlapping observation periods, one row for each patient
 and observation period is considered.</p>
 <p>Considering the following example, we can see:</p>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2008-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2010-01-01"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -664,21 +779,17 @@ and observation period is considered.</p>
 <span>  sex <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Male"</span>, <span class="st">"Female"</span><span class="op">)</span>,</span>
 <span>  daysPriorHistory <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">365</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; Creating denominator cohorts</span></span>
-<span><span class="co">#&gt;  -- getting cohort dates for <span style="color: #00BB00;">■■■■■■■■■■■■■■■■                </span> 4 of 8 cohorts</span></span>
-<span><span class="co">#&gt;  -- getting cohort dates for <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ </span> 8 of 8 cohorts</span></span>
-<span><span class="co">#&gt; Time taken to get cohorts: 0 min and 7 sec</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span>, <span class="fl">8</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># Source:   SQL [8 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.7.1 [unknown@Linux 5.15.0-1036-azure:R 4.3.0/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.8.0 [unknown@Linux 5.15.0-1039-azure:R 4.3.1/:memory:]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 203        2008-01-01        2009-03-28     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    1 303        2008-07-15        2009-05-14     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    1 409        2008-01-01        2008-07-28     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>                    1 462        2008-01-01        2008-02-20     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>                    1 3          2008-04-30        2008-09-19     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 3          2008-04-30        2008-09-19     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    1 203        2008-01-01        2009-03-28     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    1 303        2008-07-15        2009-05-14     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>                    1 409        2008-01-01        2008-07-28     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>                    1 462        2008-01-01        2008-02-20     </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>                    2 203        2008-01-01        2009-03-28     </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span>                    2 409        2008-06-16        2008-07-28     </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span>                    2 462        2008-01-01        2008-02-20</span></span></code></pre></div>
@@ -689,24 +800,24 @@ prior history requirements can be specified at the same time and each
 combination of these variables will result in a different cohort, each
 of which has a corresponding cohort_definition_id. In the above example,
 we identified 8 different cohorts:</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/cohortSet.html" class="external-link">cohortSet</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 8 × 9</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 8 × 10</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id cohort_name age_group sex   days_prior_history start_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 Denominato… 0;18      Male                   0 2008-01-01</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    2 Denominato… 0;18      Male                 365 2008-01-01</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    3 Denominato… 0;18      Fema…                  0 2008-01-01</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>                    4 Denominato… 0;18      Fema…                365 2008-01-01</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>                    5 Denominato… 19;100    Male                   0 2008-01-01</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>                    6 Denominato… 19;100    Male                 365 2008-01-01</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span>                    7 Denominato… 19;100    Fema…                  0 2008-01-01</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span>                    8 Denominato… 19;100    Fema…                365 2008-01-01</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 3 more variables: end_date &lt;date&gt;, strata_cohort_definition_id &lt;lgl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   strata_cohort_name &lt;lgl&gt;</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 Denominato… 0 to 18   Male                   0 2008-01-01</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    2 Denominato… 0 to 18   Male                 365 2008-01-01</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    3 Denominato… 0 to 18   Fema…                  0 2008-01-01</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>                    4 Denominato… 0 to 18   Fema…                365 2008-01-01</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>                    5 Denominato… 19 to 100 Male                   0 2008-01-01</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">6</span>                    6 Denominato… 19 to 100 Male                 365 2008-01-01</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span>                    7 Denominato… 19 to 100 Fema…                  0 2008-01-01</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span>                    8 Denominato… 19 to 100 Fema…                365 2008-01-01</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 4 more variables: end_date &lt;date&gt;, strata_cohort_definition_id &lt;lgl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   strata_cohort_name &lt;lgl&gt;, closed_cohort &lt;lgl&gt;</span></span></span></code></pre></div>
 <p>With <code><a href="https://rdrr.io/pkg/CDMConnector/man/cohortCount.html" class="external-link">cohortCount()</a></code> we can see the number of individuals
 who entered each study cohort</p>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/cohortCount.html" class="external-link">cohortCount</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 8 × 3</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id number_records number_subjects</span></span>
@@ -724,7 +835,7 @@ number of individuals in the database who were excluded from entering a
 given denominator population along with the reason (such as missing
 crucial information or not satisfying the sex or age criteria required,
 among others):</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/cohortAttrition.html" class="external-link">cohortAttrition</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 72 × 7</span></span></span>
 <span><span class="co">#&gt;    cohort_definition_id number_records number_subjects reason_id reason         </span></span>
@@ -744,7 +855,7 @@ among others):</p>
 </div>
 </div>
 <div class="section level2">
-<h2 id="using-generatedenominatorcohortset-with-a-cohort">Using generateDenominatorCohortSet() with a cohort<a class="anchor" aria-label="anchor" href="#using-generatedenominatorcohortset-with-a-cohort"></a>
+<h2 id="using-generatedenominatorcohortset-with-a-strata-cohort">Using generateDenominatorCohortSet() with a strata cohort<a class="anchor" aria-label="anchor" href="#using-generatedenominatorcohortset-with-a-strata-cohort"></a>
 </h2>
 <p>The <code><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet()</a></code> function can also be
 run for a subset of the population with a particular characteristic
@@ -753,7 +864,7 @@ recorded in our database, which could be time-invariant
 When using <code><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet()</a></code>, a stratifying
 cohort must be in the format of an OMOP CDM cohort.</p>
 <p>To provide an example its use, let´s generate 5 example patients.</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">personTable</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
 <span>  person_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>, <span class="st">"5"</span><span class="op">)</span>,</span>
 <span>  gender_concept_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"8507"</span>, <span class="fl">2</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"8532"</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -780,8 +891,8 @@ cohort must be in the format of an OMOP CDM cohort.</p>
 <span>  <span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Here we generate a simulated strata table with 5 individuals and 3
-different cohort stratas to illustrate the following examples.</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+different cohort strata to illustrate the following examples.</p>
+<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">conditionX</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://tibble.tidyverse.org/reference/tibble.html" class="external-link">tibble</a></span><span class="op">(</span></span>
 <span>  cohort_definition_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"2"</span>, <span class="fl">3</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"3"</span>, <span class="fl">5</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  subject_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"4"</span>, <span class="st">"3"</span>, <span class="st">"5"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"3"</span>, <span class="st">"5"</span>, <span class="st">"5"</span>, <span class="st">"2"</span><span class="op">)</span>,</span>
@@ -821,18 +932,24 @@ different cohort stratas to illustrate the following examples.</p>
 <span><span class="op">)</span></span></code></pre></div>
 <p>We can get a denominator population without including any particular
 subset like so</p>
-<div class="sourceCode" id="cb25"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
+<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># OMOP CDM reference (tbl_duckdb_connection)</span></span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; Tables: person, observation_period, cdm_source, vocabulary, strata, outcome, denominator</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;dbplyr_098&gt; [5 x 4]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.8.0 [unknown@Linux 5.15.0-1039-azure:R 4.3.1/:memory:]</span></span></span>
+<span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
+<span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 2          2005-04-01        2005-11-29     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    1 3          2009-04-10        2016-01-02     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    1 4          2010-08-20        2011-12-11     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>                    1 5          2010-01-01        2015-06-01     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>                    1 1          2010-12-19        2011-06-19</span></span></code></pre></div>
 <p>As we did not specify any study start and end date, the cohort start
 and end date of our 5 patients correspond to the same registered as
 observation period.</p>
-<div class="sourceCode" id="cb26"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">observationPeriodTable</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 5 × 4</span></span></span>
 <span><span class="co">#&gt;   observation_period_id person_id observation_period_st…¹ observation_period_e…²</span></span>
@@ -847,15 +964,15 @@ observation period.</p>
 <p>Let’s suppose we want to subset our population based on a non-time
 varying characteristic such as ethnicity, which corresponds to
 strataCohortId “1” in our simulated strata table.</p>
-<div class="sourceCode" id="cb27"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  strataTable <span class="op">=</span> <span class="st">"strata"</span>,</span>
 <span>  strataCohortId <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;dbplyr_084&gt; [3 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.7.1 [unknown@Linux 5.15.0-1036-azure:R 4.3.0/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;dbplyr_108&gt; [3 x 4]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.8.0 [unknown@Linux 5.15.0-1039-azure:R 4.3.1/:memory:]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 2          2005-04-01        2005-11-29     </span></span>
@@ -867,7 +984,7 @@ study period, the cohort start and end date correspond to same dates of
 their observation period. Therefore, the obtained denominator population
 cohort is the same as the one observed in the first example but limited
 to the individuals that have our characteristic of interest.</p>
-<div class="sourceCode" id="cb28"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://dplyr.tidyverse.org" class="external-link">dplyr</a></span><span class="op">)</span></span>
 <span><span class="va">observationPeriodTable</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">person_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"4"</span><span class="op">)</span><span class="op">)</span></span>
@@ -882,15 +999,15 @@ to the individuals that have our characteristic of interest.</p>
 <p>Now say we want to subset our population based on a time varying
 characteristic such a particular condition (strataCohortId “2” in our
 simulated strata table).</p>
-<div class="sourceCode" id="cb29"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  strataTable <span class="op">=</span> <span class="st">"strata"</span>,</span>
 <span>  strataCohortId <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;dbplyr_094&gt; [3 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.7.1 [unknown@Linux 5.15.0-1036-azure:R 4.3.0/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;dbplyr_118&gt; [3 x 4]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.8.0 [unknown@Linux 5.15.0-1039-azure:R 4.3.1/:memory:]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 3          2012-01-01        2013-01-01     </span></span>
@@ -902,7 +1019,7 @@ the cohort start and end dates correspond to the cohort start and end
 date of our strata table, and not to their observation period.
 Therefore, individuals only contribute time while they are experiencing
 this particular condition.</p>
-<div class="sourceCode" id="cb30"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">conditionX</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">cohort_definition_id</span> <span class="op">==</span> <span class="fl">2</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">subject_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"5"</span><span class="op">)</span><span class="op">)</span></span>
@@ -915,28 +1032,28 @@ this particular condition.</p>
 <p>Depending in which condition we’re interested in, people might
 experience the same condition multiple times. Let’s use strataCohortId
 “3” to illustrate this example.</p>
-<div class="sourceCode" id="cb31"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  strataTable <span class="op">=</span> <span class="st">"strata"</span>,</span>
 <span>  strataCohortId <span class="op">=</span> <span class="fl">3</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;dbplyr_104&gt; [5 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.7.1 [unknown@Linux 5.15.0-1036-azure:R 4.3.0/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;dbplyr_128&gt; [5 x 4]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.8.0 [unknown@Linux 5.15.0-1039-azure:R 4.3.1/:memory:]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 3          2015-06-01        2015-12-31     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    1 5          2010-06-01        2010-06-01     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 3          2012-01-01        2013-01-01     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    1 5          2014-10-01        2015-04-01     </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    1 2          2005-08-20        2005-08-20     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>                    1 3          2012-01-01        2013-01-01     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>                    1 5          2014-10-01        2015-04-01</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>                    1 3          2015-06-01        2015-12-31     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>                    1 5          2010-06-01        2010-06-01</span></span></code></pre></div>
 <p>We can see that person “3” and “5” experienced this condition in two
 different occasions. Therefore, they only contribute time to the
 denominator population during the time periods they had this condition.
 As before, cohort start and end date correspond to the start and end
 date of this condition.</p>
-<div class="sourceCode" id="cb32"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb35"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">conditionX</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">cohort_definition_id</span> <span class="op">==</span> <span class="fl">3</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">subject_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"5"</span><span class="op">)</span><span class="op">)</span></span>
@@ -950,38 +1067,69 @@ date of this condition.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span> 3                    2          2005-08-20        2005-08-20</span></span></code></pre></div>
 <p>In both examples, the study period can be restricted to a particular
 period of interest. Similarly, age and sex stratification and prior
-history requirements can be further applied.</p>
-<div class="sourceCode" id="cb33"><pre class="downlit sourceCode r">
+history requirements can be further applied. Prior history requirements
+are applied relative to an individual´s observation period start date.
+Note that when strataRequirementsAtEntry is set to TRUE individuals are
+included only if they satisfy the age and prior history requirements on
+their strata cohort start date. If strataRequirementsAtEntry is set to
+FALSE, individuals can enter at the time at which they satisfy these
+requirements (which maay be after their strata cohort start date).</p>
+<p>In the case below we can see that person “5” satisfies the age
+requirement after their strata cohort start date. Therefore, this
+individual is included when strataRequirementsAtEntry is FALSE
+(contributing once they reach the age of 15), but are excuded
+strataRequirementsAtEntry is TRUE (as they were not 15 on their strata
+cohort start date).</p>
+<div class="sourceCode" id="cb36"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
-<span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
+<span>  cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="st">"denom_reqs_at_strata_entry"</span>,</span>
+<span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2014-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2016-01-01"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  ageGroup <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">25</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  sex <span class="op">=</span> <span class="st">"Female"</span>,</span>
+<span>  daysPriorHistory <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  strataTable <span class="op">=</span> <span class="st">"strata"</span>,</span>
 <span>  strataCohortId <span class="op">=</span> <span class="fl">3</span>,</span>
-<span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2014-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2016-01-01"</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  ageGroup <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  sex <span class="op">=</span> <span class="st">"Female"</span>,</span>
-<span>  daysPriorHistory <span class="op">=</span> <span class="fl">0</span></span>
+<span>  strataRequirementsAtEntry <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;dbplyr_114&gt; [2 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.7.1 [unknown@Linux 5.15.0-1036-azure:R 4.3.0/:memory:]</span></span></span>
+<span><span class="va">cdm</span><span class="op">$</span><span class="va">denom_reqs_at_strata_entry</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;dbplyr_138&gt; [1 x 5]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.8.0 [unknown@Linux 5.15.0-1039-azure:R 4.3.1/:memory:]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 3          2015-06-01        2015-12-31     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    1 5          2014-10-01        2015-04-01</span></span></code></pre></div>
-<p>In this case we have used the same strata than before, but we have
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: strata_start_date &lt;date&gt;</span></span></span>
+<span></span>
+<span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
+<span>  cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="st">"denom_reqs_any_time"</span>,</span>
+<span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"2014-01-01"</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  ageGroup <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">15</span>, <span class="fl">25</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  sex <span class="op">=</span> <span class="st">"Female"</span>,</span>
+<span>  daysPriorHistory <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  strataTable <span class="op">=</span> <span class="st">"strata"</span>,</span>
+<span>  strataCohortId <span class="op">=</span> <span class="fl">3</span>,</span>
+<span>  strataRequirementsAtEntry <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="va">cdm</span><span class="op">$</span><span class="va">denom_reqs_any_time</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;dbplyr_148&gt; [1 x 5]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB 0.8.0 [unknown@Linux 5.15.0-1039-azure:R 4.3.1/:memory:]</span></span></span>
+<span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
+<span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 3          2015-06-01        2015-12-31     </span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 1 more variable: strata_start_date &lt;date&gt;</span></span></span></code></pre></div>
+<p>In the case above we have used the same strata as before, but we have
 restricted our analysis to females and we have limited our study period.
 As we can see, using this period of time we don’t capture patient “2”
 (who was a man) and we only observe one time period for individuals “3”
 and “5” (who had multiple contributing time periods in the prior
 example).</p>
-<div class="sourceCode" id="cb34"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb37"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/cohortSet.html" class="external-link">cohortSet</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 9</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 1 × 10</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id cohort_name age_group sex   days_prior_history start_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>    </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 Denominato… 0;150     Fema…                  0 2014-01-01</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 3 more variables: end_date &lt;date&gt;, strata_cohort_definition_id &lt;dbl&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   strata_cohort_name &lt;chr&gt;</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 Denominato… 0 to 150  Both                   0 2005-04-01</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 4 more variables: end_date &lt;date&gt;, strata_cohort_definition_id &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   strata_cohort_name &lt;chr&gt;, closed_cohort &lt;lgl&gt;</span></span></span></code></pre></div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>
     </nav></aside>

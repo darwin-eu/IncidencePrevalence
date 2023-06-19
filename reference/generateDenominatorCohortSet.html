@@ -16,7 +16,7 @@ or estimatePeriodPrevalence()."><!-- mathjax --><script src="https://cdnjs.cloud
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.3.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -68,8 +68,11 @@ or <code><a href="estimatePeriodPrevalence.html">estimatePeriodPrevalence()</a><
 <span>  ageGroup <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  sex <span class="op">=</span> <span class="st">"Both"</span>,</span>
 <span>  daysPriorHistory <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  requirementInteractions <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  strataTable <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  strataCohortId <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  strataRequirementsAtEntry <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  closedCohort <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  temporary <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -112,6 +115,13 @@ the database required for an individual to start contributing time in
 a cohort.</p></dd>
 
 
+<dt>requirementInteractions</dt>
+<dd><p>If TRUE, cohorts will be created for
+all combinations of ageGroup, sex, and daysPriorHistory. If FALSE, only the
+first value specified for the other factors will be used. Consequently,
+order of values matters when requirementInteractions is FALSE.</p></dd>
+
+
 <dt>strataTable</dt>
 <dd><p>A cohort table in the cdm reference to use
 to limit cohort entry and exit (with individuals only contributing to a
@@ -122,6 +132,19 @@ cohort when they are contributing to the cohort in the strata table).</p></dd>
 <dd><p>The cohort definition id for the cohort of interest
 in the strata table. If strataTable is specified, a single strataCohortId
 must also be specified.</p></dd>
+
+
+<dt>strataRequirementsAtEntry</dt>
+<dd><p>If TRUE, individuals will only be
+included if they satisfy time varying requirements on their strata cohort
+start date. If FALSE, individuals will enter the denominator cohort once
+they satisfy requirements.</p></dd>
+
+
+<dt>closedCohort</dt>
+<dd><p>If TRUE, a closed cohort will be defined where only
+those individuals satisfying eligibility criteria on the start date
+given in cohortDateRange are included.</p></dd>
 
 
 <dt>temporary</dt>
