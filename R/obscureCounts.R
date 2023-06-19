@@ -15,9 +15,8 @@
 # limitations under the License.
 
 obscureCounts <- function(x,
-                           minCellCount = 5,
-                           substitute = NA) {
-
+                          minCellCount = 5,
+                          substitute = NA) {
   ## check for standard types of user error
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assert_tibble(x,
@@ -46,22 +45,28 @@ obscureCounts <- function(x,
 
   if (c("n_events") %in% names(x)) {
     x[x$n_persons < minCellCount, c("cohort_obscured")] <- "TRUE"
-    x[x$n_persons < minCellCount, c("n_persons",
-                                         "person_days",
-                                         "person_years")] <- substitute
+    x[x$n_persons < minCellCount, c(
+      "n_persons",
+      "person_days",
+      "person_years"
+    )] <- substitute
     x[x$n_events < minCellCount, c("result_obscured")] <- "TRUE"
-    x[x$n_events < minCellCount, c("n_events", "incidence_100000_pys",
-                                     "incidence_100000_pys_95CI_lower",
-                                     "incidence_100000_pys_95CI_upper")] <- substitute
+    x[x$n_events < minCellCount, c(
+      "n_events", "incidence_100000_pys",
+      "incidence_100000_pys_95CI_lower",
+      "incidence_100000_pys_95CI_upper"
+    )] <- substitute
   }
   if (c("n_cases") %in% names(x)) {
     x[x$n_population < minCellCount, c("cohort_obscured")] <- "TRUE"
     x[x$n_population < minCellCount, c("n_population")] <- substitute
     x[x$n_cases < minCellCount, c("result_obscured")] <- "TRUE"
-    x[x$n_cases < minCellCount, c("n_cases",
-                                      "prevalence",
-                                      "prevalence_95CI_lower",
-                                     "prevalence_95CI_upper")] <- substitute
+    x[x$n_cases < minCellCount, c(
+      "n_cases",
+      "prevalence",
+      "prevalence_95CI_lower",
+      "prevalence_95CI_upper"
+    )] <- substitute
   }
 
   return(x)

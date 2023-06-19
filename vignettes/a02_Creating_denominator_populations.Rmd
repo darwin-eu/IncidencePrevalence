@@ -3,8 +3,10 @@ title: "Creating denominator cohorts"
 output: rmarkdown::html_vignette
 vignette: >
   %\VignetteIndexEntry{a02_Creating_denominator_cohorts}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r, include = FALSE}
@@ -302,6 +304,41 @@ cdm$denominator %>%
   )
 ```
 
+### Creating a closed cohort
+
+A closed cohort is one where membership begins at a defined time. No one can be added to the cohort after this time. A closed cohort can be defined by setting closedCohort to TRUE. Note a start date for the cohortDateRange must have been specified as this will be the date in which cohort membership will be defined. Only individuals satisfying eligibility criteria on this day will be included.
+
+```{r, message=FALSE, warning=FALSE}
+cdm <- cdm %>%
+  generateDenominatorCohortSet(
+    name = "denominator_open",
+    cohortDateRange = c(as.Date("2008-01-01"), as.Date("2010-01-01")),
+    closedCohort = FALSE
+  ) %>%
+  generateDenominatorCohortSet(
+    name = "denominator_closed",
+    cohortDateRange = c(as.Date("2008-01-01"), as.Date("2010-01-01")),
+    closedCohort = TRUE
+  )
+```
+
+```{r, message=FALSE, warning=FALSE}
+dplyr::bind_rows(
+  cdm$denominator_open %>%
+    collect() %>%
+    mutate(cohort = "Open cohort"),
+  cdm$denominator_closed %>%
+    collect() %>%
+    mutate(cohort = "Closed cohort")
+) %>%
+  ggplot() +
+  theme_minimal() +
+  geom_histogram(aes(cohort_start_date),
+    colour = "black", fill = "grey"
+  ) +
+  facet_wrap(vars(cohort))
+```
+
 ### Multiple options to return multiple denominator populations 
 More than one age, sex and prior history requirements can be specified at the same time. First, we can take a look at having two age groups. We can see below that those individuals who have their 41st birthday during the study period will go from the first cohort (age_group: 0;40) to the second (age_group: 41;100) on this day.
 ```{r, message=FALSE, warning=FALSE}
@@ -422,13 +459,57 @@ dpop %>%
   coord_flip()
 ```
 
+Note, setting requirementInteractions to FALSE would mean that only the first value of other age, sex, and prior history requirements are considered for a given characteristic. In this case the order of the values will be important and generally the first vlaues will be the primary analysis settings while subsequent values are for secondary analyses.
+```{r, message=FALSE, warning=FALSE, fig.height=10}
+cdm <- generateDenominatorCohortSet(
+  cdm = cdm,
+  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2010-01-01")),
+  ageGroup = list(
+    c(0, 100),
+    c(0, 40),
+    c(41, 100)
+  ),
+  sex = c("Both", "Male", "Female"),
+  daysPriorHistory = c(0, 365),
+  requirementInteractions = FALSE
+)
+dpop <- cdm$denominator %>%
+  collect() %>%
+  left_join(cohortSet(cdm$denominator))
+
+dpop %>% glimpse()
+
+dpop %>%
+  group_by(cohort_definition_id, age_group, sex, days_prior_history) %>%
+  tally()
+
+dpop %>%
+  dplyr::slice_sample(prop = 0.1) %>%
+  pivot_longer(cols = c(
+    "cohort_start_date",
+    "cohort_end_date"
+  )) %>%
+  mutate(cohort_definition_id = as.character(cohort_definition_id)) %>%
+  ggplot(aes(x = subject_id, y = value, colour = cohort_definition_id)) +
+  facet_grid(sex + days_prior_history ~ age_group, space = "free_y") +
+  geom_point(position = position_dodge(width = 0.5)) +
+  geom_line(position = position_dodge(width = 0.5)) +
+  theme_bw() +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    legend.position = "top"
+  ) +
+  ylab("Year") +
+  coord_flip()
+```
 
 ### Output 
 `generateDenominatorCohortSet()` will generate a table with the denominator population, which includes the information on all the individuals who fulfill the given criteria at any point during the study period. It also includes information on the specific start and end dates in which individuals contributed to the denominator population (cohort_start_date and cohort_end_date). Each patient is recorded in a different row. For those databases that allow individuals to have multiple non-overlapping observation periods, one row for each patient and observation period is considered.
 
 Considering the following example, we can see:
 
-```{r, message=TRUE, warning=FALSE}
+```{r, message=TRUE, warning=FALSE, message=FALSE}
 cdm <- generateDenominatorCohortSet(
   cdm = cdm,
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2010-01-01")),
@@ -460,7 +541,7 @@ With `CDMConnector::cohortAttrition()` we can see the number of individuals in t
 cohortAttrition(cdm$denominator)
 ```
 
-# Using generateDenominatorCohortSet() with a cohort
+# Using generateDenominatorCohortSet() with a strata cohort
 The `generateDenominatorCohortSet()` function can also be run for a subset of the population with a particular characteristic recorded in our database, which could be time-invariant (e.g. ethnicity), or time-varying (e.g. taking a certain medication). When using `generateDenominatorCohortSet()`, a stratifying cohort must be in the format of an OMOP CDM cohort.
 
 To provide an example its use, let´s generate 5 example patients.
@@ -493,7 +574,7 @@ observationPeriodTable <- tibble(
 )
 ```
 
-Here we generate a simulated strata table with 5 individuals and 3 different cohort stratas to illustrate the following examples.
+Here we generate a simulated strata table with 5 individuals and 3 different cohort strata to illustrate the following examples.
 
 ```{r, message=FALSE, warning=FALSE, results='hide'}
 conditionX <- tibble(
@@ -538,7 +619,7 @@ cdm <- mockIncidencePrevalenceRef(
 
 We can get a denominator population without including any particular subset like so
 ```{r, message=FALSE, warning=FALSE}
-cdm$denominator <- generateDenominatorCohortSet(
+cdm <- generateDenominatorCohortSet(
   cdm = cdm
 )
 cdm$denominator
@@ -606,23 +687,38 @@ conditionX %>%
   filter(subject_id %in% c("2", "3", "5"))
 ```
 
-In both examples, the study period can be restricted to a particular period of interest. Similarly, age and sex stratification and prior history requirements can be further applied.
+In both examples, the study period can be restricted to a particular period of interest. Similarly, age and sex stratification and prior history requirements can be further applied. Prior history requirements are applied relative to an individual´s observation period start date. Note that when strataRequirementsAtEntry is set to TRUE individuals are included only if they satisfy the age and prior history requirements on their strata cohort start date. If strataRequirementsAtEntry is set to FALSE, individuals can enter at the time at which they satisfy these requirements (which maay be after their strata cohort start date). 
 
+In the case below we can see that person "5" satisfies the age requirement after their strata cohort start date. Therefore, this individual is included when strataRequirementsAtEntry is FALSE (contributing once they reach the age of 15), but are excuded strataRequirementsAtEntry is TRUE (as they were not 15 on their strata cohort start date).  
 
 ```{r, message=FALSE, warning=FALSE}
 cdm <- generateDenominatorCohortSet(
-  cdm = cdm,
+  cdm = cdm, name = "denom_reqs_at_strata_entry",
+  cohortDateRange = c(as.Date("2014-01-01"), as.Date("2016-01-01")),
+  ageGroup = list(c(15, 25)),
+  sex = "Female",
+  daysPriorHistory = 0,
   strataTable = "strata",
   strataCohortId = 3,
-  cohortDateRange = c(as.Date("2014-01-01"), as.Date("2016-01-01")),
-  ageGroup = list(c(0, 150)),
-  sex = "Female",
-  daysPriorHistory = 0
+  strataRequirementsAtEntry = FALSE
 )
-cdm$denominator
+cdm$denom_reqs_at_strata_entry
+
+cdm <- generateDenominatorCohortSet(
+  cdm = cdm, name = "denom_reqs_any_time",
+  cohortDateRange = as.Date(c("2014-01-01", NA)),
+  ageGroup = list(c(15, 25)),
+  sex = "Female",
+  daysPriorHistory = 0,
+  strataTable = "strata",
+  strataCohortId = 3,
+  strataRequirementsAtEntry = FALSE
+)
+cdm$denom_reqs_any_time
+
 ```
 
-In this case we have used the same strata than before, but we have restricted our analysis to females and we have limited our study period. As we can see, using this period of time we don't capture patient "2" (who was a man) and we only observe one time period for individuals "3" and "5" (who had multiple contributing time periods in the prior example).
+In the case above we have used the same strata as before, but we have restricted our analysis to females and we have limited our study period. As we can see, using this period of time we don't capture patient "2" (who was a man) and we only observe one time period for individuals "3" and "5" (who had multiple contributing time periods in the prior example).
 
 ```{r, message=FALSE, warning=FALSE}
 cohortSet(cdm$denominator)

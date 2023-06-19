@@ -57,9 +57,11 @@ Run benchmark of incidence and prevalence analyses
 }
 \examples{
 \donttest{
-cdm <- mockIncidencePrevalenceRef(sampleSize = 10000,
-                                  earliestObservationStartDate = as.Date("2010-01-01") ,
-                                  latestObservationStartDate = as.Date("2018-01-01"))
+cdm <- mockIncidencePrevalenceRef(
+  sampleSize = 10000,
+  earliestObservationStartDate = as.Date("2010-01-01"),
+  latestObservationStartDate = as.Date("2018-01-01")
+)
 timings <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm)
 }
 }

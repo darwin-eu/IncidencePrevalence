@@ -33,22 +33,27 @@
 #'   cdm = cdm, name = "denominator"
 #' )
 #' prev <- estimatePointPrevalence(
-#' cdm = cdm,
-#' denominatorTable = "denominator",
-#' outcomeTable = "outcome"
+#'   cdm = cdm,
+#'   denominatorTable = "denominator",
+#'   outcomeTable = "outcome"
 #' )
-#'exportIncidencePrevalenceResults(resultList=list("prevalence" = prev),
-#'                                 zipName="test",
-#'                                 outputFolder=tempdir())
+#' exportIncidencePrevalenceResults(
+#'   resultList = list("prevalence" = prev),
+#'   zipName = "test",
+#'   outputFolder = tempdir()
+#' )
 #' }
-exportIncidencePrevalenceResults <- function(resultList, zipName, outputFolder) {
-
+exportIncidencePrevalenceResults <- function(resultList,
+                                             zipName,
+                                             outputFolder) {
   errorMessage <- checkmate::makeAssertCollection()
 
   checkResultType <- list()
-  for(i in seq_along(resultList)){
-    checkResultType[[i]] <- inherits(resultList[[i]],
-                                     "IncidencePrevalenceResult") &
+  for (i in seq_along(resultList)) {
+    checkResultType[[i]] <- inherits(
+      resultList[[i]],
+      "IncidencePrevalenceResult"
+    ) &
       nrow(resultList[[i]] >= 1)
   }
   checkResultType <- all(unlist(checkResultType)) == TRUE
@@ -58,10 +63,11 @@ exportIncidencePrevalenceResults <- function(resultList, zipName, outputFolder) 
     )
   }
   checkmate::assertTRUE(checkResultType,
-                        add = errorMessage
+    add = errorMessage
   )
   checkmate::assertDirectoryExists(outputFolder,
-                              add = errorMessage)
+    add = errorMessage
+  )
   checkmate::reportAssertions(collection = errorMessage)
 
   tempDir <- zipName
@@ -72,24 +78,29 @@ exportIncidencePrevalenceResults <- function(resultList, zipName, outputFolder) 
   }
 
   # write results to disk
-  for(i in seq_along(resultList)){
+  for (i in seq_along(resultList)) {
     workingResult <- resultList[[i]]
     workingName <- names(resultList)[[i]]
-    if(is.null(workingName)){
+    if (is.null(workingName)) {
       workingName <- paste0("result_", i)
     }
     utils::write.csv(workingResult,
-                     file = file.path(
-                       tempDir,
-                       paste0(unique(workingResult$cdm_name), "_",
-                              workingName, "_",
-                              format(Sys.Date(), format="%Y_%m_%d"),
-                              ".csv")),
-                     row.names = FALSE
+      file = file.path(
+        tempDir,
+        paste0(
+          unique(workingResult$cdm_name), "_",
+          workingName, "_",
+          format(Sys.Date(), format = "%Y_%m_%d"),
+          ".csv"
+        )
+      ),
+      row.names = FALSE
     )
   }
-  zip::zip(zipfile = file.path(outputFolder, paste0(zipName, ".zip")),
-           files = list.files(tempDir, full.names = TRUE))
+  zip::zip(
+    zipfile = file.path(outputFolder, paste0(zipName, ".zip")),
+    files = list.files(tempDir, full.names = TRUE)
+  )
   if (tempDirCreated) {
     unlink(tempDir, recursive = TRUE)
   }
