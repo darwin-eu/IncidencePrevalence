@@ -689,7 +689,7 @@ conditionX %>%
 
 In both examples, the study period can be restricted to a particular period of interest. Similarly, age and sex stratification and prior history requirements can be further applied. Prior history requirements are applied relative to an individual´s observation period start date. Note that when strataRequirementsAtEntry is set to TRUE individuals are included only if they satisfy the age and prior history requirements on their strata cohort start date. If strataRequirementsAtEntry is set to FALSE, individuals can enter at the time at which they satisfy these requirements (which maay be after their strata cohort start date). 
 
-In the case below we can see that person "5" satisfies the age requirement after their strata cohort start date. Therefore, this individual is included when strataRequirementsAtEntry is FALSE (contributing once they reach the age of 15), but are excuded strataRequirementsAtEntry is TRUE (as they were not 15 on their strata cohort start date).  
+In the case below we can see that person "5" satisfies the age requirement after their strata cohort start date. Therefore, this individual is excluded (as they were not 15 on their strata cohort start date).  
 
 ```{r, message=FALSE, warning=FALSE}
 cdm <- generateDenominatorCohortSet(
@@ -699,23 +699,9 @@ cdm <- generateDenominatorCohortSet(
   sex = "Female",
   daysPriorHistory = 0,
   strataTable = "strata",
-  strataCohortId = 3,
-  strataRequirementsAtEntry = FALSE
+  strataCohortId = 3
 )
 cdm$denom_reqs_at_strata_entry
-
-cdm <- generateDenominatorCohortSet(
-  cdm = cdm, name = "denom_reqs_any_time",
-  cohortDateRange = as.Date(c("2014-01-01", NA)),
-  ageGroup = list(c(15, 25)),
-  sex = "Female",
-  daysPriorHistory = 0,
-  strataTable = "strata",
-  strataCohortId = 3,
-  strataRequirementsAtEntry = FALSE
-)
-cdm$denom_reqs_any_time
-
 ```
 
 In the case above we have used the same strata as before, but we have restricted our analysis to females and we have limited our study period. As we can see, using this period of time we don't capture patient "2" (who was a man) and we only observe one time period for individuals "3" and "5" (who had multiple contributing time periods in the prior example).
