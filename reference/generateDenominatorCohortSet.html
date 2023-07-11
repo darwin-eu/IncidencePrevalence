@@ -16,7 +16,7 @@ or estimatePeriodPrevalence()."><!-- mathjax --><script src="https://cdnjs.cloud
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -71,7 +71,6 @@ or <code><a href="estimatePeriodPrevalence.html">estimatePeriodPrevalence()</a><
 <span>  requirementInteractions <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  strataTable <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  strataCohortId <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  strataRequirementsAtEntry <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  closedCohort <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  temporary <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -132,13 +131,6 @@ cohort when they are contributing to the cohort in the strata table).</p></dd>
 <dd><p>The cohort definition id for the cohort of interest
 in the strata table. If strataTable is specified, a single strataCohortId
 must also be specified.</p></dd>
-
-
-<dt>strataRequirementsAtEntry</dt>
-<dd><p>If TRUE, individuals will only be
-included if they satisfy time varying requirements on their strata cohort
-start date. If FALSE, individuals will enter the denominator cohort once
-they satisfy requirements.</p></dd>
 
 
 <dt>closedCohort</dt>
