@@ -51,10 +51,6 @@
 #' @param strataCohortId The cohort definition id for the cohort of interest
 #'  in the strata table. If strataTable is specified, a single strataCohortId
 #'  must also be specified.
-#' @param strataRequirementsAtEntry If TRUE, individuals will only be
-#' included if they satisfy time varying requirements on their strata cohort
-#' start date. If FALSE, individuals will enter the denominator cohort once
-#' they satisfy requirements.
 #' @param closedCohort If TRUE, a closed cohort will be defined where only
 #' those individuals satisfying eligibility criteria on the start date
 #' given in cohortDateRange are included.
@@ -85,7 +81,6 @@ generateDenominatorCohortSet <- function(cdm,
                                          requirementInteractions = TRUE,
                                          strataTable = NULL,
                                          strataCohortId = NULL,
-                                         strataRequirementsAtEntry = TRUE,
                                          closedCohort = FALSE,
                                          temporary = TRUE) {
   startCollect <- Sys.time()
@@ -274,35 +269,31 @@ generateDenominatorCohortSet <- function(cdm,
           "subject_id" = "person_id"
         ) %>%
         dplyr::select(dplyr::any_of(c("subject_id", "cohort_start_date", "cohort_end_date",
-                      "strata_start_date")))  %>%
+                      "strata_start_date")))
+
+
+      if(!is.null(strataTable)){
+        # make sure that cohort start was before or on strata start
+        # and update cohort start to strata start
+        workingDpop <- workingDpop %>%
+          dplyr::filter(.data$cohort_start_date <=
+                          .data$strata_start_date) %>%
+          dplyr::mutate(cohort_start_date = .data$strata_start_date) %>%
+          dplyr::select(dplyr::any_of(c("subject_id",
+                                        "cohort_start_date",
+                                        "cohort_end_date")))
+              }
+
+      workingDpop <- workingDpop %>%
         dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
 
       dpop$attrition[[i]] <- recordAttrition(
         table = workingDpop,
         id = "subject_id",
         reasonId = 10,
-        reason = glue::glue("No observation time available after applying age and prior history criteria"),
+        reason = glue::glue("No observation time available after applying age, prior history and, if applicable, strata criteria"),
         existingAttrition = dpop$attrition[[i]]
       )
-
-      if(!is.null(strataTable) && isTRUE(strataRequirementsAtEntry)){
-        workingDpop <- workingDpop %>%
-          dplyr::filter(.data$cohort_start_date ==
-                          .data$strata_start_date) %>%
-          dplyr::select(dplyr::any_of(c("subject_id",
-                                        "cohort_start_date",
-                                        "cohort_end_date")))
-
-        dpop$attrition[[i]] <- recordAttrition(
-          table = workingDpop,
-          id = "subject_id",
-          reasonId = 11,
-          reason = glue::glue("Excluded after requiring requirements on strata cohort start date"),
-          existingAttrition = dpop$attrition[[i]]
-        )
-
-      }
-
 
       if (isTRUE(closedCohort)) {
         workingDpop <- workingDpop %>%
@@ -311,7 +302,7 @@ generateDenominatorCohortSet <- function(cdm,
         dpop$attrition[[i]] <- recordAttrition(
           table = workingDpop,
           id = "subject_id",
-          reasonId = 12,
+          reasonId = 11,
           reason = glue::glue("Excluded after applying closed cohort restriction"),
           existingAttrition = dpop$attrition[[i]]
         )
