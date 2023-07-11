@@ -929,7 +929,7 @@ test_that("mock db check strata prior history requirement", {
   # (as prior history based on obs period achieved before strata cohort start)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, strataTable = "strata",
-    strataCohortId = 1, strataRequirementsAtEntry = FALSE,
+    strataCohortId = 1,
     ageGroup = list(
       c(11, 12)
     ), daysPriorHistory = 0
@@ -941,7 +941,7 @@ test_that("mock db check strata prior history requirement", {
 
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, strataTable = "strata",
-    strataCohortId = 1,strataRequirementsAtEntry = FALSE,
+    strataCohortId = 1,
     ageGroup = list(
       c(11, 12)
     ), daysPriorHistory = 365
@@ -951,23 +951,9 @@ test_that("mock db check strata prior history requirement", {
     dplyr::select(cohort_start_date) %>%
     dplyr::pull() == as.Date("2012-01-01"))
 
-  # only if requirement exceeds prior history from obs period
-  # will start date change
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, strataTable = "strata",
-    strataCohortId = 1,strataRequirementsAtEntry = FALSE,
-    ageGroup = list(
-      c(11, 12)
-    ), daysPriorHistory = 600
-  )
-  expect_true(cdm$denominator %>% # still contributes
-    dplyr::filter(cohort_definition_id == 1) %>%
-    dplyr::select(cohort_start_date) %>%
-    dplyr::pull() > as.Date("2012-01-01"))
-
-  cdm <- generateDenominatorCohortSet(
-    cdm = cdm, strataTable = "strata",
-    strataCohortId = 1,strataRequirementsAtEntry = FALSE,
+    strataCohortId = 1,
     ageGroup = list(
       c(11, 12)
     ), daysPriorHistory = 10000
@@ -980,25 +966,27 @@ test_that("mock db check strata prior history requirement", {
 test_that("mock db: strataRequirementsAtEntry", {
   skip_on_cran()
 
-  #prior history
+  ## Prior history
   personTable <- tibble::tibble(
-    person_id = "1",
+    person_id = c("1","2"),
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
   observationPeriodTable <- tibble::tibble(
-    observation_period_id = "1",
-    person_id = "1",
-    observation_period_start_date = as.Date("2012-01-01"),
+    observation_period_id = c("1","2"),
+    person_id =  c("1","2"),
+    observation_period_start_date = c(as.Date("2012-01-01"),
+                                      as.Date("2013-01-04")),
     observation_period_end_date = as.Date("2018-06-01")
   )
   strataTable <- tibble::tibble(
     cohort_definition_id = 1,
     subject_id = c("1", "2"),
-    cohort_start_date = as.Date("2012-01-05"),
-    cohort_end_date = as.Date("2018-06-01")
+    cohort_start_date = c(as.Date("2012-01-05"),
+                          as.Date("2013-01-05")),
+    cohort_end_date = as.Date("2018-06-01"),
   )
 
   cdm <- mockIncidencePrevalenceRef(
@@ -1009,31 +997,33 @@ test_that("mock db: strataRequirementsAtEntry", {
 
   cdm <- generateDenominatorCohortSet(cdm,
                                       name = "denom_reqs_any_time",
-                                      daysPriorHistory = 20,
+                                      daysPriorHistory = c(0,2,4,10),
                                       strataTable = "strata",
-                                      strataCohortId = 1,
-                                      strataRequirementsAtEntry = FALSE
+                                      strataCohortId = 1
   )
   # enter when they satisfy prior hist reqs
- expect_true(cdm$denom_reqs_any_time %>%
-    dplyr::pull("cohort_start_date") == as.Date("2012-01-21"))
+  # subject 1 should be in both cohorts, subject 2 only in first with 0 day req
+  expect_true(CDMConnector::cohortCount(cdm$denom_reqs_any_time) %>%
+    dplyr::filter(cohort_definition_id == 1) %>%
+    dplyr::pull("number_records") == 2)
+  expect_true(CDMConnector::cohortCount(cdm$denom_reqs_any_time) %>%
+                dplyr::filter(cohort_definition_id == 2) %>%
+                dplyr::pull("number_records") == 1)
+  expect_true(CDMConnector::cohortCount(cdm$denom_reqs_any_time) %>%
+                dplyr::filter(cohort_definition_id == 3) %>%
+                dplyr::pull("number_records") == 1)
+  expect_true(CDMConnector::cohortCount(cdm$denom_reqs_any_time) %>%
+                dplyr::filter(cohort_definition_id == 4) %>%
+                dplyr::pull("number_records") == 0)
 
-
-
-  cdm <- generateDenominatorCohortSet(cdm,
-                                      name = "denom_reqs_cohort_entry",
-                                      daysPriorHistory = 20,
-                                      strataTable = "strata",
-                                      strataCohortId = 1,
-                                      strataRequirementsAtEntry = TRUE
-  )
-  # don´t enter
-  # they satisfy prior hist req on cohort start date
-  expect_true(cdm$denom_reqs_cohort_entry %>%
-                dplyr::tally() %>%
-                dplyr::pull("n") == 0)
-
-  CDMConnector::cdmDisconnect(cdm)
+ # in all cases subject 1 should start on their strata start "2012-01-05"
+  expect_true(all(cdm$denom_reqs_any_time %>%
+  dplyr::filter(subject_id == 1) %>%
+  dplyr::pull("cohort_start_date") == as.Date("2012-01-05")))
+  # in all cases subject 2 should start on their strata start "2013-01-05"
+  expect_true(all(cdm$denom_reqs_any_time %>%
+                    dplyr::filter(subject_id ==2) %>%
+                    dplyr::pull("cohort_start_date") == as.Date("2013-01-05")))
 
 
   ## Age
@@ -1063,24 +1053,12 @@ test_that("mock db: strataRequirementsAtEntry", {
     strataTable = strataTable
   )
 
-  cdm <- generateDenominatorCohortSet(cdm,
-                                      name = "denom_reqs_any_time",
-                                      ageGroup = list(c(10,100)),
-                                      strataTable = "strata",
-                                      strataCohortId = 1,
-                                      strataRequirementsAtEntry = FALSE
-  )
-  # enter when they satisfy prior hist reqs
-  expect_true(cdm$denom_reqs_any_time %>%
-    dplyr::pull("cohort_start_date") == as.Date("2010-02-02"))
-
 
   cdm <- generateDenominatorCohortSet(cdm,
                                       name = "denom_reqs_cohort_entry",
                                       ageGroup = list(c(10,100)),
                                       strataTable = "strata",
-                                      strataCohortId = 1,
-                                      strataRequirementsAtEntry = TRUE
+                                      strataCohortId = 1
   )
   # don´t enter
   # they don´t satisfy age req on cohort start date
@@ -1090,18 +1068,20 @@ test_that("mock db: strataRequirementsAtEntry", {
 
   cdm <- generateDenominatorCohortSet(cdm,
                                       name = "denom_reqs_cohort_entry",
-                                      ageGroup = list(c(09,100)),
+                                      ageGroup = list(c(09,100),
+                                                      c(10,100)),
                                       strataTable = "strata",
-                                      strataCohortId = 1,
-                                      strataRequirementsAtEntry = TRUE
+                                      strataCohortId = 1
   )
   # does enter
   # they satisfy age on cohort start date
-  expect_true(cdm$denom_reqs_cohort_entry %>%
-                dplyr::tally() %>%
-                dplyr::pull("n") == 1)
-
-
+  expect_true(CDMConnector::cohortCount(cdm$denom_reqs_cohort_entry) %>%
+                dplyr::filter(cohort_definition_id == 1) %>%
+                dplyr::pull("number_records") == 1)
+  # but they won´t contribute to the next age cohort
+  expect_true(CDMConnector::cohortCount(cdm$denom_reqs_cohort_entry) %>%
+                dplyr::filter(cohort_definition_id == 2) %>%
+                dplyr::pull("number_records") == 0)
 
   CDMConnector::cdmDisconnect(cdm)
 })
@@ -1528,7 +1508,7 @@ test_that("mock db: check attrition with multiple cohorts", {
       by = "cohort_definition_id"
     ) %>%
     dplyr::filter(days_prior_history == 0) %>%
-    dplyr::filter(reason == "No observation time available after applying age and prior history criteria") %>%
+    dplyr::filter(reason == "No observation time available after applying age, prior history and, if applicable, strata criteria") %>%
     dplyr::pull(.data$excluded_records) == 0)
   # some people dropped for prior hist when req is 365
   expect_true(CDMConnector::cohortSet(cdm$denominator) %>%
@@ -1537,7 +1517,7 @@ test_that("mock db: check attrition with multiple cohorts", {
       by = "cohort_definition_id"
     ) %>%
     dplyr::filter(days_prior_history == 365) %>%
-    dplyr::filter(reason == "No observation time available after applying age and prior history criteria") %>%
+    dplyr::filter(reason == "No observation time available after applying age, prior history and, if applicable, strata criteria") %>%
     dplyr::pull(.data$excluded_records) > 0)
 
 

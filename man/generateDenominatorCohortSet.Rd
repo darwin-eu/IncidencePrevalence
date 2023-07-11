@@ -14,7 +14,6 @@ generateDenominatorCohortSet(
   requirementInteractions = TRUE,
   strataTable = NULL,
   strataCohortId = NULL,
-  strataRequirementsAtEntry = TRUE,
   closedCohort = FALSE,
   temporary = TRUE
 )
@@ -56,11 +55,6 @@ cohort when they are contributing to the cohort in the strata table).}
 \item{strataCohortId}{The cohort definition id for the cohort of interest
 in the strata table. If strataTable is specified, a single strataCohortId
 must also be specified.}
-
-\item{strataRequirementsAtEntry}{If TRUE, individuals will only be
-included if they satisfy time varying requirements on their strata cohort
-start date. If FALSE, individuals will enter the denominator cohort once
-they satisfy requirements.}
 
 \item{closedCohort}{If TRUE, a closed cohort will be defined where only
 those individuals satisfying eligibility criteria on the start date
