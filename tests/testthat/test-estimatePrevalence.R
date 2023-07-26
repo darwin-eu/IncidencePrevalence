@@ -1347,7 +1347,8 @@ test_that("mock db: check participants", {
       "test_dpop_count",
       "vocabulary",
       "cdm_source", "outcome", "outcome_set", "outcome_count",
-      "strata",
+      "outcome_attrition", "outcome_set",
+      "strata","strata_attrition" ,
       "strata_set", "strata_count",
       "observation_period", "person"
     )))
