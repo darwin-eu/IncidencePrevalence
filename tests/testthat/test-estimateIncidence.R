@@ -3108,8 +3108,9 @@ test_that("mock db: check participants", {
       "test_dpop_count",
       "vocabulary",
       "cdm_source", "outcome", "outcome_set", "outcome_count",
+      "outcome_attrition",
       "strata",
-      "strata_set", "strata_count",
+      "strata_set", "strata_count","strata_attrition" ,
       "observation_period", "person"
     )))
   expect_true(all(!c(

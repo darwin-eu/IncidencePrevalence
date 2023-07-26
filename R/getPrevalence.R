@@ -74,20 +74,16 @@ getPrevalence <- function(cdm,
     reason = "Starting analysis population"
   )
 
-  # start date
-  start <- studyPop %>%
-    dplyr::summarise(min(.data$cohort_start_date, na.rm = TRUE)) %>%
-    dplyr::pull() %>%
-    as.Date()
-  # end date
-  end <- studyPop %>%
-    dplyr::summarise(max(.data$cohort_end_date, na.rm = TRUE)) %>%
-    dplyr::pull() %>%
-    as.Date()
+  startEnd <- studyPop %>%
+    dplyr::summarise(
+      min = min(.data$cohort_start_date, na.rm = TRUE),
+      max = max(.data$cohort_end_date, na.rm = TRUE)
+    ) %>%
+    dplyr::collect()
   # get studyDays as a function of inputs
   studyDays <- getStudyDays(
-    startDate = start,
-    endDate = end,
+    startDate = as.Date(startEnd$min),
+    endDate =  as.Date(startEnd$max),
     timeInterval = interval,
     completeDatabaseIntervals = completeDatabaseIntervals,
     type = type,
