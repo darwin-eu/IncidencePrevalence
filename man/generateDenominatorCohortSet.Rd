@@ -14,7 +14,6 @@ generateDenominatorCohortSet(
   requirementInteractions = TRUE,
   strataTable = NULL,
   strataCohortId = NULL,
-  closedCohort = FALSE,
   temporary = TRUE
 )
 }
@@ -55,10 +54,6 @@ cohort when they are contributing to the cohort in the strata table).}
 \item{strataCohortId}{The cohort definition id for the cohort of interest
 in the strata table. If strataTable is specified, a single strataCohortId
 must also be specified.}
-
-\item{closedCohort}{If TRUE, a closed cohort will be defined where only
-those individuals satisfying eligibility criteria on the start date
-given in cohortDateRange are included.}
 
 \item{temporary}{If TRUE, temporary tables will be used throughout. If
 FALSE, permanent tables will be created in the write_schema of the cdm

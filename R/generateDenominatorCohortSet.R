@@ -51,9 +51,6 @@
 #' @param strataCohortId The cohort definition id for the cohort of interest
 #'  in the strata table. If strataTable is specified, a single strataCohortId
 #'  must also be specified.
-#' @param closedCohort If TRUE, a closed cohort will be defined where only
-#' those individuals satisfying eligibility criteria on the start date
-#' given in cohortDateRange are included.
 #' @param temporary If TRUE, temporary tables will be used throughout. If
 #' FALSE, permanent tables will be created in the write_schema of the cdm
 #' using the write_prefix (if specified). Note existing permanent tables in
@@ -81,7 +78,6 @@ generateDenominatorCohortSet <- function(cdm,
                                          requirementInteractions = TRUE,
                                          strataTable = NULL,
                                          strataCohortId = NULL,
-                                         closedCohort = FALSE,
                                          temporary = TRUE) {
   startCollect <- Sys.time()
 
@@ -95,7 +91,6 @@ generateDenominatorCohortSet <- function(cdm,
     requirementInteractions = requirementInteractions,
     strataTable = strataTable,
     strataCohortId = strataCohortId,
-    closedCohort = closedCohort,
     temporary = temporary
   )
 
@@ -295,19 +290,6 @@ generateDenominatorCohortSet <- function(cdm,
         existingAttrition = dpop$attrition[[i]]
       )
 
-      if (isTRUE(closedCohort)) {
-        workingDpop <- workingDpop %>%
-          dplyr::filter(.data$cohort_start_date == .env$startDate)
-
-        dpop$attrition[[i]] <- recordAttrition(
-          table = workingDpop,
-          id = "subject_id",
-          reasonId = 11,
-          reason = glue::glue("Excluded after applying closed cohort restriction"),
-          existingAttrition = dpop$attrition[[i]]
-        )
-      }
-
       dpop$attrition[[i]]$cohort_definition_id <- popSpecs$cohort_definition_id[[i]]
       workingCount <- utils::tail(dpop$attrition[[i]]$number_records, 1)
       cohortCount[[i]] <- workingDpop %>%
@@ -376,7 +358,6 @@ generateDenominatorCohortSet <- function(cdm,
   cohortSet <- popSpecs %>%
     dplyr::mutate(strata_cohort_definition_id = .env$strataCohortId) %>%
     dplyr::mutate(strata_cohort_name = .env$strataCohortName) %>%
-    dplyr::mutate(closed_cohort = .env$closedCohort) %>%
     dplyr::mutate(cohort_name = paste0("Denominator cohort ",
                                        .data$cohort_definition_id)) %>%
     dplyr::select(!c("min_age", "max_age")) %>%

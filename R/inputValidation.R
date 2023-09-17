@@ -99,18 +99,6 @@ checkInputGenerateDCS <- function(cdm,
       null.ok = FALSE
     )
   }
-
-  checkmate::assert_logical(closedCohort, len = 1, add = errorMessage)
-  if (isTRUE(closedCohort)) {
-    if (isFALSE(inherits(cohortDateRange[1], "Date"))) {
-      cli::cli_abort(c(
-        "Study start must be specified if defining a closed cohort.",
-        "x" = "You need to specify a start date for cohortDateRange
-        if closedCohort is TRUE."
-      ))
-    }
-  }
-
   checkmate::assert_logical(temporary, len = 1, add = errorMessage)
   return(checkmate::reportAssertions(collection = errorMessage))
 }
