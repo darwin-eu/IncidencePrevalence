@@ -404,7 +404,7 @@ dpop <- cdm$denominator %>%
 dpop %>% glimpse()
 
 dpop %>%
-  group_by(cohort_definition_id, age_group, sex, days_prior_history) %>%
+  group_by(cohort_definition_id, age_group, sex, days_prior_observation) %>%
   tally()
 
 dpop %>%
@@ -415,7 +415,7 @@ dpop %>%
   )) %>%
   mutate(cohort_definition_id = as.character(cohort_definition_id)) %>%
   ggplot(aes(x = subject_id, y = value, colour = cohort_definition_id)) +
-  facet_grid(sex + days_prior_history ~ ., space = "free_y") +
+  facet_grid(sex + days_prior_observation ~ ., space = "free_y") +
   geom_point(position = position_dodge(width = 0.5)) +
   geom_line(position = position_dodge(width = 0.5)) +
   theme_bw() +
@@ -445,7 +445,7 @@ dpop <- cdm$denominator %>%
 dpop %>% glimpse()
 
 dpop %>%
-  group_by(cohort_definition_id, age_group, sex, days_prior_history) %>%
+  group_by(cohort_definition_id, age_group, sex, days_prior_observation) %>%
   tally()
 
 dpop %>%
@@ -456,7 +456,7 @@ dpop %>%
   )) %>%
   mutate(cohort_definition_id = as.character(cohort_definition_id)) %>%
   ggplot(aes(x = subject_id, y = value, colour = cohort_definition_id)) +
-  facet_grid(sex + days_prior_history ~ age_group, space = "free_y") +
+  facet_grid(sex + days_prior_observation ~ age_group, space = "free_y") +
   geom_point(position = position_dodge(width = 0.5)) +
   geom_line(position = position_dodge(width = 0.5)) +
   theme_bw() +
