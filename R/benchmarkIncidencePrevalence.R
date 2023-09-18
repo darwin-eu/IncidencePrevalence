@@ -117,7 +117,7 @@ benchmarkIncidencePrevalence <- function(cdm,
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator_typical",
     cohortDateRange = cohortDateRange,
-    daysPriorHistory = 180,
+    daysPriorObservation = 180,
     sex = c("Male", "Female"),
     ageGroup = list(
       c(0, 25), c(26, 64),

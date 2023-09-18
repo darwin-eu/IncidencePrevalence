@@ -35,12 +35,11 @@ test_that("mock db: check output format", {
     "denominator_cohort_id",
     "denominator_age_group",
     "denominator_sex",
-    "denominator_days_prior_history",
+    "denominator_days_prior_observation",
     "denominator_start_date",
     "denominator_end_date",
     "denominator_strata_cohort_definition_id",
     "denominator_strata_cohort_name",
-    "denominator_closed_cohort",
     "cdm_name"
   ) %in%
     names(inc)))
@@ -59,12 +58,11 @@ test_that("mock db: check output format", {
     "denominator_cohort_id",
     "denominator_age_group",
     "denominator_sex",
-    "denominator_days_prior_history",
+    "denominator_days_prior_observation",
     "denominator_start_date",
     "denominator_end_date",
     "denominator_strata_cohort_definition_id",
     "denominator_strata_cohort_name",
-    "denominator_closed_cohort",
     "cdm_name"
   ) %in%
     names(incidenceAttrition(inc))))
@@ -210,7 +208,7 @@ test_that("mock db: check working example 2", {
   expect_true(sum(inc$n_events) == 2)
 
   # even if repeatedEvents = TRUE,
-  # if outcomeWashout=NULL (all of history)
+  # if outcomeWashout=NULL (all of observation)
   # then it won´t be possible to have any recurrent events
   inc <- estimateIncidence(cdm,
     denominatorTable = "denominator",
@@ -661,7 +659,7 @@ test_that("mock db: check washout windows", {
     completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
-  # expect one event if we have NULL (all history washout)
+  # expect one event if we have NULL (all observation washout)
   expect_true(sum(incNull$n_events) == 1)
 
   # but, we will have move days when using the 365 day washout

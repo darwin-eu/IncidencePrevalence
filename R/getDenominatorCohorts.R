@@ -21,7 +21,7 @@ getDenominatorCohorts <- function(cdm,
                                   endDate,
                                   minAge,
                                   maxAge,
-                                  daysPriorHistory,
+                                  daysPriorObservation,
                                   strataTable,
                                   strataCohortId,
                                   tablePrefix) {
@@ -321,9 +321,9 @@ getDenominatorCohorts <- function(cdm,
     # add the date at which they reach
     # observation start date + prior_history requirement
     priorHistoryDates <- glue::glue('CDMConnector::dateadd("observation_period_start_date",
-                      {daysPriorHistory}, interval = "day")') %>%
+                      {daysPriorObservation}, interval = "day")') %>%
       rlang::parse_exprs() %>%
-      rlang::set_names(glue::glue("date_with_prior_history{daysPriorHistory}"))
+      rlang::set_names(glue::glue("date_with_prior_history{daysPriorObservation}"))
 
     studyPopDb <- studyPopDb %>%
       dplyr::mutate(!!!minAgeDates, !!!maxAgeDates, !!!priorHistoryDates) %>%
@@ -365,7 +365,7 @@ getDenominatorCohorts <- function(cdm,
 
 
     varLowerPriorHistory <-
-      glue::glue("date_with_prior_history{min(daysPriorHistory)}")
+      glue::glue("date_with_prior_history{min(daysPriorObservation)}")
 
     if (!is.null(strataTable)) {
       # update prior history date to whatever came first, that or strata entry
@@ -422,21 +422,21 @@ getDenominatorCohorts <- function(cdm,
     # for every combination of min age and prior history required
     ageHistCombos <- expand.grid(
       minAge = minAge,
-      daysPriorHistory = daysPriorHistory
+      daysPriorObservation = daysPriorObservation
     )
 
-    minAgeHistDates <- glue::glue("dplyr::if_else(date_min_age{ageHistCombos$minAge} < date_with_prior_history{ageHistCombos$daysPriorHistory},
-                                      date_with_prior_history{ageHistCombos$daysPriorHistory},
+    minAgeHistDates <- glue::glue("dplyr::if_else(date_min_age{ageHistCombos$minAge} < date_with_prior_history{ageHistCombos$daysPriorObservation},
+                                      date_with_prior_history{ageHistCombos$daysPriorObservation},
                                       date_min_age{ageHistCombos$minAge})") %>%
       rlang::parse_exprs() %>%
-      rlang::set_names(glue::glue("last_of_min_age{ageHistCombos$minAge}prior_history{ageHistCombos$daysPriorHistory}"))
+      rlang::set_names(glue::glue("last_of_min_age{ageHistCombos$minAge}prior_history{ageHistCombos$daysPriorObservation}"))
 
 
-    minAgeHistStartDates <- glue::glue("dplyr::if_else(last_of_min_age{ageHistCombos$minAge}prior_history{ageHistCombos$daysPriorHistory} < .data$startDate,
+    minAgeHistStartDates <- glue::glue("dplyr::if_else(last_of_min_age{ageHistCombos$minAge}prior_history{ageHistCombos$daysPriorObservation} < .data$startDate,
                                        .data$startDate,
-                                       last_of_min_age{ageHistCombos$minAge}prior_history{ageHistCombos$daysPriorHistory})") %>%
+                                       last_of_min_age{ageHistCombos$minAge}prior_history{ageHistCombos$daysPriorObservation})") %>%
       rlang::parse_exprs() %>%
-      rlang::set_names(glue::glue("date_min_age{ageHistCombos$minAge}prior_history{ageHistCombos$daysPriorHistory}"))
+      rlang::set_names(glue::glue("date_min_age{ageHistCombos$minAge}prior_history{ageHistCombos$daysPriorObservation}"))
 
     studyPopDb <- studyPopDb %>%
       dplyr::mutate(!!!minAgeHistDates) %>%

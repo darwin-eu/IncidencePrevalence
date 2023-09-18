@@ -3,7 +3,7 @@ checkInputGenerateDCS <- function(cdm,
                                   cohortDateRange,
                                   ageGroup,
                                   sex,
-                                  daysPriorHistory,
+                                  daysPriorObservation,
                                   requirementInteractions,
                                   strataTable,
                                   strataCohortId,
@@ -57,13 +57,13 @@ checkInputGenerateDCS <- function(cdm,
       "- sex must be from: Male, Female, and Both"
     )
   }
-  checkmate::assert_numeric(daysPriorHistory,
+  checkmate::assert_numeric(daysPriorObservation,
     add = errorMessage
   )
-  daysCheck <- all(daysPriorHistory >= 0)
+  daysCheck <- all(daysPriorObservation >= 0)
   if (!isTRUE(daysCheck)) {
     errorMessage$push(
-      "- daysPriorHistory cannot be negative"
+      "- daysPriorObservation cannot be negative"
     )
   }
   checkmate::assert_logical(requirementInteractions,

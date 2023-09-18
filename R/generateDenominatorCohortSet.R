@@ -38,11 +38,11 @@
 #' to the day before their 31st birthday).
 #' @param sex Sex of the cohorts. This can be one or more of: `"Male"`,
 #' `"Female"`, or `"Both"`.
-#' @param daysPriorHistory The number of days of prior history observed in
+#' @param daysPriorObservation The number of days of prior observation observed in
 #' the database required for an individual to start contributing time in
 #' a cohort.
 #' @param requirementInteractions If TRUE, cohorts will be created for
-#' all combinations of ageGroup, sex, and daysPriorHistory. If FALSE, only the
+#' all combinations of ageGroup, sex, and daysPriorObservation. If FALSE, only the
 #' first value specified for the other factors will be used. Consequently,
 #' order of values matters when requirementInteractions is FALSE.
 #' @param strataTable A cohort table in the cdm reference to use
@@ -74,7 +74,7 @@ generateDenominatorCohortSet <- function(cdm,
                                          cohortDateRange = NULL,
                                          ageGroup = list(c(0, 150)),
                                          sex = "Both",
-                                         daysPriorHistory = 0,
+                                         daysPriorObservation = 0,
                                          requirementInteractions = TRUE,
                                          strataTable = NULL,
                                          strataCohortId = NULL,
@@ -87,7 +87,7 @@ generateDenominatorCohortSet <- function(cdm,
     cohortDateRange = cohortDateRange,
     ageGroup = ageGroup,
     sex = sex,
-    daysPriorHistory = daysPriorHistory,
+    daysPriorObservation = daysPriorObservation,
     requirementInteractions = requirementInteractions,
     strataTable = strataTable,
     strataCohortId = strataCohortId,
@@ -128,7 +128,7 @@ generateDenominatorCohortSet <- function(cdm,
   popSpecs <- buildPopSpecs(
     ageGrDf = ageGrDf,
     sex = sex,
-    daysPriorHistory = daysPriorHistory,
+    daysPriorObservation = daysPriorObservation,
     requirementInteractions = requirementInteractions
   ) %>%
     dplyr::mutate(
@@ -154,7 +154,7 @@ generateDenominatorCohortSet <- function(cdm,
     endDate = unique(popSpecs$end_date),
     minAge = unique(popSpecs$min_age),
     maxAge = unique(popSpecs$max_age),
-    daysPriorHistory = unique(popSpecs$days_prior_history),
+    daysPriorObservation = unique(popSpecs$days_prior_observation),
     strataTable = strataTable,
     strataCohortId = strataCohortId,
     tablePrefix
@@ -255,7 +255,7 @@ generateDenominatorCohortSet <- function(cdm,
         dplyr::rename(
           # cohort start
           "cohort_start_date" =
-            glue::glue("date_min_age{popSpecs$min_age[[i]]}prior_history{popSpecs$days_prior_history[[i]]}"),
+            glue::glue("date_min_age{popSpecs$min_age[[i]]}prior_history{popSpecs$days_prior_observation[[i]]}"),
           # cohort end
           "cohort_end_date" =
             glue::glue(
@@ -286,7 +286,7 @@ generateDenominatorCohortSet <- function(cdm,
         table = workingDpop,
         id = "subject_id",
         reasonId = 10,
-        reason = glue::glue("No observation time available after applying age, prior history and, if applicable, strata criteria"),
+        reason = glue::glue("No observation time available after applying age, prior observation and, if applicable, strata criteria"),
         existingAttrition = dpop$attrition[[i]]
       )
 
@@ -402,30 +402,30 @@ generateDenominatorCohortSet <- function(cdm,
 # cohort specifications
 buildPopSpecs <- function(ageGrDf,
                           sex,
-                          daysPriorHistory,
+                          daysPriorObservation,
                           requirementInteractions) {
   if (isTRUE(requirementInteractions)) {
     popSpecs <- tidyr::expand_grid(
       age_group = ageGrDf$age_group,
       sex = .env$sex,
-      days_prior_history = .env$daysPriorHistory
+      days_prior_observation = .env$daysPriorObservation
     )
   } else {
     popSpecs <- dplyr::bind_rows(
       dplyr::tibble(
         age_group = ageGrDf$age_group,
         sex = .env$sex[1],
-        days_prior_history = .env$daysPriorHistory[1]
+        days_prior_observation = .env$daysPriorObservation[1]
       ),
       dplyr::tibble(
         age_group = ageGrDf$age_group[1],
         sex = .env$sex,
-        days_prior_history = .env$daysPriorHistory[1]
+        days_prior_observation = .env$daysPriorObservation[1]
       ),
       dplyr::tibble(
         age_group = ageGrDf$age_group[1],
         sex = .env$sex[1],
-        days_prior_history = .env$daysPriorHistory
+        days_prior_observation = .env$daysPriorObservation
       )
     ) %>%
       dplyr::distinct()

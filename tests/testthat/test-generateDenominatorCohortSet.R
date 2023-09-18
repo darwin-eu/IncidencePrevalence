@@ -18,7 +18,7 @@ test_that("mock db: check output format", {
     "sex",
     "start_date",
     "end_date",
-    "days_prior_history"
+    "days_prior_observation"
   ) %in%
     names(CDMConnector::cohortSet(cdm$denominator))))
 
@@ -101,7 +101,7 @@ test_that("mock db: checks on working example", {
   # all pops without anyone
   expect_message(cdm <- generateDenominatorCohortSet(cdm,
     ageGroup = list(c(50, 59), c(60, 69)),
-    daysPriorHistory = c(0, 365)
+    daysPriorObservation = c(0, 365)
   ))
   expect_true(all(CDMConnector::cohortCount(cdm$denominator)$number_records == 0))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
@@ -308,7 +308,7 @@ test_that("mock db: mock example 1000", {
       c(61, 100)
     ),
     sex = c("Female", "Male", "Both"),
-    daysPriorHistory = c(0, 30, 60, 90, 120, 150, 180)
+    daysPriorObservation = c(0, 30, 60, 90, 120, 150, 180)
   )
   expect_true(any(CDMConnector::cohortCount(cdm$denominator)$number_records > 0))
 
@@ -317,7 +317,7 @@ test_that("mock db: mock example 1000", {
     cohortDateRange = c(as.Date("2011-01-01"), as.Date("2013-06-15")),
     ageGroup = list(c(0, 59), c(60, 69)),
     sex = c("Female", "Male", "Both"),
-    daysPriorHistory = c(0, 180)
+    daysPriorObservation = c(0, 180)
   )
   expect_true(any(CDMConnector::cohortCount(cdm$denominator)$number_records > 0))
   expect_true(min(cdm$denominator %>%
@@ -871,7 +871,7 @@ test_that("mock db check age strata entry and exit", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
-test_that("mock db check strata prior history requirement", {
+test_that("mock db check strata prior observation requirement", {
   skip_on_cran()
   personTable <- tibble::tibble(
     person_id = "1",
@@ -912,12 +912,12 @@ test_that("mock db check strata prior history requirement", {
     dplyr::filter(cohort_definition_id == 1) %>%
     dplyr::select(cohort_start_date) %>%
     dplyr::pull() == as.Date("2011-01-01"))
-  # add prior history requirement
+  # add prior observation requirement
   cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroup = list(
       c(11, 12)
-    ), daysPriorHistory = 365
+    ), daysPriorObservation = 365
   )
   expect_true(cdm$denominator %>%
     dplyr::filter(cohort_definition_id == 1) %>%
@@ -926,13 +926,13 @@ test_that("mock db check strata prior history requirement", {
 
   # with strata cohort
   # result should be unaffected
-  # (as prior history based on obs period achieved before strata cohort start)
+  # (as prior observation based on obs period achieved before strata cohort start)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, strataTable = "strata",
     strataCohortId = 1,
     ageGroup = list(
       c(11, 12)
-    ), daysPriorHistory = 0
+    ), daysPriorObservation = 0
   )
   expect_true(cdm$denominator %>%
     dplyr::filter(cohort_definition_id == 1) %>%
@@ -944,7 +944,7 @@ test_that("mock db check strata prior history requirement", {
     strataCohortId = 1,
     ageGroup = list(
       c(11, 12)
-    ), daysPriorHistory = 365
+    ), daysPriorObservation = 365
   )
   expect_true(cdm$denominator %>%
     dplyr::filter(cohort_definition_id == 1) %>%
@@ -956,7 +956,7 @@ test_that("mock db check strata prior history requirement", {
     strataCohortId = 1,
     ageGroup = list(
       c(11, 12)
-    ), daysPriorHistory = 10000
+    ), daysPriorObservation = 10000
   )
   expect_true(nrow(cdm$denominator %>% dplyr::collect()) == 0)
 
@@ -966,7 +966,7 @@ test_that("mock db check strata prior history requirement", {
 test_that("mock db: strataRequirementsAtEntry", {
   skip_on_cran()
 
-  ## Prior history
+  ## Prior observation
   personTable <- tibble::tibble(
     person_id = c("1","2"),
     gender_concept_id = "8507",
@@ -997,7 +997,7 @@ test_that("mock db: strataRequirementsAtEntry", {
 
   cdm <- generateDenominatorCohortSet(cdm,
                                       name = "denom_reqs_any_time",
-                                      daysPriorHistory = c(0,2,4,10),
+                                      daysPriorObservation = c(0,2,4,10),
                                       strataTable = "strata",
                                       strataCohortId = 1
   )
@@ -1254,7 +1254,7 @@ test_that("mock db: check edge cases (zero results expected)", {
   cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     ageGroup = list(c(0, 15)),
-    daysPriorHistory = 365000
+    daysPriorObservation = 365000
   )
   expect_true(CDMConnector::cohortCount(cdm$denominator)$number_records == 0)
 
@@ -1287,7 +1287,7 @@ test_that("mock db: check expected errors", {
   ))
   testthat::expect_error(generateDenominatorCohortSet(
     cdm = cdm,
-    daysPriorHistory = -30
+    daysPriorObservation = -30
   ))
   # no person table
   cdm1 <- cdm
@@ -1403,7 +1403,7 @@ test_that("mock db: check attrition table logic", {
   cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     cohortDateRange = c(as.Date("2015-01-01"), as.Date("2016-06-30")),
-    daysPriorHistory = 365
+    daysPriorObservation = 365
   )
   expect_true(CDMConnector::cohortAttrition(cdm$denominator)$excluded_records[7] == 1)
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
@@ -1498,7 +1498,7 @@ test_that("mock db: check attrition with multiple cohorts", {
     dplyr::pull(.data$reason)) == FALSE)
 
   cdm <- generateDenominatorCohortSet(cdm,
-    daysPriorHistory = c(0, 365)
+    daysPriorObservation = c(0, 365)
   )
 
   # nobody dropped for prior hist when req is 0
@@ -1507,8 +1507,8 @@ test_that("mock db: check attrition with multiple cohorts", {
       multiple = "all",
       by = "cohort_definition_id"
     ) %>%
-    dplyr::filter(days_prior_history == 0) %>%
-    dplyr::filter(reason == "No observation time available after applying age, prior history and, if applicable, strata criteria") %>%
+    dplyr::filter(days_prior_observation == 0) %>%
+    dplyr::filter(reason == "No observation time available after applying age, prior observation and, if applicable, strata criteria") %>%
     dplyr::pull(.data$excluded_records) == 0)
   # some people dropped for prior hist when req is 365
   expect_true(CDMConnector::cohortSet(cdm$denominator) %>%
@@ -1516,8 +1516,8 @@ test_that("mock db: check attrition with multiple cohorts", {
       multiple = "all",
       by = "cohort_definition_id"
     ) %>%
-    dplyr::filter(days_prior_history == 365) %>%
-    dplyr::filter(reason == "No observation time available after applying age, prior history and, if applicable, strata criteria") %>%
+    dplyr::filter(days_prior_observation == 365) %>%
+    dplyr::filter(reason == "No observation time available after applying age, prior observation and, if applicable, strata criteria") %>%
     dplyr::pull(.data$excluded_records) > 0)
 
 
@@ -1537,7 +1537,7 @@ test_that("mock db: check compute permanent", {
       c(21, 30), c(31, 40),
       c(41, 50), c(51, 60)
     ),
-    daysPriorHistory = c(0, 1, 2),
+    daysPriorObservation = c(0, 1, 2),
     temporary = TRUE
   )
   # if using temp tables
@@ -1557,7 +1557,7 @@ test_that("mock db: check compute permanent", {
       c(21, 30), c(31, 40),
       c(41, 50), c(51, 60)
     ),
-    daysPriorHistory = c(0, 1, 2),
+    daysPriorObservation = c(0, 1, 2),
     temporary = FALSE
   )
   # we´ll now have the a denominator table
@@ -1617,7 +1617,7 @@ test_that("mock db: check compute permanent", {
       c(21, 30), c(31, 40),
       c(41, 50), c(51, 60)
     ),
-    daysPriorHistory = c(0, 1, 2),
+    daysPriorObservation = c(0, 1, 2),
     temporary = FALSE
   )
   # we´ll now have the a denominator table
@@ -1686,7 +1686,7 @@ test_that("mock db: requirement interactions", {
       c(11, 15), c(16, 20)
     ),
     sex = c("Both", "Female", "Male"),
-    daysPriorHistory = c(0, 30),
+    daysPriorObservation = c(0, 30),
     requirementInteractions = TRUE
   )
   expect_true(nrow(CDMConnector::cohortSet(cdm$denominator)) == 4 * 3 * 2)
@@ -1697,7 +1697,7 @@ test_that("mock db: requirement interactions", {
       c(11, 15), c(16, 20)
     ),
     sex = c("Both", "Female", "Male"),
-    daysPriorHistory = c(0, 30),
+    daysPriorObservation = c(0, 30),
     requirementInteractions = FALSE
   )
   expect_true(nrow(CDMConnector::cohortSet(cdm$denominator)) == 7)
@@ -1707,32 +1707,32 @@ test_that("mock db: requirement interactions", {
   nrow(CDMConnector::cohortSet(cdm$denominator) %>%
     dplyr::filter(sex == "Both") %>%
     dplyr::filter(age_group == "0 to 100") %>%
-    dplyr::filter(days_prior_history == 0)) == 1
+    dplyr::filter(days_prior_observation == 0)) == 1
 
   nrow(CDMConnector::cohortSet(cdm$denominator) %>%
     dplyr::filter(sex == "Male") %>%
     dplyr::filter(age_group == "0 to 100") %>%
-    dplyr::filter(days_prior_history == 0)) == 1
+    dplyr::filter(days_prior_observation == 0)) == 1
 
   nrow(CDMConnector::cohortSet(cdm$denominator) %>%
     dplyr::filter(sex == "Both") %>%
     dplyr::filter(age_group == "11 to 15") %>%
-    dplyr::filter(days_prior_history == 0)) == 1
+    dplyr::filter(days_prior_observation == 0)) == 1
   nrow(CDMConnector::cohortSet(cdm$denominator) %>%
     dplyr::filter(sex == "Both") %>%
     dplyr::filter(age_group == "0 to 100") %>%
-    dplyr::filter(days_prior_history == 30)) == 1
+    dplyr::filter(days_prior_observation == 30)) == 1
 
 
   nrow(CDMConnector::cohortSet(cdm$denominator) %>%
     dplyr::filter(sex == "Female") %>%
     dplyr::filter(age_group == "11 to 15") %>%
-    dplyr::filter(days_prior_history == 0)) == 0
+    dplyr::filter(days_prior_observation == 0)) == 0
 
   nrow(CDMConnector::cohortSet(cdm$denominator) %>%
     dplyr::filter(sex == "Male") %>%
     dplyr::filter(age_group == "0 to 100") %>%
-    dplyr::filter(days_prior_history == 30)) == 0
+    dplyr::filter(days_prior_observation == 30)) == 0
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
