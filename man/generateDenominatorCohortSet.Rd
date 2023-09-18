@@ -10,7 +10,7 @@ generateDenominatorCohortSet(
   cohortDateRange = NULL,
   ageGroup = list(c(0, 150)),
   sex = "Both",
-  daysPriorHistory = 0,
+  daysPriorObservation = 0,
   requirementInteractions = TRUE,
   strataTable = NULL,
   strataCohortId = NULL,
@@ -38,12 +38,12 @@ to the day before their 31st birthday).}
 \item{sex}{Sex of the cohorts. This can be one or more of: \code{"Male"},
 \code{"Female"}, or \code{"Both"}.}
 
-\item{daysPriorHistory}{The number of days of prior history observed in
+\item{daysPriorObservation}{The number of days of prior observation observed in
 the database required for an individual to start contributing time in
 a cohort.}
 
 \item{requirementInteractions}{If TRUE, cohorts will be created for
-all combinations of ageGroup, sex, and daysPriorHistory. If FALSE, only the
+all combinations of ageGroup, sex, and daysPriorObservation. If FALSE, only the
 first value specified for the other factors will be used. Consequently,
 order of values matters when requirementInteractions is FALSE.}
 

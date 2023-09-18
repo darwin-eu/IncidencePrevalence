@@ -100,7 +100,7 @@ cdm <- generateDenominatorCohortSet(
   cohortDateRange = NULL,
   ageGroup = list(c(0, 150)),
   sex = "Both",
-  daysPriorHistory = 0
+  daysPriorObservation = 0
 )
 cdm$denominator
 
@@ -155,7 +155,7 @@ cdm <- generateDenominatorCohortSet(
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2010-01-01")),
   ageGroup = list(c(0, 150)),
   sex = "Both",
-  daysPriorHistory = 0
+  daysPriorObservation = 0
 )
 cdm$denominator
 
@@ -213,7 +213,7 @@ cdm <- generateDenominatorCohortSet(
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2010-01-01")),
   ageGroup = list(c(0, 150)),
   sex = "Both",
-  daysPriorHistory = 365
+  daysPriorObservation = 365
 )
 cdm$denominator
 
@@ -270,7 +270,7 @@ cdm <- generateDenominatorCohortSet(
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2010-01-01")),
   ageGroup = list(c(18, 65)),
   sex = "Female",
-  daysPriorHistory = 365
+  daysPriorObservation = 365
 )
 cdm$denominator %>%
   glimpse()
@@ -315,7 +315,7 @@ cdm <- generateDenominatorCohortSet(
     c(41, 100)
   ),
   sex = "Both",
-  daysPriorHistory = 0
+  daysPriorObservation = 0
 )
 dpop <- cdm$denominator %>%
   collect() %>%
@@ -355,7 +355,7 @@ cdm <- generateDenominatorCohortSet(
     c(41, 100)
   ),
   sex = c("Male", "Female", "Both"),
-  daysPriorHistory = 0
+  daysPriorObservation = 0
 )
 dpop <- cdm$denominator %>%
   collect() %>%
@@ -395,7 +395,7 @@ cdm <- generateDenominatorCohortSet(
     c(41, 100)
   ),
   sex = c("Male", "Female", "Both"),
-  daysPriorHistory = c(0, 365)
+  daysPriorObservation = c(0, 365)
 )
 dpop <- cdm$denominator %>%
   collect() %>%
@@ -435,7 +435,7 @@ cdm <- generateDenominatorCohortSet(
     c(41, 100)
   ),
   sex = c("Both", "Male", "Female"),
-  daysPriorHistory = c(0, 365),
+  daysPriorObservation = c(0, 365),
   requirementInteractions = FALSE
 )
 dpop <- cdm$denominator %>%
@@ -483,7 +483,7 @@ cdm <- generateDenominatorCohortSet(
     c(19, 100)
   ),
   sex = c("Male", "Female"),
-  daysPriorHistory = c(0, 365)
+  daysPriorObservation = c(0, 365)
 )
 
 head(cdm$denominator, 8)
@@ -662,7 +662,7 @@ cdm <- generateDenominatorCohortSet(
   cohortDateRange = c(as.Date("2014-01-01"), as.Date("2016-01-01")),
   ageGroup = list(c(15, 25)),
   sex = "Female",
-  daysPriorHistory = 0,
+  daysPriorObservation = 0,
   strataTable = "strata",
   strataCohortId = 3
 )

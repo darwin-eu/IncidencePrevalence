@@ -38,14 +38,16 @@ like:
 
 ``` r
 con <- DBI::dbConnect(RPostgres::Postgres(),
-                      dbname = Sys.getenv("CDM5_POSTGRESQL_DBNAME"),
-                      host = Sys.getenv("CDM5_POSTGRESQL_HOST"),
-                      user = Sys.getenv("CDM5_POSTGRESQL_USER"),
-                      password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD"))
+  dbname = Sys.getenv("CDM5_POSTGRESQL_DBNAME"),
+  host = Sys.getenv("CDM5_POSTGRESQL_HOST"),
+  user = Sys.getenv("CDM5_POSTGRESQL_USER"),
+  password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD")
+)
 
-cdm <- CDMConnector::cdm_from_con(con, 
-                    cdm_schema = Sys.getenv("CDM5_POSTGRESQL_CDM_SCHEMA"), 
-                    write_schema = Sys.getenv("CDM5_POSTGRESQL_RESULT_SCHEMA"))
+cdm <- CDMConnector::cdm_from_con(con,
+  cdm_schema = Sys.getenv("CDM5_POSTGRESQL_CDM_SCHEMA"),
+  write_schema = Sys.getenv("CDM5_POSTGRESQL_RESULT_SCHEMA")
+)
 ```
 
 To see how you would create a reference to your database please consult
@@ -69,13 +71,15 @@ one with both sexes included).
 
 ``` r
 cdm <- generateDenominatorCohortSet(
-  cdm = cdm, 
-  name = "denominator", 
+  cdm = cdm,
+  name = "denominator",
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01")),
-  ageGroup = list(c(0,64),
-                  c(65,100)),
+  ageGroup = list(
+    c(0, 64),
+    c(65, 100)
+  ),
   sex = c("Male", "Female", "Both"),
-  daysPriorHistory = 180
+  daysPriorObservation = 180
 )
 ```
 
@@ -84,16 +88,16 @@ This will then give us six denominator cohorts
 ``` r
 cohortSet(cdm$denominator)
 #> # A tibble: 6 × 9
-#>   cohort_definition_id cohort_name age_group sex   days_prior_history start_date
-#>                  <int> <chr>       <chr>     <chr>              <dbl> <date>    
-#> 1                    1 Denominato… 0;64      Male                 180 2008-01-01
-#> 2                    2 Denominato… 0;64      Fema…                180 2008-01-01
-#> 3                    3 Denominato… 0;64      Both                 180 2008-01-01
-#> 4                    4 Denominato… 65;100    Male                 180 2008-01-01
-#> 5                    5 Denominato… 65;100    Fema…                180 2008-01-01
-#> 6                    6 Denominato… 65;100    Both                 180 2008-01-01
-#> # ℹ 3 more variables: end_date <date>, strata_cohort_definition_id <lgl>,
-#> #   strata_cohort_name <lgl>
+#>   cohort_definition_id cohort_name        age_group sex   days_prior_observation
+#>                  <int> <chr>              <chr>     <chr>                  <dbl>
+#> 1                    1 Denominator cohor… 0 to 64   Male                     180
+#> 2                    2 Denominator cohor… 0 to 64   Fema…                    180
+#> 3                    3 Denominator cohor… 0 to 64   Both                     180
+#> 4                    4 Denominator cohor… 65 to 100 Male                     180
+#> 5                    5 Denominator cohor… 65 to 100 Fema…                    180
+#> 6                    6 Denominator cohor… 65 to 100 Both                     180
+#> # ℹ 4 more variables: start_date <date>, end_date <date>,
+#> #   strata_cohort_definition_id <lgl>, strata_cohort_name <lgl>
 ```
 
 These cohorts will be in the typical OMOP CDM structure
@@ -101,7 +105,7 @@ These cohorts will be in the typical OMOP CDM structure
 ``` r
 cdm$denominator
 #> # Source:   table<dbplyr_008> [?? x 4]
-#> # Database: DuckDB 0.7.1 [eburn@Windows 10 x64:R 4.2.1/:memory:]
+#> # Database: DuckDB 0.8.1 [eburn@Windows 10 x64:R 4.2.1/:memory:]
 #>    cohort_definition_id subject_id cohort_start_date cohort_end_date
 #>                   <int> <chr>      <date>            <date>         
 #>  1                    1 14         2010-04-17        2010-11-27     
@@ -112,8 +116,8 @@ cdm$denominator
 #>  6                    1 30         2017-05-07        2017-10-30     
 #>  7                    1 31         2011-09-26        2012-09-02     
 #>  8                    1 42         2008-01-01        2008-02-18     
-#>  9                    1 55         2008-05-24        2009-05-02     
-#> 10                    1 56         2012-07-24        2013-11-02     
+#>  9                    1 46         2012-01-21        2012-01-22     
+#> 10                    1 55         2008-05-24        2009-05-02     
 #> # ℹ more rows
 ```
 
@@ -125,10 +129,11 @@ use the CDMConnector package to read in and generate the cohorts.
 
 ``` r
 outcome_cohorts <- CDMConnector::readCohortSet("path_to_outcome_cohort_definitions")
-cdm <- CDMConnector::generateCohortSet(cdm = cdm, 
-                                       cohortSet = outcome_cohorts,
-                                       name = "outcome_table_name"
-                                       )
+cdm <- CDMConnector::generateCohortSet(
+  cdm = cdm,
+  cohortSet = outcome_cohorts,
+  name = "outcome_table_name"
+)
 ```
 
 Note, in our example cdm reference we already have an outcome cohort
@@ -137,7 +142,7 @@ defined
 ``` r
 cdm$outcome
 #> # Source:   table<main.outcome> [?? x 4]
-#> # Database: DuckDB 0.7.1 [eburn@Windows 10 x64:R 4.2.1/:memory:]
+#> # Database: DuckDB 0.8.1 [eburn@Windows 10 x64:R 4.2.1/:memory:]
 #>    cohort_definition_id subject_id cohort_start_date cohort_end_date
 #>    <chr>                <chr>      <date>            <date>         
 #>  1 1                    1          2014-07-01        2014-07-09     
@@ -201,9 +206,9 @@ dplyr::glimpse(inc)
 #> $ denominator_cohort_id                   <int> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …
 #> $ analysis_min_cell_count                 <dbl> 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, …
 #> $ denominator_cohort_name                 <chr> "Denominator cohort 1", "Denom…
-#> $ denominator_age_group                   <chr> "0;64", "0;64", "0;64", "0;64"…
+#> $ denominator_age_group                   <chr> "0 to 64", "0 to 64", "0 to 64…
 #> $ denominator_sex                         <chr> "Male", "Male", "Male", "Male"…
-#> $ denominator_days_prior_history          <dbl> 180, 180, 180, 180, 180, 180, …
+#> $ denominator_days_prior_observation      <dbl> 180, 180, 180, 180, 180, 180, …
 #> $ denominator_start_date                  <date> 2008-01-01, 2008-01-01, 2008-…
 #> $ denominator_end_date                    <date> 2018-01-01, 2018-01-01, 2018-…
 #> $ denominator_strata_cohort_definition_id <lgl> NA, NA, NA, NA, NA, NA, NA, NA…
@@ -247,9 +252,9 @@ dplyr::glimpse(prev_point)
 #> $ analysis_min_cell_count                 <dbl> 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, …
 #> $ denominator_cohort_id                   <int> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …
 #> $ denominator_cohort_name                 <chr> "Denominator cohort 1", "Denom…
-#> $ denominator_age_group                   <chr> "0;64", "0;64", "0;64", "0;64"…
+#> $ denominator_age_group                   <chr> "0 to 64", "0 to 64", "0 to 64…
 #> $ denominator_sex                         <chr> "Male", "Male", "Male", "Male"…
-#> $ denominator_days_prior_history          <dbl> 180, 180, 180, 180, 180, 180, …
+#> $ denominator_days_prior_observation      <dbl> 180, 180, 180, 180, 180, 180, …
 #> $ denominator_start_date                  <date> 2008-01-01, 2008-01-01, 2008-…
 #> $ denominator_end_date                    <date> 2018-01-01, 2018-01-01, 2018-…
 #> $ denominator_strata_cohort_definition_id <lgl> NA, NA, NA, NA, NA, NA, NA, NA…
@@ -295,9 +300,9 @@ dplyr::glimpse(prev_period)
 #> $ analysis_min_cell_count                 <dbl> 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, …
 #> $ denominator_cohort_id                   <int> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …
 #> $ denominator_cohort_name                 <chr> "Denominator cohort 1", "Denom…
-#> $ denominator_age_group                   <chr> "0;64", "0;64", "0;64", "0;64"…
+#> $ denominator_age_group                   <chr> "0 to 64", "0 to 64", "0 to 64…
 #> $ denominator_sex                         <chr> "Male", "Male", "Male", "Male"…
-#> $ denominator_days_prior_history          <dbl> 180, 180, 180, 180, 180, 180, …
+#> $ denominator_days_prior_observation      <dbl> 180, 180, 180, 180, 180, 180, …
 #> $ denominator_start_date                  <date> 2008-01-01, 2008-01-01, 2008-…
 #> $ denominator_end_date                    <date> 2018-01-01, 2018-01-01, 2018-…
 #> $ denominator_strata_cohort_definition_id <lgl> NA, NA, NA, NA, NA, NA, NA, NA…
@@ -312,9 +317,11 @@ We can export our results as CSVs in a zip folder using the
 
 ``` r
 exportIncidencePrevalenceResults(
-  resultList = list("incidence" = inc, 
-                     "point_prevalence" = prev_point, 
-                     "period_prevalence" = prev_period),
+  resultList = list(
+    "incidence" = inc,
+    "point_prevalence" = prev_point,
+    "period_prevalence" = prev_period
+  ),
   zipName = "example_results",
   outputFolder = here::here()
 )

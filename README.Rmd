@@ -74,7 +74,7 @@ cdm <- generateDenominatorCohortSet(
     c(65, 100)
   ),
   sex = c("Male", "Female", "Both"),
-  daysPriorHistory = 180
+  daysPriorObservation = 180
 )
 ```
 
