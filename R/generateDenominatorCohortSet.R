@@ -51,11 +51,6 @@
 #' @param strataCohortId The cohort definition id for the cohort of interest
 #'  in the strata table. If strataTable is specified, a single strataCohortId
 #'  must also be specified.
-#' @param temporary If TRUE, temporary tables will be used throughout. If
-#' FALSE, permanent tables will be created in the write_schema of the cdm
-#' using the write_prefix (if specified). Note existing permanent tables in
-#' the write schema starting with the write_prefix will be at risk of being
-#' dropped or overwritten.
 #'
 #' @return A cohort reference
 #' @importFrom rlang .data
@@ -77,8 +72,7 @@ generateDenominatorCohortSet <- function(cdm,
                                          daysPriorObservation = 0,
                                          requirementInteractions = TRUE,
                                          strataTable = NULL,
-                                         strataCohortId = NULL,
-                                         temporary = TRUE) {
+                                         strataCohortId = NULL) {
   startCollect <- Sys.time()
 
   checkInputGenerateDCS(
@@ -90,9 +84,13 @@ generateDenominatorCohortSet <- function(cdm,
     daysPriorObservation = daysPriorObservation,
     requirementInteractions = requirementInteractions,
     strataTable = strataTable,
-    strataCohortId = strataCohortId,
-    temporary = temporary
+    strataCohortId = strataCohortId
   )
+
+  intermediateTable <- paste0("ip_denom_",
+    tolower(paste0(sample(LETTERS, 6, replace = TRUE),
+                              collapse = "")))
+  tablePrefix<- intermediateTable
 
   # add broadest possible age group if no age strata were given
   if (is.null(cohortDateRange) || is.na(cohortDateRange[1])) {
@@ -141,13 +139,6 @@ generateDenominatorCohortSet <- function(cdm,
 
   # get the overall contributing population (without stratification)
   # we need to the output the corresponding dates when getting the denominator
-
-  if (isTRUE(temporary)) {
-    tablePrefix <- NULL
-  } else {
-    tablePrefix <- paste0(attr(cdm, "write_prefix"), name)
-  }
-
   dpop <- getDenominatorCohorts(
     cdm = cdm,
     startDate = unique(popSpecs$start_date),
@@ -157,7 +148,7 @@ generateDenominatorCohortSet <- function(cdm,
     daysPriorObservation = unique(popSpecs$days_prior_observation),
     strataTable = strataTable,
     strataCohortId = strataCohortId,
-    tablePrefix
+    intermediateTable = paste0(intermediateTable, "_gdc_")
   )
 
   denominatorPopulationNrows <- dpop$denominator_population %>%
@@ -315,25 +306,11 @@ generateDenominatorCohortSet <- function(cdm,
     cli::cli_progress_done()
 
     studyPops <- unionCohorts(
-      cdm,
-      studyPops,
-      tablePrefix
+      cdm = cdm,
+      studyPops = studyPops,
+      intermediateTable = paste0(intermediateTable, "_u_")
     )
   }
-
-
-  if (!is.null(tablePrefix)) {
-    # drop the intermediate tables that may have been created
-    CDMConnector::dropTable(
-      cdm = cdm,
-      name = paste0(tablePrefix, "_cohorts")
-    )
-    CDMConnector::dropTable(
-      cdm = cdm,
-      name = tidyselect::starts_with(paste0(tablePrefix, "_i_"))
-    )
-  }
-
 
   if (length(studyPops) == 0) {
     message("- No people found for any denominator population")
@@ -388,7 +365,20 @@ generateDenominatorCohortSet <- function(cdm,
     class(studyPops)
   )
 
-  cdm[[name]] <- studyPops
+  cdm[[name]] <- studyPops %>%
+    CDMConnector::computeQuery(
+      name = name,
+      temporary = FALSE,
+      schema = attr(cdm, "write_schema"),
+      overwrite = TRUE
+    )
+
+  # drop the intermediate tables
+  CDMConnector::dropTable(
+    cdm = cdm,
+    name = tidyselect::starts_with(paste0(intermediateTable))
+  )
+
 
   dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
   message(glue::glue(
@@ -445,21 +435,15 @@ buildPopSpecs <- function(ageGrDf,
 # combine the set of separate cohort tables into a single table
 unionCohorts <- function(cdm,
                          studyPops,
-                         tablePrefix) {
+                         intermediateTable) {
   if (length(studyPops) != 0 && length(studyPops) < 10) {
-    studyPops <- Reduce(dplyr::union_all, studyPops)
-    if (is.null(tablePrefix)) {
-      studyPops <- studyPops %>%
-        CDMConnector::computeQuery()
-    } else {
-      studyPops <- studyPops %>%
-        CDMConnector::computeQuery(
-          name = paste0(tablePrefix),
-          temporary = FALSE,
-          schema = attr(cdm, "write_schema"),
-          overwrite = TRUE
-        )
-    }
+    studyPops <- Reduce(dplyr::union_all, studyPops) %>%
+      CDMConnector::computeQuery(
+        name = intermediateTable,
+        temporary = FALSE,
+        schema = attr(cdm, "write_schema"),
+        overwrite = TRUE
+      )
   }
   if (length(studyPops) >= 10) {
     # if 10 or more
@@ -480,45 +464,33 @@ unionCohorts <- function(cdm,
         studyPopsBatches[[i]]
       )
 
-      if (is.null(tablePrefix)) {
-        studyPopsBatches[[i]] <- studyPopsBatches[[i]] %>%
-          CDMConnector::computeQuery()
-      } else {
         studyPopsBatches[[i]] <- studyPopsBatches[[i]] %>%
           CDMConnector::computeQuery(
             name = paste0(
-              tablePrefix,
+              intermediateTable,
               "_batch_", i
             ),
             temporary = FALSE,
             schema = attr(cdm, "write_schema"),
             overwrite = TRUE
           )
-      }
     }
     cli::cli_progress_done()
 
     studyPops <- Reduce(dplyr::union_all, studyPopsBatches)
-    if (is.null(tablePrefix)) {
-      studyPops <- studyPops %>%
-        CDMConnector::computeQuery()
-    } else {
       studyPops <- studyPops %>%
         CDMConnector::computeQuery(
-          name = tablePrefix,
+          name = intermediateTable,
           temporary = FALSE,
           schema = attr(cdm, "write_schema"),
           overwrite = TRUE
         )
-    }
 
-    # drop any batch permanent tables
-    if (!is.null(tablePrefix)) {
+      # drop intermediate tables
       CDMConnector::dropTable(
         cdm = cdm,
-        name = tidyselect::starts_with(paste0(tablePrefix, "_batch_"))
+        name = tidyselect::starts_with(paste0(intermediateTable, "_"))
       )
-    }
   }
 
   return(studyPops)

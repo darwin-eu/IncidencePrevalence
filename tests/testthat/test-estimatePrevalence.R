@@ -1258,8 +1258,7 @@ test_that("mock db: check compute permanent", {
   attr(cdm, "write_schema") <- "main"
 
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "dpop",
-    temporary = FALSE
+    cdm = cdm, name = "dpop"
   )
   prev <- estimatePrevalence(
     cdm = cdm,
@@ -1318,13 +1317,13 @@ test_that("mock db: check participants", {
 
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "dpop",
-    temporary = FALSE,
     sex = c("Male", "Female", "Both"),
     ageGroup = list(
       c(0, 50),
       c(51, 100)
     )
   )
+
   prev <- estimatePrevalence(
     cdm = cdm,
     denominatorTable = "dpop",
@@ -1338,7 +1337,7 @@ test_that("mock db: check participants", {
     schema = attr(cdm, "write_schema")
   ) %in%
     c(
-      "test_dpop",
+      "dpop",
       "test_point_prev_participants1",
       "test_dpop_attrition",
       "test_dpop_set",
@@ -1389,7 +1388,6 @@ test_that("mock db: overwriting participants", {
 
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "dpop",
-    temporary = FALSE,
     ageGroup = list(
       c(0, 50),
       c(51, 100)

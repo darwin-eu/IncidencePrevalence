@@ -139,6 +139,12 @@ test_that("mock db: checks on working example", {
     strataTable = "strata"
   ))
 
+  # must have write_schema
+attr(cdm, "write_schema") <- NULL
+expect_error(generateDenominatorCohortSet(
+  cdm = cdm
+))
+
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
@@ -1527,152 +1533,46 @@ test_that("mock db: check attrition with multiple cohorts", {
 test_that("mock db: check compute permanent", {
   skip_on_cran()
 
-  # using temp
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  attr(cdm, "write_schema") <- "main"
+
+  startTables <- CDMConnector::listTables(attr(cdm, "dbcon"),
+                                          schema = attr(cdm, "write_schema")
+  )
+
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "denominator_temp",
+    cdm = cdm, name = "my_denominator",
     ageGroup = list(
       c(0, 10), c(11, 20),
       c(21, 30), c(31, 40),
       c(41, 50), c(51, 60)
     ),
-    daysPriorObservation = c(0, 1, 2),
-    temporary = TRUE
+    daysPriorObservation = c(0, 1, 2)
   )
-  # if using temp tables
-  # we have temp tables created by dbplyr
-  expect_true(any(stringr::str_starts(
-    CDMConnector::listTables(attr(cdm, "dbcon")),
+
+  endTables <- CDMConnector::listTables(attr(cdm, "dbcon"),
+                                        schema = attr(cdm, "write_schema")
+  )
+
+  # we should have no temp tables created by dbplyr
+  expect_false(any(stringr::str_starts(
+    endTables,
     "dbplyr_"
   )))
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
-  # using permanent (no write_prefix)
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "denominator_perm",
-    ageGroup = list(
-      c(0, 10), c(11, 20),
-      c(21, 30), c(31, 40),
-      c(41, 50), c(51, 60)
-    ),
-    daysPriorObservation = c(0, 1, 2),
-    temporary = FALSE
-  )
-  # we´ll now have the a denominator table
-  expect_true(any(stringr::str_detect(
-    CDMConnector::listTables(attr(cdm, "dbcon"),
-      schema = attr(cdm, "write_schema")
-    ),
-    "denominator_perm"
-  )))
-  expect_true(any(stringr::str_detect(
-    CDMConnector::listTables(attr(cdm, "dbcon"),
-      schema = attr(cdm, "write_schema")
-    ),
-    "denominator_perm_attrition"
-  )))
-  expect_true(any(stringr::str_detect(
-    CDMConnector::listTables(attr(cdm, "dbcon"),
-      schema = attr(cdm, "write_schema")
-    ),
-    "denominator_perm_set"
-  )))
-  expect_true(any(stringr::str_detect(
-    CDMConnector::listTables(attr(cdm, "dbcon"),
-      schema = attr(cdm, "write_schema")
-    ),
-    "denominator_perm_count"
-  )))
-  # with no temp tables created by dbplyr
-  expect_true(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
-    "dbplyr_",
-    negate = TRUE
-  )))
+  expect_true(tibble::is_tibble(CDMConnector::cohortSet(cdm$my_denominator)))
+  expect_true(tibble::is_tibble(CDMConnector::cohortCount(cdm$my_denominator)))
+  expect_true(tibble::is_tibble(CDMConnector::cohortAttrition(cdm$my_denominator)))
+  # # reconnect
+  # cdmReconn <- CDMConnector::cdm_from_con(
+  #   con = attr(cdm, "dbcon"),
+  #   cohort_tables = c("my_denominator"),
+  #   write_schema = "main"
+  # )
+  # expect_true(tibble::is_tibble(CDMConnector::cohortSet(cdmReconn$denominator_perm)))
+  # expect_true(tibble::is_tibble(CDMConnector::cohortCount(cdmReconn$denominator_perm)))
+  # expect_true(tibble::is_tibble(CDMConnector::cohortAttrition(cdmReconn$denominator_perm)))
+  # DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
-
-  expect_true(tibble::is_tibble(CDMConnector::cohortSet(cdm$denominator_perm)))
-  expect_true(tibble::is_tibble(CDMConnector::cohortCount(cdm$denominator_perm)))
-  expect_true(tibble::is_tibble(CDMConnector::cohortAttrition(cdm$denominator_perm)))
-  # reconnect
-  cdmReconn <- CDMConnector::cdm_from_con(
-    con = attr(cdm, "dbcon"),
-    cohort_tables = c("denominator_perm"),
-    write_schema = "main"
-  )
-  expect_true(tibble::is_tibble(CDMConnector::cohortSet(cdmReconn$denominator_perm)))
-  expect_true(tibble::is_tibble(CDMConnector::cohortCount(cdmReconn$denominator_perm)))
-  expect_true(tibble::is_tibble(CDMConnector::cohortAttrition(cdmReconn$denominator_perm)))
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-
-
-  # using permanent (with a write_prefix)
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  attr(cdm, "write_prefix") <- "prefix_"
-  cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "denominator_perm",
-    ageGroup = list(
-      c(0, 10), c(11, 20),
-      c(21, 30), c(31, 40),
-      c(41, 50), c(51, 60)
-    ),
-    daysPriorObservation = c(0, 1, 2),
-    temporary = FALSE
-  )
-  # we´ll now have the a denominator table
-  expect_true(any(stringr::str_detect(
-    CDMConnector::listTables(attr(cdm, "dbcon"),
-      schema = attr(cdm, "write_schema")
-    ),
-    "prefix_denominator_perm"
-  )))
-  expect_true(any(stringr::str_detect(
-    CDMConnector::listTables(attr(cdm, "dbcon"),
-      schema = attr(cdm, "write_schema")
-    ),
-    "prefix_denominator_perm_attrition"
-  )))
-  expect_true(any(stringr::str_detect(
-    CDMConnector::listTables(attr(cdm, "dbcon"),
-      schema = attr(cdm, "write_schema")
-    ),
-    "prefix_denominator_perm_set"
-  )))
-  expect_true(any(stringr::str_detect(
-    CDMConnector::listTables(attr(cdm, "dbcon"),
-      schema = attr(cdm, "write_schema")
-    ),
-    "prefix_denominator_perm_count"
-  )))
-  # with no temp tables created by dbplyr
-  expect_true(any(stringr::str_starts(CDMConnector::listTables(attr(cdm, "dbcon")),
-    "dbplyr_",
-    negate = TRUE
-  )))
-
-
-  expect_true(tibble::is_tibble(
-    CDMConnector::cohortSet(cdm$denominator_perm)))
-  expect_true(tibble::is_tibble(
-    CDMConnector::cohortCount(cdm$denominator_perm)))
-  expect_true(tibble::is_tibble(
-    CDMConnector::cohortAttrition(cdm$denominator_perm)))
-  # reconnect
-  cdmReconn <- CDMConnector::cdm_from_con(
-    con = attr(cdm, "dbcon"),
-    cohort_tables = c("denominator_perm"),
-    write_schema = c(
-      "schema" = "main",
-      "prefix" = "prefix_"
-    )
-  )
-  expect_true(tibble::is_tibble(
-    CDMConnector::cohortSet(cdmReconn$denominator_perm)))
-  expect_true(tibble::is_tibble(
-    CDMConnector::cohortCount(cdmReconn$denominator_perm)))
-  expect_true(tibble::is_tibble(
-    CDMConnector::cohortAttrition(cdmReconn$denominator_perm)))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 

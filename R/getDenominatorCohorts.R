@@ -24,7 +24,7 @@ getDenominatorCohorts <- function(cdm,
                                   daysPriorObservation,
                                   strataTable,
                                   strataCohortId,
-                                  tablePrefix) {
+                                  intermediateTable) {
   # make sure names are lowercase and keep variables required
   personDb <- dplyr::rename_with(cdm$person, tolower) %>%
     dplyr::select(
@@ -55,21 +55,13 @@ getDenominatorCohorts <- function(cdm,
         by = "person_id"
       )
 
-    if (is.null(tablePrefix)) {
-      personDb <- personDb %>%
-        CDMConnector::computeQuery()
-    } else {
       personDb <- personDb %>%
         CDMConnector::computeQuery(
-          name = paste0(
-            tablePrefix,
-            "_working_person"
-          ),
+          name = paste0(intermediateTable,"_working_person"),
           temporary = FALSE,
           schema = attr(cdm, "write_schema"),
           overwrite = TRUE
         )
-    }
 
     observationPeriodDb <- observationPeriodDb %>%
       dplyr::inner_join(
@@ -117,21 +109,13 @@ getDenominatorCohorts <- function(cdm,
       dplyr::select(!c("cohort_end_date")) %>%
       dplyr::rename("strata_start_date" = "cohort_start_date")
 
-    if (is.null(tablePrefix)) {
-      observationPeriodDb <- observationPeriodDb %>%
-        CDMConnector::computeQuery()
-    } else {
       personDb <- personDb %>%
         CDMConnector::computeQuery(
-          name = paste0(
-            tablePrefix,
-            "_working_obs_period"
-          ),
+          name = paste0(intermediateTable,"_working_obs_period"),
           temporary = FALSE,
           schema = attr(cdm, "write_schema"),
           overwrite = TRUE
         )
-    }
   }
 
   ## Identifying population of interest
@@ -167,18 +151,13 @@ getDenominatorCohorts <- function(cdm,
     )) %>%
     dplyr::filter(!is.na(.data$sex))
 
-  if (is.null(tablePrefix)) {
-    studyPopDb <- studyPopDb %>%
-      CDMConnector::computeQuery()
-  } else {
     studyPopDb <- studyPopDb %>%
       CDMConnector::computeQuery(
-        name = paste0(tablePrefix, "_i_1"),
+        name = paste0(intermediateTable, "_i_1"),
         temporary = FALSE,
         schema = attr(cdm, "write_schema"),
         overwrite = TRUE
       )
-  }
 
   attrition <- recordAttrition(
     table = studyPopDb,
@@ -244,18 +223,13 @@ getDenominatorCohorts <- function(cdm,
     ) %>%
     dplyr::select(-c("lower_age_check", "upper_age_check"))
 
-  if (is.null(tablePrefix)) {
-    studyPopDb <- studyPopDb %>%
-      CDMConnector::computeQuery()
-  } else {
     studyPopDb <- studyPopDb %>%
       CDMConnector::computeQuery(
-        name = paste0(tablePrefix, "_i_2"),
+        name = paste0(intermediateTable, "_i_2"),
         temporary = FALSE,
         schema = attr(cdm, "write_schema"),
         overwrite = TRUE
       )
-  }
 
   attrition <- recordAttrition(
     table = studyPopDb,
@@ -273,18 +247,13 @@ getDenominatorCohorts <- function(cdm,
         .data$observation_period_end_date >= .data$startDate
     )
 
-  if (is.null(tablePrefix)) {
-    studyPopDb <- studyPopDb %>%
-      CDMConnector::computeQuery()
-  } else {
     studyPopDb <- studyPopDb %>%
       CDMConnector::computeQuery(
-        name = paste0(tablePrefix, "_i_3"),
+        name = paste0(intermediateTable, "_i_3"),
         temporary = FALSE,
         schema = attr(cdm, "write_schema"),
         overwrite = TRUE
       )
-  }
 
   attrition <- recordAttrition(
     table = studyPopDb,
@@ -330,18 +299,13 @@ getDenominatorCohorts <- function(cdm,
       dplyr::collapse() %>%
       dplyr::mutate(!!!maxAgeDatesMinusDay)
 
-    if (is.null(tablePrefix)) {
-      studyPopDb <- studyPopDb %>%
-        CDMConnector::computeQuery()
-    } else {
       studyPopDb <- studyPopDb %>%
         CDMConnector::computeQuery(
-          name = paste0(tablePrefix, "_i_4"),
+          name = paste0(intermediateTable, "_i_4"),
           temporary = FALSE,
           schema = attr(cdm, "write_schema"),
           overwrite = TRUE
         )
-    }
 
     # keep people only if they
     # satisfy age criteria at some point in the study
@@ -389,18 +353,13 @@ getDenominatorCohorts <- function(cdm,
           .data$observation_period_end_date
       )
 
-    if (is.null(tablePrefix)) {
-      studyPopDb <- studyPopDb %>%
-        CDMConnector::computeQuery()
-    } else {
       studyPopDb <- studyPopDb %>%
         CDMConnector::computeQuery(
-          name = paste0(tablePrefix, "_i_5"),
+          name = paste0(intermediateTable, "_i_5"),
           temporary = FALSE,
           schema = attr(cdm, "write_schema"),
           overwrite = TRUE
         )
-    }
 
 
     attrition <- recordAttrition(
@@ -443,18 +402,13 @@ getDenominatorCohorts <- function(cdm,
       dplyr::collapse() %>%
       dplyr::mutate(!!!minAgeHistStartDates)
 
-    if (is.null(tablePrefix)) {
-      studyPopDb <- studyPopDb %>%
-        CDMConnector::computeQuery()
-    } else {
       studyPopDb <- studyPopDb %>%
         CDMConnector::computeQuery(
-          name = paste0(tablePrefix, "_i_6"),
+          name = paste0(intermediateTable, "_i_6"),
           temporary = FALSE,
           schema = attr(cdm, "write_schema"),
           overwrite = TRUE
         )
-    }
 
     # cohort end dates
     # study end date,
@@ -478,19 +432,29 @@ getDenominatorCohorts <- function(cdm,
       dplyr::collapse() %>%
       dplyr::mutate(!!!maxAgeObsPeriodEndDates)
 
-    if (is.null(tablePrefix)) {
-      studyPopDb <- studyPopDb %>%
-        CDMConnector::computeQuery()
-    } else {
       studyPopDb <- studyPopDb %>%
         CDMConnector::computeQuery(
-          name = paste0(tablePrefix, "_cohorts"),
+          name = paste0(intermediateTable, "_cohorts"),
           temporary = FALSE,
           schema = attr(cdm, "write_schema"),
           overwrite = TRUE
         )
-    }
   }
+
+  # table to return
+  studyPopDb <- studyPopDb %>%
+    CDMConnector::computeQuery(
+      name = intermediateTable,
+      temporary = FALSE,
+      schema = attr(cdm, "write_schema"),
+      overwrite = TRUE
+    )
+
+  # remove intermediate tables
+  CDMConnector::dropTable(
+    cdm = cdm,
+    name = tidyselect::starts_with(paste0(intermediateTable, "_"))
+  )
 
   # return list with population and attrition
   dpop <- list()

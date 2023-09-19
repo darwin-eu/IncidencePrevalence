@@ -3034,7 +3034,7 @@ test_that("mock db: check compute permanent", {
 
   # using permanent
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  cdm <- generateDenominatorCohortSet(cdm = cdm, temporary = FALSE)
+  cdm <- generateDenominatorCohortSet(cdm = cdm)
   inc <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
@@ -3082,8 +3082,7 @@ test_that("mock db: check participants", {
     ageGroup = list(
       c(0, 50),
       c(51, 100)
-    ),
-    temporary = FALSE
+    )
   )
   inc <- estimateIncidence(
     cdm = cdm,
@@ -3099,7 +3098,7 @@ test_that("mock db: check participants", {
     schema = attr(cdm, "write_schema")
   ) %in%
     c(
-      "test_dpop",
+      "dpop",
       "test_inc_participants1",
       "test_dpop_attrition",
       "test_dpop_set",
@@ -3145,7 +3144,6 @@ test_that("mock db: overwriting participants", {
 
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "dpop",
-    temporary = FALSE,
     ageGroup = list(
       c(0, 50),
       c(51, 100)

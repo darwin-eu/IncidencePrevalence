@@ -8,9 +8,12 @@ checkInputGenerateDCS <- function(cdm,
                                   strataTable,
                                   strataCohortId,
                                   closedCohort,
-                                  temporary) {
+                                  call = parent.frame()) {
   cdmCheck(cdm)
-
+  if(is.null(attr(cdm, "write_schema"))){
+  cli::cli_abort("cdm must have a write_schema specified",
+                 call = call)
+  }
   if (!is.null(strataTable)) {
     cdmStrataCheck(cdm, strataTable = strataTable)
   }
@@ -99,7 +102,6 @@ checkInputGenerateDCS <- function(cdm,
       null.ok = FALSE
     )
   }
-  checkmate::assert_logical(temporary, len = 1, add = errorMessage)
   return(checkmate::reportAssertions(collection = errorMessage))
 }
 
