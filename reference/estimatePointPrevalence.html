@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -149,8 +149,8 @@ one table per analysis will be kept in the cdm write schema.</p></dd>
 <span class="r-in"><span>  cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="st">"denominator"</span>,</span></span>
 <span class="r-in"><span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2008-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2018-01-01"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Creating denominator cohorts</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken to get cohorts: 0 min and 3 sec</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Creating denominator cohorts</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Cohorts created in 0 min and 2 sec</span>
 <span class="r-in"><span><span class="fu">estimatePointPrevalence</span><span class="op">(</span></span></span>
 <span class="r-in"><span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span></span>
 <span class="r-in"><span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span></span>
@@ -158,7 +158,7 @@ one table per analysis will be kept in the cdm write schema.</p></dd>
 <span class="r-in"><span>  interval <span class="op">=</span> <span class="st">"months"</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 1 of 1</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken: 0 mins and 2 secs</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken: 0 mins and 1 secs</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># A tibble: 121 × 30</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    analysis_id prevalence_start_date prevalence_end_date n_cases n_population</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span>
@@ -174,11 +174,11 @@ one table per analysis will be kept in the cdm write schema.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #BCBCBC;">10</span> 1           2008-10-01            2008-10-01                7          941</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 111 more rows</span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 25 more variables: prevalence &lt;dbl&gt;, prevalence_95CI_lower &lt;dbl&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   prevalence_95CI_upper &lt;dbl&gt;, cohort_obscured &lt;chr&gt;, result_obscured &lt;chr&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   outcome_cohort_id &lt;chr&gt;, outcome_cohort_name &lt;chr&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   analysis_outcome_lookback_days &lt;dbl&gt;, analysis_type &lt;chr&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   analysis_interval &lt;chr&gt;, analysis_complete_database_intervals &lt;lgl&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   analysis_time_point &lt;chr&gt;, analysis_full_contribution &lt;lgl&gt;, …</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   prevalence_95CI_upper &lt;dbl&gt;, population_obscured &lt;chr&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   cases_obscured &lt;chr&gt;, result_obscured &lt;chr&gt;, outcome_cohort_id &lt;chr&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   outcome_cohort_name &lt;chr&gt;, analysis_outcome_lookback_days &lt;dbl&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   analysis_type &lt;chr&gt;, analysis_interval &lt;chr&gt;,</span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   analysis_complete_database_intervals &lt;lgl&gt;, analysis_time_point &lt;chr&gt;, …</span></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

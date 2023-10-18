@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -186,18 +186,17 @@ than temporary tables which would be used by default).</p>
 <span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2008-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2012-01-01"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  ageGroup <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  sex <span class="op">=</span> <span class="st">"Both"</span>,</span>
-<span>  daysPriorHistory <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  temporary <span class="op">=</span> <span class="cn">FALSE</span>,</span>
+<span>  daysPriorObservation <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Loading required namespace: testthat</span></span>
-<span><span class="co">#&gt; Creating denominator cohorts</span></span>
-<span><span class="co">#&gt; Time taken to get cohorts: 0 min and 3 sec</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Creating denominator cohorts</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Cohorts created in 0 min and 3 sec</span></span>
 <span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: ??</span></span>
 <span><span class="co">#&gt; Columns: 4</span></span>
-<span><span class="co">#&gt; Database: DuckDB 0.8.1 [unknown@Linux 5.15.0-1041-azure:R 4.3.1/:memory:]</span></span>
+<span><span class="co">#&gt; Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1012-azure:R 4.3.1/:memory:]</span></span>
 <span><span class="co">#&gt; $ cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…</span></span>
 <span><span class="co">#&gt; $ subject_id           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "2", "3", "4", "6", "7", "8", "12", "13", "19", "…</span></span>
 <span><span class="co">#&gt; $ cohort_start_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2009-12-20, 2011-04-26, 2011-10-13, …</span></span>
@@ -218,7 +217,7 @@ allowing repetitive events</p>
 <span><span class="va">inc</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 4</span></span>
-<span><span class="co">#&gt; Columns: 30</span></span>
+<span><span class="co">#&gt; Columns: 29</span></span>
 <span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1"</span></span>
 <span><span class="co">#&gt; $ n_persons                               <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 7926, 7055, 6862, 6872</span></span>
 <span><span class="co">#&gt; $ person_days                             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1465281, 1285865, 1278246, 128…</span></span>
@@ -242,12 +241,11 @@ allowing repetitive events</p>
 <span><span class="co">#&gt; $ denominator_cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Denominator cohort 1", "Denom…</span></span>
 <span><span class="co">#&gt; $ denominator_age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0 to 150", "0 to 150", "0 to …</span></span>
 <span><span class="co">#&gt; $ denominator_sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Both", "Both", "Both", "Both"</span></span>
-<span><span class="co">#&gt; $ denominator_days_prior_history          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0</span></span>
+<span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0</span></span>
 <span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-0…</span></span>
 <span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-0…</span></span>
-<span><span class="co">#&gt; $ denominator_strata_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
-<span><span class="co">#&gt; $ denominator_strata_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
-<span><span class="co">#&gt; $ denominator_closed_cohort               <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
 <span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "test_database", "test_databas…</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span></code></pre></div>
@@ -269,7 +267,7 @@ use a washout of all prior history for an individual.</p>
 <span><span class="va">inc</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 4</span></span>
-<span><span class="co">#&gt; Columns: 30</span></span>
+<span><span class="co">#&gt; Columns: 29</span></span>
 <span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1"</span></span>
 <span><span class="co">#&gt; $ n_persons                               <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 6832, 6822, 6850, 6872</span></span>
 <span><span class="co">#&gt; $ person_days                             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1261517, 1252799, 1277510, 128…</span></span>
@@ -293,12 +291,11 @@ use a washout of all prior history for an individual.</p>
 <span><span class="co">#&gt; $ denominator_cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Denominator cohort 1", "Denom…</span></span>
 <span><span class="co">#&gt; $ denominator_age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0 to 150", "0 to 150", "0 to …</span></span>
 <span><span class="co">#&gt; $ denominator_sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Both", "Both", "Both", "Both"</span></span>
-<span><span class="co">#&gt; $ denominator_days_prior_history          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0</span></span>
+<span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0</span></span>
 <span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-0…</span></span>
 <span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-0…</span></span>
-<span><span class="co">#&gt; $ denominator_strata_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
-<span><span class="co">#&gt; $ denominator_strata_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
-<span><span class="co">#&gt; $ denominator_closed_cohort               <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
 <span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "test_database", "test_databas…</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span></code></pre></div>
@@ -319,7 +316,7 @@ repetitive events</p>
 <span><span class="va">inc</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 4</span></span>
-<span><span class="co">#&gt; Columns: 30</span></span>
+<span><span class="co">#&gt; Columns: 29</span></span>
 <span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1"</span></span>
 <span><span class="co">#&gt; $ n_persons                               <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 7738, 7055, 6862, 6872</span></span>
 <span><span class="co">#&gt; $ person_days                             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1418998, 1285865, 1278246, 128…</span></span>
@@ -343,12 +340,11 @@ repetitive events</p>
 <span><span class="co">#&gt; $ denominator_cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Denominator cohort 1", "Denom…</span></span>
 <span><span class="co">#&gt; $ denominator_age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0 to 150", "0 to 150", "0 to …</span></span>
 <span><span class="co">#&gt; $ denominator_sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Both", "Both", "Both", "Both"</span></span>
-<span><span class="co">#&gt; $ denominator_days_prior_history          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0</span></span>
+<span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0</span></span>
 <span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-0…</span></span>
 <span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-0…</span></span>
-<span><span class="co">#&gt; $ denominator_strata_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
-<span><span class="co">#&gt; $ denominator_strata_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
-<span><span class="co">#&gt; $ denominator_closed_cohort               <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
 <span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "test_database", "test_databas…</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span></code></pre></div>
@@ -369,7 +365,7 @@ events</p>
 <span><span class="va">inc</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 4</span></span>
-<span><span class="co">#&gt; Columns: 30</span></span>
+<span><span class="co">#&gt; Columns: 29</span></span>
 <span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1"</span></span>
 <span><span class="co">#&gt; $ n_persons                               <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 7738, 7790, 7875, 7850</span></span>
 <span><span class="co">#&gt; $ person_days                             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1448414, 1454027, 1487577, 149…</span></span>
@@ -393,12 +389,11 @@ events</p>
 <span><span class="co">#&gt; $ denominator_cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Denominator cohort 1", "Denom…</span></span>
 <span><span class="co">#&gt; $ denominator_age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0 to 150", "0 to 150", "0 to …</span></span>
 <span><span class="co">#&gt; $ denominator_sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Both", "Both", "Both", "Both"</span></span>
-<span><span class="co">#&gt; $ denominator_days_prior_history          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0</span></span>
+<span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0</span></span>
 <span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-0…</span></span>
 <span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-0…</span></span>
-<span><span class="co">#&gt; $ denominator_strata_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
-<span><span class="co">#&gt; $ denominator_strata_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
-<span><span class="co">#&gt; $ denominator_closed_cohort               <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
 <span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "test_database", "test_databas…</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span></code></pre></div>
@@ -438,7 +433,7 @@ By default, no progress is reported (verbose=FALSE).</p>
 <span>  temporary <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Getting incidence for analysis 1 of 1</span></span>
-<span><span class="co">#&gt; Overall time taken: 0 mins and 5 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Overall time taken: 0 mins and 4 secs</span></span></code></pre></div>
 </div>
 <div class="section level4">
 <h4 id="output">Output<a class="anchor" aria-label="anchor" href="#output"></a>
@@ -460,7 +455,7 @@ also be associated with attributes such as settings and attrition.</p>
 <span>  returnParticipants <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/incidenceAttrition.html">incidenceAttrition</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 22 × 25</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 22 × 24</span></span></span>
 <span><span class="co">#&gt;    analysis_id number_records number_subjects reason_id reason  excluded_records</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;glue&gt;</span>             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 1                    <span style="text-decoration: underline;">50</span>000           <span style="text-decoration: underline;">50</span>000         1 Starti…               <span style="color: #BB0000;">NA</span></span></span>
@@ -474,7 +469,7 @@ also be associated with attributes such as settings and attrition.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 1                    <span style="text-decoration: underline;">25</span>886           <span style="text-decoration: underline;">18</span>018        11 Starti…               <span style="color: #BB0000;">NA</span></span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 1                    <span style="text-decoration: underline;">24</span>509           <span style="text-decoration: underline;">18</span>018        12 Exclud…             <span style="text-decoration: underline;">1</span>377</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 12 more rows</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 19 more variables: excluded_subjects &lt;dbl&gt;, outcome_cohort_id &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 18 more variables: excluded_subjects &lt;dbl&gt;, outcome_cohort_id &lt;chr&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   outcome_cohort_name &lt;chr&gt;, analysis_outcome_washout &lt;dbl&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   analysis_repeated_events &lt;lgl&gt;, analysis_interval &lt;chr&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   analysis_complete_database_intervals &lt;lgl&gt;, denominator_cohort_id &lt;int&gt;,</span></span></span>
@@ -489,27 +484,27 @@ contributing to analysis 1 by running</p>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: ??</span></span>
 <span><span class="co">#&gt; Columns: 4</span></span>
-<span><span class="co">#&gt; Database: DuckDB 0.8.1 [unknown@Linux 5.15.0-1041-azure:R 4.3.1/:memory:]</span></span>
-<span><span class="co">#&gt; $ subject_id         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "6", "12", "13", "19", "21", "22", "29", "40", "42"…</span></span>
-<span><span class="co">#&gt; $ cohort_start_date  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2011-10-13, 2008-01-01, 2008-01-01, 2008-03-08, 20…</span></span>
-<span><span class="co">#&gt; $ cohort_end_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2009-03-08, 2009-12-29, 2009-03-10, 20…</span></span>
+<span><span class="co">#&gt; Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1012-azure:R 4.3.1/:memory:]</span></span>
+<span><span class="co">#&gt; $ subject_id         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "6", "75", "163", "185", "391", "473", "527", "623"…</span></span>
+<span><span class="co">#&gt; $ cohort_start_date  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2011-10-13, 2008-01-01, 2009-01-16, 2009-02-24, 20…</span></span>
+<span><span class="co">#&gt; $ cohort_end_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2009-06-25, 2011-01-31, 2009-07-21, 20…</span></span>
 <span><span class="co">#&gt; $ outcome_start_date <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span></code></pre></div>
 <p>As we;ve used permanent tables for this example, we can drop these
 after running our analysis.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/list_tables.html" class="external-link">listTables</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">cdm</span>, <span class="st">"dbcon"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [1] "cdm_source"            "denominator"           "denominator_attrition"</span></span>
-<span><span class="co">#&gt;  [4] "denominator_count"     "denominator_set"       "inc_participants1"    </span></span>
-<span><span class="co">#&gt;  [7] "observation_period"    "outcome"               "outcome_count"        </span></span>
-<span><span class="co">#&gt; [10] "outcome_set"           "person"                "strata"               </span></span>
-<span><span class="co">#&gt; [13] "strata_count"          "strata_set"            "vocabulary"</span></span>
-<span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/dropTable.html" class="external-link">dropTable</a></span><span class="op">(</span>cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"denominator"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/dropTable.html" class="external-link">dropTable</a></span><span class="op">(</span>cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"inc_participants"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/list_tables.html" class="external-link">listTables</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">cdm</span>, <span class="st">"dbcon"</span><span class="op">)</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/list_tables.html" class="external-link">listTables</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">cdm</span>, <span class="st">"dbcon"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  [1] "cdm_source"         "denominator"        "inc_participants1" </span></span>
+<span><span class="co">#&gt;  [4] "observation_period" "outcome"            "outcome_attrition" </span></span>
+<span><span class="co">#&gt;  [7] "outcome_count"      "outcome_set"        "person"            </span></span>
+<span><span class="co">#&gt; [10] "target"             "target_attrition"   "target_count"      </span></span>
+<span><span class="co">#&gt; [13] "target_set"         "vocabulary"</span></span>
+<span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/dropTable.html" class="external-link">dropTable</a></span><span class="op">(</span>cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"denominator"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/dropTable.html" class="external-link">dropTable</a></span><span class="op">(</span>cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"inc_participants"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/list_tables.html" class="external-link">listTables</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">cdm</span>, <span class="st">"dbcon"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt;  [1] "cdm_source"         "observation_period" "outcome"           </span></span>
-<span><span class="co">#&gt;  [4] "outcome_count"      "outcome_set"        "person"            </span></span>
-<span><span class="co">#&gt;  [7] "strata"             "strata_count"       "strata_set"        </span></span>
-<span><span class="co">#&gt; [10] "vocabulary"</span></span></code></pre></div>
+<span><span class="co">#&gt;  [4] "outcome_attrition"  "outcome_count"      "outcome_set"       </span></span>
+<span><span class="co">#&gt;  [7] "person"             "target"             "target_attrition"  </span></span>
+<span><span class="co">#&gt; [10] "target_count"       "target_set"         "vocabulary"</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

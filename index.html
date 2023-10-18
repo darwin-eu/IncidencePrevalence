@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.4.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -85,19 +85,21 @@
 </h3>
 <p>The IncidencePrevalence package is designed to work with data in the OMOP CDM format, so our first step is to create a reference to the data using the CDMConnector package.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">CDMConnector</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://darwin-eu.github.io/CDMConnector/" class="external-link">CDMConnector</a></span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://darwin-eu.github.io/IncidencePrevalence/">IncidencePrevalence</a></span><span class="op">)</span></span></code></pre></div>
 <p>Creating a connection to a Postgres database would for example look like:</p>
 <div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">con</span> <span class="op">&lt;-</span> <span class="fu">DBI</span><span class="fu">::</span><span class="fu"><a href="https://dbi.r-dbi.org/reference/dbConnect.html" class="external-link">dbConnect</a></span><span class="op">(</span><span class="fu">RPostgres</span><span class="fu">::</span><span class="fu"><a href="https://rpostgres.r-dbi.org/reference/Postgres.html" class="external-link">Postgres</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>                      dbname <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_DBNAME"</span><span class="op">)</span>,</span>
-<span>                      host <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_HOST"</span><span class="op">)</span>,</span>
-<span>                      user <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_USER"</span><span class="op">)</span>,</span>
-<span>                      password <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_PASSWORD"</span><span class="op">)</span><span class="op">)</span></span>
+<span>  dbname <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_DBNAME"</span><span class="op">)</span>,</span>
+<span>  host <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_HOST"</span><span class="op">)</span>,</span>
+<span>  user <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_USER"</span><span class="op">)</span>,</span>
+<span>  password <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_PASSWORD"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/cdm_from_con.html" class="external-link">cdm_from_con</a></span><span class="op">(</span><span class="va">con</span>, </span>
-<span>                    cdm_schema <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_CDM_SCHEMA"</span><span class="op">)</span>, </span>
-<span>                    write_schema <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_RESULT_SCHEMA"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/cdm_from_con.html" class="external-link">cdm_from_con</a></span><span class="op">(</span><span class="va">con</span>,</span>
+<span>  cdm_schema <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_CDM_SCHEMA"</span><span class="op">)</span>,</span>
+<span>  write_schema <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_RESULT_SCHEMA"</span><span class="op">)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>To see how you would create a reference to your database please consult the CDMConnector package documentation. For this example though we´ll work with simulated data, and we’ll generate an example cdm reference like so:</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/mockIncidencePrevalenceRef.html">mockIncidencePrevalenceRef</a></span><span class="op">(</span>sampleSize <span class="op">=</span> <span class="fl">5000</span><span class="op">)</span></span></code></pre></div>
@@ -108,33 +110,36 @@
 <p>To identify a set of denominator cohorts we can use the <code>generateDenominatorCohortSet</code> function. Here we want to identify denominator populations for a study period between 2008 and 2018 and with 180 days of prior history (observation time in the database). We also wish to consider multiple age groups (from 0 to 64, and 65 to 100) and multiple sex criteria (one cohort only males, one only females, and one with both sexes included).</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
-<span>  cdm <span class="op">=</span> <span class="va">cdm</span>, </span>
-<span>  name <span class="op">=</span> <span class="st">"denominator"</span>, </span>
+<span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
+<span>  name <span class="op">=</span> <span class="st">"denominator"</span>,</span>
 <span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2008-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2018-01-01"</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  ageGroup <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">64</span><span class="op">)</span>,</span>
-<span>                  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">65</span>,<span class="fl">100</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  ageGroup <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">64</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">65</span>, <span class="fl">100</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
 <span>  sex <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Male"</span>, <span class="st">"Female"</span>, <span class="st">"Both"</span><span class="op">)</span>,</span>
-<span>  daysPriorHistory <span class="op">=</span> <span class="fl">180</span></span>
+<span>  daysPriorObservation <span class="op">=</span> <span class="fl">180</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>This will then give us six denominator cohorts</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/cohortSet.html" class="external-link">cohortSet</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
-<span><span class="co">#&gt; # A tibble: 6 × 9</span></span>
-<span><span class="co">#&gt;   cohort_definition_id cohort_name age_group sex   days_prior_history start_date</span></span>
-<span><span class="co">#&gt;                  &lt;int&gt; &lt;chr&gt;       &lt;chr&gt;     &lt;chr&gt;              &lt;dbl&gt; &lt;date&gt;    </span></span>
-<span><span class="co">#&gt; 1                    1 Denominato… 0;64      Male                 180 2008-01-01</span></span>
-<span><span class="co">#&gt; 2                    2 Denominato… 0;64      Fema…                180 2008-01-01</span></span>
-<span><span class="co">#&gt; 3                    3 Denominato… 0;64      Both                 180 2008-01-01</span></span>
-<span><span class="co">#&gt; 4                    4 Denominato… 65;100    Male                 180 2008-01-01</span></span>
-<span><span class="co">#&gt; 5                    5 Denominato… 65;100    Fema…                180 2008-01-01</span></span>
-<span><span class="co">#&gt; 6                    6 Denominato… 65;100    Both                 180 2008-01-01</span></span>
-<span><span class="co">#&gt; # ℹ 3 more variables: end_date &lt;date&gt;, strata_cohort_definition_id &lt;lgl&gt;,</span></span>
+<code class="sourceCode R"><span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/cohortSet.html" class="external-link">cohortSet</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # A tibble: 6 × 11</span></span>
+<span><span class="co">#&gt;   cohort_definition_id cohort_name        age_group sex   days_prior_observation</span></span>
+<span><span class="co">#&gt;                  &lt;int&gt; &lt;chr&gt;              &lt;chr&gt;     &lt;chr&gt;                  &lt;dbl&gt;</span></span>
+<span><span class="co">#&gt; 1                    1 Denominator cohor… 0 to 64   Male                     180</span></span>
+<span><span class="co">#&gt; 2                    2 Denominator cohor… 0 to 64   Fema…                    180</span></span>
+<span><span class="co">#&gt; 3                    3 Denominator cohor… 0 to 64   Both                     180</span></span>
+<span><span class="co">#&gt; 4                    4 Denominator cohor… 65 to 100 Male                     180</span></span>
+<span><span class="co">#&gt; 5                    5 Denominator cohor… 65 to 100 Fema…                    180</span></span>
+<span><span class="co">#&gt; 6                    6 Denominator cohor… 65 to 100 Both                     180</span></span>
+<span><span class="co">#&gt; # ℹ 6 more variables: start_date &lt;date&gt;, end_date &lt;date&gt;, strataTable &lt;lgl&gt;,</span></span>
+<span><span class="co">#&gt; #   strataCohortId &lt;lgl&gt;, strata_cohort_definition_id &lt;lgl&gt;,</span></span>
 <span><span class="co">#&gt; #   strata_cohort_name &lt;lgl&gt;</span></span></code></pre></div>
 <p>These cohorts will be in the typical OMOP CDM structure</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span>
-<span><span class="co">#&gt; # Source:   table&lt;dbplyr_008&gt; [?? x 4]</span></span>
-<span><span class="co">#&gt; # Database: DuckDB 0.7.1 [eburn@Windows 10 x64:R 4.2.1/:memory:]</span></span>
+<span><span class="co">#&gt; # Source:   table&lt;main.denominator&gt; [?? x 4]</span></span>
+<span><span class="co">#&gt; # Database: DuckDB 0.9.0 [eburn@Windows 10 x64:R 4.2.1/:memory:]</span></span>
 <span><span class="co">#&gt;    cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                   &lt;int&gt; &lt;chr&gt;      &lt;date&gt;            &lt;date&gt;         </span></span>
 <span><span class="co">#&gt;  1                    1 14         2010-04-17        2010-11-27     </span></span>
@@ -145,8 +150,8 @@
 <span><span class="co">#&gt;  6                    1 30         2017-05-07        2017-10-30     </span></span>
 <span><span class="co">#&gt;  7                    1 31         2011-09-26        2012-09-02     </span></span>
 <span><span class="co">#&gt;  8                    1 42         2008-01-01        2008-02-18     </span></span>
-<span><span class="co">#&gt;  9                    1 55         2008-05-24        2009-05-02     </span></span>
-<span><span class="co">#&gt; 10                    1 56         2012-07-24        2013-11-02     </span></span>
+<span><span class="co">#&gt;  9                    1 46         2012-01-21        2012-01-22     </span></span>
+<span><span class="co">#&gt; 10                    1 55         2008-05-24        2009-05-02     </span></span>
 <span><span class="co">#&gt; # ℹ more rows</span></span></code></pre></div>
 </div>
 <div class="section level3">
@@ -154,16 +159,17 @@
 </h3>
 <p>Outcome cohorts for which we want to estimate incidence or prevalence need to be created. If the outcome cohorts are defined as JSON, we can use the CDMConnector package to read in and generate the cohorts.</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">outcome_cohorts</span> <span class="op">&lt;-</span> <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/read_cohort_set.html" class="external-link">readCohortSet</a></span><span class="op">(</span><span class="st">"path_to_outcome_cohort_definitions"</span><span class="op">)</span></span>
-<span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/CDMConnector/man/generateCohortSet.html" class="external-link">generateCohortSet</a></span><span class="op">(</span>cdm <span class="op">=</span> <span class="va">cdm</span>, </span>
-<span>                                       cohortSet <span class="op">=</span> <span class="va">outcome_cohorts</span>,</span>
-<span>                                       name <span class="op">=</span> <span class="st">"outcome_table_name"</span></span>
-<span>                                       <span class="op">)</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="va">outcome_cohorts</span> <span class="op">&lt;-</span> <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/read_cohort_set.html" class="external-link">readCohortSet</a></span><span class="op">(</span><span class="st">"path_to_outcome_cohort_definitions"</span><span class="op">)</span></span>
+<span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/generateCohortSet.html" class="external-link">generateCohortSet</a></span><span class="op">(</span></span>
+<span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
+<span>  cohortSet <span class="op">=</span> <span class="va">outcome_cohorts</span>,</span>
+<span>  name <span class="op">=</span> <span class="st">"outcome_table_name"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <p>Note, in our example cdm reference we already have an outcome cohort defined</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span><span class="op">$</span><span class="va">outcome</span></span>
 <span><span class="co">#&gt; # Source:   table&lt;main.outcome&gt; [?? x 4]</span></span>
-<span><span class="co">#&gt; # Database: DuckDB 0.7.1 [eburn@Windows 10 x64:R 4.2.1/:memory:]</span></span>
+<span><span class="co">#&gt; # Database: DuckDB 0.9.0 [eburn@Windows 10 x64:R 4.2.1/:memory:]</span></span>
 <span><span class="co">#&gt;    cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;    &lt;chr&gt;                &lt;chr&gt;      &lt;date&gt;            &lt;date&gt;         </span></span>
 <span><span class="co">#&gt;  1 1                    1          2014-07-01        2014-07-09     </span></span>
@@ -196,7 +202,7 @@
 <span><span class="op">)</span></span>
 <span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 60</span></span>
-<span><span class="co">#&gt; Columns: 29</span></span>
+<span><span class="co">#&gt; Columns: 31</span></span>
 <span><span class="co">#&gt; $ analysis_id                             &lt;chr&gt; "1", "1", "1", "1", "1", "1", …</span></span>
 <span><span class="co">#&gt; $ n_persons                               &lt;int&gt; 194, 156, 174, 185, 192, 156, …</span></span>
 <span><span class="co">#&gt; $ person_days                             &lt;dbl&gt; 29026, 21658, 23094, 30744, 27…</span></span>
@@ -218,11 +224,13 @@
 <span><span class="co">#&gt; $ denominator_cohort_id                   &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …</span></span>
 <span><span class="co">#&gt; $ analysis_min_cell_count                 &lt;dbl&gt; 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, …</span></span>
 <span><span class="co">#&gt; $ denominator_cohort_name                 &lt;chr&gt; "Denominator cohort 1", "Denom…</span></span>
-<span><span class="co">#&gt; $ denominator_age_group                   &lt;chr&gt; "0;64", "0;64", "0;64", "0;64"…</span></span>
+<span><span class="co">#&gt; $ denominator_age_group                   &lt;chr&gt; "0 to 64", "0 to 64", "0 to 64…</span></span>
 <span><span class="co">#&gt; $ denominator_sex                         &lt;chr&gt; "Male", "Male", "Male", "Male"…</span></span>
-<span><span class="co">#&gt; $ denominator_days_prior_history          &lt;dbl&gt; 180, 180, 180, 180, 180, 180, …</span></span>
+<span><span class="co">#&gt; $ denominator_days_prior_observation      &lt;dbl&gt; 180, 180, 180, 180, 180, 180, …</span></span>
 <span><span class="co">#&gt; $ denominator_start_date                  &lt;date&gt; 2008-01-01, 2008-01-01, 2008-…</span></span>
 <span><span class="co">#&gt; $ denominator_end_date                    &lt;date&gt; 2018-01-01, 2018-01-01, 2018-…</span></span>
+<span><span class="co">#&gt; $ denominator_strataTable                 &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_strataCohortId              &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ denominator_strata_cohort_definition_id &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ denominator_strata_cohort_name          &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ cdm_name                                &lt;chr&gt; "test_database", "test_databas…</span></span></code></pre></div>
@@ -238,7 +246,7 @@
 <span><span class="op">)</span></span>
 <span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="va">prev_point</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 66</span></span>
-<span><span class="co">#&gt; Columns: 29</span></span>
+<span><span class="co">#&gt; Columns: 31</span></span>
 <span><span class="co">#&gt; $ analysis_id                             &lt;chr&gt; "1", "1", "1", "1", "1", "1", …</span></span>
 <span><span class="co">#&gt; $ prevalence_start_date                   &lt;date&gt; 2008-01-01, 2009-01-01, 2010-…</span></span>
 <span><span class="co">#&gt; $ prevalence_end_date                     &lt;date&gt; 2008-01-01, 2009-01-01, 2010-…</span></span>
@@ -260,11 +268,13 @@
 <span><span class="co">#&gt; $ analysis_min_cell_count                 &lt;dbl&gt; 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, …</span></span>
 <span><span class="co">#&gt; $ denominator_cohort_id                   &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …</span></span>
 <span><span class="co">#&gt; $ denominator_cohort_name                 &lt;chr&gt; "Denominator cohort 1", "Denom…</span></span>
-<span><span class="co">#&gt; $ denominator_age_group                   &lt;chr&gt; "0;64", "0;64", "0;64", "0;64"…</span></span>
+<span><span class="co">#&gt; $ denominator_age_group                   &lt;chr&gt; "0 to 64", "0 to 64", "0 to 64…</span></span>
 <span><span class="co">#&gt; $ denominator_sex                         &lt;chr&gt; "Male", "Male", "Male", "Male"…</span></span>
-<span><span class="co">#&gt; $ denominator_days_prior_history          &lt;dbl&gt; 180, 180, 180, 180, 180, 180, …</span></span>
+<span><span class="co">#&gt; $ denominator_days_prior_observation      &lt;dbl&gt; 180, 180, 180, 180, 180, 180, …</span></span>
 <span><span class="co">#&gt; $ denominator_start_date                  &lt;date&gt; 2008-01-01, 2008-01-01, 2008-…</span></span>
 <span><span class="co">#&gt; $ denominator_end_date                    &lt;date&gt; 2018-01-01, 2018-01-01, 2018-…</span></span>
+<span><span class="co">#&gt; $ denominator_strataTable                 &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_strataCohortId              &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ denominator_strata_cohort_definition_id &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ denominator_strata_cohort_name          &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ cdm_name                                &lt;chr&gt; "test_database", "test_databas…</span></span></code></pre></div>
@@ -281,7 +291,7 @@
 <span><span class="op">)</span></span>
 <span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="va">prev_period</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 60</span></span>
-<span><span class="co">#&gt; Columns: 29</span></span>
+<span><span class="co">#&gt; Columns: 31</span></span>
 <span><span class="co">#&gt; $ analysis_id                             &lt;chr&gt; "1", "1", "1", "1", "1", "1", …</span></span>
 <span><span class="co">#&gt; $ prevalence_start_date                   &lt;date&gt; 2008-01-01, 2009-01-01, 2010-…</span></span>
 <span><span class="co">#&gt; $ prevalence_end_date                     &lt;date&gt; 2008-12-31, 2009-12-31, 2010-…</span></span>
@@ -303,11 +313,13 @@
 <span><span class="co">#&gt; $ analysis_min_cell_count                 &lt;dbl&gt; 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, …</span></span>
 <span><span class="co">#&gt; $ denominator_cohort_id                   &lt;int&gt; 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …</span></span>
 <span><span class="co">#&gt; $ denominator_cohort_name                 &lt;chr&gt; "Denominator cohort 1", "Denom…</span></span>
-<span><span class="co">#&gt; $ denominator_age_group                   &lt;chr&gt; "0;64", "0;64", "0;64", "0;64"…</span></span>
+<span><span class="co">#&gt; $ denominator_age_group                   &lt;chr&gt; "0 to 64", "0 to 64", "0 to 64…</span></span>
 <span><span class="co">#&gt; $ denominator_sex                         &lt;chr&gt; "Male", "Male", "Male", "Male"…</span></span>
-<span><span class="co">#&gt; $ denominator_days_prior_history          &lt;dbl&gt; 180, 180, 180, 180, 180, 180, …</span></span>
+<span><span class="co">#&gt; $ denominator_days_prior_observation      &lt;dbl&gt; 180, 180, 180, 180, 180, 180, …</span></span>
 <span><span class="co">#&gt; $ denominator_start_date                  &lt;date&gt; 2008-01-01, 2008-01-01, 2008-…</span></span>
 <span><span class="co">#&gt; $ denominator_end_date                    &lt;date&gt; 2018-01-01, 2018-01-01, 2018-…</span></span>
+<span><span class="co">#&gt; $ denominator_strataTable                 &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_strataCohortId              &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ denominator_strata_cohort_definition_id &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ denominator_strata_cohort_name          &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ cdm_name                                &lt;chr&gt; "test_database", "test_databas…</span></span></code></pre></div>
@@ -318,9 +330,11 @@
 <p>We can export our results as CSVs in a zip folder using the <code><a href="reference/exportIncidencePrevalenceResults.html">exportIncidencePrevalenceResults()</a></code> function.</p>
 <div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="reference/exportIncidencePrevalenceResults.html">exportIncidencePrevalenceResults</a></span><span class="op">(</span></span>
-<span>  resultList <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"incidence"</span> <span class="op">=</span> <span class="va">inc</span>, </span>
-<span>                     <span class="st">"point_prevalence"</span> <span class="op">=</span> <span class="va">prev_point</span>, </span>
-<span>                     <span class="st">"period_prevalence"</span> <span class="op">=</span> <span class="va">prev_period</span><span class="op">)</span>,</span>
+<span>  resultList <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    <span class="st">"incidence"</span> <span class="op">=</span> <span class="va">inc</span>,</span>
+<span>    <span class="st">"point_prevalence"</span> <span class="op">=</span> <span class="va">prev_point</span>,</span>
+<span>    <span class="st">"period_prevalence"</span> <span class="op">=</span> <span class="va">prev_period</span></span>
+<span>  <span class="op">)</span>,</span>
 <span>  zipName <span class="op">=</span> <span class="st">"example_results"</span>,</span>
 <span>  outputFolder <span class="op">=</span> <span class="fu">here</span><span class="fu">::</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
