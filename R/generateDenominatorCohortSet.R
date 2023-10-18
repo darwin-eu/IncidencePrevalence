@@ -395,7 +395,7 @@ generateSingleTargetDenominatorCohortSet <- function(cdm,
   } else {
     targetCohortName <- attr(cdm[[unique(popSpecs$targetCohortTable)]], "cohort_set") %>%
       dplyr::filter(.data$cohort_definition_id ==
-                      unique(popSpecs$targetCohortId)) %>%
+                     !! unique(popSpecs$targetCohortId)) %>%
       dplyr::pull("cohort_name")
   }
 
