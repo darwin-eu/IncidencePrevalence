@@ -111,23 +111,22 @@ estimateIncidence <- function(cdm,
   }
   if (is.null(outcomeCohortId)) {
     outcomeCohortId <- CDMConnector::cohortCount(cdm[[outcomeTable]]) %>%
-      dplyr::filter(.data$number_records > 0) %>%
       dplyr::pull("cohort_definition_id")
   }
 
   ## add outcome from attribute
-  outcomeCohortName <- CDMConnector::cohortCount(cdm[[outcomeTable]]) %>%
-    dplyr::filter(.data$number_records > 0) %>%
-    dplyr::left_join(CDMConnector::cohortSet(cdm[[outcomeTable]]),
-      by = "cohort_definition_id"
-    ) %>%
-    dplyr::pull("cohort_name")
+  outcomeRef <- CDMConnector::cohortSet(cdm[[outcomeTable]]) %>%
+    dplyr::filter(.env$outcomeCohortId %in% .data$cohort_definition_id) %>%
+    dplyr::collect("cohort_definition_id", "cohort_name") %>%
+    dplyr::rename("outcome_cohort_id" = "cohort_definition_id",
+                  "outcome_cohort_name" = "cohort_name")
+  if(nrow(outcomeRef) == 0){
+    cli::cli_abort(c("Specified outcome IDs not found in the cohort set of
+                    {paste0('cdm$', outcomeTable)}",
+                   "i" = "Run CDMConnector::cohort_set({paste0('cdm$', outcomeTable)})
+                   to check which IDs exist"))
+  }
 
-
-  outcomeRef <- tibble::tibble(
-    outcome_cohort_id = .env$outcomeCohortId,
-    outcome_cohort_name = .env$outcomeCohortName
-  )
 
   # further checks that there are the required data elements
   checkInputEstimateIncidenceAdditional(

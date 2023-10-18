@@ -21,7 +21,7 @@
 #' @param personTable A tibble in the format of the person table.
 #' @param observationPeriodTable A tibble in the format of the observation
 #' period table.
-#' @param strataTable A tibble in the format of a cohort table which can
+#' @param targetCohortTable A tibble in the format of a cohort table which can
 #' be used for stratification
 #' @param outcomeTable A tibble in the format of a cohort table which can
 #' be used for outcomes
@@ -63,7 +63,7 @@
 #'
 mockIncidencePrevalenceRef <- function(personTable = NULL,
                                        observationPeriodTable = NULL,
-                                       strataTable = NULL,
+                                       targetCohortTable = NULL,
                                        outcomeTable = NULL,
                                        sampleSize = 1,
                                        outPre = 1,
@@ -380,10 +380,10 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
     }
   }
 
-  if (is.null(strataTable)) {
-    # add strata population
+  if (is.null(targetCohortTable)) {
+    # add targe population
     # as a random sample, keep the same start and end dates
-    strataTable <- dplyr::sample_frac(personTable, 0.8) %>%
+    targetCohortTable <- dplyr::sample_frac(personTable, 0.8) %>%
       dplyr::left_join(observationPeriodTable, by = "person_id") %>%
       dplyr::rename("subject_id" = "person_id") %>%
       dplyr::mutate(cohort_definition_id = "1") %>%
@@ -413,8 +413,8 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
   })
 
   DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "strata",
-      strataTable,
+    DBI::dbWriteTable(db, "target",
+      targetCohortTable,
       overwrite = TRUE
     )
   })
@@ -463,11 +463,11 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
 
   cdm <- CDMConnector::cdm_from_con(
     db,
-    cohort_tables = c("strata", "outcome"),
+    cohort_tables = c("target", "outcome"),
     write_schema = "main"
   )
   cdm$outcome <- addCohortCountAttr(cdm$outcome)
-  cdm$strata <- addCohortCountAttr(cdm$strata)
+  cdm$target <- addCohortCountAttr(cdm$target)
 
   return(cdm)
 }

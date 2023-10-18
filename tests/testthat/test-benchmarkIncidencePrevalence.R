@@ -17,17 +17,6 @@ test_that("full benchmark", {
   expect_true(tibble::is_tibble(timings))
   expect_true("bench.csv" %in% list.files(tempdir()))
 
-  # using permanent tables
-  timings_perm <- benchmarkIncidencePrevalence(cdm,
-    temporary = FALSE,
-    returnParticipants = TRUE,
-    outputFolder = tempdir(),
-    fileName = "bench_perm"
-  )
-  expect_true(tibble::is_tibble(timings_perm))
-  expect_true("bench_perm.csv" %in% list.files(tempdir()))
-
-
   # expected errors
   expect_error(benchmarkIncidencePrevalence(
     cdm = "a",
