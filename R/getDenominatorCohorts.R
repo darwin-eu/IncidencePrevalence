@@ -22,8 +22,8 @@ getDenominatorCohorts <- function(cdm,
                                   minAge,
                                   maxAge,
                                   daysPriorObservation,
-                                  strataTable,
-                                  strataCohortId,
+                                  targetCohortTable,
+                                  targetCohortId,
                                   intermediateTable) {
   # make sure names are lowercase and keep variables required
   personDb <- dplyr::rename_with(cdm$person, tolower) %>%
@@ -41,14 +41,14 @@ getDenominatorCohorts <- function(cdm,
     )
 
   # stratify population on cohort
-  if (!is.null(strataTable)) {
-    strataDb <- cdm[[strataTable]] %>%
-      dplyr::filter(.data$cohort_definition_id == .env$strataCohortId)
+  if (!is.na(targetCohortTable)) {
+    targetDb <- cdm[[targetCohortTable]] %>%
+      dplyr::filter(.data$cohort_definition_id == .env$targetCohortId)
 
-    # drop anyone not in the strata cohort
+    # drop anyone not in the target cohort
     personDb <- personDb %>%
       dplyr::inner_join(
-        strataDb %>%
+        targetDb %>%
           dplyr::rename("person_id" = "subject_id") %>%
           dplyr::select("person_id") %>%
           dplyr::distinct(),
@@ -65,7 +65,7 @@ getDenominatorCohorts <- function(cdm,
 
     observationPeriodDb <- observationPeriodDb %>%
       dplyr::inner_join(
-        strataDb %>%
+        targetDb %>%
           dplyr::rename("person_id" = "subject_id") %>%
           dplyr::select("person_id") %>%
           dplyr::distinct(),
@@ -78,7 +78,7 @@ getDenominatorCohorts <- function(cdm,
     # if cohort end date is before observation start date
     observationPeriodDb <- observationPeriodDb %>%
       dplyr::inner_join(
-        strataDb %>%
+        targetDb %>%
           dplyr::rename("person_id" = "subject_id") %>%
           dplyr::select(
             "person_id",
@@ -107,7 +107,7 @@ getDenominatorCohorts <- function(cdm,
           )
       ) %>%
       dplyr::select(!c("cohort_end_date")) %>%
-      dplyr::rename("strata_start_date" = "cohort_start_date")
+      dplyr::rename("target_cohort_start_date" = "cohort_start_date")
 
       personDb <- personDb %>%
         CDMConnector::computeQuery(
@@ -331,14 +331,14 @@ getDenominatorCohorts <- function(cdm,
     varLowerPriorHistory <-
       glue::glue("date_with_prior_history{min(daysPriorObservation)}")
 
-    if (!is.null(strataTable)) {
-      # update prior history date to whatever came first, that or strata entry
+    if (!is.na(targetCohortTable)) {
+      # update prior history date to whatever came first, that or target entry
       studyPopDb <- studyPopDb %>%
         dplyr::mutate(
           !!varLowerPriorHistory :=
-            dplyr::if_else(.data$strata_start_date >=
+            dplyr::if_else(.data$target_cohort_start_date >=
               .data[[varLowerPriorHistory]],
-            .data$strata_start_date,
+            .data$target_cohort_start_date,
             .data[[varLowerPriorHistory]]
             )
         )
@@ -461,5 +461,5 @@ getDenominatorCohorts <- function(cdm,
   dpop[["denominator_population"]] <- studyPopDb
   dpop[["attrition"]] <- attrition
 
-  return(dpop)
+    return(dpop)
 }

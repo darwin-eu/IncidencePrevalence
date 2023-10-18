@@ -5,17 +5,26 @@ checkInputGenerateDCS <- function(cdm,
                                   sex,
                                   daysPriorObservation,
                                   requirementInteractions,
-                                  strataTable,
-                                  strataCohortId,
-                                  closedCohort,
+                                  targetCohortTable,
+                                  targetCohortId,
                                   call = parent.frame()) {
   cdmCheck(cdm)
+
+
+  if(stringr::str_detect(name, "^[a-z0-9_]+$", negate = TRUE)){
+    cli::cli_abort(c("name must be given in snake case",
+                     "i" = "for example 'my_cohort' is allowed but 'MyCohort' is not"))
+  }
+
   if(is.null(attr(cdm, "write_schema"))){
   cli::cli_abort("cdm must have a write_schema specified",
                  call = call)
   }
-  if (!is.null(strataTable)) {
-    cdmStrataCheck(cdm, strataTable = strataTable)
+  if(is.null(attr(cdm, "write_schema"))){
+    cli::cli_abort("cdm must have write schema specified")
+  }
+  if (!is.null(targetCohortTable)) {
+    cdmTargetCheck(cdm, targetCohortTable = targetCohortTable)
   }
 
   errorMessage <- checkmate::makeAssertCollection()
@@ -73,35 +82,33 @@ checkInputGenerateDCS <- function(cdm,
     len = 1,
     add = errorMessage
   )
-  if (!is.null(strataTable)) {
-    strataTableCheck <- inherits(cdm[[strataTable]], "tbl_dbi")
-    checkmate::assertTRUE(strataTableCheck, add = errorMessage)
-    if (!isTRUE(strataTableCheck)) {
+  if (!is.null(targetCohortTable)) {
+    targetCohortTableCheck <- inherits(cdm[[targetCohortTable]], "tbl_dbi")
+    checkmate::assertTRUE(targetCohortTableCheck, add = errorMessage)
+    if (!isTRUE(targetCohortTableCheck)) {
       errorMessage$push(
-        "- table `strata` is not found"
+        "- targetCohortTable not found"
       )
     }
-    strataNamesCheck <- all(names(cdm[[strataTable]] %>%
+    targetNamesCheck <- all(names(cdm[[targetCohortTable]] %>%
       utils::head(1) %>%
       dplyr::collect()) %in%
       c(
         "cohort_definition_id", "subject_id",
         "cohort_start_date", "cohort_end_date"
       ))
-    checkmate::assertTRUE(strataNamesCheck, add = errorMessage)
-    if (!isTRUE(strataNamesCheck)) {
+    checkmate::assertTRUE(targetNamesCheck, add = errorMessage)
+    if (!isTRUE(targetNamesCheck)) {
       errorMessage$push(
-        "- table `strata` does not conform to specification"
+        "- targetCohortTable does not conform to cohort table specification"
       )
     }
   }
-  if (!is.null(strataTable)) {
-    checkmate::assertIntegerish(strataCohortId,
-      len = 1,
+    checkmate::assertIntegerish(targetCohortId,
       add = errorMessage,
-      null.ok = FALSE
+      null.ok = TRUE
     )
-  }
+
   return(checkmate::reportAssertions(collection = errorMessage))
 }
 
@@ -215,18 +222,6 @@ checkInputEstimateIncidenceAdditional <- function(cdm,
       "- nobody in `denominatorTable` with one of the `denominatorCohortId`"
     )
   }
-  outcomeCountCheck <- cdm[[outcomeTable]] %>%
-    dplyr::filter(.data$cohort_definition_id %in% .env$outcomeCohortId) %>%
-    dplyr::count() %>%
-    dplyr::pull() > 0
-  checkmate::assertTRUE(outcomeCountCheck,
-    add = errorMessage
-  )
-  if (!isTRUE(outcomeCountCheck)) {
-    errorMessage$push(
-      "- nobody in `outcomeTable` with one of the `outcomeCohortId`"
-    )
-  }
   return(checkmate::reportAssertions(collection = errorMessage))
 }
 
@@ -245,7 +240,6 @@ checkInputEstimatePrevalence <- function(cdm,
                                          temporary,
                                          returnParticipants) {
   cdmCheck(cdm)
-
 
   errorMessage <- checkmate::makeAssertCollection()
   denomCheck <- denominatorTable %in% names(cdm)
@@ -363,13 +357,13 @@ cdmCheck <- function(cdm) {
   return(checkmate::reportAssertions(collection = errorMessage))
 }
 
-cdmStrataCheck <- function(cdm, strataTable) {
+cdmTargetCheck <- function(cdm, targetCohortTable) {
   errorMessage <- checkmate::makeAssertCollection()
-  cdmStrataCheck <- inherits(cdm[[strataTable]], "tbl_dbi")
-  checkmate::assertTRUE(cdmStrataCheck, add = errorMessage)
-  if (!isTRUE(cdmStrataCheck)) {
+  cdmTargetCheck <- inherits(cdm[[targetCohortTable]], "tbl_dbi")
+  checkmate::assertTRUE(cdmTargetCheck, add = errorMessage)
+  if (!isTRUE(cdmTargetCheck)) {
     errorMessage$push(
-      "- strata table not found"
+      "- targetCohortTable table not found"
     )
   }
   return(checkmate::reportAssertions(collection = errorMessage))

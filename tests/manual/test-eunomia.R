@@ -152,8 +152,8 @@ test_that("eunomia test - strata", {
   )
 
 
-  cdm$dpop <- generateDenominatorCohortSet(cdm,
-    strataTable = "strata"
+  cdm$dpop <- generateDenominatorCohortSet(cdm, name ="dpop",
+    targetCohortTable = "strata"
   )
 
 
@@ -161,7 +161,7 @@ test_that("eunomia test - strata", {
     cdm = cdm,
     denominatorTable = "dpop",
     outcomeTable = "asthma",
-    strataTable = "strata",
+    targetCohortTable = "target",
     interval = "years"
   )
   expect_true(nrow(inc) > 0)
