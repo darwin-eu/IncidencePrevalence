@@ -13,7 +13,8 @@ test_that("test input format errors", {
 test_that("check with mock db", {
   cdm <- mockIncidencePrevalenceRef(sampleSize = 100)
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm, cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
+    cdm = cdm, name = "denominator",
+    cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
   )
   inc1 <- estimateIncidence(
     cdm = cdm,
@@ -32,7 +33,8 @@ test_that("check with mock db", {
 
   cdm <- mockIncidencePrevalenceRef(sampleSize = 100)
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm, cohortDateRange = c(as.Date("2008-01-01"),
+    cdm = cdm, name = "denominator",
+    cohortDateRange = c(as.Date("2008-01-01"),
       endDate = as.Date("2018-01-01")
     )
   )

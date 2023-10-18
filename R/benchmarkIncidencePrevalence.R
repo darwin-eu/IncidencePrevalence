@@ -23,11 +23,6 @@
 #' in the observation_period table will be used for the former. If  NULL or the
 #' second date is set as missing, the latest observation_end_date in the
 #' observation_period table will be used for the latter.
-#' @param temporary If TRUE, temporary tables will be used throughout. If
-#' FALSE, permanent tables will be created in the write_schema of the cdm
-#' using the write_prefix (if specified). Note existing permanent tables in
-#' the write schema starting with the write_prefix will be at risk of being
-#' dropped or overwritten.
 #' @param returnParticipants Whether to return participants (requires temporary
 #' to be FALSE)
 #' @param nOutcomes An integer specifying the number of outcomes to create in
@@ -54,7 +49,6 @@
 #' }
 benchmarkIncidencePrevalence <- function(cdm,
                                          cohortDateRange = NULL,
-                                         temporary = TRUE,
                                          returnParticipants = FALSE,
                                          nOutcomes = 1,
                                          prevOutcomes = 0.25,
@@ -68,10 +62,6 @@ benchmarkIncidencePrevalence <- function(cdm,
       "- cdm must be a CDMConnector CDM reference object"
     )
   }
-  checkmate::assertLogical(temporary,
-    len = 1,
-    add = errorMessage
-  )
   checkmate::assertIntegerish(nOutcomes,
     lower = 0,
     add = errorMessage
@@ -116,14 +106,14 @@ benchmarkIncidencePrevalence <- function(cdm,
   tictoc::tic()
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator_typical",
+    overwrite =TRUE,
     cohortDateRange = cohortDateRange,
-    daysPriorHistory = 180,
+    daysPriorObservation = 180,
     sex = c("Male", "Female"),
     ageGroup = list(
       c(0, 25), c(26, 64),
       c(65, 79), c(80, 150)
-    ),
-    temporary = temporary
+    )
   )
   t <- tictoc::toc(quiet = TRUE)
   timings[["typical_denominator"]] <- dplyr::tibble(
@@ -173,7 +163,6 @@ benchmarkIncidencePrevalence <- function(cdm,
     tictoc::tic()
     pointPrevTypicalYears <- estimatePointPrevalence(
       cdm = cdm,
-      temporary = temporary,
       returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
@@ -188,7 +177,6 @@ benchmarkIncidencePrevalence <- function(cdm,
     tictoc::tic()
     pointPrevTypicalMonths <- estimatePointPrevalence(
       cdm = cdm,
-      temporary = temporary,
       returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
@@ -204,7 +192,6 @@ benchmarkIncidencePrevalence <- function(cdm,
     tictoc::tic()
     period_prev_typical_years <- estimatePeriodPrevalence(
       cdm = cdm,
-      temporary = temporary,
       returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
@@ -220,7 +207,6 @@ benchmarkIncidencePrevalence <- function(cdm,
     tictoc::tic()
     periodPrevTypicalMonths <- estimatePeriodPrevalence(
       cdm = cdm,
-      temporary = temporary,
       returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
@@ -239,7 +225,6 @@ benchmarkIncidencePrevalence <- function(cdm,
     tictoc::tic()
     incTypicalYears <- estimateIncidence(
       cdm = cdm,
-      temporary = temporary,
       returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
@@ -254,7 +239,6 @@ benchmarkIncidencePrevalence <- function(cdm,
     tictoc::tic()
     incTypicalMonths <- estimateIncidence(
       cdm = cdm,
-      temporary = temporary,
       returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
@@ -293,14 +277,6 @@ benchmarkIncidencePrevalence <- function(cdm,
           )
       ) %>%
       dplyr::pull())
-
-  if (isTRUE(temporary)) {
-    timings <- timings %>%
-      dplyr::mutate(tables = "temporary")
-  } else {
-    timings <- timings %>%
-      dplyr::mutate(tables = "permanent")
-  }
 
   if (isFALSE(returnParticipants)) {
     timings <- timings %>%

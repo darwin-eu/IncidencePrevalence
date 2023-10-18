@@ -77,7 +77,7 @@ cdm <- generateDenominatorCohortSet(
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2012-01-01")),
   ageGroup = list(c(18, 65)),
   sex = c("Male", "Female", "Both"),
-  daysPriorHistory = 365
+  daysPriorObservation = 365
 )
 ```
 

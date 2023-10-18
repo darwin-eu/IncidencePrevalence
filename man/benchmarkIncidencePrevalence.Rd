@@ -7,7 +7,6 @@
 benchmarkIncidencePrevalence(
   cdm,
   cohortDateRange = NULL,
-  temporary = TRUE,
   returnParticipants = FALSE,
   nOutcomes = 1,
   prevOutcomes = 0.25,
@@ -25,12 +24,6 @@ NULL or the first date is set as missing, the earliest observation_start_date
 in the observation_period table will be used for the former. If  NULL or the
 second date is set as missing, the latest observation_end_date in the
 observation_period table will be used for the latter.}
-
-\item{temporary}{If TRUE, temporary tables will be used throughout. If
-FALSE, permanent tables will be created in the write_schema of the cdm
-using the write_prefix (if specified). Note existing permanent tables in
-the write schema starting with the write_prefix will be at risk of being
-dropped or overwritten.}
 
 \item{returnParticipants}{Whether to return participants (requires temporary
 to be FALSE)}

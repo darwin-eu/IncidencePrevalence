@@ -6,16 +6,15 @@
 \usage{
 generateDenominatorCohortSet(
   cdm,
-  name = "denominator",
+  name,
   cohortDateRange = NULL,
   ageGroup = list(c(0, 150)),
   sex = "Both",
-  daysPriorHistory = 0,
+  daysPriorObservation = 0,
   requirementInteractions = TRUE,
-  strataTable = NULL,
-  strataCohortId = NULL,
-  closedCohort = FALSE,
-  temporary = TRUE
+  targetCohortTable = NULL,
+  targetCohortId = NULL,
+  overwrite = FALSE
 )
 }
 \arguments{
@@ -32,39 +31,32 @@ observation_period table will be used for the latter.}
 
 \item{ageGroup}{A list of age groups for which cohorts will be generated. A
 value of \code{list(c(0,17), c(18,30))} would, for example, lead to the creation
-of cohorts for those aged from 0 to 17 (up to the day before their 18th
-birthday), and from 18 (starting the day of their 18th birthday) to 30 (up
-to the day before their 31st birthday).}
+of cohorts for those aged from 0 to 17, and from 18 to 30. In this example
+an individual turning 18 during the time period would appear in both
+cohorts (leaving the first cohort the day before their 18th birthday and
+entering the second from the day of their 18th birthday).}
 
 \item{sex}{Sex of the cohorts. This can be one or more of: \code{"Male"},
 \code{"Female"}, or \code{"Both"}.}
 
-\item{daysPriorHistory}{The number of days of prior history observed in
+\item{daysPriorObservation}{The number of days of prior observation observed in
 the database required for an individual to start contributing time in
 a cohort.}
 
 \item{requirementInteractions}{If TRUE, cohorts will be created for
-all combinations of ageGroup, sex, and daysPriorHistory. If FALSE, only the
+all combinations of ageGroup, sex, and daysPriorObservation. If FALSE, only the
 first value specified for the other factors will be used. Consequently,
 order of values matters when requirementInteractions is FALSE.}
 
-\item{strataTable}{A cohort table in the cdm reference to use
+\item{targetCohortTable}{A cohort table in the cdm reference to use
 to limit cohort entry and exit (with individuals only contributing to a
-cohort when they are contributing to the cohort in the strata table).}
+cohort when they are contributing to the cohort in the target table).}
 
-\item{strataCohortId}{The cohort definition id for the cohort of interest
-in the strata table. If strataTable is specified, a single strataCohortId
+\item{targetCohortId}{The cohort definition id for the cohort of interest
+in the target table. If targetCohortTable is specified, a single targetCohortId
 must also be specified.}
 
-\item{closedCohort}{If TRUE, a closed cohort will be defined where only
-those individuals satisfying eligibility criteria on the start date
-given in cohortDateRange are included.}
-
-\item{temporary}{If TRUE, temporary tables will be used throughout. If
-FALSE, permanent tables will be created in the write_schema of the cdm
-using the write_prefix (if specified). Note existing permanent tables in
-the write schema starting with the write_prefix will be at risk of being
-dropped or overwritten.}
+\item{overwrite}{Whether to overwrite any existing table with the same name}
 }
 \value{
 A cohort reference
@@ -78,9 +70,11 @@ or \code{estimatePeriodPrevalence()}.
 \examples{
 \donttest{
 cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-cdm$denominator <- generateDenominatorCohortSet(
+cdm <- generateDenominatorCohortSet(
   cdm = cdm,
-  cohortDateRange = as.Date(c("2008-01-01", "2018-01-01"))
+  name = "denominator",
+  cohortDateRange = as.Date(c("2008-01-01", "2020-01-01"))
 )
+cdm$denominator
 }
 }
