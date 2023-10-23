@@ -1451,3 +1451,22 @@ test_that("mock db: if missing cohort attributes", {
   ))
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
+
+
+test_that("mock db: test empty outcome table works", {
+  skip_on_cran()
+
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+
+  cdm[["outcome"]] <- cdm[["outcome"]] %>% dplyr::filter(cohort_definition_id == 33)
+
+  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
+
+  expect_no_error(estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years"
+  ))
+
+})
