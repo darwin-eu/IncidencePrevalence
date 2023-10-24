@@ -375,8 +375,10 @@ estimateIncidence <- function(cdm,
         dplyr::rename("denominator_cohort_id" = "cohort_definition_id") %>%
         dplyr::filter(.data$denominator_cohort_id ==
           studySpecs[[i]]$denominator_cohort_id) %>%
-        dplyr::mutate(analysis_id = studySpecs[[i]]$analysis_id),
-      irsList[names(irsList) == "attrition"][[i]]
+        dplyr::mutate(analysis_id = studySpecs[[i]]$analysis_id) %>%
+        dplyr::mutate(dplyr::across(where(is.numeric), as.integer)),
+      irsList[names(irsList) == "attrition"][[i]] %>%
+        dplyr::mutate(dplyr::across(where(is.numeric), as.integer))
     )
   }
   attrition <- irsList[names(irsList) == "attrition"]
