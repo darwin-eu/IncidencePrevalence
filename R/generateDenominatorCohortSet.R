@@ -241,13 +241,16 @@ generateSingleTargetDenominatorCohortSet <- function(cdm,
       )
 
     # attrition is the same for each group
-    dpop$attrition <- Map(cbind,
-                          lapply(
-                            popSpecs$cohort_definition_id,
-                            function(x) dpop$attrition
-                          ),
-                          cohort_definition_id =
-                            length(popSpecs$cohort_definition_id)
+    dpop$attrition <- Reduce(
+      dplyr::union_all,
+      lapply(
+        popSpecs$cohort_definition_id,
+        function(x) {
+          dpop$attrition %>%
+            dplyr::mutate("cohort_definition_id" = .env$x) %>%
+            dplyr::relocate("cohort_definition_id")
+        }
+      )
     )
 
     cohortCount <- tibble::tibble(
