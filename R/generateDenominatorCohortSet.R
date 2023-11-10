@@ -232,7 +232,13 @@ generateSingleTargetDenominatorCohortSet <- function(cdm,
 
   if (denominatorPopulationNrows == 0) {
     cli::cli_warn("- No people found for any denominator population")
-    studyPops <- dpop$denominator_population
+    studyPops <- dpop$denominator_population %>%
+      dplyr::select(
+        "cohort_definition_id" = "gender_concept_id",
+        "subject_id" = "person_id",
+        "cohort_start_date" = "observation_period_start_date",
+        "cohort_end_date" = "observation_period_end_date"
+      )
 
     # attrition is the same for each group
     dpop$attrition <- Map(cbind,
@@ -381,11 +387,6 @@ generateSingleTargetDenominatorCohortSet <- function(cdm,
       studyPops = studyPops,
       intermediateTable = paste0(intermediateTable, "_u_")
     )
-  }
-
-  if (length(studyPops) == 0) {
-    cli::cli_warn("- No people were found for any denominator population")
-    studyPops <- dplyr::tibble()
   }
 
   # add target info to settings
