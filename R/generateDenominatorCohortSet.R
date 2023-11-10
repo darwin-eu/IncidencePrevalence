@@ -127,14 +127,17 @@ generateDenominatorCohortSet <- function(cdm,
 
   if(is.null(targetCohortId)){
     denominatorSet<- popSpecs %>%
-      dplyr::mutate(targetCohortTable = NA,
-                    targetCohortId = NA)
+      dplyr::mutate(
+        targetCohortTable = as.character(NA), targetCohortId = as.numeric(NA)
+      )
   } else {
   denominatorSet <- list()
   for(i in seq_along(targetCohortId)){
     denominatorSet[[i]] <- popSpecs %>%
-      dplyr::mutate(targetCohortTable = targetCohortTable,
-             targetCohortId = targetCohortId[[i]])
+      dplyr::mutate(
+        targetCohortTable = targetCohortTable,
+        targetCohortId = targetCohortId[[i]]
+      )
   }
   }
   denominatorSet <- dplyr::bind_rows(denominatorSet) %>%
@@ -243,8 +246,8 @@ generateSingleTargetDenominatorCohortSet <- function(cdm,
 
     cohortCount <- tibble::tibble(
       cohort_definition_id = popSpecs$cohort_definition_id,
-      number_records = 0,
-      number_subjects = 0
+      number_records = as.intger(0),
+      number_subjects = as.integer(0)
     )
   } else {
     # first, if all cohorts are Male or Female get number that will be excluded
