@@ -70,7 +70,7 @@
 #' }
 generateDenominatorCohortSet <- function(cdm,
                                          name,
-                                         cohortDateRange = NULL,
+                                         cohortDateRange = as.Date(c(NA, NA)),
                                          ageGroup = list(c(0, 150)),
                                          sex = "Both",
                                          daysPriorObservation = 0,
@@ -92,9 +92,6 @@ generateDenominatorCohortSet <- function(cdm,
     targetCohortId = targetCohortId
   )
 
-  if (is.null(cohortDateRange)){
-    cohortDateRange <- as.Date(c(NA, NA))
-  }
   if(any(is.na(cohortDateRange))){
     cohortDateRange <- getCohortDateRange(cdm = cdm,
                                           cohortDateRange = cohortDateRange)
