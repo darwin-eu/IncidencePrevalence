@@ -380,9 +380,9 @@ estimatePrevalence <- function(cdm,
         dplyr::filter(.data$denominator_cohort_id ==
           studySpecs[[i]]$denominatorCohortId) %>%
         dplyr::mutate(analysis_id = studySpecs[[i]]$analysis_id) %>%
-        dplyr::mutate(dplyr::across(where(is.numeric), as.integer)),
+        dplyr::mutate(dplyr::across(dplyr::where(is.numeric), as.integer)),
       prsList[names(prsList) == "attrition"][[i]] %>%
-        dplyr::mutate(dplyr::across(where(is.numeric), as.integer))
+        dplyr::mutate(dplyr::across(dplyr::where(is.numeric), as.integer))
     )
   }
 
@@ -437,18 +437,15 @@ estimatePrevalence <- function(cdm,
       CDMConnector::listTables(attr(cdm, "dbcon"),
         schema = attr(cdm, "write_schema")
       ),
-      paste0(tablePrefix, "_participants")
+      paste0(type, "_prev_participants")
     ))
 
     participants <- participants %>%
       CDMConnector::computeQuery(
-        name = paste0(
-          tablePrefix, "_participants",
-          p
-        ),
+        name = paste0(type, "_prev_participants", p),
         temporary = FALSE,
         schema = attr(cdm, "write_schema"),
-        overwrite = FALSE
+        overwrite = TRUE
       )
     CDMConnector::dropTable(
       cdm = cdm,

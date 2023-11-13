@@ -335,9 +335,9 @@ estimateIncidence <- function(cdm,
         dplyr::filter(.data$denominator_cohort_id ==
           studySpecs[[i]]$denominator_cohort_id) %>%
         dplyr::mutate(analysis_id = studySpecs[[i]]$analysis_id) %>%
-        dplyr::mutate(dplyr::across(where(is.numeric), as.integer)),
+        dplyr::mutate(dplyr::across(dplyr::where(is.numeric), as.integer)),
       irsList[names(irsList) == "attrition"][[i]] %>%
-        dplyr::mutate(dplyr::across(where(is.numeric), as.integer))
+        dplyr::mutate(dplyr::across(dplyr::where(is.numeric), as.integer))
     )
   }
   attrition <- irsList[names(irsList) == "attrition"]
@@ -414,15 +414,15 @@ estimateIncidence <- function(cdm,
       CDMConnector::listTables(attr(cdm, "dbcon"),
         schema = attr(cdm, "write_schema")
       ),
-      paste0(tablePrefix, "_participants")
+      "inc_participants"
     ))
 
     participants <- participants %>%
       CDMConnector::computeQuery(
-        name = paste0(tablePrefix, "_participants", p),
+        name = paste0("inc_participants", p),
         temporary = FALSE,
         schema = attr(cdm, "write_schema"),
-        overwrite = FALSE
+        overwrite = TRUE
       )
     CDMConnector::dropTable(
       cdm = cdm,
