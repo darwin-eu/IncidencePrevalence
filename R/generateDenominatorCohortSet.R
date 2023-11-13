@@ -167,7 +167,7 @@ for(i in 1:length(denominatorSet)){
     dplyr::union_all(attr(denom, "cohort_count"))
   cohortAttritionRef <- cohortAttritionRef %>%
     dplyr::union_all(attr(denom, "cohort_attrition"))
-  if (sum(cohortCountRef$number_records) > 0) {
+  if (sum(attr(denom, "cohort_count")$number_records) > 0) {
     if (!"tbl" %in% class(denom)) {
       denom <- Reduce(dplyr::union_all, denom)
     }
