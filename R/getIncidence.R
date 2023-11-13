@@ -51,21 +51,13 @@ getIncidence <- function(cdm,
       )
     )
 
-  if (is.null(tablePrefix)) {
-    studyPop <- studyPop %>%
-      CDMConnector::computeQuery()
-  } else {
-    studyPop <- studyPop %>%
-      CDMConnector::computeQuery(
-        name = paste0(
-          tablePrefix,
-          "_inc_5"
-        ),
-        temporary = FALSE,
-        schema = attr(cdm, "write_schema"),
-        overwrite = TRUE
-      )
-  }
+  studyPop <- studyPop %>%
+    CDMConnector::computeQuery(
+      name = paste0(tablePrefix, "_inc_5"),
+      temporary = FALSE,
+      schema = attr(cdm, "write_schema"),
+      overwrite = TRUE
+    )
 
   attrition <- recordAttrition(
     table = studyPop,
@@ -129,21 +121,13 @@ getIncidence <- function(cdm,
         dplyr::group_by(.data$subject_id) %>%
         dplyr::filter(.data$events_post == 0)
 
-      if (is.null(tablePrefix)) {
-        studyPopOutcomeWH <- studyPopOutcomeWH %>%
-          CDMConnector::computeQuery()
-      } else {
-        studyPopOutcomeWH <- studyPopOutcomeWH %>%
-          CDMConnector::computeQuery(
-            name = paste0(
-              tablePrefix,
-              "_inc_5a"
-            ),
-            temporary = FALSE,
-            schema = attr(cdm, "write_schema"),
-            overwrite = TRUE
-          )
-      }
+      studyPopOutcomeWH <- studyPopOutcomeWH %>%
+        CDMConnector::computeQuery(
+          name = paste0(tablePrefix, "_inc_5a"),
+          temporary = FALSE,
+          schema = attr(cdm, "write_schema"),
+          overwrite = TRUE
+        )
 
       studyPopOutcome <- dplyr::union_all(
         # with history of outcome, without outcome in follow up

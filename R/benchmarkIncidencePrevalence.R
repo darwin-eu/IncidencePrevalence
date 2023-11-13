@@ -48,7 +48,7 @@
 #' timings <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm)
 #' }
 benchmarkIncidencePrevalence <- function(cdm,
-                                         cohortDateRange = NULL,
+                                         cohortDateRange = as.Date(c(NA, NA)),
                                          returnParticipants = FALSE,
                                          nOutcomes = 1,
                                          prevOutcomes = 0.25,

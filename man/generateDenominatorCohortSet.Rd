@@ -7,7 +7,7 @@
 generateDenominatorCohortSet(
   cdm,
   name,
-  cohortDateRange = NULL,
+  cohortDateRange = as.Date(c(NA, NA)),
   ageGroup = list(c(0, 150)),
   sex = "Both",
   daysPriorObservation = 0,
