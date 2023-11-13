@@ -9,7 +9,16 @@
 ## Package overview
 
 IncidencePrevalence contains functions for estimating population-level
-incidence and prevalence using the OMOP common data model.
+incidence and prevalence using the OMOP common data model. For more
+information on the package please see our paper in [Pharmacoepidemiology
+and Drug Safety](https://onlinelibrary.wiley.com/doi/10.1002/pds.5717).
+If you find the package useful in supporting your research study, please
+consider citing:
+
+> Raventós, B, Català, M, Du, M, et al. IncidencePrevalence: An R
+> package to calculate population-level incidence rates and prevalence
+> using the OMOP common data model. Pharmacoepidemiol Drug Saf. 2023;
+> 1-11. <doi:10.1002/pds.5717>
 
 ## Package installation
 
