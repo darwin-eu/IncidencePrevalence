@@ -183,12 +183,17 @@ for(i in 1:length(denominatorSet)){
 }
 
   if (is.null(cohortRef)) {
-    DBI::dbWriteTable(attr(cdm, "dbcon"), name = name, dplyr::tibble(
-      cohort_definition_id = as.integer(numeric()),
-      subject_id = character(),
-      cohort_start_date = date(),
-      cohort_end_date = date()
-    ), overwrite = overwrite)
+    DBI::dbWriteTable(
+      conn = attr(cdm, "dbcon"),
+      name = CDMConnector::inSchema(schema = attr(cdm, "write_schema"), table =  name),
+      value = dplyr::tibble(
+        cohort_definition_id = as.integer(numeric()),
+        subject_id = character(),
+        cohort_start_date = date(),
+        cohort_end_date = date()
+      ),
+      overwrite = overwrite
+    )
     cohortRef <- dplyr::tbl(attr(cdm, "dbcon"), CDMConnector::inSchema(
       attr(cdm, "write_schema"), name
     ))
