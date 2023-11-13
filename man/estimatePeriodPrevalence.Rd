@@ -61,10 +61,7 @@ order to contribute.}
 lower than this will be obscured. If NULL all results will be reported.}
 
 \item{temporary}{If TRUE, temporary tables will be used throughout. If
-FALSE, permanent tables will be created in the write_schema of the cdm
-using the write_prefix (if specified). Note existing permanent tables in
-the write schema starting with the write_prefix will be at risk of being
-dropped or overwritten.}
+FALSE, permanent tables will be created in the write_schema of the cdm.}
 
 \item{returnParticipants}{Either TRUE or FALSE. If TRUE references to
 participants from the analysis will be returned allowing for further

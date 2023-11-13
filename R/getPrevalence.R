@@ -50,21 +50,13 @@ getPrevalence <- function(cdm,
       by = "subject_id"
     )
 
-  if (is.null(tablePrefix)) {
-    studyPop <- studyPop %>%
-      CDMConnector::computeQuery()
-  } else {
-    studyPop <- studyPop %>%
-      CDMConnector::computeQuery(
-        name = paste0(
-          tablePrefix,
-          "_prev_working_1"
-        ),
-        temporary = FALSE,
-        schema = attr(cdm, "write_schema"),
-        overwrite = TRUE
-      )
-  }
+  studyPop <- studyPop %>%
+    CDMConnector::computeQuery(
+      name = paste0(tablePrefix, "_prev_working_1"),
+      temporary = FALSE,
+      schema = attr(cdm, "write_schema"),
+      overwrite = TRUE
+    )
 
 
   attrition <- recordAttrition(
@@ -127,21 +119,13 @@ getPrevalence <- function(cdm,
       ) %>%
       dplyr::select(-minStartDate, -maxStartDate)
 
-    if (is.null(tablePrefix)) {
-      studyPop <- studyPop %>%
-        CDMConnector::computeQuery()
-    } else {
-      studyPop <- studyPop %>%
-        CDMConnector::computeQuery(
-          name = paste0(
-            tablePrefix,
-            "_prev_working_2"
-          ),
-          temporary = FALSE,
-          schema = attr(cdm, "write_schema"),
-          overwrite = TRUE
-        )
-    }
+    studyPop <- studyPop %>%
+      CDMConnector::computeQuery(
+        name = paste0(tablePrefix, "_prev_working_2"),
+        temporary = FALSE,
+        schema = attr(cdm, "write_schema"),
+        overwrite = TRUE
+      )
 
     attrition <- recordAttrition(
       table = studyPop,
@@ -169,21 +153,13 @@ getPrevalence <- function(cdm,
         dplyr::filter(.data$has_full_contribution >= 1) %>%
         dplyr::select(-"has_full_contribution")
 
-      if (is.null(tablePrefix)) {
-        studyPop <- studyPop %>%
-          CDMConnector::computeQuery()
-      } else {
-        studyPop <- studyPop %>%
-          CDMConnector::computeQuery(
-            name = paste0(
-              tablePrefix,
-              "_prev_working_3"
-            ),
-            temporary = FALSE,
-            schema = attr(cdm, "write_schema"),
-            overwrite = TRUE
-          )
-      }
+      studyPop <- studyPop %>%
+        CDMConnector::computeQuery(
+          name = paste0(tablePrefix, "_prev_working_3"),
+          temporary = FALSE,
+          schema = attr(cdm, "write_schema"),
+          overwrite = TRUE
+        )
 
       attrition <- recordAttrition(
         table = studyPop,
@@ -337,16 +313,10 @@ getPrevalence <- function(cdm,
       )
   }
 
-  if (!is.null(tablePrefix)) {
-    # drop other intermediate tables created
-    CDMConnector::dropTable(
-      cdm = cdm,
-      name = tidyselect::starts_with(paste0(
-        tablePrefix,
-        "_prev_working_"
-      ))
-    )
-  }
+  CDMConnector::dropTable(
+    cdm = cdm,
+    name = tidyselect::starts_with(paste0(tablePrefix, "_prev_working_"))
+  )
 
   results <- list()
   results[["pr"]] <- pr
