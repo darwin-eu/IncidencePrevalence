@@ -1446,7 +1446,6 @@ test_that("mock db: if missing cohort attributes", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
-
 test_that("mock db: test empty outcome table works", {
   skip_on_cran()
 
@@ -1463,4 +1462,144 @@ test_that("mock db: test empty outcome table works", {
     interval = "years"
   ))
 
+})
+
+test_that("mock db: prevalence using strata vars", {
+
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 2000,
+                                    outPre = 0.7)
+
+  cdm <- generateDenominatorCohortSet(cdm = cdm,
+                                      name = "denominator")
+
+  prev_orig <- estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years"
+  )
+
+  cdm$denominator <- cdm$denominator %>%
+    dplyr::mutate(my_strata = dplyr::if_else(year(cohort_start_date) < 2011,
+                                             "first", "second")) %>%
+    CDMConnector::compute_query()
+
+  prev <- estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years",
+    strata = list(c("my_strata"))
+  )
+  expect_true(all(c("strata_name", "strata_level") %in%
+                    colnames(prev)))
+  expect_true(all(c("Overall", "my_strata") %in%
+                    unique(prev %>%
+                             dplyr::pull("strata_name"))))
+  expect_true(all(c("Overall",
+                    "first", "second") %in%
+                    unique(prev %>%
+                             dplyr::pull("strata_level"))))
+
+  # original without strata should be the same as "Overall" strata
+  expect_equal(prev_orig,
+               prev %>%
+                 dplyr::filter(strata_name == "Overall") %>%
+                 dplyr::select(!c("strata_name", "strata_level")))
+
+
+  cdm$denominator <- cdm$denominator %>%
+    dplyr::mutate(my_strata2 =  dplyr::if_else(month(cohort_start_date)<7,
+                                               "a", "b")) %>%
+    CDMConnector::compute_query()
+
+  prev2 <- estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years",
+    strata = list(c("my_strata","my_strata2"))
+  )
+  expect_true(all(c("strata_name", "strata_level") %in%
+                    colnames(prev2)))
+  expect_true(all(c("Overall", "my_strata and my_strata2") %in%
+                    unique(prev2 %>%
+                             dplyr::pull("strata_name"))))
+  expect_true(all(c("Overall",
+                    "first and a", "first and b",
+                    "second and a", "second and b") %in%
+                    unique(prev2 %>%
+                             dplyr::pull("strata_level"))))
+
+  prev3 <- estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years",
+    strata = list(c("my_strata"),
+                  c("my_strata2"),
+                  c("my_strata", "my_strata2")))
+
+  expect_true(all(c("strata_name", "strata_level") %in%
+                    colnames(prev3)))
+  expect_true(all(c("Overall", "my_strata", "my_strata2",
+                    "my_strata and my_strata2") %in%
+                    unique(prev3 %>%
+                             dplyr::pull("strata_name"))))
+  expect_true(all(c("Overall",
+                    "first", "second",
+                    "a", "b",
+                    "first and a", "first and b",
+                    "second and a", "second and b") %in%
+                    unique(prev3 %>%
+                             dplyr::pull("strata_level"))))
+
+
+  # without overall strata
+  prev4 <- estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years",
+    strata = list(c("my_strata"),
+                  c("my_strata2"),
+                  c("my_strata", "my_strata2")),
+    includeOverallStrata = FALSE)
+  expect_false("Overall" %in% unique(prev4 %>%
+                                       dplyr::pull("strata_name")))
+  expect_true(all(c("my_strata", "my_strata2",
+                    "my_strata and my_strata2") %in%
+                    unique(prev4 %>%
+                             dplyr::pull("strata_name"))))
+  expect_false("Overall" %in% unique(prev4 %>%
+                                       dplyr::pull("strata_level")))
+  expect_true(all(c("first", "second",
+                    "a", "b",
+                    "first and a", "first and b",
+                    "second and a", "second and b") %in%
+                    unique(prev4 %>%
+                             dplyr::pull("strata_level"))))
+
+  expect_error(estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years",
+    strata = list(c("not_a_col"))))
+
+  expect_error(estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years",
+    strata = list(c("my_strata", "not_a_col"))))
+
+  expect_error(estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years",
+    strata = list(c("my_strata"), c("not_a_col"))))
+
+  CDMConnector::cdm_disconnect(cdm)
 })

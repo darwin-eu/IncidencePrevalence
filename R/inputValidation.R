@@ -368,3 +368,18 @@ cdmTargetCheck <- function(cdm, targetCohortTable) {
   }
   return(checkmate::reportAssertions(collection = errorMessage))
 }
+
+checkStrata <- function(strata, table) {
+  errorMessage <- "strata should be a list that point to columns in the denominator table"
+  if (!is.list(strata)) {
+    cli::cli_abort(errorMessage)
+  }
+  if (length(strata) > 0) {
+    if (!is.character(unlist(strata))) {
+      cli::cli_abort(errorMessage)
+    }
+    if (!all(unlist(strata) %in% colnames(table))) {
+      cli::cli_abort(errorMessage)
+    }
+  }
+}

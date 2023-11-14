@@ -48,6 +48,10 @@
 #' present in an outcome cohort and any subsequent washout will be
 #' excluded). If FALSE, an individual will only contribute time up to their
 #' first event during the study period.
+#' @param strata Variables added to the denominator cohort table for which to
+#' stratify estimates.
+#' @param includeOverallStrata Whether to include an overall result as well as
+#' strata specific results (when strata has been specified).
 #' @param minCellCount The minimum number of events to reported, below which
 #' results will be obscured. If 0, all results will be reported.
 #' @param temporary If TRUE, temporary tables will be used throughout. If
@@ -83,6 +87,8 @@ estimateIncidence <- function(cdm,
                               outcomeWashout = Inf,
                               repeatedEvents = FALSE,
                               minCellCount = 5,
+                              strata = list(),
+                              includeOverallStrata = TRUE,
                               temporary = TRUE,
                               returnParticipants = FALSE) {
   startCollect <- Sys.time()
@@ -102,6 +108,9 @@ estimateIncidence <- function(cdm,
     outcomeWashout, repeatedEvents, minCellCount, temporary,
     returnParticipants
   )
+
+  checkStrata(strata, cdm[[denominatorTable]])
+
 
   # if not given, use all denominator and outcome cohorts
   if (is.null(denominatorCohortId)) {
@@ -147,7 +156,8 @@ estimateIncidence <- function(cdm,
       cdm[[denominatorTable]] %>%
         dplyr::filter(.data$cohort_definition_id %in%
           .env$denominatorCohortId) %>%
-        dplyr::select(-"cohort_definition_id") %>%
+        dplyr::select(c("subject_id", "cohort_start_date",
+                      "cohort_end_date")) %>%
         dplyr::distinct(),
       by = "subject_id"
     )
@@ -268,7 +278,9 @@ estimateIncidence <- function(cdm,
       repeatedEvents = x$repeated_events,
       tablePrefix = tablePrefix,
       returnParticipants = returnParticipants,
-      analysisId = x$analysis_id
+      analysisId = x$analysis_id,
+      strata = strata,
+      includeOverallStrata = includeOverallStrata
     )
 
     workingIncIr <- workingInc[["ir"]] %>%
