@@ -3341,6 +3341,32 @@ test_that("mock db: incidence using strata vars", {
                 unique(inc3 %>%
                          dplyr::pull("strata_level"))))
 
+
+  # without overall strata
+  inc4 <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    strata = list(c("my_strata"),
+                  c("my_strata2"),
+                  c("my_strata", "my_strata2")),
+    includeOverallStrata = FALSE)
+  expect_false("Overall" %in% unique(inc4 %>%
+                                       dplyr::pull("strata_name")))
+  expect_true(all(c("my_strata", "my_strata2",
+                    "my_strata and my_strata2") %in%
+                    unique(inc4 %>%
+                             dplyr::pull("strata_name"))))
+  expect_false("Overall" %in% unique(inc4 %>%
+                                       dplyr::pull("strata_level")))
+  expect_true(all(c("first", "second",
+                    "a", "b",
+                    "first and a", "first and b",
+                    "second and a", "second and b") %in%
+                    unique(inc4 %>%
+                             dplyr::pull("strata_level"))))
+
   expect_error(estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
@@ -3362,6 +3388,4 @@ test_that("mock db: incidence using strata vars", {
     interval = "months",
     strata = list(c("my_strata"), c("not_a_col"))))
 
-
   CDMConnector::cdm_disconnect(cdm)
-})

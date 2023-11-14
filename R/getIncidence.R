@@ -26,7 +26,8 @@ getIncidence <- function(cdm,
                          tablePrefix,
                          returnParticipants,
                          analysisId,
-                         strata) {
+                         strata,
+                         includeOverallStrata) {
   if (!is.null(outcomeWashout)) {
     if (is.na(outcomeWashout)) {
       outcomeWashout <- NULL
@@ -274,6 +275,7 @@ getIncidence <- function(cdm,
             as.Date(NA)
           ))
 
+        if(length(strata)==0 || includeOverallStrata == TRUE){
         ir[[paste0(i)]] <- workingPop %>%
           dplyr::summarise(
             n_persons = dplyr::n_distinct(.data$subject_id),
@@ -282,6 +284,9 @@ getIncidence <- function(cdm,
           ) %>%
           dplyr::mutate(incidence_start_date = .env$workingStartTime) %>%
           dplyr::mutate(incidence_end_date = .env$workingEndTime)
+        } else {
+          ir[[paste0(i)]] <- dplyr::tibble()
+        }
 
 
         if(length(strata)>=1){
