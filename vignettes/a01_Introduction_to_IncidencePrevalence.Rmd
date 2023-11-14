@@ -45,7 +45,8 @@ con <- DBI::dbConnect(RPostgres::Postgres(),
   password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD")
 )
 cdm <- CDMConnector::cdm_from_con(con,
-  cdm_schema = Sys.getenv("CDM5_POSTGRESQL_CDM_SCHEMA")
+  cdm_schema = Sys.getenv("CDM5_POSTGRESQL_CDM_SCHEMA"),
+  write_schema = Sys.getenv("CDM5_POSTGRESQL_WRITE_SCHEMA")
 )
 ```
 
@@ -62,9 +63,9 @@ Importantly this example data already includes an outcome cohort. In practice, s
 ```{r eval=FALSE}
 outcome_cohorts <- CDMConnector::readCohortSet(here::here("outcome_cohorts"))
 cdm <- CDMConnector::generateCohortSet(
-  cdm = cdm,
+  cdm = cdm, 
   cohortSet = outcome_cohorts,
-  name = outcome_table
+  name = "outcome"
 )
 ```
 

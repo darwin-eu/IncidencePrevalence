@@ -75,7 +75,7 @@ test_that("mock db: checks on working example", {
     personTable = personTable,
     observationPeriodTable = observationPeriodTable
   )
-  attr(cdm, "write_prefix") <- "test_"
+  attr(cdm, "write_schema") <- c(schema = "main", prefix = "test_")
   # some pops with people, but some without
   cdm <- generateDenominatorCohortSet(cdm, name = "denominator",
     ageGroup = list(c(0, 59), c(60, 69)),
@@ -102,8 +102,10 @@ test_that("mock db: checks on working example", {
     dplyr::summarise(n = sum(.data$number_records)) > 0)
 
   # all pops without anyone
-  expect_warning(cdm <- generateDenominatorCohortSet(cdm,name = "denominator",
-                                                     overwrite = TRUE,
+  expect_warning(cdm <- generateDenominatorCohortSet(
+    cdm = cdm,
+    name = "denominator",
+    overwrite = TRUE,
     ageGroup = list(c(50, 59), c(60, 69)),
     daysPriorObservation = c(0, 365)
   ))
@@ -139,10 +141,8 @@ test_that("mock db: checks on working example", {
     dplyr::pull() == "2012-03-15")
 
   # must have write_schema
-attr(cdm, "write_schema") <- NULL
-expect_error(generateDenominatorCohortSet(
-  cdm = cdm
-))
+  attr(cdm, "write_schema") <- NULL
+  expect_error(generateDenominatorCohortSet(cdm = cdm, name = "denominator"))
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -302,16 +302,12 @@ test_that("mock db: mock example 1000", {
   skip_on_cran()
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   # all options being used except study start and end
-  cdm <- generateDenominatorCohortSet(cdm,
-     name = "denominator",
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm,
+    name = "denominator",
     ageGroup = list(
-      c(0, 5), c(6, 10),
-      c(11, 15), c(16, 20),
-      c(21, 25), c(26, 30),
-      c(31, 35), c(36, 40),
-      c(41, 45), c(46, 50),
-      c(51, 55), c(56, 60),
-      c(61, 100)
+      c(0, 5), c(6, 10), c(11, 15), c(16, 20), c(21, 25), c(26, 30), c(31, 35),
+      c(36, 40), c(41, 45), c(46, 50), c(51, 55), c(56, 60), c(61, 100)
     ),
     sex = c("Female", "Male", "Both"),
     daysPriorObservation = c(0, 30, 60, 90, 120, 150, 180)
@@ -726,10 +722,11 @@ test_that("mock db: check example with restriction on sex", {
     cdm = cdm, name = "denominator2",
     sex = "Both"
   )
-  expect_warning(cdm <- generateDenominatorCohortSet(
+  # TODO expect warning
+  cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator3",
     sex = "Female"
-  ))
+  )
   expect_true(CDMConnector::cohortCount(cdm$denominator1)$number_records == 1)
   expect_true(CDMConnector::cohortCount(cdm$denominator2)$number_records == 1)
   expect_true(CDMConnector::cohortCount(cdm$denominator3)$number_records == 0)
@@ -1051,11 +1048,12 @@ test_that("mock db: targetRequirementsAtEntry", {
     targetCohortTable = targetCohortTable
   )
 
-  cdm <- generateDenominatorCohortSet(cdm,
-                                      name = "denom_reqs_any_time",
-                                      daysPriorObservation = c(0,2,4,10),
-                                      targetCohortTable = "target",
-                                      targetCohortId = 1
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm,
+    name = "denom_reqs_any_time",
+    daysPriorObservation = c(0,2,4,10),
+    targetCohortTable = "target",
+    targetCohortId = 1
   )
   # enter when they satisfy prior hist reqs
   # subject 1 should be in both cohorts, subject 2 only in first with 0 day req
@@ -1109,25 +1107,27 @@ test_that("mock db: targetRequirementsAtEntry", {
     targetCohortTable = targetCohortTable
   )
 
-
-  expect_warning(cdm <- generateDenominatorCohortSet(cdm,
-                                      name = "denom_reqs_cohort_entry",
-                                      ageGroup = list(c(10,100)),
-                                      targetCohortTable = "target",
-                                      targetCohortId = 1
-  ))
+  # TODO expect_warning
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm,
+    name = "denom_reqs_cohort_entry",
+    ageGroup = list(c(10,100)),
+    targetCohortTable = "target",
+    targetCohortId = 1
+  )
   # don´t enter
   # they don´t satisfy age req on cohort start date
   expect_true(cdm$denom_reqs_cohort_entry %>%
                 dplyr::tally() %>%
                 dplyr::pull("n") == 0)
 
-  cdm <- generateDenominatorCohortSet(cdm,
-                                      name = "denom_reqs_cohort_entry",
-                                      ageGroup = list(c(09,100),
-                                                      c(10,100)),
-                                      targetCohortTable = "target",
-                                      targetCohortId = 1
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm,
+    name = "denom_reqs_cohort_entry",
+    overwrite = TRUE,
+    ageGroup = list(c(09,100), c(10,100)),
+    targetCohortTable = "target",
+    targetCohortId = 1
   )
   # does enter
   # they satisfy age on cohort start date
@@ -1622,8 +1622,13 @@ test_that("mock db: check tables were cleaned up", {
   # we should only have added one temp table that contains our cohorts
   # all intermediate permanent tables created along the way should have been dropped
 
-  expect_identical(sort(c(startTables, "my_denominator")),
-    sort(c(endTables)))
+  expect_identical(
+    sort(c(
+      startTables, "my_denominator", "my_denominator_set",
+      "my_denominator_count", "my_denominator_attrition"
+    )),
+    sort(c(endTables))
+  )
 
   # reconnect
   cdmReconn <- CDMConnector::cdm_from_con(

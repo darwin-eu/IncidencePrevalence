@@ -12,16 +12,15 @@ knitr::opts_chunk$set(
 )
 ```
 
-# IncidencePrevalence <img src='man/figures/hexsticker.png' align="right" height="139"/>
-[![CRANstatus](https://www.r-pkg.org/badges/version/IncidencePrevalence)](https://CRAN.R-project.org/package=IncidencePrevalence) 
-[![codecov.io](https://codecov.io/github/darwin-eu/IncidencePrevalence/coverage.svg?branch=main)](https://app.codecov.io/github/darwin-eu/IncidencePrevalence?branch=main)
-[![R-CMD-check](https://github.com/darwin-eu/IncidencePrevalence/workflows/R-CMD-check/badge.svg)](https://github.com/darwin-eu/IncidencePrevalence/actions)
-[![Lifecycle:Experimental](https://img.shields.io/badge/Lifecycle-Experimental-339999)](https://lifecycle.r-lib.org/articles/stages.html)
+# IncidencePrevalence <img src="man/figures/hexsticker.png" align="right" height="139"/>
 
+[![CRANstatus](https://www.r-pkg.org/badges/version/IncidencePrevalence)](https://CRAN.R-project.org/package=IncidencePrevalence) [![codecov.io](https://codecov.io/github/darwin-eu/IncidencePrevalence/coverage.svg?branch=main)](https://app.codecov.io/github/darwin-eu/IncidencePrevalence?branch=main) [![R-CMD-check](https://github.com/darwin-eu/IncidencePrevalence/workflows/R-CMD-check/badge.svg)](https://github.com/darwin-eu/IncidencePrevalence/actions) [![Lifecycle:Experimental](https://img.shields.io/badge/Lifecycle-Experimental-339999)](https://lifecycle.r-lib.org/articles/stages.html)
 
 ## Package overview
 
-IncidencePrevalence contains functions for estimating population-level incidence and prevalence using the OMOP common data model.  
+IncidencePrevalence contains functions for estimating population-level incidence and prevalence using the OMOP common data model. For more information on the package please see our paper in [Pharmacoepidemiology and Drug Safety](https://onlinelibrary.wiley.com/doi/10.1002/pds.5717). If you find the package useful in supporting your research study, please consider citing:
+
+> Raventós, B, Català, M, Du, M, et al. IncidencePrevalence: An R package to calculate population-level incidence rates and prevalence using the OMOP common data model. Pharmacoepidemiol Drug Saf. 2023; 1-11. <doi:10.1002/pds.5717>
 
 ## Package installation
 
@@ -33,8 +32,10 @@ remotes::install_github("darwin-eu/IncidencePrevalence")
 ```
 
 ## Example usage
-### Create a reference to data in the OMOP CDM format 
-The IncidencePrevalence package is designed to work with data in the OMOP CDM format, so our first step is to create a reference to the data using the CDMConnector package. 
+
+### Create a reference to data in the OMOP CDM format
+
+The IncidencePrevalence package is designed to work with data in the OMOP CDM format, so our first step is to create a reference to the data using the CDMConnector package.
 
 ```{r}
 library(CDMConnector)
@@ -42,6 +43,7 @@ library(IncidencePrevalence)
 ```
 
 Creating a connection to a Postgres database would for example look like:
+
 ```{r, eval=FALSE}
 con <- DBI::dbConnect(RPostgres::Postgres(),
   dbname = Sys.getenv("CDM5_POSTGRESQL_DBNAME"),
@@ -55,6 +57,7 @@ cdm <- CDMConnector::cdm_from_con(con,
   write_schema = Sys.getenv("CDM5_POSTGRESQL_RESULT_SCHEMA")
 )
 ```
+
 To see how you would create a reference to your database please consult the CDMConnector package documentation. For this example though we´ll work with simulated data, and we'll generate an example cdm reference like so:
 
 ```{r}
@@ -62,7 +65,8 @@ cdm <- mockIncidencePrevalenceRef(sampleSize = 5000)
 ```
 
 ### Identify a denominator cohort
-To identify a set of denominator cohorts we can use the `generateDenominatorCohortSet` function. Here we want to identify denominator populations for a study period between 2008 and 2018 and with 180 days of prior history (observation time in the database). We also wish to consider multiple age groups (from 0 to 64, and 65 to 100) and multiple sex criteria (one cohort only males, one only females, and one with both sexes included).  
+
+To identify a set of denominator cohorts we can use the `generateDenominatorCohortSet` function. Here we want to identify denominator populations for a study period between 2008 and 2018 and with 180 days of prior history (observation time in the database). We also wish to consider multiple age groups (from 0 to 64, and 65 to 100) and multiple sex criteria (one cohort only males, one only females, and one with both sexes included).
 
 ```{r}
 cdm <- generateDenominatorCohortSet(
@@ -79,16 +83,19 @@ cdm <- generateDenominatorCohortSet(
 ```
 
 This will then give us six denominator cohorts
+
 ```{r}
 cohortSet(cdm$denominator)
 ```
 
 These cohorts will be in the typical OMOP CDM structure
+
 ```{r}
 cdm$denominator
 ```
 
 ### Instantiate an outcome cohort
+
 Outcome cohorts for which we want to estimate incidence or prevalence need to be created. If the outcome cohorts are defined as JSON, we can use the CDMConnector package to read in and generate the cohorts.
 
 ```{r, eval=FALSE}
@@ -101,12 +108,14 @@ cdm <- CDMConnector::generateCohortSet(
 ```
 
 Note, in our example cdm reference we already have an outcome cohort defined
+
 ```{r}
 cdm$outcome
 ```
 
 ### Estimating incidence and prevalence
-Now we have identified our denominator population, we can calculate incidence and prevalence as below. 
+
+Now we have identified our denominator population, we can calculate incidence and prevalence as below.
 
 For this example we´ll estimate incidence on a yearly basis, allowing individuals to have multiple events but with an outcome washout of 180 days. We also require that only complete database intervals are included, by which we mean that the database must have individuals observed throughout a year for that year to be included in the analysis. Note, we also specify a minimum cell count of 5, under which estimates will be obscured.
 
@@ -125,6 +134,7 @@ dplyr::glimpse(inc)
 ```
 
 We could also estimate point prevalence, as of the start of each calendar year like so:
+
 ```{r}
 prev_point <- estimatePointPrevalence(
   cdm = cdm,
@@ -153,7 +163,9 @@ dplyr::glimpse(prev_period)
 ```
 
 ### Exporting results
-We can export our results as CSVs in a zip folder using the `exportIncidencePrevalenceResults()` function. 
+
+We can export our results as CSVs in a zip folder using the `exportIncidencePrevalenceResults()` function.
+
 ```{r, eval=FALSE}
 exportIncidencePrevalenceResults(
   resultList = list(
