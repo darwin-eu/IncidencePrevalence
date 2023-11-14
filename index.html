@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -67,7 +67,10 @@
 <div class="section level2">
 <h2 id="package-overview">Package overview<a class="anchor" aria-label="anchor" href="#package-overview"></a>
 </h2>
-<p>IncidencePrevalence contains functions for estimating population-level incidence and prevalence using the OMOP common data model.</p>
+<p>IncidencePrevalence contains functions for estimating population-level incidence and prevalence using the OMOP common data model. For more information on the package please see our paper in <a href="https://onlinelibrary.wiley.com/doi/10.1002/pds.5717" class="external-link">Pharmacoepidemiology and Drug Safety</a>. If you find the package useful in supporting your research study, please consider citing:</p>
+<blockquote>
+<p>Raventós, B, Català, M, Du, M, et al. IncidencePrevalence: An R package to calculate population-level incidence rates and prevalence using the OMOP common data model. Pharmacoepidemiol Drug Saf. 2023; 1-11. <a href="doi:10.1002/pds.5717" class="uri">doi:10.1002/pds.5717</a></p>
+</blockquote>
 </div>
 <div class="section level2">
 <h2 id="package-installation">Package installation<a class="anchor" aria-label="anchor" href="#package-installation"></a>
@@ -123,7 +126,7 @@
 <p>This will then give us six denominator cohorts</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/cohortSet.html" class="external-link">cohortSet</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
-<span><span class="co">#&gt; # A tibble: 6 × 11</span></span>
+<span><span class="co">#&gt; # A tibble: 6 × 9</span></span>
 <span><span class="co">#&gt;   cohort_definition_id cohort_name        age_group sex   days_prior_observation</span></span>
 <span><span class="co">#&gt;                  &lt;int&gt; &lt;chr&gt;              &lt;chr&gt;     &lt;chr&gt;                  &lt;dbl&gt;</span></span>
 <span><span class="co">#&gt; 1                    1 Denominator cohor… 0 to 64   Male                     180</span></span>
@@ -132,14 +135,13 @@
 <span><span class="co">#&gt; 4                    4 Denominator cohor… 65 to 100 Male                     180</span></span>
 <span><span class="co">#&gt; 5                    5 Denominator cohor… 65 to 100 Fema…                    180</span></span>
 <span><span class="co">#&gt; 6                    6 Denominator cohor… 65 to 100 Both                     180</span></span>
-<span><span class="co">#&gt; # ℹ 6 more variables: start_date &lt;date&gt;, end_date &lt;date&gt;, strataTable &lt;lgl&gt;,</span></span>
-<span><span class="co">#&gt; #   strataCohortId &lt;lgl&gt;, strata_cohort_definition_id &lt;lgl&gt;,</span></span>
-<span><span class="co">#&gt; #   strata_cohort_name &lt;lgl&gt;</span></span></code></pre></div>
+<span><span class="co">#&gt; # ℹ 4 more variables: start_date &lt;date&gt;, end_date &lt;date&gt;,</span></span>
+<span><span class="co">#&gt; #   target_cohort_definition_id &lt;dbl&gt;, target_cohort_name &lt;lgl&gt;</span></span></code></pre></div>
 <p>These cohorts will be in the typical OMOP CDM structure</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span>
-<span><span class="co">#&gt; # Source:   table&lt;main.denominator&gt; [?? x 4]</span></span>
-<span><span class="co">#&gt; # Database: DuckDB 0.9.0 [eburn@Windows 10 x64:R 4.2.1/:memory:]</span></span>
+<span><span class="co">#&gt; # Source:   table&lt;denominator&gt; [?? x 4]</span></span>
+<span><span class="co">#&gt; # Database: DuckDB 0.8.1 [eburn@Windows 10 x64:R 4.2.1/:memory:]</span></span>
 <span><span class="co">#&gt;    cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                   &lt;int&gt; &lt;chr&gt;      &lt;date&gt;            &lt;date&gt;         </span></span>
 <span><span class="co">#&gt;  1                    1 14         2010-04-17        2010-11-27     </span></span>
@@ -168,8 +170,8 @@
 <p>Note, in our example cdm reference we already have an outcome cohort defined</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span><span class="op">$</span><span class="va">outcome</span></span>
-<span><span class="co">#&gt; # Source:   table&lt;main.outcome&gt; [?? x 4]</span></span>
-<span><span class="co">#&gt; # Database: DuckDB 0.9.0 [eburn@Windows 10 x64:R 4.2.1/:memory:]</span></span>
+<span><span class="co">#&gt; # Source:   table&lt;outcome&gt; [?? x 4]</span></span>
+<span><span class="co">#&gt; # Database: DuckDB 0.8.1 [eburn@Windows 10 x64:R 4.2.1/:memory:]</span></span>
 <span><span class="co">#&gt;    cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;    &lt;chr&gt;                &lt;chr&gt;      &lt;date&gt;            &lt;date&gt;         </span></span>
 <span><span class="co">#&gt;  1 1                    1          2014-07-01        2014-07-09     </span></span>
@@ -202,7 +204,7 @@
 <span><span class="op">)</span></span>
 <span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 60</span></span>
-<span><span class="co">#&gt; Columns: 31</span></span>
+<span><span class="co">#&gt; Columns: 29</span></span>
 <span><span class="co">#&gt; $ analysis_id                             &lt;chr&gt; "1", "1", "1", "1", "1", "1", …</span></span>
 <span><span class="co">#&gt; $ n_persons                               &lt;int&gt; 194, 156, 174, 185, 192, 156, …</span></span>
 <span><span class="co">#&gt; $ person_days                             &lt;dbl&gt; 29026, 21658, 23094, 30744, 27…</span></span>
@@ -229,10 +231,8 @@
 <span><span class="co">#&gt; $ denominator_days_prior_observation      &lt;dbl&gt; 180, 180, 180, 180, 180, 180, …</span></span>
 <span><span class="co">#&gt; $ denominator_start_date                  &lt;date&gt; 2008-01-01, 2008-01-01, 2008-…</span></span>
 <span><span class="co">#&gt; $ denominator_end_date                    &lt;date&gt; 2018-01-01, 2018-01-01, 2018-…</span></span>
-<span><span class="co">#&gt; $ denominator_strataTable                 &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
-<span><span class="co">#&gt; $ denominator_strataCohortId              &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
-<span><span class="co">#&gt; $ denominator_strata_cohort_definition_id &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
-<span><span class="co">#&gt; $ denominator_strata_cohort_name          &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_definition_id &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_name          &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ cdm_name                                &lt;chr&gt; "test_database", "test_databas…</span></span></code></pre></div>
 <p>We could also estimate point prevalence, as of the start of each calendar year like so:</p>
 <div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
@@ -246,17 +246,18 @@
 <span><span class="op">)</span></span>
 <span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="va">prev_point</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 66</span></span>
-<span><span class="co">#&gt; Columns: 31</span></span>
+<span><span class="co">#&gt; Columns: 30</span></span>
 <span><span class="co">#&gt; $ analysis_id                             &lt;chr&gt; "1", "1", "1", "1", "1", "1", …</span></span>
 <span><span class="co">#&gt; $ prevalence_start_date                   &lt;date&gt; 2008-01-01, 2009-01-01, 2010-…</span></span>
 <span><span class="co">#&gt; $ prevalence_end_date                     &lt;date&gt; 2008-01-01, 2009-01-01, 2010-…</span></span>
-<span><span class="co">#&gt; $ n_cases                                 &lt;int&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ n_cases                                 &lt;int&gt; NA, NA, 0, 0, NA, NA, NA, 0, N…</span></span>
 <span><span class="co">#&gt; $ n_population                            &lt;int&gt; 125, 102, 84, 103, 122, 86, 97…</span></span>
-<span><span class="co">#&gt; $ prevalence                              &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
-<span><span class="co">#&gt; $ prevalence_95CI_lower                   &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
-<span><span class="co">#&gt; $ prevalence_95CI_upper                   &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
-<span><span class="co">#&gt; $ cohort_obscured                         &lt;chr&gt; "FALSE", "FALSE", "FALSE", "FA…</span></span>
-<span><span class="co">#&gt; $ result_obscured                         &lt;chr&gt; "TRUE", "TRUE", "TRUE", "TRUE"…</span></span>
+<span><span class="co">#&gt; $ prevalence                              &lt;dbl&gt; NA, NA, 0, 0, NA, NA, NA, 0, N…</span></span>
+<span><span class="co">#&gt; $ prevalence_95CI_lower                   &lt;dbl&gt; NA, NA, 0.000000e+00, 0.000000…</span></span>
+<span><span class="co">#&gt; $ prevalence_95CI_upper                   &lt;dbl&gt; NA, NA, 0.04373173, 0.03595476…</span></span>
+<span><span class="co">#&gt; $ population_obscured                     &lt;chr&gt; "FALSE", "FALSE", "FALSE", "FA…</span></span>
+<span><span class="co">#&gt; $ cases_obscured                          &lt;chr&gt; "TRUE", "TRUE", "FALSE", "FALS…</span></span>
+<span><span class="co">#&gt; $ result_obscured                         &lt;chr&gt; "TRUE", "TRUE", "FALSE", "FALS…</span></span>
 <span><span class="co">#&gt; $ outcome_cohort_id                       &lt;chr&gt; "1", "1", "1", "1", "1", "1", …</span></span>
 <span><span class="co">#&gt; $ outcome_cohort_name                     &lt;chr&gt; "cohort_1", "cohort_1", "cohor…</span></span>
 <span><span class="co">#&gt; $ analysis_outcome_lookback_days          &lt;dbl&gt; 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …</span></span>
@@ -273,10 +274,8 @@
 <span><span class="co">#&gt; $ denominator_days_prior_observation      &lt;dbl&gt; 180, 180, 180, 180, 180, 180, …</span></span>
 <span><span class="co">#&gt; $ denominator_start_date                  &lt;date&gt; 2008-01-01, 2008-01-01, 2008-…</span></span>
 <span><span class="co">#&gt; $ denominator_end_date                    &lt;date&gt; 2018-01-01, 2018-01-01, 2018-…</span></span>
-<span><span class="co">#&gt; $ denominator_strataTable                 &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
-<span><span class="co">#&gt; $ denominator_strataCohortId              &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
-<span><span class="co">#&gt; $ denominator_strata_cohort_definition_id &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
-<span><span class="co">#&gt; $ denominator_strata_cohort_name          &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_definition_id &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_name          &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ cdm_name                                &lt;chr&gt; "test_database", "test_databas…</span></span></code></pre></div>
 <p>And annual period prevalence where we again require complete database intervals and, in addition, only include those people who are observed in the data for the full year:</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
@@ -291,7 +290,7 @@
 <span><span class="op">)</span></span>
 <span><span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="va">prev_period</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: 60</span></span>
-<span><span class="co">#&gt; Columns: 31</span></span>
+<span><span class="co">#&gt; Columns: 30</span></span>
 <span><span class="co">#&gt; $ analysis_id                             &lt;chr&gt; "1", "1", "1", "1", "1", "1", …</span></span>
 <span><span class="co">#&gt; $ prevalence_start_date                   &lt;date&gt; 2008-01-01, 2009-01-01, 2010-…</span></span>
 <span><span class="co">#&gt; $ prevalence_end_date                     &lt;date&gt; 2008-12-31, 2009-12-31, 2010-…</span></span>
@@ -300,7 +299,8 @@
 <span><span class="co">#&gt; $ prevalence                              &lt;dbl&gt; 0.3333333, 0.4090909, 0.400000…</span></span>
 <span><span class="co">#&gt; $ prevalence_95CI_lower                   &lt;dbl&gt; 0.1975023, 0.2325582, 0.218806…</span></span>
 <span><span class="co">#&gt; $ prevalence_95CI_upper                   &lt;dbl&gt; 0.5039211, 0.6126518, 0.613418…</span></span>
-<span><span class="co">#&gt; $ cohort_obscured                         &lt;chr&gt; "FALSE", "FALSE", "FALSE", "FA…</span></span>
+<span><span class="co">#&gt; $ population_obscured                     &lt;chr&gt; "FALSE", "FALSE", "FALSE", "FA…</span></span>
+<span><span class="co">#&gt; $ cases_obscured                          &lt;chr&gt; "FALSE", "FALSE", "FALSE", "FA…</span></span>
 <span><span class="co">#&gt; $ result_obscured                         &lt;chr&gt; "FALSE", "FALSE", "FALSE", "FA…</span></span>
 <span><span class="co">#&gt; $ outcome_cohort_id                       &lt;chr&gt; "1", "1", "1", "1", "1", "1", …</span></span>
 <span><span class="co">#&gt; $ outcome_cohort_name                     &lt;chr&gt; "cohort_1", "cohort_1", "cohor…</span></span>
@@ -318,10 +318,8 @@
 <span><span class="co">#&gt; $ denominator_days_prior_observation      &lt;dbl&gt; 180, 180, 180, 180, 180, 180, …</span></span>
 <span><span class="co">#&gt; $ denominator_start_date                  &lt;date&gt; 2008-01-01, 2008-01-01, 2008-…</span></span>
 <span><span class="co">#&gt; $ denominator_end_date                    &lt;date&gt; 2018-01-01, 2018-01-01, 2018-…</span></span>
-<span><span class="co">#&gt; $ denominator_strataTable                 &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
-<span><span class="co">#&gt; $ denominator_strataCohortId              &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
-<span><span class="co">#&gt; $ denominator_strata_cohort_definition_id &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
-<span><span class="co">#&gt; $ denominator_strata_cohort_name          &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_definition_id &lt;dbl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_name          &lt;lgl&gt; NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ cdm_name                                &lt;chr&gt; "test_database", "test_databas…</span></span></code></pre></div>
 </div>
 <div class="section level3">

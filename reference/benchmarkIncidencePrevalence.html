@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,7 +54,7 @@
     <h2 id="ref-usage">Usage<a class="anchor" aria-label="anchor" href="#ref-usage"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span><span class="fu">benchmarkIncidencePrevalence</span><span class="op">(</span></span>
 <span>  <span class="va">cdm</span>,</span>
-<span>  cohortDateRange <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">NA</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  returnParticipants <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  nOutcomes <span class="op">=</span> <span class="fl">1</span>,</span>
 <span>  prevOutcomes <span class="op">=</span> <span class="fl">0.25</span>,</span>
@@ -126,10 +126,25 @@ prevalence, they can also provide a single integer</p></dd>
 <span class="r-in"><span><span class="va">timings</span> <span class="op">&lt;-</span> <span class="fu">IncidencePrevalence</span><span class="fu">::</span><span class="fu">benchmarkIncidencePrevalence</span><span class="op">(</span><span class="va">cdm</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required namespace: testthat</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Creating denominator cohorts</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  -- getting cohort dates for <span style="color: #00BB00;">■■■■■■■■■■■■■■■■                </span> 4 of 8 cohorts</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  -- getting cohort dates for <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■     </span> 7 of 8 cohorts</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  -- getting cohort dates for <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ </span> 8 of 8 cohorts</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Cohorts created in 0 min and 8 sec</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Cohorts created in 0 min and 6 sec</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 1 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 2 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 3 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 4 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 5 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 6 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 7 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 8 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken: 0 mins and 6 secs</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 1 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 2 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 3 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 4 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 5 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 6 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 7 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 8 of 8</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken: 0 mins and 12 secs</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 1 of 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 2 of 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 3 of 8</span>
@@ -140,32 +155,30 @@ prevalence, they can also provide a single integer</p></dd>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 8 of 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken: 0 mins and 8 secs</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 1 of 8</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Your SQL query is over 10,000 characters which can cause issues on some database platforms!</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> Try calling computeQuery earlier in your pipeline.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 2 of 8</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Your SQL query is over 10,000 characters which can cause issues on some database platforms!</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> Try calling computeQuery earlier in your pipeline.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 3 of 8</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Your SQL query is over 10,000 characters which can cause issues on some database platforms!</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> Try calling computeQuery earlier in your pipeline.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 4 of 8</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Your SQL query is over 10,000 characters which can cause issues on some database platforms!</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> Try calling computeQuery earlier in your pipeline.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 5 of 8</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Your SQL query is over 10,000 characters which can cause issues on some database platforms!</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> Try calling computeQuery earlier in your pipeline.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 6 of 8</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Your SQL query is over 10,000 characters which can cause issues on some database platforms!</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> Try calling computeQuery earlier in your pipeline.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 7 of 8</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Your SQL query is over 10,000 characters which can cause issues on some database platforms!</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> Try calling computeQuery earlier in your pipeline.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 8 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken: 0 mins and 17 secs</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 1 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 2 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 3 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 4 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 5 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 6 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 7 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 8 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken: 0 mins and 10 secs</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 1 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 2 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 3 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 4 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 5 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 6 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 7 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 8 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken: 0 mins and 39 secs</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Your SQL query is over 10,000 characters which can cause issues on some database platforms!</span>
+<span class="r-wrn co"><span class="r-pr">#&gt;</span> Try calling computeQuery earlier in your pipeline.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken: 0 mins and 20 secs</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 1 of 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 2 of 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 3 of 8</span>
@@ -174,7 +187,7 @@ prevalence, they can also provide a single integer</p></dd>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 6 of 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 7 of 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 8 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Overall time taken: 0 mins and 7 secs</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Overall time taken: 0 mins and 5 secs</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 1 of 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 2 of 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 3 of 8</span>
@@ -183,7 +196,7 @@ prevalence, they can also provide a single integer</p></dd>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 6 of 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 7 of 8</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 8 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Overall time taken: 0 mins and 21 secs</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Overall time taken: 0 mins and 13 secs</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

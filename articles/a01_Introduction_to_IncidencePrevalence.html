@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -115,7 +115,8 @@ object. This could like something like:</p>
 <span>  password <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_PASSWORD"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/cdm_from_con.html" class="external-link">cdm_from_con</a></span><span class="op">(</span><span class="va">con</span>,</span>
-<span>  cdm_schema <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_CDM_SCHEMA"</span><span class="op">)</span></span>
+<span>  cdm_schema <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_CDM_SCHEMA"</span><span class="op">)</span>,</span>
+<span>  write_schema <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_WRITE_SCHEMA"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>For this example though we´ll generate 50,000 hypothetical patients
 using the <code><a href="../reference/mockIncidencePrevalenceRef.html">mockIncidencePrevalenceRef()</a></code> function.</p>
@@ -131,9 +132,9 @@ CDMConnector package to read in and generate the cohorts.</p>
 <div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">outcome_cohorts</span> <span class="op">&lt;-</span> <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/read_cohort_set.html" class="external-link">readCohortSet</a></span><span class="op">(</span><span class="fu">here</span><span class="fu">::</span><span class="fu"><a href="https://here.r-lib.org//reference/here.html" class="external-link">here</a></span><span class="op">(</span><span class="st">"outcome_cohorts"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/generateCohortSet.html" class="external-link">generateCohortSet</a></span><span class="op">(</span></span>
-<span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
+<span>  cdm <span class="op">=</span> <span class="va">cdm</span>, </span>
 <span>  cohortSet <span class="op">=</span> <span class="va">outcome_cohorts</span>,</span>
-<span>  name <span class="op">=</span> <span class="va">outcome_table</span></span>
+<span>  name <span class="op">=</span> <span class="st">"outcome"</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>Once we have a connection to the database set-up, we can use the
 <code><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet()</a></code> to identify a denominator
@@ -158,7 +159,7 @@ an OMOP CDM cohort:</p>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: ??</span></span>
 <span><span class="co">#&gt; Columns: 4</span></span>
-<span><span class="co">#&gt; Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1014-azure:R 4.3.1/:memory:]</span></span>
+<span><span class="co">#&gt; Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1015-azure:R 4.3.2/:memory:]</span></span>
 <span><span class="co">#&gt; $ cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…</span></span>
 <span><span class="co">#&gt; $ subject_id           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "2", "3", "13", "19", "29", "46", "88", "149", "1…</span></span>
 <span><span class="co">#&gt; $ cohort_start_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2010-12-20, 2008-05-28, 2009-03-08, …</span></span>
@@ -173,7 +174,7 @@ an OMOP CDM cohort:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    2 Denominator cohor… 18 to 65  Fema…                    365</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    3 Denominator cohor… 18 to 65  Both                     365</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 4 more variables: start_date &lt;date&gt;, end_date &lt;date&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   target_cohort_definition_id &lt;lgl&gt;, target_cohort_name &lt;lgl&gt;</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;">#   target_cohort_definition_id &lt;dbl&gt;, target_cohort_name &lt;lgl&gt;</span></span></span></code></pre></div>
 <p>And we can also see the count for each cohort</p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/cohortCount.html" class="external-link">cohortCount</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
@@ -228,7 +229,7 @@ function. Here we calculate point prevalence on a yearly basis.</p>
 <span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 365, 365, 365, 365, 365, 365, …</span></span>
 <span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-…</span></span>
 <span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-…</span></span>
-<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "test_database", "test_databas…</span></span></code></pre></div>
 <p><img src="a01_Introduction_to_IncidencePrevalence_files/figure-html/unnamed-chunk-11-1.png" width="672"></p>
@@ -274,7 +275,7 @@ used for outcome washout windows.</p>
 <span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 365, 365, 365, 365, 365, 365, …</span></span>
 <span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-…</span></span>
 <span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-…</span></span>
-<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "test_database", "test_databas…</span></span></code></pre></div>
 <p><img src="a01_Introduction_to_IncidencePrevalence_files/figure-html/unnamed-chunk-13-1.png" width="672"></p>

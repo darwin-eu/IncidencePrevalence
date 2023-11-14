@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -166,14 +166,14 @@ requirements like so</p>
 <code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>, </span>
 <span>  name <span class="op">=</span> <span class="st">"denominator"</span>,</span>
-<span>  cohortDateRange <span class="op">=</span> <span class="cn">NULL</span>,</span>
+<span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="cn">NA</span>,<span class="cn">NA</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  ageGroup <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  sex <span class="op">=</span> <span class="st">"Both"</span>,</span>
 <span>  daysPriorObservation <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;main.denominator&gt; [?? x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1014-azure:R 4.3.1/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;denominator&gt; [?? x 4]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1015-azure:R 4.3.2/:memory:]</span></span></span>
 <span><span class="co">#&gt;    cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>                    1 2          2018-11-27        2020-07-15     </span></span>
@@ -191,7 +191,7 @@ requirements like so</p>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">subject_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>, <span class="st">"5"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># Source:   SQL [5 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1014-azure:R 4.3.1/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1015-azure:R 4.3.2/:memory:]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 2          2018-11-27        2020-07-15     </span></span>
@@ -237,8 +237,8 @@ simulated patients</p>
 <span>  daysPriorObservation <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;main.denominator&gt; [?? x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1014-azure:R 4.3.1/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;denominator&gt; [?? x 4]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1015-azure:R 4.3.2/:memory:]</span></span></span>
 <span><span class="co">#&gt;    cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>                    1 3          2008-04-30        2008-09-19     </span></span>
@@ -262,7 +262,7 @@ simulated patients</p>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">subject_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>, <span class="st">"5"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># Source:   SQL [2 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1014-azure:R 4.3.1/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1015-azure:R 4.3.2/:memory:]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 3          2008-04-30        2008-09-19     </span></span>
@@ -321,8 +321,8 @@ the end.</p>
 <span>  daysPriorObservation <span class="op">=</span> <span class="fl">365</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;main.denominator&gt; [?? x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1014-azure:R 4.3.1/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;denominator&gt; [?? x 4]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1015-azure:R 4.3.2/:memory:]</span></span></span>
 <span><span class="co">#&gt;    cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>                    1 9          2008-01-01        2008-09-29     </span></span>
@@ -346,7 +346,7 @@ the end.</p>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">subject_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>, <span class="st">"5"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># Source:   SQL [1 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1014-azure:R 4.3.1/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1015-azure:R 4.3.2/:memory:]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 1          2009-10-12        2010-01-01</span></span></code></pre></div>
@@ -410,7 +410,7 @@ before their 66th birthday.</p>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: ??</span></span>
 <span><span class="co">#&gt; Columns: 4</span></span>
-<span><span class="co">#&gt; Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1014-azure:R 4.3.1/:memory:]</span></span>
+<span><span class="co">#&gt; Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1015-azure:R 4.3.2/:memory:]</span></span>
 <span><span class="co">#&gt; $ cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…</span></span>
 <span><span class="co">#&gt; $ subject_id           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "20", "54", "78", "99", "155", "168", "176", "182…</span></span>
 <span><span class="co">#&gt; $ cohort_start_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-04-20, 2008-06-08, …</span></span>
@@ -425,7 +425,7 @@ before their 66th birthday.</p>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">subject_id</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="st">"2"</span>, <span class="st">"3"</span>, <span class="st">"4"</span>, <span class="st">"5"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># Source:   SQL [0 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1014-azure:R 4.3.1/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1015-azure:R 4.3.2/:memory:]</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 4 variables: cohort_definition_id &lt;int&gt;, subject_id &lt;chr&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   cohort_start_date &lt;date&gt;, cohort_end_date &lt;date&gt;</span></span></span></code></pre></div>
 <p>Now none of the original first five are included and we´re including
@@ -489,7 +489,7 @@ birthday during the study period will go from the first cohort
 <span><span class="co">#&gt; $ days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …</span></span>
 <span><span class="co">#&gt; $ start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-01-01, 2008-…</span></span>
 <span><span class="co">#&gt; $ end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2010-01-01, 2010-01-01, 2010-01-01, 2010-…</span></span>
-<span><span class="co">#&gt; $ target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span></span>
 <span><span class="va">dpop</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -549,7 +549,7 @@ birthday during the study period will go from the first cohort
 <span><span class="co">#&gt; $ days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …</span></span>
 <span><span class="co">#&gt; $ start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-01-01, 2008-…</span></span>
 <span><span class="co">#&gt; $ end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2010-01-01, 2010-01-01, 2010-01-01, 2010-…</span></span>
-<span><span class="co">#&gt; $ target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span></span>
 <span><span class="va">dpop</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -613,7 +613,7 @@ birthday during the study period will go from the first cohort
 <span><span class="co">#&gt; $ days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …</span></span>
 <span><span class="co">#&gt; $ start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-01-01, 2008-…</span></span>
 <span><span class="co">#&gt; $ end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2010-01-01, 2010-01-01, 2010-01-01, 2010-…</span></span>
-<span><span class="co">#&gt; $ target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span></span>
 <span><span class="va">dpop</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -690,7 +690,7 @@ analyses.</p>
 <span><span class="co">#&gt; $ days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …</span></span>
 <span><span class="co">#&gt; $ start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-01-01, 2008-…</span></span>
 <span><span class="co">#&gt; $ end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2010-01-01, 2010-01-01, 2010-01-01, 2010-…</span></span>
-<span><span class="co">#&gt; $ target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span><span class="co">#&gt; $ target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
 <span></span>
 <span><span class="va">dpop</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -757,7 +757,7 @@ and observation period is considered.</p>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span>, <span class="fl">8</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># Source:   SQL [8 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1014-azure:R 4.3.1/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1015-azure:R 4.3.2/:memory:]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 3          2008-04-30        2008-09-19     </span></span>
@@ -789,7 +789,7 @@ we identified 8 different cohorts:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">7</span>                    7 Denominator cohor… 19 to 100 Fema…                      0</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">8</span>                    8 Denominator cohor… 19 to 100 Fema…                    365</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 4 more variables: start_date &lt;date&gt;, end_date &lt;date&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   target_cohort_definition_id &lt;lgl&gt;, target_cohort_name &lt;lgl&gt;</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;">#   target_cohort_definition_id &lt;dbl&gt;, target_cohort_name &lt;lgl&gt;</span></span></span></code></pre></div>
 <p>With <code><a href="https://darwin-eu.github.io/CDMConnector/reference/cohortCount.html" class="external-link">cohortCount()</a></code> we can see the number of individuals
 who entered each study cohort</p>
 <div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
@@ -814,7 +814,7 @@ among others):</p>
 <code class="sourceCode R"><span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/cohortAttrition.html" class="external-link">cohortAttrition</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 72 × 7</span></span></span>
 <span><span class="co">#&gt;    cohort_definition_id number_records number_subjects reason_id reason         </span></span>
-<span><span class="co">#&gt;                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;glue&gt;</span>         </span></span>
+<span><span class="co">#&gt;                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>                    1            500             500         1 Starting popul…</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>                    1            500             500         2 Missing year o…</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>                    1            500             500         3 Missing sex    </span></span>
@@ -914,8 +914,8 @@ subset like so</p>
 <span>  overwrite <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;main.denominator&gt; [5 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1014-azure:R 4.3.1/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;denominator&gt; [5 x 4]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1015-azure:R 4.3.2/:memory:]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 2          2005-04-01        2005-11-29     </span></span>
@@ -950,8 +950,8 @@ targetCohortId “1” in our simulated strata table.</p>
 <span>  targetCohortId <span class="op">=</span> <span class="fl">1</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;main.denominator&gt; [3 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1014-azure:R 4.3.1/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;denominator&gt; [3 x 4]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1015-azure:R 4.3.2/:memory:]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 1          2010-12-19        2011-06-19     </span></span>
@@ -987,13 +987,13 @@ simulated strata table).</p>
 <span>  targetCohortId <span class="op">=</span> <span class="fl">2</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;main.denominator&gt; [3 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1014-azure:R 4.3.1/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;denominator&gt; [3 x 4]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1015-azure:R 4.3.2/:memory:]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 3          2012-01-01        2013-01-01     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    1 5          2010-06-01        2012-03-01     </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    1 2          2005-08-20        2005-11-29</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 2          2005-08-20        2005-11-29     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    1 3          2012-01-01        2013-01-01     </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    1 5          2010-06-01        2012-03-01</span></span></code></pre></div>
 <p>We have obtained a denominator population with 3 individuals who have
 experienced this event during their observation period. In this case,
 the cohort start and end dates correspond to the cohort start and end
@@ -1022,8 +1022,8 @@ experience the same condition multiple times. Let’s use targetCohortId
 <span>  targetCohortId <span class="op">=</span> <span class="fl">3</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;main.denominator&gt; [5 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1014-azure:R 4.3.1/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;denominator&gt; [5 x 4]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1015-azure:R 4.3.2/:memory:]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 3          2015-06-01        2015-12-31     </span></span>
@@ -1070,8 +1070,8 @@ date).</p>
 <span>  targetCohortId <span class="op">=</span> <span class="fl">3</span></span>
 <span><span class="op">)</span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denom_reqs_at_target_entry</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;main.denom_reqs_at_target_entry&gt; [1 x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1014-azure:R 4.3.1/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;denom_reqs_at_target_entry&gt; [1 x 4]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v0.9.1 [unknown@Linux 6.2.0-1015-azure:R 4.3.2/:memory:]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 3          2015-06-01        2015-12-31</span></span></code></pre></div>
