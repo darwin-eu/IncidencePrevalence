@@ -106,10 +106,8 @@ estimateIncidence <- function(cdm,
     returnParticipants
   )
 
-  if(!is.list(strata)){
-    cli::cli_abort("strata must be a list of columns that exist as additional
-                   columns in the denominator table")
-  }
+  checkStrata(strata, cdm[[denominatorTable]])
+
 
   # if not given, use all denominator and outcome cohorts
   if (is.null(denominatorCohortId)) {

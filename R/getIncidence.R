@@ -284,7 +284,7 @@ getIncidence <- function(cdm,
           dplyr::mutate(incidence_end_date = .env$workingEndTime)
 
 
-        if(!is.null(strata)){
+        if(length(strata)>=1){
           ir[[paste0(i)]] <- ir[[paste0(i)]] %>%
             dplyr::mutate(strata_name = "Overall",
                           strata_level = "Overall")
