@@ -1494,7 +1494,7 @@ test_that("mock db: prevalence using strata vars", {
   expect_true(all(c("strata_name", "strata_level") %in%
                     colnames(prev)))
   expect_true(all(c("Overall", "my_strata") %in%
-                    unique(inc %>%
+                    unique(prev %>%
                              dplyr::pull("strata_name"))))
   expect_true(all(c("Overall",
                     "first", "second") %in%
