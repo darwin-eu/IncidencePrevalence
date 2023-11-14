@@ -3389,3 +3389,4 @@ test_that("mock db: incidence using strata vars", {
     strata = list(c("my_strata"), c("not_a_col"))))
 
   CDMConnector::cdm_disconnect(cdm)
+})
