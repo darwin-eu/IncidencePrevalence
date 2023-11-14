@@ -15,6 +15,7 @@ estimateIncidence(
   outcomeWashout = Inf,
   repeatedEvents = FALSE,
   minCellCount = 5,
+  strata = list(),
   temporary = TRUE,
   returnParticipants = FALSE
 )
@@ -62,6 +63,9 @@ first event during the study period.}
 
 \item{minCellCount}{The minimum number of events to reported, below which
 results will be obscured. If 0, all results will be reported.}
+
+\item{strata}{Variables added to the denominator cohort table for which to
+stratify estimates.}
 
 \item{temporary}{If TRUE, temporary tables will be used throughout. If
 FALSE, permanent tables will be created in the write_schema of the cdm.}

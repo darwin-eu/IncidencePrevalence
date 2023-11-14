@@ -25,7 +25,8 @@ getIncidence <- function(cdm,
                          repeatedEvents,
                          tablePrefix,
                          returnParticipants,
-                         analysisId) {
+                         analysisId,
+                         strata) {
   if (!is.null(outcomeWashout)) {
     if (is.na(outcomeWashout)) {
       outcomeWashout <- NULL
@@ -281,6 +282,21 @@ getIncidence <- function(cdm,
           ) %>%
           dplyr::mutate(incidence_start_date = .env$workingStartTime) %>%
           dplyr::mutate(incidence_end_date = .env$workingEndTime)
+
+
+        if(!is.null(strata)){
+          ir[[paste0(i)]] <- ir[[paste0(i)]] %>%
+            dplyr::mutate(strata_name = "Overall",
+                          strata_level = "Overall")
+          for(j in seq_along(strata)){
+          ir[[paste0(i)]] <-  dplyr::bind_rows(ir[[paste0(i)]],
+                             getStratifiedResult(workingPop = workingPop,
+                                                 workingStrata = strata[[j]],
+                                                 workingStartTime = workingStartTime,
+                                                 workingEndTime= workingEndTime))
+          }
+        }
+
       }
     }
 
@@ -355,4 +371,25 @@ getIncidence <- function(cdm,
   }
 
   return(results)
+}
+
+
+getStratifiedResult <- function(workingPop, workingStrata,
+                                workingStartTime, workingEndTime){
+  workingPop %>%
+    dplyr::group_by(dplyr::pick(.env$workingStrata)) %>%
+    dplyr::summarise(
+      n_persons = dplyr::n_distinct(.data$subject_id),
+      person_days = sum(.data$workingDays),
+      n_events = sum(!is.na(.data$outcome_start_date))
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(incidence_start_date = .env$workingStartTime) %>%
+    dplyr::mutate(incidence_end_date = .env$workingEndTime) %>%
+    tidyr::unite("strata_level",
+                 c(dplyr::all_of(.env$workingStrata)),
+                 remove = FALSE, sep = " and ") %>%
+    dplyr::mutate(strata_name = !!paste0(workingStrata, collapse = " and ")) %>%
+    dplyr::relocate("strata_level", .after = "strata_name") %>%
+    dplyr::select(!dplyr::any_of(workingStrata))
 }
