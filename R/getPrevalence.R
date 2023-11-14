@@ -27,7 +27,9 @@ getPrevalence <- function(cdm,
                           fullContribution,
                           tablePrefix,
                           returnParticipants,
-                          analysisId) {
+                          analysisId,
+                          strata,
+                          includeOverallStrata) {
   if (is.na(outcomeLookbackDays)) {
     outcomeLookbackDays <- NULL
   }
@@ -226,6 +228,7 @@ getPrevalence <- function(cdm,
             )
         )
 
+      if(length(strata) == 0 || includeOverallStrata == TRUE){
       if (is.null(outcomeLookbackDays)) {
         # include any time prior
         result <- workingPop %>%
@@ -261,19 +264,39 @@ getPrevalence <- function(cdm,
           )
       }
 
-      pr[[paste0(i)]] <- studyDays[i, ] %>%
-        dplyr::mutate(
+      pr[[paste0(i)]] <- dplyr::tibble(
           n_population = result$n_persons,
           n_cases = result$n_cases
         )
+    } else {
+      pr[[paste0(i)]] <- dplyr::tibble()
+    }
+
+      if(length(strata)>=1){
+      pr[[paste0(i)]] <- pr[[paste0(i)]] %>%
+        dplyr::mutate(strata_name = "Overall",
+                      strata_level = "Overall")
+      for(j in seq_along(strata)){
+        pr[[paste0(i)]] <- dplyr::bind_rows(pr[[paste0(i)]],
+                                        getStratifiedPrevalenceResult(workingPop,
+                                                                workingStrata = strata[[j]],
+                                    outcomeLookbackDays = outcomeLookbackDays,
+                                    workingStartTime = workingStartTime,
+                                    workingEndTime = workingEndTime
+                                    ) %>%
+                                      dplyr::rename("n_population" = "n_persons"))
+      }}
+      pr[[paste0(i)]] <- dplyr::tibble(cbind(pr[[paste0(i)]], studyDays[i, ]))
+
     }
 
     pr <- dplyr::bind_rows(pr) %>%
       dplyr::mutate(prevalence = .data$n_cases / .data$n_population) %>%
-      dplyr::select(
+      dplyr::select(dplyr::any_of(c(
         "n_cases", "n_population",
-        "prevalence", "start_time", "end_time"
-      ) %>%
+        "prevalence", "start_time", "end_time",
+        "strata_name", "strata_level"
+      ))) %>%
       dplyr::rename("prevalence_start_date" = "start_time") %>%
       dplyr::rename("prevalence_end_date" = "end_time")
   }
@@ -330,4 +353,62 @@ getPrevalence <- function(cdm,
   }
 
   return(results)
+}
+
+getStratifiedPrevalenceResult <- function(workingPop, workingStrata,outcomeLookbackDays,
+                                          workingStartTime, workingEndTime){
+
+  if (is.null(outcomeLookbackDays)) {
+    # include any time prior
+    result <- workingPop %>%
+      dplyr::group_by(dplyr::pick(.env$workingStrata)) %>%
+      dplyr::summarise(
+        n_persons = dplyr::n_distinct(.data$subject_id),
+        n_cases = dplyr::n_distinct(.data$subject_id[
+          !is.na(.data$outcome_start_date) &
+            .data$outcome_start_date <= .data$cohort_end_date
+        ])
+      ) %>%
+      dplyr::ungroup()
+
+  } else if (outcomeLookbackDays != 0) {
+    # include in window using outcomeLookbackDays
+    result <- workingPop %>%
+      dplyr::group_by(dplyr::pick(.env$workingStrata)) %>%
+      dplyr::summarise(
+        n_persons = dplyr::n_distinct(.data$subject_id),
+        n_cases = dplyr::n_distinct(.data$subject_id[
+          !is.na(.data$outcome_start_date) &
+            .data$outcome_start_date <= .data$cohort_end_date &
+            .data$outcome_end_date >=
+            (.data$cohort_start_date - lubridate::days(.env$outcomeLookbackDays))
+        ])
+      ) %>%
+      dplyr::ungroup()
+
+  } else {
+    # include ongoing in current time of interest
+    result <- workingPop %>%
+      dplyr::group_by(dplyr::pick(.env$workingStrata)) %>%
+      dplyr::summarise(
+        n_persons = dplyr::n_distinct(.data$subject_id),
+        n_cases = dplyr::n_distinct(.data$subject_id[
+          !is.na(.data$outcome_start_date) &
+            .data$outcome_start_date <= .data$cohort_end_date &
+            .data$outcome_end_date >= .data$cohort_start_date
+        ])
+      ) %>%
+      dplyr::ungroup()
+  }
+
+  result <- result %>%
+    tidyr::unite("strata_level",
+                 c(dplyr::all_of(.env$workingStrata)),
+                 remove = FALSE, sep = " and ") %>%
+    dplyr::mutate(strata_name = !!paste0(workingStrata, collapse = " and ")) %>%
+    dplyr::relocate("strata_level", .after = "strata_name") %>%
+    dplyr::select(!dplyr::any_of(workingStrata))
+
+  return(result)
+
 }

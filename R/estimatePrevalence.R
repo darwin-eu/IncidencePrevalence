@@ -38,6 +38,10 @@
 #' the period. If more than one option is chosen then results will
 #' be estimated for each chosen interval.
 #' @param timePoint where to compute the point prevalence
+#' @param strata Variables added to the denominator cohort table for which to
+#' stratify estimates.
+#' @param includeOverallStrata Whether to include an overall result as well as
+#' strata specific results (when strata has been specified).
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
 #' @param temporary If TRUE, temporary tables will be used throughout. If
@@ -72,6 +76,8 @@ estimatePointPrevalence <- function(cdm,
                                     outcomeLookbackDays = 0,
                                     interval = "years",
                                     timePoint = "start",
+                                    strata = list(),
+                                    includeOverallStrata = TRUE,
                                     minCellCount = 5,
                                     temporary = TRUE,
                                     returnParticipants = FALSE) {
@@ -98,6 +104,8 @@ estimatePointPrevalence <- function(cdm,
     completeDatabaseIntervals = FALSE,
     fullContribution = FALSE,
     timePoint = timePoint,
+    strata = strata,
+    includeOverallStrata = includeOverallStrata,
     minCellCount = minCellCount,
     temporary = temporary,
     returnParticipants = returnParticipants
@@ -135,6 +143,10 @@ estimatePointPrevalence <- function(cdm,
 #' included if they in the database for the entire interval of interest. If
 #' FALSE they are only required to present for one day of the interval in
 #' order to contribute.
+#' @param strata Variables added to the denominator cohort table for which to
+#' stratify estimates.
+#' @param includeOverallStrata Whether to include an overall result as well as
+#' strata specific results (when strata has been specified).
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
 #' @param temporary If TRUE, temporary tables will be used throughout. If
@@ -170,6 +182,8 @@ estimatePeriodPrevalence <- function(cdm,
                                      interval = "years",
                                      completeDatabaseIntervals = TRUE,
                                      fullContribution = FALSE,
+                                     strata = list(),
+                                     includeOverallStrata = TRUE,
                                      minCellCount = 5,
                                      temporary = TRUE,
                                      returnParticipants = FALSE) {
@@ -185,6 +199,8 @@ estimatePeriodPrevalence <- function(cdm,
     completeDatabaseIntervals = completeDatabaseIntervals,
     fullContribution = fullContribution,
     timePoint = "start",
+    strata = strata,
+    includeOverallStrata = includeOverallStrata,
     minCellCount = minCellCount,
     temporary = temporary,
     returnParticipants = returnParticipants
@@ -202,6 +218,8 @@ estimatePrevalence <- function(cdm,
                                completeDatabaseIntervals = TRUE,
                                fullContribution = FALSE,
                                timePoint = "start",
+                               strata = list(),
+                               includeOverallStrata = TRUE,
                                minCellCount = 5,
                                temporary = TRUE,
                                returnParticipants = FALSE) {
@@ -307,7 +325,9 @@ estimatePrevalence <- function(cdm,
       fullContribution = x$fullContribution,
       tablePrefix = tablePrefix,
       returnParticipants = returnParticipants,
-      analysisId = x$analysis_id
+      analysisId = x$analysis_id,
+      strata = strata,
+      includeOverallStrata = includeOverallStrata
     )
 
     if (nrow(workingPrev[["pr"]]) == 0) {

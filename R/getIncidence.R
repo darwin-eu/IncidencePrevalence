@@ -295,7 +295,7 @@ getIncidence <- function(cdm,
                           strata_level = "Overall")
           for(j in seq_along(strata)){
           ir[[paste0(i)]] <-  dplyr::bind_rows(ir[[paste0(i)]],
-                             getStratifiedResult(workingPop = workingPop,
+                             getStratifiedIncidenceResult(workingPop = workingPop,
                                                  workingStrata = strata[[j]],
                                                  workingStartTime = workingStartTime,
                                                  workingEndTime= workingEndTime))
@@ -379,7 +379,7 @@ getIncidence <- function(cdm,
 }
 
 
-getStratifiedResult <- function(workingPop, workingStrata,
+getStratifiedIncidenceResult <- function(workingPop, workingStrata,
                                 workingStartTime, workingEndTime){
   workingPop %>%
     dplyr::group_by(dplyr::pick(.env$workingStrata)) %>%
