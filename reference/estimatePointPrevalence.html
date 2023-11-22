@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,6 +61,8 @@
 <span>  outcomeLookbackDays <span class="op">=</span> <span class="fl">0</span>,</span>
 <span>  interval <span class="op">=</span> <span class="st">"years"</span>,</span>
 <span>  timePoint <span class="op">=</span> <span class="st">"start"</span>,</span>
+<span>  strata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="op">)</span>,</span>
+<span>  includeOverallStrata <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  minCellCount <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  temporary <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  returnParticipants <span class="op">=</span> <span class="cn">FALSE</span></span>
@@ -112,6 +114,16 @@ be estimated for each chosen interval.</p></dd>
 
 <dt>timePoint</dt>
 <dd><p>where to compute the point prevalence</p></dd>
+
+
+<dt>strata</dt>
+<dd><p>Variables added to the denominator cohort table for which to
+stratify estimates.</p></dd>
+
+
+<dt>includeOverallStrata</dt>
+<dd><p>Whether to include an overall result as well as
+strata specific results (when strata has been specified).</p></dd>
 
 
 <dt>minCellCount</dt>
