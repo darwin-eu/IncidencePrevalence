@@ -3250,3 +3250,143 @@ test_that("mock db: empty outcome cohort", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
 })
+
+test_that("mock db: incidence using strata vars", {
+
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 2000,
+                                    outPre = 0.7)
+
+  cdm <- generateDenominatorCohortSet(cdm = cdm,
+                                      name = "denominator")
+
+  inc_orig <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months"
+  )
+
+  cdm$denominator <- cdm$denominator %>%
+    dplyr::mutate(my_strata = dplyr::if_else(year(cohort_start_date) < 2011,
+                                             "first", "second")) %>%
+    CDMConnector::compute_query()
+
+  inc <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    strata = list(c("my_strata"))
+  )
+  expect_true(all(c("strata_name", "strata_level") %in%
+                colnames(inc)))
+  expect_true(all(c("Overall", "my_strata") %in%
+   unique(inc %>%
+     dplyr::pull("strata_name"))))
+  expect_true(all(c("Overall",
+                    "first", "second") %in%
+                unique(inc %>%
+                dplyr::pull("strata_level"))))
+
+  # original without strata should be the same as "Overall" strata
+  expect_equal(inc_orig,
+  inc %>%
+    dplyr::filter(strata_name == "Overall") %>%
+    dplyr::select(!c("strata_name", "strata_level")))
+
+
+  cdm$denominator <- cdm$denominator %>%
+    dplyr::mutate(my_strata2 =  dplyr::if_else(month(cohort_start_date)<7,
+                                               "a", "b")) %>%
+    CDMConnector::compute_query()
+
+  inc2 <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    strata = list(c("my_strata","my_strata2"))
+  )
+  expect_true(all(c("strata_name", "strata_level") %in%
+                    colnames(inc2)))
+  expect_true(all(c("Overall", "my_strata and my_strata2") %in%
+                unique(inc2 %>%
+                         dplyr::pull("strata_name"))))
+  expect_true(all(c("Overall",
+                    "first and a", "first and b",
+                    "second and a", "second and b") %in%
+                unique(inc2 %>%
+                         dplyr::pull("strata_level"))))
+
+  inc3 <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    strata = list(c("my_strata"),
+                  c("my_strata2"),
+                  c("my_strata", "my_strata2")))
+
+  expect_true(all(c("strata_name", "strata_level") %in%
+                    colnames(inc3)))
+  expect_true(all(c("Overall", "my_strata", "my_strata2",
+                    "my_strata and my_strata2") %in%
+                unique(inc3 %>%
+                         dplyr::pull("strata_name"))))
+  expect_true(all(c("Overall",
+                    "first", "second",
+                    "a", "b",
+                    "first and a", "first and b",
+                    "second and a", "second and b") %in%
+                unique(inc3 %>%
+                         dplyr::pull("strata_level"))))
+
+
+  # without overall strata
+  inc4 <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    strata = list(c("my_strata"),
+                  c("my_strata2"),
+                  c("my_strata", "my_strata2")),
+    includeOverallStrata = FALSE)
+  expect_false("Overall" %in% unique(inc4 %>%
+                                       dplyr::pull("strata_name")))
+  expect_true(all(c("my_strata", "my_strata2",
+                    "my_strata and my_strata2") %in%
+                    unique(inc4 %>%
+                             dplyr::pull("strata_name"))))
+  expect_false("Overall" %in% unique(inc4 %>%
+                                       dplyr::pull("strata_level")))
+  expect_true(all(c("first", "second",
+                    "a", "b",
+                    "first and a", "first and b",
+                    "second and a", "second and b") %in%
+                    unique(inc4 %>%
+                             dplyr::pull("strata_level"))))
+
+  expect_error(estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    strata = list(c("not_a_col"))))
+
+  expect_error(estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    strata = list(c("my_strata", "not_a_col"))))
+
+ expect_error(estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    strata = list(c("my_strata"), c("not_a_col"))))
+
+  CDMConnector::cdm_disconnect(cdm)
+})

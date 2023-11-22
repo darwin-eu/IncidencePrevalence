@@ -13,6 +13,8 @@ estimatePointPrevalence(
   outcomeLookbackDays = 0,
   interval = "years",
   timePoint = "start",
+  strata = list(),
+  includeOverallStrata = TRUE,
   minCellCount = 5,
   temporary = TRUE,
   returnParticipants = FALSE
@@ -47,6 +49,12 @@ the period. If more than one option is chosen then results will
 be estimated for each chosen interval.}
 
 \item{timePoint}{where to compute the point prevalence}
+
+\item{strata}{Variables added to the denominator cohort table for which to
+stratify estimates.}
+
+\item{includeOverallStrata}{Whether to include an overall result as well as
+strata specific results (when strata has been specified).}
 
 \item{minCellCount}{Minimum number of events to report- results
 lower than this will be obscured. If NULL all results will be reported.}

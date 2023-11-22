@@ -14,6 +14,8 @@ estimatePeriodPrevalence(
   interval = "years",
   completeDatabaseIntervals = TRUE,
   fullContribution = FALSE,
+  strata = list(),
+  includeOverallStrata = TRUE,
   minCellCount = 5,
   temporary = TRUE,
   returnParticipants = FALSE
@@ -56,6 +58,12 @@ period start dates, respectively).}
 included if they in the database for the entire interval of interest. If
 FALSE they are only required to present for one day of the interval in
 order to contribute.}
+
+\item{strata}{Variables added to the denominator cohort table for which to
+stratify estimates.}
+
+\item{includeOverallStrata}{Whether to include an overall result as well as
+strata specific results (when strata has been specified).}
 
 \item{minCellCount}{Minimum number of events to report- results
 lower than this will be obscured. If NULL all results will be reported.}
