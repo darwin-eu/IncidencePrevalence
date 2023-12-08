@@ -2,7 +2,7 @@
 title: "Calculating incidence"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{a06_Calculating_incidence}
+  %\VignetteIndexEntry{a05_Calculating_incidence}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -66,14 +66,11 @@ knitr::include_graphics(here("vignettes/inc_rep_some_washout.png"))
 ```
 
 # Outcome definition
-General information on how to define outcome cohorts can be found in the vignette "Creating outcome cohorts". The most important recommendations for defining an outcome cohort for calculating incidence are:
+Outcome cohorts are defined externally. When creating outcome cohorts for estimating incidence, the most important recommendations for defining an outcome cohort for calculating incidence are:
 
 1. Do not restrict outcome cohorts to first events only. This will impact the ability to exclude participants (as they can be excluded based on the prior latest event) and to capture more than one event per person (which is an option allowed in the package).
-2. Set an appropriate cohort exit strategy. If you want to be able to capture more than one event per person, it is important to set the event persistence to a fixed duration relative to the event and not to the end of observation.
+2. Set an appropriate cohort exit strategy. If we want to consider multiple events per person, the duration of these events will be of importance, as we are not going to capture subsequent events if prior events have not yet been concluded. In addition, outcome washouts will be implemented relative to cohort exit from any previous event. 
 3. Do not add further restrictions on sex, age and prior history requirements. These can be specified when identifying the denominator population with the `generateDenominatorCohortSet()` function.
-
-Considering all the above, we only recommend restricting outcome definitions to first events if the user is not interested in further occurrences and if all prior history is considered to exclude participants who have already experienced the event.
-
 
 # Using estimateIncidence()
 `estimateIncidence()` is the function we use to estimate incidence rates. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `mockIncidencePrevalenceRef()` function, from whom we´ll create a denominator population without adding any restrictions other than a study period. In this example we'll use permanent tables (rather than temporary tables which would be used by default).   
@@ -173,9 +170,72 @@ inc %>%
 plotIncidence(inc)
 ```
 
+## Stratified analyses
+As with prevalence. if we specified multiple denominator populations results will be returned for each. Here for example we define three age groups for denominator populations and get three sets of estimates back when estimating incidence
+
+```{r}
+cdm <- generateDenominatorCohortSet(
+  cdm = cdm, name = "denominator_age_sex",
+  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2012-01-01")),
+  ageGroup = list(c(0, 39),
+                  c(41, 65),
+                  c(66, 150)),
+  sex = "Both",
+  daysPriorObservation = 0
+)
+inc <- estimateIncidence(
+  cdm = cdm,
+  denominatorTable = "denominator_age_sex",
+  outcomeTable = "outcome",
+  interval = "years",
+  outcomeWashout = 180,
+  repeatedEvents = TRUE,
+  temporary = FALSE
+)
+
+plotIncidence(inc, facet = "denominator_age_group")
+```
+
+And again, as with prevalence while we specify time-varying stratifications when defining our denominator populations, if we have time-invariant stratifications we can include these at the the estimation stage. 
+
+```{r}
+cdm$denominator <- cdm$denominator %>% 
+  mutate(group = if_else(as.numeric(subject_id)  < 500, "first", "second")) 
+
+inc <- estimateIncidence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  strata = list("group"),
+  outcomeWashout = 180,
+  repeatedEvents = TRUE
+)
+
+plotIncidence(inc, 
+               facet = "strata_level")
+
+cdm$denominator <- cdm$denominator %>% 
+  mutate(group_1 = if_else(as.numeric(subject_id)  < 1500, "first", "second"))  %>% 
+  mutate(group_2 = if_else(cohort_start_date  < as.Date("2010-01-01"), 
+                           "pre", "post"))
+
+inc <- estimateIncidence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  strata = list(c("group_1"), # for just group_1
+                c("group_2"), # for just group_2
+                c("group_1", "group_2")),  # for group_1 and group_2  outcomeWashout = 180,
+  repeatedEvents = TRUE
+)
+
+plotIncidence(inc, 
+               facet = "strata_level")
+```
+
 
 ### Other parameters
-In the examples above, we have used calculated incidence rates by months and years, but it can be also calculated by weeks, months, quarters, or for the entire study time period. In addition, we can decide whether to include time intervals that are not fully captured in the database (e.g., having data up to June for the last study year when computing yearly incidence rates). By default, incidence will only be estimated for those intervals where the database captures all the interval (completeDatabaseIntervals=TRUE).
+In the examples above, we have used calculated incidence rates by months and years, but it can be also calculated by weeks, months, quarters, or for the entire study time period. In addition, we can decide whether to include time intervals that are not fully captured in the database (e.g., having data up to June for the last study year when computing yearly incidence rates). By default, incidence will only be estimated for those intervals where the denominator cohort captures all the interval (completeDatabaseIntervals=TRUE).
 
 Given that we can set `estimateIncidence()` to exclude individuals based on other parameters (e.g., outcomeWashout), it is important to note that the denominator population used to compute incidence rates might differ from the one calculated with `generateDenominatorCohortSet()`.
 
@@ -212,7 +272,7 @@ inc <- estimateIncidence(
 incidenceAttrition(inc)
 ```
 
-As with incidence, if we set returnParticipants as TRUE, we can identify the individuals who contributed to the prevalence rate analysis by using `participants(). For example, we can identify those people contributing to analysis 1 by running
+As with incidence, if we set returnParticipants as TRUE, we can identify the individuals who contributed to the analysis by using `participants(). For example, we can identify those people contributing to analysis 1 by running
 ```{r, message= FALSE, warning=FALSE}
 participants(inc, analysisId = 1) %>%
   glimpse()

@@ -10,7 +10,6 @@ estimatePeriodPrevalence(
   outcomeTable,
   denominatorCohortId = NULL,
   outcomeCohortId = NULL,
-  outcomeLookbackDays = 0,
   interval = "years",
   completeDatabaseIntervals = TRUE,
   fullContribution = FALSE,
@@ -38,10 +37,6 @@ analysis.}
 \item{outcomeCohortId}{The cohort definition ids of the outcome
 cohorts of interest. If NULL all cohorts will be considered in the
 analysis.}
-
-\item{outcomeLookbackDays}{Days lookback when considering an outcome
-as prevalent. If NULL any prior outcome will be considered as prevalent. If
-0, only ongoing outcomes will be considered as prevalent.}
 
 \item{interval}{Time intervals over which period prevalence is estimated.
 This can be "weeks", "months", "quarters", "years", or "overall".

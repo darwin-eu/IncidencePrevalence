@@ -36,9 +36,8 @@
 #' start to last cohort end) can also be estimated. If more than one option is
 #' chosen then results will be estimated for each chosen interval.
 #' @param completeDatabaseIntervals TRUE/ FALSE. Where TRUE, incidence will
-#' only be estimated for those intervals where the database
-#' captures all the interval (based on the earliest and latest observation
-#' period start dates, respectively).
+#' only be estimated for those intervals where the denominator cohort
+#' captures all the interval.
 #' @param outcomeWashout The number of days used for a 'washout' period
 #' between the end of one outcome and an individual starting to contribute
 #' time at risk. If Inf, no time can be contributed after an event has

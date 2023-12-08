@@ -2578,7 +2578,7 @@ test_that("mock db: multiple observation periods", {
     outcomeTable = outcomeTable
   )
 
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     targetCohortTable = "target",
     targetCohortId = 1
@@ -2622,7 +2622,7 @@ test_that("mock db: multiple observation periods", {
     outcomeTable = outcomeTable
   )
 
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     targetCohortTable = "target",
     targetCohortId = 1
@@ -2669,7 +2669,7 @@ test_that("mock db: multiple observation periods", {
     targetCohortTable = conditionX,
     outcomeTable = outcomeTable
   )
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     targetCohortTable = "target",
     targetCohortId = 1
@@ -2709,7 +2709,7 @@ test_that("mock db: multiple observation periods", {
     outcomeTable = outcomeTable
   )
 
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     targetCohortTable = "target",
     targetCohortId = 1
@@ -2776,7 +2776,7 @@ test_that("mock db: multiple observation periods", {
     outcomeTable = outcomeTable
   )
 
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     targetCohortTable = "target",
     targetCohortId = 1
@@ -2868,7 +2868,7 @@ test_that("mock db: multiple observation periods", {
     outcomeTable = outcomeTable
   )
 
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     targetCohortTable = "target",
     targetCohortId = 1

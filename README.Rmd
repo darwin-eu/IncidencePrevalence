@@ -162,18 +162,3 @@ prev_period <- estimatePeriodPrevalence(
 dplyr::glimpse(prev_period)
 ```
 
-### Exporting results
-
-We can export our results as CSVs in a zip folder using the `exportIncidencePrevalenceResults()` function.
-
-```{r, eval=FALSE}
-exportIncidencePrevalenceResults(
-  resultList = list(
-    "incidence" = inc,
-    "point_prevalence" = prev_point,
-    "period_prevalence" = prev_period
-  ),
-  zipName = "example_results",
-  outputFolder = here::here()
-)
-```
