@@ -359,7 +359,12 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
     dplyr::pull()
 
   if (denominatorPopulationNrows == 0) {
-    cli::cli_warn("- No people found for any denominator population")
+    if(all(is.na(popSpecs$targetCohortId))){
+      cli::cli_warn("- No people found for denominator population")
+    } else {
+      cli::cli_alert_info("- No people found for target cohort id {unique(popSpecs$targetCohortId)}")
+    }
+
     studyPops <- dpop$denominator_population %>%
       dplyr::select(
         "cohort_definition_id" = "gender_concept_id",

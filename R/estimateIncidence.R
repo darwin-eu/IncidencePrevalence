@@ -123,6 +123,11 @@ estimateIncidence <- function(cdm,
       dplyr::pull("cohort_definition_id")
   }
 
+  if(denominatorTable == outcomeTable &&
+     any(denominatorCohortId %in% outcomeCohortId)){
+    cli::cli_abort("Denominator cohort can not be the same as the outcome cohort")
+  }
+
   ## add outcome from attribute
   outcomeRef <- CDMConnector::cohortSet(cdm[[outcomeTable]]) %>%
     dplyr::filter(.env$outcomeCohortId %in% .data$cohort_definition_id) %>%
@@ -463,6 +468,9 @@ estimateIncidence <- function(cdm,
   }
   attrition <- attrition %>%
     dplyr::left_join(analysisSettings, by = "analysis_id")
+  attrition <- obscureAttrition(attrition,
+                                minCellCount = minCellCount
+  )
 
   # return results as an IncidencePrevalenceResult class
   attr(irs, "attrition") <- attrition

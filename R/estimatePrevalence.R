@@ -501,6 +501,10 @@ estimatePrevalence <- function(cdm,
   ) %>%
     dplyr::select(-"denominator_cohort_id") %>%
     dplyr::relocate("analysis_id")
+  # obscure counts
+  attrition <- obscureAttrition(attrition,
+                       minCellCount = minCellCount
+  )
 
   analysisSettings <- analysisSettings %>%
     dplyr::left_join(outcomeRef, by = "outcome_cohort_id") %>%

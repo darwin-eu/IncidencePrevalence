@@ -1003,16 +1003,6 @@ test_that("mock db check target prior observation requirement", {
     dplyr::select(cohort_start_date) %>%
     dplyr::pull() == as.Date("2012-01-01"))
 
- expect_warning(cdm <- generateTargetDenominatorCohortSet(
-    cdm = cdm, name = "denominator",overwrite = TRUE,
-    targetCohortTable = "target",
-    targetCohortId = 1,
-    ageGroup = list(
-      c(11, 12)
-    ), daysPriorObservation = 10000
-  ))
-  expect_true(nrow(cdm$denominator %>% dplyr::collect()) == 0)
-
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 

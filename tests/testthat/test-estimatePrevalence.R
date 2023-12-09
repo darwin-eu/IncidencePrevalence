@@ -1105,6 +1105,20 @@ test_that("mock db: check attrition with complete database intervals", {
     dplyr::filter(reason == "Not observed during the complete database interval") %>%
     dplyr::pull("excluded_subjects") == 1)
 
+  # check min cell suppression
+  prev2 <- estimatePrevalence(cdm,
+                             denominatorTable = "denominator",
+                             outcomeTable = "outcome",
+                             type = "point",
+                             interval = "years",
+                             completeDatabaseIntervals = TRUE,
+                             minCellCount = 5
+  )
+
+  expect_true(prevalenceAttrition(prev2) %>%
+                dplyr::filter(reason == "Not observed during the complete database interval") %>%
+                dplyr::pull("excluded_subjects") == "<5")
+
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
