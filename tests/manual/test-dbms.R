@@ -11,7 +11,7 @@ test_that("dbms test", {
   cdm <- CDMConnector::cdm_from_con(
     con = db,
     cdm_schema = "public",
-    write_schema = c(schema = "results", prefic = "incprev_bench_")
+    write_schema = c(schema = "results", prefix = "incprev_bench_")
   )
 
   # run for a random sample of 1,000,000 people from the person table

@@ -17,16 +17,18 @@ knitr::opts_chunk$set(
 )
 ```
 
-To do a study of incidence and prevalence, there are four core analytics functions from this package that you would interact with
+To do a study of incidence and prevalence, the analytics functions from this package that you would interact with are
 
-1)  `generateDenominatorCohortSet()` - this function will identify a set of denominator populations that can be used for calculations of prevalence and incidence
-2)  `estimatePointPrevalence()` - this function will estimate point prevalence for outcomes among denominator populations
-3)  `estimatePeriodPrevalence()` - this function will estimate period prevalence for outcomes among denominator populations
-4)  `estimateIncidence()` - this function will estimate incidence rates for outcomes among denominator populations
+1) `generateDenominatorCohortSet()` and `generateTargetDenominatorCohortSet()` - these function will identify a set of denominator populations from the database population as a whole, the former, or based on individuals in a target cohort, the latter
+
+2) `estimatePointPrevalence()` and `estimatePeriodPrevalence()` - these function will estimate point and period prevalence for outcomes among denominator populations
+
+3) `estimateIncidence()` - this function will estimate incidence rates for outcomes among denominator populations
 
 Below, we show an example analysis to provide an broad overview of how this functionality provided by the IncidencePrevalence package can be used. More context and further examples for each of these functions are provided in later vignettes.
 
 First, let's load relevant libraries.
+
 ```{r, message= FALSE, warning=FALSE}
 library(CDMConnector)
 library(IncidencePrevalence)
@@ -50,23 +52,19 @@ cdm <- CDMConnector::cdm_from_con(con,
 )
 ```
 
-For this example though we´ll generate 50,000 hypothetical patients using the `mockIncidencePrevalenceRef()` function. 
+For this example though we´ll generate 50,000 hypothetical patients using the `mockIncidencePrevalenceRef()` function.
+
 ```{r, message= FALSE, warning=FALSE}
 cdm <- mockIncidencePrevalenceRef(
   sampleSize = 50000,
-  outPre = 0.5
+  outPre = 0.2
 )
 ```
 
-Importantly this example data already includes an outcome cohort. In practice, study-specific outcome cohorts of interest will need to be created. If the outcome cohorts are defined as JSON, we can use the CDMConnector package to read in and generate the cohorts.
+This example data already includes an outcome cohort. 
 
 ```{r eval=FALSE}
-outcome_cohorts <- CDMConnector::readCohortSet(here::here("outcome_cohorts"))
-cdm <- CDMConnector::generateCohortSet(
-  cdm = cdm, 
-  cohortSet = outcome_cohorts,
-  name = "outcome"
-)
+cdm$outcome
 ```
 
 Once we have a connection to the database set-up, we can use the `generateDenominatorCohortSet()` to identify a denominator cohort to use later when calculating incidence and prevalence. In this case we identify three denominator cohorts one with males, one with females, and one with both males and females included. For each of these cohorts only those aged between 18 and 65 from 2008 to 2012, and who had 365 days of prior history available are included.
@@ -83,17 +81,20 @@ cdm <- generateDenominatorCohortSet(
 ```
 
 We can see that each of our denominator cohorts is in the format of an OMOP CDM cohort:
+
 ```{r}
 cdm$denominator %>%
   glimpse()
 ```
 
 We can also see the settings associated with each cohort:
+
 ```{r}
 cohortSet(cdm$denominator)
 ```
 
 And we can also see the count for each cohort
+
 ```{r}
 cohortCount(cdm$denominator)
 ```
@@ -114,21 +115,9 @@ prev %>%
 ```
 
 ```{r, message= FALSE, warning=FALSE, echo=FALSE}
-prev %>%
-  ggplot(aes(
-    x = prevalence_start_date, y = prevalence,
-    ymin = prevalence_95CI_lower,
-    ymax = prevalence_95CI_upper,
-    colour = denominator_sex
-  )) +
-  geom_point(position = position_dodge(50)) +
-  geom_errorbar(width = 0, position = position_dodge(50)) +
-  scale_y_continuous(
-    labels = scales::percent,
-    limits = c(0, 0.3)
-  ) +
-  theme_minimal() +
-  theme(legend.title = element_blank())
+plotPrevalence(prev, 
+               facet = "denominator_sex", 
+               colour = "denominator_sex")
 ```
 
 Similarly we can use the `estimateIncidence()` function to estimate incidence rates. Here we annual incidence rates, with 180 days used for outcome washout windows.
@@ -147,28 +136,5 @@ inc %>%
 ```
 
 ```{r, message= FALSE, warning=FALSE, echo=FALSE}
-inc %>%
-  ggplot(aes(
-    x = incidence_start_date, y = incidence_100000_pys,
-    ymin = incidence_100000_pys_95CI_lower,
-    ymax = incidence_100000_pys_95CI_upper,
-    colour = denominator_sex
-  )) +
-  geom_point(position = position_dodge(50)) +
-  geom_errorbar(width = 0, position = position_dodge(50)) +
-  scale_y_continuous(limits = c(0, NA)) +
-  theme_minimal() +
-  theme(legend.title = element_blank())
-```
-
-After gathering results, we can export them as CSVs in a zip folder using the `exportIncidencePrevalenceResults()` function. 
-```{r, eval=FALSE}
-exportIncidencePrevalenceResults(
-  resultList = list(
-    "incidence" = inc,
-    "prevalence" = prev
-  ),
-  zipName = "example_results",
-  outputFolder = here::here()
-)
+plotIncidence(inc, facet = "denominator_sex", colour = "denominator_sex")
 ```

@@ -46,12 +46,6 @@
 #' all combinations of ageGroup, sex, and daysPriorObservation. If FALSE, only the
 #' first value specified for the other factors will be used. Consequently,
 #' order of values matters when requirementInteractions is FALSE.
-#' @param targetCohortTable A cohort table in the cdm reference to use
-#' to limit cohort entry and exit (with individuals only contributing to a
-#' cohort when they are contributing to the cohort in the target table).
-#' @param targetCohortId The cohort definition id for the cohort of interest
-#'  in the target table. If targetCohortTable is specified, a single targetCohortId
-#'  must also be specified.
 #' @param overwrite Whether to overwrite any existing table with the same name
 #'
 #' @return A cohort reference
@@ -69,6 +63,112 @@
 #' cdm$denominator
 #' }
 generateDenominatorCohortSet <- function(cdm,
+                                         name,
+                                         cohortDateRange = as.Date(c(NA, NA)),
+                                         ageGroup = list(c(0, 150)),
+                                         sex = "Both",
+                                         daysPriorObservation = 0,
+                                         requirementInteractions = TRUE,
+                                         overwrite = TRUE){
+
+  fetchDenominatorCohortSet(
+    cdm = cdm,
+    name = name,
+    cohortDateRange = cohortDateRange,
+    ageGroup = ageGroup,
+    sex = sex,
+    daysPriorObservation = daysPriorObservation,
+    requirementInteractions = requirementInteractions,
+    targetCohortTable = NULL,
+    targetCohortId = NULL,
+    overwrite = overwrite
+  )
+
+}
+
+#' Identify a set of denominator populations using a target cohort
+#'
+#' @description
+#' `generateTargetDenominatorCohortSet()` creates a set of cohorts that
+#' can be used for the denominator population in analyses of incidence,
+#' using `estimateIncidence()`, or prevalence, using `estimatePointPrevalence()`
+#' or `estimatePeriodPrevalence()`.
+#'
+#' @param cdm A CDM reference object
+#' @param name Name of the cohort table to be created.
+#' @param targetCohortTable A cohort table in the cdm reference to use
+#' to limit cohort entry and exit (with individuals only contributing to a
+#' cohort when they are contributing to the cohort in the target table).
+#' @param targetCohortId The cohort definition id for the cohort of interest
+#'  in the target table. If targetCohortTable is specified, a single targetCohortId
+#'  must also be specified.
+#' @param cohortDateRange Two dates. The first indicating the earliest cohort
+#' start date and the second indicating the latest possible cohort end date. If
+#' NULL or the first date is set as missing, the earliest observation_start_date
+#' in the observation_period table will be used for the former. If  NULL or the
+#' second date is set as missing, the latest observation_end_date in the
+#' observation_period table will be used for the latter.
+#' @param ageGroup A list of age groups for which cohorts will be generated. A
+#' value of `list(c(0,17), c(18,30))` would, for example, lead to the creation
+#' of cohorts for those aged from 0 to 17, and from 18 to 30. In this example
+#' an individual turning 18 during the time period would appear in both
+#' cohorts (leaving the first cohort the day before their 18th birthday and
+#' entering the second from the day of their 18th birthday).
+#' @param sex Sex of the cohorts. This can be one or more of: `"Male"`,
+#' `"Female"`, or `"Both"`.
+#' @param daysPriorObservation The number of days of prior observation observed in
+#' the database required for an individual to start contributing time in
+#' a cohort.
+#' @param requirementInteractions If TRUE, cohorts will be created for
+#' all combinations of ageGroup, sex, and daysPriorObservation. If FALSE, only the
+#' first value specified for the other factors will be used. Consequently,
+#' order of values matters when requirementInteractions is FALSE.
+#' @param overwrite Whether to overwrite any existing table with the same name
+#'
+#' @return A cohort reference
+#' @importFrom rlang .data
+#' @export
+#'
+#' @examples
+#' \donttest{
+#' cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+#' cdm <- generateTargetDenominatorCohortSet(
+#'   cdm = cdm,
+#'   name = "denominator",
+#'   targetCohortTable = "target",
+#'   cohortDateRange = as.Date(c("2008-01-01", "2020-01-01"))
+#' )
+#' cdm$denominator
+#' }
+generateTargetDenominatorCohortSet <- function(cdm,
+                                               name,
+                                               targetCohortTable,
+                                               targetCohortId = NULL,
+                                               cohortDateRange = as.Date(c(NA, NA)),
+                                               ageGroup = list(c(0, 150)),
+                                               sex = "Both",
+                                               daysPriorObservation = 0,
+                                               requirementInteractions = TRUE,
+                                               overwrite = TRUE){
+
+  fetchDenominatorCohortSet(
+    cdm = cdm,
+    name = name,
+    cohortDateRange = cohortDateRange,
+    ageGroup = ageGroup,
+    sex = sex,
+    daysPriorObservation = daysPriorObservation,
+    requirementInteractions = requirementInteractions,
+    targetCohortTable = targetCohortTable,
+    targetCohortId = targetCohortId,
+    overwrite = overwrite
+  )
+
+}
+
+
+
+fetchDenominatorCohortSet <- function(cdm,
                                          name,
                                          cohortDateRange = as.Date(c(NA, NA)),
                                          ageGroup = list(c(0, 150)),
@@ -157,7 +257,7 @@ generateDenominatorCohortSet <- function(cdm,
   cohortCountRef <- NULL
   cohortAttritionRef <- NULL
 for(i in 1:length(denominatorSet)){
-  denom <-  generateSingleTargetDenominatorCohortSet(cdm = cdm,
+  denom <-  fetchSingleTargetDenominatorCohortSet(cdm = cdm,
                                                      name = name,
                                                      intermediateTable = paste0(intermediateTable, i),
                                                      popSpecs = denominatorSet[[i]])
@@ -226,7 +326,7 @@ for(i in 1:length(denominatorSet)){
 
 
 # Generates denominator cohorts for a single target id or no target
-generateSingleTargetDenominatorCohortSet <- function(cdm,
+fetchSingleTargetDenominatorCohortSet <- function(cdm,
                                          name,
                                          intermediateTable,
                                          popSpecs) {
@@ -259,7 +359,12 @@ generateSingleTargetDenominatorCohortSet <- function(cdm,
     dplyr::pull()
 
   if (denominatorPopulationNrows == 0) {
-    cli::cli_warn("- No people found for any denominator population")
+    if(all(is.na(popSpecs$targetCohortId))){
+      cli::cli_warn("- No people found for denominator population")
+    } else {
+      cli::cli_alert_info("- No people found for target cohort id {unique(popSpecs$targetCohortId)}")
+    }
+
     studyPops <- dpop$denominator_population %>%
       dplyr::select(
         "cohort_definition_id" = "gender_concept_id",

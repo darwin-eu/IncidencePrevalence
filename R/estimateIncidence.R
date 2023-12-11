@@ -36,9 +36,8 @@
 #' start to last cohort end) can also be estimated. If more than one option is
 #' chosen then results will be estimated for each chosen interval.
 #' @param completeDatabaseIntervals TRUE/ FALSE. Where TRUE, incidence will
-#' only be estimated for those intervals where the database
-#' captures all the interval (based on the earliest and latest observation
-#' period start dates, respectively).
+#' only be estimated for those intervals where the denominator cohort
+#' captures all the interval.
 #' @param outcomeWashout The number of days used for a 'washout' period
 #' between the end of one outcome and an individual starting to contribute
 #' time at risk. If Inf, no time can be contributed after an event has
@@ -122,6 +121,11 @@ estimateIncidence <- function(cdm,
   if (is.null(outcomeCohortId)) {
     outcomeCohortId <- CDMConnector::cohortCount(cdm[[outcomeTable]]) %>%
       dplyr::pull("cohort_definition_id")
+  }
+
+  if(denominatorTable == outcomeTable &&
+     any(denominatorCohortId %in% outcomeCohortId)){
+    cli::cli_abort("Denominator cohort can not be the same as the outcome cohort")
   }
 
   ## add outcome from attribute
@@ -464,6 +468,9 @@ estimateIncidence <- function(cdm,
   }
   attrition <- attrition %>%
     dplyr::left_join(analysisSettings, by = "analysis_id")
+  attrition <- obscureAttrition(attrition,
+                                minCellCount = minCellCount
+  )
 
   # return results as an IncidencePrevalenceResult class
   attr(irs, "attrition") <- attrition

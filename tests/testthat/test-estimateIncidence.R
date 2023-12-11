@@ -2578,7 +2578,7 @@ test_that("mock db: multiple observation periods", {
     outcomeTable = outcomeTable
   )
 
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     targetCohortTable = "target",
     targetCohortId = 1
@@ -2622,7 +2622,7 @@ test_that("mock db: multiple observation periods", {
     outcomeTable = outcomeTable
   )
 
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     targetCohortTable = "target",
     targetCohortId = 1
@@ -2669,7 +2669,7 @@ test_that("mock db: multiple observation periods", {
     targetCohortTable = conditionX,
     outcomeTable = outcomeTable
   )
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     targetCohortTable = "target",
     targetCohortId = 1
@@ -2709,7 +2709,7 @@ test_that("mock db: multiple observation periods", {
     outcomeTable = outcomeTable
   )
 
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     targetCohortTable = "target",
     targetCohortId = 1
@@ -2776,7 +2776,7 @@ test_that("mock db: multiple observation periods", {
     outcomeTable = outcomeTable
   )
 
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     targetCohortTable = "target",
     targetCohortId = 1
@@ -2868,7 +2868,7 @@ test_that("mock db: multiple observation periods", {
     outcomeTable = outcomeTable
   )
 
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     targetCohortTable = "target",
     targetCohortId = 1
@@ -2962,6 +2962,22 @@ test_that("mock db: check attrition", {
     dplyr::filter(analysis_id == 1)) > 1)
   expect_true(nrow(incidenceAttrition(result = inc) %>%
     dplyr::filter(analysis_id == 2)) > 1)
+  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+
+  # check obscuring counts
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 4)
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, name = "denominator",
+    sex = c("Male", "Female")
+  )
+  inc <- estimateIncidence(cdm,
+                           denominatorTable = "denominator",
+                           outcomeTable = "outcome",
+                           interval = "years"
+  )
+  expect_true(incidenceAttrition(inc) %>%
+                dplyr::filter(reason == "Not Male") %>%
+                dplyr::pull("excluded_subjects") == "<5")
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -3012,7 +3028,7 @@ test_that("mock db: check attrition with complete database intervals", {
   inc <- estimateIncidence(cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    interval = "years"
+    interval = "years", minCellCount = 0
   )
 
   expect_true(incidenceAttrition(inc) %>%

@@ -2,7 +2,7 @@
 title: "Calculating prevalence"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{a05_Calculating_prevalence}
+  %\VignetteIndexEntry{a04_Calculating_prevalence}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -42,16 +42,12 @@ knitr::include_graphics(here("vignettes/period_prev.png"))
 ```
 
 # Outcome definition
-General information on how to define outcome cohorts can be found in the vignette "Creating outcome cohorts". The most important recommendations for defining an outcome cohort for calculating incidence are:
+Outcome cohorts are defined externally. When creating outcome cohorts for estimating prevalence, important considerations relate to whether to restrict events to the first occurrence in an individuals history or not and how cohort exit is defined. These decisions will necessarily be based on the nature of the proposed outcome (e.g., whether it is an acute or chronic condition) and the research question being investigated. 
 
-1. Decide whether to restrict events to the first occurrence
-2. Set an appropriate cohort exit strategy
-3. Do not add further restrictions on sex, age and prior history requirements. Theses can be specified when identifying the denominator cohort using `generateDenominatorCohortSet()`.
-
-Adequate use of the first two features above need to reflect the nature of the proposed outcome (e.g., whether it is an acute or chronic condition) and the research question being investigated. 
+In addition, it is typically not recommended to include exclusion requirements when creating outcome cohorts. Restrictions on patient characteristics can be specified when identifying the denominator cohort using `generateDenominatorCohortSet()` or `generateTargetDenominatorCohortSet()`
 
 # Using estimatePointPrevalence() and estimatePeriodPrevalence()
-`estimatePointPrevalence()` and `estimatePeriodPrevalence()` are the functions we use to estimate prevalence. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `mockIncidencePrevalenceRef()` function, from whom we´ll create a denominator population without adding any restrictions other than a study period.
+`estimatePointPrevalence()` and `estimatePeriodPrevalence()` are the functions we use to estimate prevalence. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `mockIncidencePrevalenceRef()` function from whom we´ll create a denominator population without adding any restrictions other than a study period.
 
 ```{r setup}
 library(IncidencePrevalence)
@@ -186,38 +182,79 @@ plotPrevalence(prev,
 )
 ```
 
-## Other parameters
-For both functions, we can also specify a look-back window to consider an outcome as prevalent if it was ongoing in some previous amount of days relative to the current time point/ period. If NULL, any prior outcome will be considered prevalent. If 0, only ongoing outcomes will be considered prevalent. This can be a useful option if, for example, outcome cohorts simply included people only for the day in which a relevant code was seen and prevalence is to be based on some prior time window (e.g. including outcomes as prevalent if they were seen in the last 30 days). 
+## Stratified analyses
+If we specified multiple denominator populations results will be returned for each. Here for example we define three age groups for denominator populations and get three sets of estimates back when estimating prevalence.
 
-```{r, message= FALSE, warning=FALSE}
-prev <- estimatePointPrevalence(
+```{r}
+cdm <- generateDenominatorCohortSet(
+  cdm = cdm, name = "denominator_age_sex",
+  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2012-01-01")),
+  ageGroup = list(c(0, 39),
+                  c(41, 65),
+                  c(66, 150)),
+  sex = "Both",
+  daysPriorObservation = 0
+)
+prev <- estimatePeriodPrevalence(
+  cdm = cdm,
+  denominatorTable = "denominator_age_sex",
+  outcomeTable = "outcome",
+  minCellCount = 0
+)
+
+plotPrevalence(prev, facet = "denominator_age_group")
+```
+
+While we specify time-varying stratifications when defining our denominator populations, if we have time-invariant stratifications we can include these at the the estimation stage. To do this we first need to add a new column to our denominator cohort with our stratification variable. Here we´ll add an example stratification just to show the idea. Note, as well as getting stratified results we´ll also get overall results.
+
+```{r}
+cdm$denominator <- cdm$denominator %>% 
+  mutate(group = if_else(as.numeric(subject_id)  < 500, "first", "second")) 
+
+prev <- estimatePeriodPrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
-  interval = "Years",
-  outcomeLookbackDays = c(0, 30),
-  minCellCount = 0,
-  temporary = FALSE
+  strata = "group",
+  minCellCount = 0
 )
 
-prev %>%
-  glimpse()
-
-plotPrevalence(prev,
-  colour = "analysis_outcome_lookback_days",
-  colour_name = "Outcome lookback days",
-  ylim = c(0, NA)
-)
+plotPrevalence(prev, 
+               facet = "strata_level")
 ```
+
+We can also stratify on multiple variables at the same time.
+
+```{r}
+cdm$denominator <- cdm$denominator %>% 
+  mutate(group_1 = if_else(as.numeric(subject_id)  < 1500, "first", "second"))  %>% 
+  mutate(group_2 = if_else(cohort_start_date  < as.Date("2010-01-01"), 
+                           "pre", "post"))
+
+prev <- estimatePeriodPrevalence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  strata = list(c("group_1"), # for just group_1
+                c("group_2"), # for just group_2
+                c("group_1", "group_2")),  # for group_1 and group_2
+  minCellCount = 0
+)
+
+plotPrevalence(prev, 
+               facet = "strata_level")
+```
+
+## Other parameters
 
 In the examples above, we have used calculated prevalence by months and years, but it can be also calculated by weeks, months or for the entire time period observed (overall). In addition, the user can decide whether to include time intervals that are not fully captured in the database (e.g., having data up to June for the last study year when computing period prevalence rates). By default, incidence will only be estimated for those intervals where the database captures all the interval (completeDatabaseIntervals=TRUE).
 
-Given that we can set `estimtePointPrevalence()` and `estimtePeriorPrevalence()` to exclude individuals based on certain parameters (e.g., fullContribution), it is important to note that the denominator population used to compute prevalence rates might differ from the one calculated with `generateDenominatorCohortSet()`. 
+Given that we can set `estimatePointPrevalence()` and `estimatePeriorPrevalence()` to exclude individuals based on certain parameters (e.g., fullContribution), it is important to note that the denominator population used to compute prevalence rates might differ from the one calculated with `generateDenominatorCohortSet()`. 
 
 The user can also set the minimum number of events to be reported, below which results will be obscured. By default, results with <5 occurrences are blinded, but if minCellCount=0, all results will be reported. 95 % confidence intervals are calculated using the Wilson Score method. In addition, we can set verbose=TRUE to report progress as code is running. By default, no progress is reported (verbose=FALSE). 
 
 ## Output
-`estimtePointPrevalence()` and `estimtePeriorPrevalence()` will generate a table with point and period prevalence rates for each of the time intervals studied and for each combination of the parameters set, respectively. Similar to the output obtained by `generateDenominatorCohortSet()`, the table generated will also include attributes, including tibbles with information on settings and attrition.
+`estimatePointPrevalence()` and `estimatePeriorPrevalence()` will generate a table with point and period prevalence rates for each of the time intervals studied and for each combination of the parameters set, respectively. Similar to the output obtained by `generateDenominatorCohortSet()`, the table generated will also include attributes, including tibbles with information on settings and attrition.
 ```{r, message= FALSE, warning=FALSE}
 prev <- estimatePeriodPrevalence(
   cdm = cdm,

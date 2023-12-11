@@ -65,10 +65,12 @@ exportIncidencePrevalenceResults <- function(resultList,
   checkmate::assertTRUE(checkResultType,
     add = errorMessage
   )
-  checkmate::assertDirectoryExists(outputFolder,
-    add = errorMessage
-  )
   checkmate::reportAssertions(collection = errorMessage)
+
+  if(!dir.exists(outputFolder)){
+    cli::cli_abort("{outputFolder} does not exist")
+  }
+
 
   tempDir <- zipName
   tempDirCreated <- FALSE

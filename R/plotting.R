@@ -29,7 +29,7 @@
 plotIncidence <- function(result,
                           x = "incidence_start_date",
                           ylim = c(0, NA),
-                          ribbon = TRUE,
+                          ribbon = FALSE,
                           facet = NULL,
                           colour = NULL,
                           colour_name = NULL) {
@@ -78,7 +78,7 @@ plotIncidence <- function(result,
 plotPrevalence <- function(result,
                            x = "prevalence_start_date",
                            ylim = c(0, NA),
-                           ribbon = TRUE,
+                           ribbon = FALSE,
                            facet = NULL,
                            colour = NULL,
                            colour_name = NULL) {

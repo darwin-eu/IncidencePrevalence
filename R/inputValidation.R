@@ -230,7 +230,6 @@ checkInputEstimatePrevalence <- function(cdm,
                                          outcomeTable,
                                          denominatorCohortId,
                                          outcomeCohortId,
-                                         outcomeLookbackDays,
                                          type,
                                          interval,
                                          completeDatabaseIntervals,
@@ -281,10 +280,6 @@ checkInputEstimatePrevalence <- function(cdm,
     )
   }
   checkmate::assertIntegerish(outcomeCohortId,
-    add = errorMessage,
-    null.ok = TRUE
-  )
-  checkmate::assert_numeric(outcomeLookbackDays,
     add = errorMessage,
     null.ok = TRUE
   )
