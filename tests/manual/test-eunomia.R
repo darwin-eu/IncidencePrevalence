@@ -14,50 +14,50 @@ test_that("eunomia test - some empty cohorts", {
 
   # celecoxib
   cdm$celecoxib <- cdm$drug_era %>%
-    inner_join(
+    dplyr::inner_join(
       celecoxib_codes %>%
-        select(concept_id),
+        dplyr::select(concept_id),
       by = c("drug_concept_id" = "concept_id"),
       copy = TRUE
     ) %>%
-    rename(
+    dplyr::rename(
       "subject_id" = "person_id",
       "cohort_start_date" = "drug_era_start_date",
       "cohort_end_date" = "drug_era_end_date"
     ) %>%
-    mutate(cohort_definition_id = 1L) %>%
-    select(
+    dplyr::mutate(cohort_definition_id = 1L) %>%
+    dplyr::select(
       "cohort_definition_id", "subject_id",
       "cohort_start_date", "cohort_end_date"
     ) %>%
-    compute()
+    CDMConnector::computeQuery()
 
   # diclofenac
   cdm$diclofenac <- cdm$drug_era %>%
-    inner_join(
+    dplyr::inner_join(
       diclofenac_codes %>%
-        select(concept_id),
+        dplyr::select(concept_id),
       by = c("drug_concept_id" = "concept_id"),
       copy = TRUE
     ) %>%
-    rename(
+    dplyr::rename(
       "subject_id" = "person_id",
       "cohort_start_date" = "drug_era_start_date",
       "cohort_end_date" = "drug_era_end_date"
     ) %>%
-    mutate(cohort_definition_id = 2L) %>%
-    select(
+    dplyr::mutate(cohort_definition_id = 2L) %>%
+    dplyr::select(
       "cohort_definition_id", "subject_id",
       "cohort_start_date", "cohort_end_date"
     ) %>%
-    compute()
+    CDMConnector::computeQuery()
 
-  cdm$exposure_cohort <- union_all(
+  cdm$exposure_cohort <- dplyr::union_all(
     cdm$celecoxib,
     cdm$diclofenac
   ) %>%
-    compute()
-  cdm$outcome_cohort <- newGeneratedCohortSet(cdm$exposure_cohort)
+    CDMConnector::computeQuery()
+  cdm$outcome_cohort <- CDMConnector::newGeneratedCohortSet(cdm$exposure_cohort)
   cdm$outcome_cohort <- addCohortCountAttr(cdm$outcome_cohort)
 
   # denominator
@@ -111,12 +111,14 @@ test_that("eunomia test - strata", {
   )
 
   asthma_cohort1 <- Capr::cohort(entry = Capr::entry(
-    Capr::condition(Capr::cs(Capr::descendants(317009))),
+    Capr::conditionOccurrence(Capr::cs(Capr::descendants(317009),
+                                       name ="asthma")),
     primaryCriteriaLimit = "First"
   ))
   asthma_cohort2 <- Capr::cohort(entry = Capr::entry(
-    Capr::condition(
-      Capr::cs(Capr::descendants(317009)),
+    Capr::conditionOccurrence(
+      Capr::cs(Capr::descendants(317009),
+               name ="asthma"),
       Capr::age(Capr::gte(18))
     ),
     primaryCriteriaLimit = "First"

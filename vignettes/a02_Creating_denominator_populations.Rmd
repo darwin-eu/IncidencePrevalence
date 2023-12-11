@@ -420,7 +420,7 @@ cdm$denominator %>%
 
 ```
 
-Note, setting requirementInteractions to FALSE would mean that only the first value of other age, sex, and prior history requirements are considered for a given characteristic. In this case the order of the values will be important and generally the first vlaues will be the primary analysis settings while subsequent values are for secondary analyses.
+Note, setting requirementInteractions to FALSE would mean that only the first value of other age, sex, and prior history requirements are considered for a given characteristic. In this case the order of the values will be important and generally the first values will be the primary analysis settings while subsequent values are for secondary analyses.
 ```{r, message=FALSE, warning=FALSE, fig.height=10}
 cdm <- generateDenominatorCohortSet(
   cdm = cdm,
