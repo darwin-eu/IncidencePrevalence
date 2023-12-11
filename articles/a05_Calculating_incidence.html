@@ -8,8 +8,8 @@
 <meta name="description" content="IncidencePrevalence">
 <title>Calculating incidence • IncidencePrevalence</title>
 <script src="../deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<link href="../deps/bootstrap-5.2.2/bootstrap.min.css" rel="stylesheet">
-<script src="../deps/bootstrap-5.2.2/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
+<link href="../deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
+<script src="../deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- bootstrap-toc --><script src="https://cdn.jsdelivr.net/gh/afeld/bootstrap-toc@v1.0.1/dist/bootstrap-toc.min.js" integrity="sha256-4veVQbu7//Lk5TSmc7YV48MxtMy98e26cf5MrgZYnwo=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- search --><script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/6.4.6/fuse.js" integrity="sha512-zv6Ywkjyktsohkbp9bb45V6tEMoWhzFzXis+LrMehmJZZSys19Yxf1dopHx7WzIKxr5tK2dVcYmaCk2uqdjF4A==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/autocomplete.js/0.38.0/autocomplete.jquery.min.js" integrity="sha512-GU9ayf+66Xx2TmpxqJpliWbT5PiGYxpaG8rfnBEk1LL8l1KGkRShhngwdXK1UgqhAzWpZHSiYPc09/NwDQIGyg==" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/mark.min.js" integrity="sha512-5CYOlHXGh6QpOFA/TeTylKLWfB3ftPsde7AnmhuitiTX4K5SqCLBeKro6sPS8ilsz1Q4NRx3v8Ko2IBiszzdww==" crossorigin="anonymous"></script><!-- pkgdown --><script src="../pkgdown.js"></script><meta property="og:title" content="Calculating incidence">
 <meta property="og:description" content="IncidencePrevalence">
@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.5.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -43,7 +43,7 @@
   <div class="dropdown-menu" aria-labelledby="dropdown-articles">
     <a class="dropdown-item" href="../articles/a01_Introduction_to_IncidencePrevalence.html">Introduction to IncidencePrevalence</a>
     <a class="dropdown-item" href="../articles/a02_Creating_denominator_populations.html">Creating denominator cohorts</a>
-    <a class="dropdown-item" href="../articles/a03_Creating_outcome_cohorts.html">Creating outcome cohorts</a>
+    <a class="dropdown-item" href="../articles/a03_Creating_target_denominator_populations.html">Creating target denominator populations</a>
     <a class="dropdown-item" href="../articles/a04_Calculating_prevalence.html">Calculating prevalence</a>
     <a class="dropdown-item" href="../articles/a05_Calculating_incidence.html">Calculating incidence</a>
   </div>
@@ -137,28 +137,24 @@ they begin to contribute time at risk again.</p>
 <div class="section level2">
 <h2 id="outcome-definition">Outcome definition<a class="anchor" aria-label="anchor" href="#outcome-definition"></a>
 </h2>
-<p>General information on how to define outcome cohorts can be found in
-the vignette “Creating outcome cohorts”. The most important
-recommendations for defining an outcome cohort for calculating incidence
-are:</p>
+<p>Outcome cohorts are defined externally. When creating outcome cohorts
+for estimating incidence, the most important recommendations for
+defining an outcome cohort for calculating incidence are:</p>
 <ol style="list-style-type: decimal">
 <li>Do not restrict outcome cohorts to first events only. This will
 impact the ability to exclude participants (as they can be excluded
 based on the prior latest event) and to capture more than one event per
 person (which is an option allowed in the package).</li>
-<li>Set an appropriate cohort exit strategy. If you want to be able to
-capture more than one event per person, it is important to set the event
-persistence to a fixed duration relative to the event and not to the end
-of observation.</li>
+<li>Set an appropriate cohort exit strategy. If we want to consider
+multiple events per person, the duration of these events will be of
+importance, as we are not going to capture subsequent events if prior
+events have not yet been concluded. In addition, outcome washouts will
+be implemented relative to cohort exit from any previous event.</li>
 <li>Do not add further restrictions on sex, age and prior history
 requirements. These can be specified when identifying the denominator
 population with the <code><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet()</a></code>
 function.</li>
 </ol>
-<p>Considering all the above, we only recommend restricting outcome
-definitions to first events if the user is not interested in further
-occurrences and if all prior history is considered to exclude
-participants who have already experienced the event.</p>
 </div>
 <div class="section level2">
 <h2 id="using-estimateincidence">Using estimateIncidence()<a class="anchor" aria-label="anchor" href="#using-estimateincidence"></a>
@@ -196,7 +192,7 @@ than temporary tables which would be used by default).</p>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: ??</span></span>
 <span><span class="co">#&gt; Columns: 4</span></span>
-<span><span class="co">#&gt; Database: DuckDB v0.9.2 [unknown@Linux 6.2.0-1016-azure:R 4.3.2/:memory:]</span></span>
+<span><span class="co">#&gt; Database: DuckDB v0.9.2 [unknown@Linux 6.2.0-1018-azure:R 4.3.2/:memory:]</span></span>
 <span><span class="co">#&gt; $ cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…</span></span>
 <span><span class="co">#&gt; $ subject_id           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "2", "3", "4", "6", "7", "8", "12", "13", "19", "…</span></span>
 <span><span class="co">#&gt; $ cohort_start_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2009-12-20, 2011-04-26, 2011-10-13, …</span></span>
@@ -398,6 +394,85 @@ events</p>
 <span></span>
 <span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span></code></pre></div>
 <p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-10-1.png" width="672"></p>
+<div class="section level3">
+<h3 id="stratified-analyses">Stratified analyses<a class="anchor" aria-label="anchor" href="#stratified-analyses"></a>
+</h3>
+<p>As with prevalence. if we specified multiple denominator populations
+results will be returned for each. Here for example we define three age
+groups for denominator populations and get three sets of estimates back
+when estimating incidence</p>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
+<span>  cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="st">"denominator_age_sex"</span>,</span>
+<span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2008-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2012-01-01"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  ageGroup <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">39</span><span class="op">)</span>,</span>
+<span>                  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">41</span>, <span class="fl">65</span><span class="op">)</span>,</span>
+<span>                  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">66</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  sex <span class="op">=</span> <span class="st">"Both"</span>,</span>
+<span>  daysPriorObservation <span class="op">=</span> <span class="fl">0</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Creating denominator cohorts</span></span>
+<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Cohorts created in 0 min and 3 sec</span></span>
+<span><span class="va">inc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimateIncidence.html">estimateIncidence</a></span><span class="op">(</span></span>
+<span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
+<span>  denominatorTable <span class="op">=</span> <span class="st">"denominator_age_sex"</span>,</span>
+<span>  outcomeTable <span class="op">=</span> <span class="st">"outcome"</span>,</span>
+<span>  interval <span class="op">=</span> <span class="st">"years"</span>,</span>
+<span>  outcomeWashout <span class="op">=</span> <span class="fl">180</span>,</span>
+<span>  repeatedEvents <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  temporary <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Getting incidence for analysis 1 of 3</span></span>
+<span><span class="co">#&gt; Getting incidence for analysis 2 of 3</span></span>
+<span><span class="co">#&gt; Getting incidence for analysis 3 of 3</span></span>
+<span><span class="co">#&gt; Overall time taken: 0 mins and 2 secs</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span>, facet <span class="op">=</span> <span class="st">"denominator_age_group"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-11-1.png" width="672"></p>
+<p>And again, as with prevalence while we specify time-varying
+stratifications when defining our denominator populations, if we have
+time-invariant stratifications we can include these at the the
+estimation stage.</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op">&lt;-</span> <span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>group <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html" class="external-link">if_else</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">subject_id</span><span class="op">)</span>  <span class="op">&lt;</span> <span class="fl">500</span>, <span class="st">"first"</span>, <span class="st">"second"</span><span class="op">)</span><span class="op">)</span> </span>
+<span></span>
+<span><span class="va">inc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimateIncidence.html">estimateIncidence</a></span><span class="op">(</span></span>
+<span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
+<span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span>
+<span>  outcomeTable <span class="op">=</span> <span class="st">"outcome"</span>,</span>
+<span>  strata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">"group"</span><span class="op">)</span>,</span>
+<span>  outcomeWashout <span class="op">=</span> <span class="fl">180</span>,</span>
+<span>  repeatedEvents <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Getting incidence for analysis 1 of 1</span></span>
+<span><span class="co">#&gt; Overall time taken: 0 mins and 1 secs</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span>, </span>
+<span>               facet <span class="op">=</span> <span class="st">"strata_level"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-12-1.png" width="672"></p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op">&lt;-</span> <span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>group_1 <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html" class="external-link">if_else</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">subject_id</span><span class="op">)</span>  <span class="op">&lt;</span> <span class="fl">1500</span>, <span class="st">"first"</span>, <span class="st">"second"</span><span class="op">)</span><span class="op">)</span>  <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>group_2 <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html" class="external-link">if_else</a></span><span class="op">(</span><span class="va">cohort_start_date</span>  <span class="op">&lt;</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2010-01-01"</span><span class="op">)</span>, </span>
+<span>                           <span class="st">"pre"</span>, <span class="st">"post"</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">inc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimateIncidence.html">estimateIncidence</a></span><span class="op">(</span></span>
+<span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
+<span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span>
+<span>  outcomeTable <span class="op">=</span> <span class="st">"outcome"</span>,</span>
+<span>  strata <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"group_1"</span><span class="op">)</span>, <span class="co"># for just group_1</span></span>
+<span>                <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"group_2"</span><span class="op">)</span>, <span class="co"># for just group_2</span></span>
+<span>                <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"group_1"</span>, <span class="st">"group_2"</span><span class="op">)</span><span class="op">)</span>,  <span class="co"># for group_1 and group_2  outcomeWashout = 180,</span></span>
+<span>  repeatedEvents <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span>
+<span><span class="co">#&gt; Getting incidence for analysis 1 of 1</span></span>
+<span><span class="co">#&gt; Overall time taken: 0 mins and 1 secs</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span>, </span>
+<span>               facet <span class="op">=</span> <span class="st">"strata_level"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-12-2.png" width="672"></p>
 <div class="section level4">
 <h4 id="other-parameters">Other parameters<a class="anchor" aria-label="anchor" href="#other-parameters"></a>
 </h4>
@@ -407,8 +482,8 @@ quarters, or for the entire study time period. In addition, we can
 decide whether to include time intervals that are not fully captured in
 the database (e.g., having data up to June for the last study year when
 computing yearly incidence rates). By default, incidence will only be
-estimated for those intervals where the database captures all the
-interval (completeDatabaseIntervals=TRUE).</p>
+estimated for those intervals where the denominator cohort captures all
+the interval (completeDatabaseIntervals=TRUE).</p>
 <p>Given that we can set <code><a href="../reference/estimateIncidence.html">estimateIncidence()</a></code> to exclude
 individuals based on other parameters (e.g., outcomeWashout), it is
 important to note that the denominator population used to compute
@@ -420,7 +495,7 @@ occurrences are blinded, but if minCellCount=0, all results will be
 reported. 95 % confidence intervals are calculated using the exact
 method. We can set verbose=TRUE to report progress as code is running.
 By default, no progress is reported (verbose=FALSE).</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">inc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimateIncidence.html">estimateIncidence</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span>
@@ -443,7 +518,7 @@ rates for each of the time intervals studied and for each combination of
 the parameters set. Similar to the output obtained by
 <code><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet()</a></code>, the table generated will
 also be associated with attributes such as settings and attrition.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">inc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimateIncidence.html">estimateIncidence</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span>
@@ -457,48 +532,53 @@ also be associated with attributes such as settings and attrition.</p>
 <span><span class="fu"><a href="../reference/incidenceAttrition.html">incidenceAttrition</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 22 × 24</span></span></span>
 <span><span class="co">#&gt;    analysis_id number_records number_subjects reason_id reason  excluded_records</span></span>
-<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 1                    <span style="text-decoration: underline;">50</span>000           <span style="text-decoration: underline;">50</span>000         1 Starti…               <span style="color: #BB0000;">NA</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 1                    <span style="text-decoration: underline;">50</span>000           <span style="text-decoration: underline;">50</span>000         2 Missin…                0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 1                    <span style="text-decoration: underline;">50</span>000           <span style="text-decoration: underline;">50</span>000         3 Missin…                0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 1                    <span style="text-decoration: underline;">50</span>000           <span style="text-decoration: underline;">50</span>000         4 Cannot…                0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 1                    <span style="text-decoration: underline;">18</span>018           <span style="text-decoration: underline;">18</span>018         5 No obs…            <span style="text-decoration: underline;">31</span>982</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 1                    <span style="text-decoration: underline;">18</span>018           <span style="text-decoration: underline;">18</span>018         6 Doesn'…                0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 1                    <span style="text-decoration: underline;">18</span>018           <span style="text-decoration: underline;">18</span>018         7 Prior …                0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 1                    <span style="text-decoration: underline;">18</span>018           <span style="text-decoration: underline;">18</span>018        10 No obs…                0</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 1                    <span style="text-decoration: underline;">25</span>886           <span style="text-decoration: underline;">18</span>018        11 Starti…               <span style="color: #BB0000;">NA</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 1                    <span style="text-decoration: underline;">24</span>509           <span style="text-decoration: underline;">18</span>018        12 Exclud…             <span style="text-decoration: underline;">1</span>377</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 1           50000          50000                   1 Starti… <span style="color: #BB0000;">NA</span>              </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 1           50000          50000                   2 Missin… 0               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 1           50000          50000                   3 Missin… 0               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 1           50000          50000                   4 Cannot… 0               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 1           18018          18018                   5 No obs… 31982           </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 1           18018          18018                   6 Doesn'… 0               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 1           18018          18018                   7 Prior … 0               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 1           18018          18018                  10 No obs… 0               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 1           25886          18018                  11 Starti… <span style="color: #BB0000;">NA</span>              </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 1           24509          18018                  12 Exclud… 1377            </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 12 more rows</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 18 more variables: excluded_subjects &lt;int&gt;, outcome_cohort_id &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 18 more variables: excluded_subjects &lt;chr&gt;, outcome_cohort_id &lt;chr&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   outcome_cohort_name &lt;chr&gt;, analysis_outcome_washout &lt;dbl&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   analysis_repeated_events &lt;lgl&gt;, analysis_interval &lt;chr&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   analysis_complete_database_intervals &lt;lgl&gt;, denominator_cohort_id &lt;int&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   analysis_min_cell_count &lt;dbl&gt;, denominator_cohort_name &lt;chr&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   denominator_age_group &lt;chr&gt;, denominator_sex &lt;chr&gt;, …</span></span></span></code></pre></div>
 <p>As with incidence, if we set returnParticipants as TRUE, we can
-identify the individuals who contributed to the prevalence rate analysis
-by using `participants(). For example, we can identify those people
-contributing to analysis 1 by running</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+identify the individuals who contributed to the analysis by using
+`participants(). For example, we can identify those people contributing
+to analysis 1 by running</p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/participants.html">participants</a></span><span class="op">(</span><span class="va">inc</span>, analysisId <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: ??</span></span>
 <span><span class="co">#&gt; Columns: 4</span></span>
-<span><span class="co">#&gt; Database: DuckDB v0.9.2 [unknown@Linux 6.2.0-1016-azure:R 4.3.2/:memory:]</span></span>
+<span><span class="co">#&gt; Database: DuckDB v0.9.2 [unknown@Linux 6.2.0-1018-azure:R 4.3.2/:memory:]</span></span>
 <span><span class="co">#&gt; $ subject_id         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "6", "75", "163", "185", "391", "473", "527", "623"…</span></span>
 <span><span class="co">#&gt; $ cohort_start_date  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2011-10-13, 2008-01-01, 2009-01-16, 2009-02-24, 20…</span></span>
 <span><span class="co">#&gt; $ cohort_end_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2009-06-25, 2011-01-31, 2009-07-21, 20…</span></span>
 <span><span class="co">#&gt; $ outcome_start_date <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span></code></pre></div>
 <p>As we;ve used permanent tables for this example, we can drop these
 after running our analysis.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/list_tables.html" class="external-link">listTables</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">cdm</span>, <span class="st">"dbcon"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [1] "cdm_source"            "denominator"           "denominator_attrition"</span></span>
-<span><span class="co">#&gt;  [4] "denominator_count"     "denominator_set"       "inc_participants1"    </span></span>
-<span><span class="co">#&gt;  [7] "observation_period"    "outcome"               "outcome_attrition"    </span></span>
-<span><span class="co">#&gt; [10] "outcome_count"         "outcome_set"           "person"               </span></span>
-<span><span class="co">#&gt; [13] "target"                "target_attrition"      "target_count"         </span></span>
-<span><span class="co">#&gt; [16] "target_set"            "vocabulary"</span></span>
+<span><span class="co">#&gt;  [1] "cdm_source"                    "denominator"                  </span></span>
+<span><span class="co">#&gt;  [3] "denominator_age_sex"           "denominator_age_sex_attrition"</span></span>
+<span><span class="co">#&gt;  [5] "denominator_age_sex_count"     "denominator_age_sex_set"      </span></span>
+<span><span class="co">#&gt;  [7] "denominator_attrition"         "denominator_count"            </span></span>
+<span><span class="co">#&gt;  [9] "denominator_set"               "inc_participants1"            </span></span>
+<span><span class="co">#&gt; [11] "observation_period"            "outcome"                      </span></span>
+<span><span class="co">#&gt; [13] "outcome_attrition"             "outcome_count"                </span></span>
+<span><span class="co">#&gt; [15] "outcome_set"                   "person"                       </span></span>
+<span><span class="co">#&gt; [17] "target"                        "target_attrition"             </span></span>
+<span><span class="co">#&gt; [19] "target_count"                  "target_set"                   </span></span>
+<span><span class="co">#&gt; [21] "vocabulary"</span></span>
 <span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/dropTable.html" class="external-link">dropTable</a></span><span class="op">(</span>cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"denominator"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/dropTable.html" class="external-link">dropTable</a></span><span class="op">(</span>cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"inc_participants"</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/list_tables.html" class="external-link">listTables</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">cdm</span>, <span class="st">"dbcon"</span><span class="op">)</span><span class="op">)</span></span>
@@ -506,6 +586,7 @@ after running our analysis.</p>
 <span><span class="co">#&gt;  [4] "outcome_attrition"  "outcome_count"      "outcome_set"       </span></span>
 <span><span class="co">#&gt;  [7] "person"             "target"             "target_attrition"  </span></span>
 <span><span class="co">#&gt; [10] "target_count"       "target_set"         "vocabulary"</span></span></code></pre></div>
+</div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

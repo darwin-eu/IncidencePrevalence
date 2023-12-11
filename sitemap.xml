@@ -19,7 +19,7 @@
     <loc>https://darwin-eu.github.io/IncidencePrevalence/articles/a02_Creating_denominator_populations.html</loc>
   </url>
   <url>
-    <loc>https://darwin-eu.github.io/IncidencePrevalence/articles/a03_Creating_outcome_cohorts.html</loc>
+    <loc>https://darwin-eu.github.io/IncidencePrevalence/articles/a03_Creating_target_denominator_populations.html</loc>
   </url>
   <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/articles/a04_Calculating_prevalence.html</loc>
@@ -62,6 +62,9 @@
   </url>
   <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/generateDenominatorCohortSet.html</loc>
+  </url>
+  <url>
+    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/generateTargetDenominatorCohortSet.html</loc>
   </url>
   <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/incidenceAttrition.html</loc>
