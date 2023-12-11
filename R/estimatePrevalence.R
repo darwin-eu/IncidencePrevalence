@@ -29,9 +29,6 @@
 #' @param outcomeCohortId The cohort definition ids of the outcome
 #' cohorts of interest. If NULL all cohorts will be considered in the
 #' analysis.
-#' @param outcomeLookbackDays Days lookback when considering an outcome
-#' as prevalent. If NULL any prior outcome will be considered as prevalent. If
-#' 0, only ongoing outcomes will be considered as prevalent.
 #' @param interval Time intervals over which period prevalence is estimated. Can
 #' be "weeks", "months", "quarters", or "years". ISO weeks will
 #' be used for weeks. Calendar months, quarters, or years can be used as
@@ -73,7 +70,6 @@ estimatePointPrevalence <- function(cdm,
                                     outcomeTable,
                                     denominatorCohortId = NULL,
                                     outcomeCohortId = NULL,
-                                    outcomeLookbackDays = 0,
                                     interval = "years",
                                     timePoint = "start",
                                     strata = list(),
@@ -98,7 +94,6 @@ estimatePointPrevalence <- function(cdm,
     outcomeTable = outcomeTable,
     denominatorCohortId = denominatorCohortId,
     outcomeCohortId = outcomeCohortId,
-    outcomeLookbackDays = outcomeLookbackDays,
     type = "point",
     interval = interval,
     completeDatabaseIntervals = FALSE,
@@ -127,9 +122,6 @@ estimatePointPrevalence <- function(cdm,
 #' @param outcomeCohortId The cohort definition ids of the outcome
 #' cohorts of interest. If NULL all cohorts will be considered in the
 #' analysis.
-#' @param outcomeLookbackDays Days lookback when considering an outcome
-#' as prevalent. If NULL any prior outcome will be considered as prevalent. If
-#' 0, only ongoing outcomes will be considered as prevalent.
 #' @param interval Time intervals over which period prevalence is estimated.
 #' This can be "weeks", "months", "quarters", "years", or "overall".
 #' ISO weeks will be used for weeks. Calendar months, quarters, or
@@ -178,7 +170,6 @@ estimatePeriodPrevalence <- function(cdm,
                                      outcomeTable,
                                      denominatorCohortId = NULL,
                                      outcomeCohortId = NULL,
-                                     outcomeLookbackDays = 0,
                                      interval = "years",
                                      completeDatabaseIntervals = TRUE,
                                      fullContribution = FALSE,
@@ -193,7 +184,6 @@ estimatePeriodPrevalence <- function(cdm,
     outcomeTable = outcomeTable,
     denominatorCohortId = denominatorCohortId,
     outcomeCohortId = outcomeCohortId,
-    outcomeLookbackDays = outcomeLookbackDays,
     type = "period",
     interval = interval,
     completeDatabaseIntervals = completeDatabaseIntervals,
@@ -212,7 +202,6 @@ estimatePrevalence <- function(cdm,
                                outcomeTable,
                                denominatorCohortId = NULL,
                                outcomeCohortId = NULL,
-                               outcomeLookbackDays = 0,
                                type = "point",
                                interval = "months",
                                completeDatabaseIntervals = TRUE,
@@ -239,7 +228,7 @@ estimatePrevalence <- function(cdm,
   checkInputEstimatePrevalence(
     cdm, denominatorTable, outcomeTable,
     denominatorCohortId, outcomeCohortId,
-    outcomeLookbackDays, type,
+    type,
     interval, completeDatabaseIntervals,
     fullContribution, timePoint,
     minCellCount, temporary,
@@ -278,16 +267,12 @@ estimatePrevalence <- function(cdm,
 
   studySpecs <- tidyr::expand_grid(
     outcomeCohortId = outcomeCohortId,
-    outcomeLookbackDays = outcomeLookbackDays,
     denominatorCohortId = denominatorCohortId,
     interval = interval,
     timePoint = timePoint,
     fullContribution = fullContribution,
     completeDatabaseIntervals = completeDatabaseIntervals
   )
-  if (is.null(outcomeLookbackDays)) {
-    studySpecs$outcomeLookbackDays <- NA
-  }
 
   studySpecs <- studySpecs %>%
     dplyr::mutate(analysis_id = as.character(dplyr::row_number()))
@@ -317,7 +302,6 @@ estimatePrevalence <- function(cdm,
       denominatorCohortId = x$denominatorCohortId,
       outcomeTable = outcomeTable,
       outcomeCohortId = x$outcomeCohortId,
-      outcomeLookbackDays = x$outcomeLookbackDays,
       type = type,
       interval = x$interval,
       completeDatabaseIntervals = x$completeDatabaseIntervals,
@@ -342,7 +326,6 @@ estimatePrevalence <- function(cdm,
       analysis_id = x$analysis_id,
       outcome_cohort_id = x$outcomeCohortId,
       denominator_cohort_id = x$denominatorCohortId,
-      analysis_outcome_lookback_days = x$outcomeLookbackDays,
       analysis_type = type,
       analysis_interval = x$interval,
       analysis_complete_database_intervals = x$completeDatabaseIntervals,
@@ -518,6 +501,10 @@ estimatePrevalence <- function(cdm,
   ) %>%
     dplyr::select(-"denominator_cohort_id") %>%
     dplyr::relocate("analysis_id")
+  # obscure counts
+  attrition <- obscureAttrition(attrition,
+                       minCellCount = minCellCount
+  )
 
   analysisSettings <- analysisSettings %>%
     dplyr::left_join(outcomeRef, by = "outcome_cohort_id") %>%

@@ -201,106 +201,6 @@ test_that("mock db: working examples 2", {
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
 
-test_that("mock db: check outcome lookback", {
-  skip_on_cran()
-  personTable <- tibble::tibble(
-    person_id = "1",
-    gender_concept_id = "8507",
-    year_of_birth = 2000,
-    month_of_birth = 01,
-    day_of_birth = 01
-  )
-  observationPeriodTable <- tibble::tibble(
-    observation_period_id = "1",
-    person_id = "1",
-    observation_period_start_date = as.Date("2000-01-01"),
-    observation_period_end_date = as.Date("2012-06-01")
-  )
-  outcomeTable <- tibble::tibble(
-    cohort_definition_id = 1,
-    subject_id = "1",
-    cohort_start_date = c(
-      as.Date("2008-02-05")
-    ),
-    cohort_end_date = c(
-      as.Date("2008-02-05")
-    )
-  )
-
-  cdm <- mockIncidencePrevalenceRef(
-    personTable = personTable,
-    observationPeriodTable = observationPeriodTable,
-    outcomeTable = outcomeTable
-  )
-
-  cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "denominator", cohortDateRange = c(as.Date("2006-01-01"), as.Date("2010-12-31"))
-  )
-
-  # without look back we´ll only include ongoing outcomes
-  # of which none are at the start of a year
-  prev <- estimatePrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    type = "point",
-    interval = "years",
-    minCellCount = 0
-  )
-  expect_true(all(prev$n_cases == 0))
-
-  # with a lookback of 365 days
-  # the person would be considered as a prevalent case at the start of 2009
-  prev <- estimatePrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    outcomeLookbackDays = 365,
-    type = "point",
-    interval = "years",
-    minCellCount = 0
-  )
-  expect_true((prev %>%
-    dplyr::filter(lubridate::year(prevalence_start_date) == "2008") %>%
-    dplyr::select(n_cases) %>%
-    dplyr::pull() == 0))
-  expect_true((prev %>%
-    dplyr::filter(lubridate::year(prevalence_start_date) == "2009") %>%
-    dplyr::select(n_cases) %>%
-    dplyr::pull() == 1))
-  expect_true((prev %>%
-    dplyr::filter(lubridate::year(prevalence_start_date) == "2010") %>%
-    dplyr::select(n_cases) %>%
-    dplyr::pull() == 0))
-
-  # with a NULL lookback
-  # where any prior outcome is used
-  # the person would be a prevalent case at the start of 2009 and 2010
-  prev <- estimatePrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    outcomeLookbackDays = NULL,
-    type = "point",
-    interval = "years",
-    minCellCount = 0
-  )
-  expect_true((prev %>%
-    dplyr::filter(lubridate::year(prevalence_start_date) == "2008") %>%
-    dplyr::select(n_cases) %>%
-    dplyr::pull() == 0))
-  expect_true((prev %>%
-    dplyr::filter(lubridate::year(prevalence_start_date) == "2009") %>%
-    dplyr::select(n_cases) %>%
-    dplyr::pull() == 1))
-  expect_true((prev %>%
-    dplyr::filter(lubridate::year(prevalence_start_date) == "2010") %>%
-    dplyr::select(n_cases) %>%
-    dplyr::pull() == 1))
-
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-})
-
 test_that("mock db: check minimum counts", {
   skip_on_cran()
   # 20 people
@@ -1052,7 +952,7 @@ test_that("mock db: multiple observation periods", {
     outcomeTable = outcomeTable
   )
 
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     targetCohortTable = "target",
     targetCohortId = 1
@@ -1070,29 +970,6 @@ test_that("mock db: multiple observation periods", {
   expect_true(sum(ppe$n_cases) == 3)
   expect_true(sum(ppe$n_population) == 8 + 8 + 14)
 
-  # same if we look back 1 day, as some repeated events at month 8 disappear
-  # but the person still has an outcome then
-  ppe <- estimatePeriodPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    minCellCount = 0,
-    outcomeLookbackDays = 1
-  )
-  expect_true(sum(ppe$n_cases) == 3)
-
-  # if we look back 365 days, all outcomes count monthly for a whole year
-  # after their onset, so we should see 4+3+14
-  ppe <- estimatePeriodPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    minCellCount = 0,
-    outcomeLookbackDays = 365
-  )
-  expect_true(sum(ppe$n_cases) == 21)
 
   # as for point prevalence, we would expect no positive n_cases at default
   ppo <- estimatePointPrevalence(
@@ -1227,6 +1104,20 @@ test_that("mock db: check attrition with complete database intervals", {
   expect_true(prevalenceAttrition(prev) %>%
     dplyr::filter(reason == "Not observed during the complete database interval") %>%
     dplyr::pull("excluded_subjects") == 1)
+
+  # check min cell suppression
+  prev2 <- estimatePrevalence(cdm,
+                             denominatorTable = "denominator",
+                             outcomeTable = "outcome",
+                             type = "point",
+                             interval = "years",
+                             completeDatabaseIntervals = TRUE,
+                             minCellCount = 5
+  )
+
+  expect_true(prevalenceAttrition(prev2) %>%
+                dplyr::filter(reason == "Not observed during the complete database interval") %>%
+                dplyr::pull("excluded_subjects") == "<5")
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })

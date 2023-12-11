@@ -83,11 +83,16 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
   rlang::check_installed("duckdb")
 
   errorMessage <- checkmate::makeAssertCollection()
-  checkmate::assert_tibble(personTable, null.ok = TRUE)
-  checkmate::assert_tibble(observationPeriodTable, null.ok = TRUE)
-  checkmate::assert_tibble(outcomeTable, null.ok = TRUE)
+  if(!is.null(personTable)){
+    checkmate::assert_true(tibble::is_tibble(personTable))
+  }
+  if(!is.null(observationPeriodTable)){
+    checkmate::assert_true(tibble::is_tibble(observationPeriodTable))
+  }
+  if(!is.null(outcomeTable)){
+    checkmate::assert_true(tibble::is_tibble(outcomeTable))
+  }
   checkmate::assert_int(sampleSize, lower = 1)
-  checkmate::assert_numeric(outPre, lower = 0, upper = 1)
   checkmate::assert_int(seed, lower = 1)
   checkmate::assert_numeric(ageBeta, null.ok = TRUE)
   checkmate::assert_numeric(genderBeta, null.ok = TRUE)

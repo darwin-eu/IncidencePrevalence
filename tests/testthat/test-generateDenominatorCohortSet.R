@@ -127,7 +127,7 @@ test_that("mock db: checks on working example", {
   )
 
   # using target cohort
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm,
     name = "denominator",
     targetCohortTable = "target",
@@ -381,7 +381,7 @@ test_that("mock db: subset denominator by cohort", {
     "2015-06-01"))
 
   # using target cohort id 1
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "target_cohort",
     targetCohortTable = "target",
     targetCohortId = 1,
@@ -405,7 +405,7 @@ test_that("mock db: subset denominator by cohort", {
     "2013-06-06"))
 
   # using target cohort id 2
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "target_cohort_2",
     targetCohortTable = "target",
     targetCohortId = 2
@@ -429,14 +429,14 @@ test_that("mock db: subset denominator by cohort", {
 
 
   # multiple stratification cohorts
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "target_cohort_mult1",
     targetCohortTable = "target",
     targetCohortId = c(1,2), overwrite = TRUE
   )
   expect_true(nrow(CDMConnector::cohort_set(cdm$target_cohort_mult1))==2)
   # without specifying target, should run for both
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "target_cohort_mult2",
     targetCohortTable = "target"
   )
@@ -463,7 +463,7 @@ test_that("mock db: subset denominator by cohort", {
     observationPeriodTable = observationPeriodTable,
     targetCohortTable = targetCohortTable
   )
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "target_cohort_mult1",
     targetCohortTable = "target", overwrite = TRUE
   )
@@ -494,7 +494,7 @@ test_that("mock db: subset denominator by cohort", {
     targetCohortTable = targetCohortTable
   )
 
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "target_cohort",
     targetCohortTable = "target",
     targetCohortId = 1
@@ -571,7 +571,7 @@ test_that("mock db: subset denominator by cohort", {
     targetCohortTable = targetCohortTable
   )
 
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "target_cohort",
     targetCohortTable = "target",
     targetCohortId = 1,
@@ -594,7 +594,7 @@ test_that("mock db: subset denominator by cohort", {
   # should allow target cohort to have any name
   cdm$condition_cohort <- cdm$target
   cdm$target <- NULL
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     targetCohortTable = "condition_cohort",
     targetCohortId = 1,
@@ -978,7 +978,7 @@ test_that("mock db check target prior observation requirement", {
   # with target cohort
   # result should be unaffected
   # (as prior observation based on obs period achieved before target cohort start)
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "denominator",overwrite = TRUE,
     targetCohortTable = "target",
     targetCohortId = 1,
@@ -991,7 +991,7 @@ test_that("mock db check target prior observation requirement", {
     dplyr::select(cohort_start_date) %>%
     dplyr::pull() == as.Date("2012-01-01"))
 
- expect_message(cdm <- generateDenominatorCohortSet(
+ expect_message(cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "denominator", targetCohortTable = "target",
     targetCohortId = 1,overwrite = TRUE,
     ageGroup = list(
@@ -1002,16 +1002,6 @@ test_that("mock db check target prior observation requirement", {
     dplyr::filter(cohort_definition_id == 1) %>%
     dplyr::select(cohort_start_date) %>%
     dplyr::pull() == as.Date("2012-01-01"))
-
- expect_warning(cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "denominator",overwrite = TRUE,
-    targetCohortTable = "target",
-    targetCohortId = 1,
-    ageGroup = list(
-      c(11, 12)
-    ), daysPriorObservation = 10000
-  ))
-  expect_true(nrow(cdm$denominator %>% dplyr::collect()) == 0)
 
   DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 })
@@ -1048,7 +1038,7 @@ test_that("mock db: targetRequirementsAtEntry", {
     targetCohortTable = targetCohortTable
   )
 
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm,
     name = "denom_reqs_any_time",
     daysPriorObservation = c(0,2,4,10),
@@ -1108,7 +1098,7 @@ test_that("mock db: targetRequirementsAtEntry", {
   )
 
   # TODO expect_warning
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm,
     name = "denom_reqs_cohort_entry",
     ageGroup = list(c(10,100)),
@@ -1121,7 +1111,7 @@ test_that("mock db: targetRequirementsAtEntry", {
                 dplyr::tally() %>%
                 dplyr::pull("n") == 0)
 
-  cdm <- generateDenominatorCohortSet(
+  cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm,
     name = "denom_reqs_cohort_entry",
     overwrite = TRUE,

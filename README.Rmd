@@ -18,14 +18,22 @@ knitr::opts_chunk$set(
 
 ## Package overview
 
-IncidencePrevalence contains functions for estimating population-level incidence and prevalence using the OMOP common data model. For more information on the package please see our paper in [Pharmacoepidemiology and Drug Safety](https://onlinelibrary.wiley.com/doi/10.1002/pds.5717). If you find the package useful in supporting your research study, please consider citing:
+IncidencePrevalence contains functions for estimating population-level incidence and prevalence using the OMOP common data model. For more information on the package please see our paper in Pharmacoepidemiology and Drug Safety. 
 
-> Raventós, B, Català, M, Du, M, et al. IncidencePrevalence: An R package to calculate population-level incidence rates and prevalence using the OMOP common data model. Pharmacoepidemiol Drug Saf. 2023; 1-11. <doi:10.1002/pds.5717>
+> Raventós, B, Català, M, Du, M, et al. IncidencePrevalence: An R package to calculate population-level incidence rates and prevalence using the OMOP common data model. Pharmacoepidemiol Drug Saf. 2023; 1-11. doi: 10.1002/pds.5717
+
+If you find the package useful in supporting your research study, please consider citing this paper.
+
 
 ## Package installation
 
-You can install the latest version of IncidencePrevalence like so:
+You can install the latest version of IncidencePrevalence from CRAN:
 
+```{r, eval=FALSE}
+install.packages("CDMConnector")
+```
+
+Or from github:
 ```{r, eval=FALSE}
 install.packages("remotes")
 remotes::install_github("darwin-eu/IncidencePrevalence")
@@ -61,7 +69,10 @@ cdm <- CDMConnector::cdm_from_con(con,
 To see how you would create a reference to your database please consult the CDMConnector package documentation. For this example though we´ll work with simulated data, and we'll generate an example cdm reference like so:
 
 ```{r}
-cdm <- mockIncidencePrevalenceRef(sampleSize = 5000)
+cdm <- mockIncidencePrevalenceRef(sampleSize = 10000, 
+                                  outPre = 0.3, 
+                                  minOutcomeDays = 365, 
+                                  maxOutcomeDays = 3650)
 ```
 
 ### Identify a denominator cohort
@@ -94,28 +105,15 @@ These cohorts will be in the typical OMOP CDM structure
 cdm$denominator
 ```
 
-### Instantiate an outcome cohort
+### Estimating incidence and prevalence
 
-Outcome cohorts for which we want to estimate incidence or prevalence need to be created. If the outcome cohorts are defined as JSON, we can use the CDMConnector package to read in and generate the cohorts.
-
-```{r, eval=FALSE}
-outcome_cohorts <- CDMConnector::readCohortSet("path_to_outcome_cohort_definitions")
-cdm <- CDMConnector::generateCohortSet(
-  cdm = cdm,
-  cohortSet = outcome_cohorts,
-  name = "outcome_table_name"
-)
-```
-
-Note, in our example cdm reference we already have an outcome cohort defined
+As well as a denominator cohort, an outcome cohort will need to be identified. Defining outcome cohorts is done outside of the IncdidencePrevalence package and our mock data already includes an outcome cohort.
 
 ```{r}
 cdm$outcome
 ```
 
-### Estimating incidence and prevalence
-
-Now we have identified our denominator population, we can calculate incidence and prevalence as below.
+Now we have identified our denominator population, we can calculate incidence and prevalence as below. Note, in our example cdm reference we already have an outcome cohort defined. 
 
 For this example we´ll estimate incidence on a yearly basis, allowing individuals to have multiple events but with an outcome washout of 180 days. We also require that only complete database intervals are included, by which we mean that the database must have individuals observed throughout a year for that year to be included in the analysis. Note, we also specify a minimum cell count of 5, under which estimates will be obscured.
 
@@ -130,7 +128,7 @@ inc <- estimateIncidence(
   completeDatabaseIntervals = TRUE,
   minCellCount = 5
 )
-dplyr::glimpse(inc)
+plotIncidence(inc, facet = c("denominator_age_group", "denominator_sex"))
 ```
 
 We could also estimate point prevalence, as of the start of each calendar year like so:
@@ -144,7 +142,7 @@ prev_point <- estimatePointPrevalence(
   timePoint = "start",
   minCellCount = 5
 )
-dplyr::glimpse(prev_point)
+plotPrevalence(prev_point, facet = c("denominator_age_group", "denominator_sex"))
 ```
 
 And annual period prevalence where we again require complete database intervals and, in addition, only include those people who are observed in the data for the full year:
@@ -159,21 +157,6 @@ prev_period <- estimatePeriodPrevalence(
   fullContribution = TRUE,
   minCellCount = 5
 )
-dplyr::glimpse(prev_period)
+plotPrevalence(prev_period, facet = c("denominator_age_group", "denominator_sex"))
 ```
 
-### Exporting results
-
-We can export our results as CSVs in a zip folder using the `exportIncidencePrevalenceResults()` function.
-
-```{r, eval=FALSE}
-exportIncidencePrevalenceResults(
-  resultList = list(
-    "incidence" = inc,
-    "point_prevalence" = prev_point,
-    "period_prevalence" = prev_period
-  ),
-  zipName = "example_results",
-  outputFolder = here::here()
-)
-```

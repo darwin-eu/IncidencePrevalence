@@ -8,7 +8,7 @@ plotIncidence(
   result,
   x = "incidence_start_date",
   ylim = c(0, NA),
-  ribbon = TRUE,
+  ribbon = FALSE,
   facet = NULL,
   colour = NULL,
   colour_name = NULL

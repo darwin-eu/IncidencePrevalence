@@ -89,7 +89,9 @@ benchmarkIncidencePrevalence <- function(cdm,
     )
   }
   if (!is.null(outputFolder)) {
-    checkmate::assertDirectoryExists(outputFolder)
+    if(!dir.exists(outputFolder)){
+      cli::cli_abort("{outputFolder} does not exist")
+    }
   }
   if (!is.null(outputFolder)) {
     checkmate::assertCharacter(fileName,
