@@ -400,9 +400,9 @@ estimatePrevalence <- function(cdm,
     # from 1st analysis
 
     participants <- dplyr::tbl(
-      attr(cdm, "dbcon"),
+      attr(attr(cdm, "cdm_source"), "dbcon"),
       CDMConnector::inSchema(
-        attr(cdm, "write_schema"),
+        attr(attr(cdm, "cdm_source"), "write_schema"),
         participantTables[[1]]
       )
     )
@@ -414,21 +414,20 @@ estimatePrevalence <- function(cdm,
         participants <- participants %>%
           dplyr::full_join(
             dplyr::tbl(
-              attr(cdm, "dbcon"),
+              attr(attr(cdm, "cdm_source"), "dbcon"),
               CDMConnector::inSchema(
-                attr(cdm, "write_schema"),
+                attr(attr(cdm, "cdm_source"), "write_schema"),
                 participantTables[[i]]
               )
             ),
             by = "subject_id"
           ) %>%
-          CDMConnector::computeQuery(
+          dplyr::compute(
             name = paste0(
               tablePrefix,
               "_p_", i
             ),
             temporary = FALSE,
-            schema = attr(cdm, "write_schema"),
             overwrite = TRUE
           )
       }
@@ -437,17 +436,17 @@ estimatePrevalence <- function(cdm,
     # make sure to not overwrite any existing participant table (from
     # previous function calls)
     p <- 1 + length(stringr::str_subset(
-      CDMConnector::listTables(attr(cdm, "dbcon"),
-        schema = attr(cdm, "write_schema")
+      CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
+        schema = attr(attr(cdm, "cdm_source"), "write_schema")
       ),
       paste0(type, "_prev_participants")
     ))
 
     participants <- participants %>%
-      CDMConnector::computeQuery(
+      dplyr::compute(
         name = paste0(type, "_prev_participants", p),
         temporary = FALSE,
-        schema = attr(cdm, "write_schema"),
+        schema = attr(attr(cdm, "cdm_source"), "write_schema"),
         overwrite = TRUE
       )
     CDMConnector::dropTable(

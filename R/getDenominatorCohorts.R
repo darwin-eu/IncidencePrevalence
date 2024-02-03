@@ -56,10 +56,9 @@ getDenominatorCohorts <- function(cdm,
       )
 
       personDb <- personDb %>%
-        CDMConnector::computeQuery(
+        dplyr::compute(
           name = paste0(intermediateTable,"_working_person"),
           temporary = FALSE,
-          schema = attr(cdm, "write_schema"),
           overwrite = TRUE
         )
 
@@ -110,10 +109,9 @@ getDenominatorCohorts <- function(cdm,
       dplyr::rename("target_cohort_start_date" = "cohort_start_date")
 
       personDb <- personDb %>%
-        CDMConnector::computeQuery(
+        dplyr::compute(
           name = paste0(intermediateTable,"_working_obs_period"),
           temporary = FALSE,
-          schema = attr(cdm, "write_schema"),
           overwrite = TRUE
         )
   }
@@ -152,10 +150,9 @@ getDenominatorCohorts <- function(cdm,
     dplyr::filter(!is.na(.data$sex))
 
     studyPopDb <- studyPopDb %>%
-      CDMConnector::computeQuery(
+      dplyr::compute(
         name = paste0(intermediateTable, "_i_1"),
         temporary = FALSE,
-        schema = attr(cdm, "write_schema"),
         overwrite = TRUE
       )
 
@@ -212,22 +209,21 @@ getDenominatorCohorts <- function(cdm,
         {{ upperAgeLimit }},
         interval = "year"
       ),
-      startDate = !!CDMConnector::asDate(.env$startDateChar),
-      endDate = !!CDMConnector::asDate(.env$endDateChar),
+      start_date = !!CDMConnector::asDate(.env$startDateChar),
+      end_date = !!CDMConnector::asDate(.env$endDateChar),
     ) %>%
     dplyr::filter(
       # drop people too old even at study start
-      .data$upper_age_check >= .data$startDate,
+      .data$upper_age_check >= .data$start_date,
       # drop people too young even at study end
-      .data$lower_age_check <= .data$endDate
+      .data$lower_age_check <= .data$end_date
     ) %>%
     dplyr::select(-c("lower_age_check", "upper_age_check"))
 
     studyPopDb <- studyPopDb %>%
-      CDMConnector::computeQuery(
+      dplyr::compute(
         name = paste0(intermediateTable, "_i_2"),
         temporary = FALSE,
-        schema = attr(cdm, "write_schema"),
         overwrite = TRUE
       )
 
@@ -242,16 +238,15 @@ getDenominatorCohorts <- function(cdm,
   studyPopDb <- studyPopDb %>%
     dplyr::filter(
       # drop people with observation_period_start_date after study end
-      .data$observation_period_start_date <= .data$endDate &
+      .data$observation_period_start_date <= .data$end_date &
         # drop people with observation_period_end_date before study start
-        .data$observation_period_end_date >= .data$startDate
+        .data$observation_period_end_date >= .data$start_date
     )
 
     studyPopDb <- studyPopDb %>%
-      CDMConnector::computeQuery(
+      dplyr::compute(
         name = paste0(intermediateTable, "_i_3"),
         temporary = FALSE,
-        schema = attr(cdm, "write_schema"),
         overwrite = TRUE
       )
 
@@ -300,10 +295,9 @@ getDenominatorCohorts <- function(cdm,
       dplyr::mutate(!!!maxAgeDatesMinusDay)
 
       studyPopDb <- studyPopDb %>%
-        CDMConnector::computeQuery(
+        dplyr::compute(
           name = paste0(intermediateTable, "_i_4"),
           temporary = FALSE,
-          schema = attr(cdm, "write_schema"),
           overwrite = TRUE
         )
 
@@ -314,9 +308,9 @@ getDenominatorCohorts <- function(cdm,
     studyPopDb <- studyPopDb %>%
       dplyr::filter(
         .data[[!!rlang::sym(varLowerAgeLimit)]] <=
-          .data$endDate &
+          .data$end_date &
           .data[[!!rlang::sym(varUpperAgeLimit)]] >=
-            .data$startDate
+            .data$start_date
       )
 
     attrition <- recordAttrition(
@@ -348,16 +342,15 @@ getDenominatorCohorts <- function(cdm,
     studyPopDb <- studyPopDb %>%
       dplyr::filter(
         .data[[!!rlang::sym(varLowerPriorHistory)]] <=
-          .data$endDate,
+          .data$end_date,
         .data[[!!rlang::sym(varLowerPriorHistory)]] <=
           .data$observation_period_end_date
       )
 
       studyPopDb <- studyPopDb %>%
-        CDMConnector::computeQuery(
+        dplyr::compute(
           name = paste0(intermediateTable, "_i_5"),
           temporary = FALSE,
-          schema = attr(cdm, "write_schema"),
           overwrite = TRUE
         )
 
@@ -391,8 +384,8 @@ getDenominatorCohorts <- function(cdm,
       rlang::set_names(glue::glue("last_of_min_age{ageHistCombos$minAge}prior_history{ageHistCombos$daysPriorObservation}"))
 
 
-    minAgeHistStartDates <- glue::glue("dplyr::if_else(last_of_min_age{ageHistCombos$minAge}prior_history{ageHistCombos$daysPriorObservation} < .data$startDate,
-                                       .data$startDate,
+    minAgeHistStartDates <- glue::glue("dplyr::if_else(last_of_min_age{ageHistCombos$minAge}prior_history{ageHistCombos$daysPriorObservation} < .data$start_date,
+                                       .data$start_date,
                                        last_of_min_age{ageHistCombos$minAge}prior_history{ageHistCombos$daysPriorObservation})") %>%
       rlang::parse_exprs() %>%
       rlang::set_names(glue::glue("date_min_age{ageHistCombos$minAge}prior_history{ageHistCombos$daysPriorObservation}"))
@@ -403,10 +396,9 @@ getDenominatorCohorts <- function(cdm,
       dplyr::mutate(!!!minAgeHistStartDates)
 
       studyPopDb <- studyPopDb %>%
-        CDMConnector::computeQuery(
+        dplyr::compute(
           name = paste0(intermediateTable, "_i_6"),
           temporary = FALSE,
-          schema = attr(cdm, "write_schema"),
           overwrite = TRUE
         )
 
@@ -421,9 +413,9 @@ getDenominatorCohorts <- function(cdm,
       rlang::parse_exprs() %>%
       rlang::set_names(glue::glue("first_of_max_age{maxAge}ObsPeriod"))
 
-    maxAgeObsPeriodEndDates <- glue::glue("dplyr::if_else(first_of_max_age{maxAge}ObsPeriod < .data$endDate,
+    maxAgeObsPeriodEndDates <- glue::glue("dplyr::if_else(first_of_max_age{maxAge}ObsPeriod < .data$end_date,
                                        first_of_max_age{maxAge}ObsPeriod,
-                                       .data$endDate)") %>%
+                                       .data$end_date)") %>%
       rlang::parse_exprs() %>%
       rlang::set_names(glue::glue("date_max_age{maxAge}"))
 
@@ -433,20 +425,18 @@ getDenominatorCohorts <- function(cdm,
       dplyr::mutate(!!!maxAgeObsPeriodEndDates)
 
       studyPopDb <- studyPopDb %>%
-        CDMConnector::computeQuery(
+        dplyr::compute(
           name = paste0(intermediateTable, "_cohorts"),
           temporary = FALSE,
-          schema = attr(cdm, "write_schema"),
           overwrite = TRUE
         )
   }
 
   # table to return
   studyPopDb <- studyPopDb %>%
-    CDMConnector::computeQuery(
+    dplyr::compute(
       name = intermediateTable,
       temporary = FALSE,
-      schema = attr(cdm, "write_schema"),
       overwrite = TRUE
     )
 

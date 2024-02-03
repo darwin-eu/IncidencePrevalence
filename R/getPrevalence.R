@@ -49,10 +49,9 @@ getPrevalence <- function(cdm,
     )
 
   studyPop <- studyPop %>%
-    CDMConnector::computeQuery(
+    dplyr::compute(
       name = paste0(tablePrefix, "_prev_working_1"),
       temporary = FALSE,
-      schema = attr(cdm, "write_schema"),
       overwrite = TRUE
     )
 
@@ -118,10 +117,9 @@ getPrevalence <- function(cdm,
       dplyr::select(-minStartDate, -maxStartDate)
 
     studyPop <- studyPop %>%
-      CDMConnector::computeQuery(
+      dplyr::compute(
         name = paste0(tablePrefix, "_prev_working_2"),
         temporary = FALSE,
-        schema = attr(cdm, "write_schema"),
         overwrite = TRUE
       )
 
@@ -152,10 +150,9 @@ getPrevalence <- function(cdm,
         dplyr::select(-"has_full_contribution")
 
       studyPop <- studyPop %>%
-        CDMConnector::computeQuery(
+        dplyr::compute(
           name = paste0(tablePrefix, "_prev_working_3"),
           temporary = FALSE,
-          schema = attr(cdm, "write_schema"),
           overwrite = TRUE
         )
 
@@ -293,14 +290,13 @@ getPrevalence <- function(cdm,
           analysisId
         ) := "outcome_start_date"
       ) %>%
-      CDMConnector::computeQuery(
+      dplyr::compute(
         name = paste0(
           tablePrefix,
           "_analysis_",
           analysisId
         ),
         temporary = FALSE,
-        schema = attr(cdm, "write_schema"),
         overwrite = TRUE
       )
   }

@@ -69,8 +69,7 @@ test_that("mock db: check output format", {
 
   # by default we don´t return the participants
   expect_true(is.null(participants(prev, analysisId = 1)))
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-
+  CDMConnector::cdm_disconnect(cdm)
 
   cdm <- mockIncidencePrevalenceRef()
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
@@ -92,7 +91,7 @@ test_that("mock db: check output format", {
     dplyr::select("subject_id") %>%
     dplyr::pull() == 1)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: checks on working example", {
@@ -141,7 +140,7 @@ test_that("mock db: checks on working example", {
   )
   expect_true(nrow(prev) >= 1)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: working examples 2", {
@@ -198,7 +197,7 @@ test_that("mock db: working examples 2", {
   )
   expect_true(nrow(prev) >= 1)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check minimum counts", {
@@ -304,7 +303,7 @@ test_that("mock db: check minimum counts", {
   expect_true(is.na(prev$prevalence_95CI_upper[2]))
   expect_true(is.na(prev$prevalence_95CI_upper[3]))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check study time periods", {
@@ -368,7 +367,7 @@ test_that("mock db: check study time periods", {
   # just one row
   expect_true(nrow(prev) == 1)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
   # should return empty if no study days
   personTable <- tibble::tibble(
@@ -434,7 +433,7 @@ test_that("mock db: check study time periods", {
   )
   expect_true(nrow(prev) == 0)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check fullContribution requirement", {
@@ -511,7 +510,7 @@ test_that("mock db: check fullContribution requirement", {
       "Do not satisfy full contribution requirement for an interval") %>%
     dplyr::pull("excluded_subjects") == 1)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check periods follow calendar dates", {
@@ -632,7 +631,7 @@ test_that("mock db: check periods follow calendar dates", {
   expect_true(prev$prevalence_end_date[1] ==
     as.Date("2013-06-15"))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check multiple outcome ids", {
@@ -678,7 +677,7 @@ test_that("mock db: check multiple outcome ids", {
   )
   expect_true(all(prev[["n_cases"]] == 1))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: some empty result sets", {
@@ -733,7 +732,7 @@ test_that("mock db: some empty result sets", {
   )
   expect_true(nrow(prev) > 0)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check messages when vebose is true", {
@@ -765,7 +764,7 @@ test_that("mock db: check messages when vebose is true", {
     type = "period"
   ))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check expected errors", {
@@ -823,7 +822,7 @@ test_that("mock db: check expected errors", {
     returnParticipants = TRUE
   ))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check user point prevalence function", {
@@ -847,7 +846,7 @@ test_that("mock db: check user point prevalence function", {
   expect_true(all(names(prev) ==
     names(prev_point)))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check user period prevalence function", {
@@ -872,7 +871,7 @@ test_that("mock db: check user period prevalence function", {
   expect_true(all(names(prev) ==
     names(prev_period)))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: multiple observation periods", {
@@ -981,7 +980,7 @@ test_that("mock db: multiple observation periods", {
   )
   expect_true(sum(ppo$n_cases) == 0)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check confidence intervals", {
@@ -1011,7 +1010,7 @@ test_that("mock db: check confidence intervals", {
     tolerance = 1e-2
   )
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check attrition", {
@@ -1044,7 +1043,7 @@ test_that("mock db: check attrition", {
   expect_true(nrow(prevalenceAttrition(result = prev) %>%
     dplyr::filter(analysis_id == 2)) > 1)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check attrition with complete database intervals", {
@@ -1119,7 +1118,7 @@ test_that("mock db: check attrition with complete database intervals", {
                 dplyr::filter(reason == "Not observed during the complete database interval") %>%
                 dplyr::pull("excluded_subjects") == "<5")
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check compute permanent", {
@@ -1142,7 +1141,7 @@ test_that("mock db: check compute permanent", {
   #   CDMConnector::listTables(attr(cdm, "dbcon")),
   #   "dbplyr_"
   # )))
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
   # using permanent (no prefix)
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
@@ -1196,14 +1195,13 @@ test_that("mock db: check compute permanent", {
     "period_prev_participants1"
   )))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check participants", {
   skip_on_cran()
 
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  attr(cdm, "write_schema") <- c(schema = "main", prefix = "test_")
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
 
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "dpop",
@@ -1222,18 +1220,17 @@ test_that("mock db: check participants", {
     returnParticipants = TRUE
   )
 
-  # TODO
   # we should have cleaned up all the intermediate tables
-  # expect_true(all(CDMConnector::listTables(attr(cdm, "dbcon"),
-  #   schema = attr(cdm, "write_schema")
-  # ) %in%
-  #   c(
-  #     "dpop",
-  #     "test_point_prev_participants1",
-  #     "test_dpop_attrition",
-  #     "test_dpop_set",
-  #     "test_dpop_count",
-  #   )))
+  expect_true(all(CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
+    schema = attr(cdm, "write_schema")
+  ) %in%
+    c(
+      "dpop",
+      "test_point_prev_participants1",
+      "test_dpop_attrition",
+      "test_dpop_set",
+      "test_dpop_count",
+    )))
   expect_true(all(!c(
     "test_prevalence_analysis_1",
     "test_prev_working_1"
@@ -1261,14 +1258,13 @@ test_that("mock db: check participants", {
     dplyr::collect() %>%
     dplyr::filter(is.na(cohort_start_date))) == 0)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: overwriting participants", {
   skip_on_cran()
 
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  attr(cdm, "write_schema") <- c(schema = "main", prefix = "test_")
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
 
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "dpop",
@@ -1302,13 +1298,13 @@ test_that("mock db: overwriting participants", {
   # we should have two tables with participants
   # one for each function call
   expect_true(length(stringr::str_subset(
-    CDMConnector::listTables(attr(cdm, "dbcon"),
+    CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
       schema = attr(cdm, "write_schema")
     ),
     "participants"
   )) == 2)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: if missing cohort attributes", {
@@ -1322,25 +1318,25 @@ test_that("mock db: if missing cohort attributes", {
     outcomeTable = "outcome",
     interval = "years"
   ))
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
   # missing cohort_count
   cdm <- mockIncidencePrevalenceRef()
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
-  attr(cdm$outcome, "cohort_count") <- NULL
+  attr(cdm$outcome, "cohort_attrition") <- NULL
   expect_error(estimatePrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "years"
   ))
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: test empty outcome table works", {
   skip_on_cran()
 
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
 
   cdm[["outcome"]] <- cdm[["outcome"]] %>% dplyr::filter(cohort_definition_id == 33)
 
@@ -1357,7 +1353,7 @@ test_that("mock db: test empty outcome table works", {
 
 test_that("mock db: prevalence using strata vars", {
 
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 2000,
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000,
                                     outPre = 0.7)
 
   cdm <- generateDenominatorCohortSet(cdm = cdm,
@@ -1371,9 +1367,9 @@ test_that("mock db: prevalence using strata vars", {
   )
 
   cdm$denominator <- cdm$denominator %>%
-    dplyr::mutate(my_strata = dplyr::if_else(year(cohort_start_date) < 2011,
+    dplyr::mutate(my_strata = dplyr::if_else(year(cohort_start_date) < 1990,
                                              "first", "second")) %>%
-    CDMConnector::compute_query()
+    dplyr::compute()
 
   prev <- estimatePrevalence(
     cdm = cdm,
@@ -1402,7 +1398,7 @@ test_that("mock db: prevalence using strata vars", {
   cdm$denominator <- cdm$denominator %>%
     dplyr::mutate(my_strata2 =  dplyr::if_else(month(cohort_start_date)<7,
                                                "a", "b")) %>%
-    CDMConnector::compute_query()
+    dplyr::compute()
 
   prev2 <- estimatePrevalence(
     cdm = cdm,
