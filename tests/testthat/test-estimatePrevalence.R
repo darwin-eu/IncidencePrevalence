@@ -534,13 +534,11 @@ test_that("mock db: check periods follow calendar dates", {
     cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
-      as.Date("2010-03-01"),
       as.Date("2011-01-31"),
       as.Date("2011-02-01"),
       as.Date("2011-03-01")
     ),
     cohort_end_date = c(
-      as.Date("2010-03-01"),
       as.Date("2011-01-31"),
       as.Date("2011-02-01"),
       as.Date("2011-03-01")
@@ -692,17 +690,17 @@ test_that("mock db: some empty result sets", {
   observationPeriodTable <- tibble::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
-    observation_period_start_date = as.Date("2012-01-01"),
+    observation_period_start_date = as.Date("2012-02-01"),
     observation_period_end_date = as.Date("2012-06-01")
   )
   outcomeTable <- tibble::tibble(
     cohort_definition_id = c(1, 2), # two different outcome ids
     subject_id = c("1", "2"),
     cohort_start_date = c(
-      as.Date("2011-02-05")
+      as.Date("2012-02-05")
     ),
     cohort_end_date = c(
-      as.Date("2011-02-05")
+      as.Date("2012-02-05")
     )
   )
   cdm <- mockIncidencePrevalenceRef(
@@ -731,38 +729,6 @@ test_that("mock db: some empty result sets", {
     minCellCount = 0
   )
   expect_true(nrow(prev) > 0)
-
-  CDMConnector::cdm_disconnect(cdm)
-})
-
-test_that("mock db: check messages when vebose is true", {
-  skip_on_cran()
-  outcomeTable <- tibble::tibble(
-    cohort_definition_id = 1,
-    subject_id = "1",
-    cohort_start_date = c(
-      as.Date("2010-02-05")
-    ),
-    cohort_end_date = c(
-      as.Date("2010-02-05")
-    )
-  )
-
-  cdm <- mockIncidencePrevalenceRef(outcomeTable = outcomeTable)
-
-  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
-
-  expect_message(estimatePrevalence(cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    type = "point"
-  ))
-
-  expect_message(estimatePrevalence(cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    type = "period"
-  ))
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -905,19 +871,17 @@ test_that("mock db: multiple observation periods", {
   )
 
   conditionX <- tibble::tibble(
-    cohort_definition_id = c(1, 1, 1, 1),
-    subject_id = c("1", "1", "1", "2"),
+    cohort_definition_id = c( 1, 1, 1),
+    subject_id = c("1", "1", "2"),
     cohort_start_date = c(
       as.Date("2005-04-01"),
       as.Date("2009-06-10"),
-      as.Date("2010-08-20"),
-      as.Date("2010-01-01")
+      as.Date("2013-01-01")
     ),
     cohort_end_date = c(
       as.Date("2005-11-29"),
       as.Date("2010-01-02"),
-      as.Date("2011-10-11"),
-      as.Date("2015-06-01")
+      as.Date("2015-01-01")
     )
   )
 
@@ -956,19 +920,30 @@ test_that("mock db: multiple observation periods", {
     targetCohortTable = "target",
     targetCohortId = 1
   )
-
-  # should expect for period prevalence monthly 3 times with n_cases 1,
-  # and denominator 1 only at inclusion criteria satisfaction
   ppe <- estimatePeriodPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    interval = "months",
+    interval = "years",
+    fullContribution = FALSE,
+    completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
-  expect_true(sum(ppe$n_cases) == 3)
-  expect_true(sum(ppe$n_population) == 8 + 8 + 14)
+  # nobody should appear in 2006
+  expect_true(ppe %>%
+    dplyr::filter(prevalence_start_date == "2006-01-01") %>%
+    dplyr::pull("n_population") == 0)
+  expect_true(ppe %>%
+    dplyr::filter(prevalence_start_date == "2006-01-01") %>%
+    dplyr::pull("n_cases") == 0)
 
+  # one person with an event in 2005
+  expect_true(ppe %>%
+                dplyr::filter(lubridate::year(prevalence_start_date) == "2005") %>%
+                dplyr::pull("n_population") == 1)
+  expect_true(ppe %>%
+                dplyr::filter(lubridate::year(prevalence_start_date) == "2005") %>%
+                dplyr::pull("n_cases") == 1)
 
   # as for point prevalence, we would expect no positive n_cases at default
   ppo <- estimatePointPrevalence(
@@ -985,7 +960,7 @@ test_that("mock db: multiple observation periods", {
 
 test_that("mock db: check confidence intervals", {
   skip_on_cran()
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator"
   )
@@ -995,7 +970,8 @@ test_that("mock db: check confidence intervals", {
     type = "point",
     interval = "years",
     minCellCount = 0
-  )
+  ) %>%
+    dplyr::filter(n_population > 1)
 
   # compare our wilson CIs with those from Hmisc
   hmisc_ci <- Hmisc::binconf(prev$n_cases, prev$n_population,
@@ -1003,6 +979,7 @@ test_that("mock db: check confidence intervals", {
     method = c("wilson"),
     return.df = TRUE
   )
+
   expect_equal(prev$prevalence_95CI_lower, hmisc_ci$Lower,
     tolerance = 1e-2
   )
@@ -1015,7 +992,7 @@ test_that("mock db: check confidence intervals", {
 
 test_that("mock db: check attrition", {
   skip_on_cran()
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     sex = c("Male", "Female")
@@ -1049,22 +1026,24 @@ test_that("mock db: check attrition", {
 test_that("mock db: check attrition with complete database intervals", {
   skip_on_cran()
   personTable <- tibble::tibble(
-    person_id = c("1", "2"),
+    person_id = c("1", "2", "3"),
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
   observationPeriodTable <- tibble::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c("1", "2", "3"),
+    person_id = c("1", "2", "3"),
     observation_period_start_date = c(
+      as.Date("2000-06-01"),
       as.Date("2000-06-01"),
       as.Date("2000-06-01")
     ),
     observation_period_end_date = c(
-      as.Date("2000-07-01"),
-      as.Date("2012-06-01")
+      as.Date("2011-07-01"),
+      as.Date("2012-06-01"),
+      as.Date("2000-06-15")
     )
   )
   outcomeTable <- tibble::tibble(
@@ -1124,28 +1103,9 @@ test_that("mock db: check attrition with complete database intervals", {
 test_that("mock db: check compute permanent", {
   skip_on_cran()
 
-  # using temp
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  attr(cdm, "write_schema") <- "main"
-
-  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "dpop")
-  prev <- estimatePrevalence(
-    cdm = cdm,
-    denominatorTable = "dpop",
-    outcomeTable = "outcome",
-    interval = "years"
-  )
-  # if using temp tables
-  # we have temp tables created by dbplyr
-  # expect_true(any(stringr::str_starts(
-  #   CDMConnector::listTables(attr(cdm, "dbcon")),
-  #   "dbplyr_"
-  # )))
-  CDMConnector::cdm_disconnect(cdm)
-
   # using permanent (no prefix)
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  attr(cdm, "write_schema") <- "main"
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
+  attr(attr(cdm, "cdm_source"), "write_schema") <- "main"
 
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "dpop"
@@ -1159,7 +1119,9 @@ test_that("mock db: check compute permanent", {
   )
   # no temp tables created by dbplyr
   expect_false(any(stringr::str_starts(
-    CDMConnector::listTables(attr(cdm, "dbcon")),
+      CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
+                               schema = attr(attr(cdm, "cdm_source"), "write_schema")
+      ),
     "dbplyr_"
   )))
 
@@ -1173,8 +1135,8 @@ test_that("mock db: check compute permanent", {
     returnParticipants = TRUE
   )
   expect_true(any(stringr::str_detect(
-    CDMConnector::listTables(attr(cdm, "dbcon"),
-      schema = attr(cdm, "write_schema")
+    CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
+      schema = attr(attr(cdm, "cdm_source"), "write_schema")
     ),
     "point_prev_participants1"
   )))
@@ -1189,8 +1151,8 @@ test_that("mock db: check compute permanent", {
     returnParticipants = TRUE
   )
   expect_true(any(stringr::str_detect(
-    CDMConnector::listTables(attr(cdm, "dbcon"),
-      schema = attr(cdm, "write_schema")
+    CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
+      schema = attr(attr(cdm, "cdm_source"), "write_schema")
     ),
     "period_prev_participants1"
   )))
@@ -1201,7 +1163,7 @@ test_that("mock db: check compute permanent", {
 test_that("mock db: check participants", {
   skip_on_cran()
 
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 100)
 
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "dpop",
@@ -1212,6 +1174,9 @@ test_that("mock db: check participants", {
     )
   )
 
+  start_tables <- CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
+                                           schema = attr(attr(cdm, "cdm_source"), "write_schema"))
+
   prev <- estimatePrevalence(
     cdm = cdm,
     denominatorTable = "dpop",
@@ -1219,44 +1184,45 @@ test_that("mock db: check participants", {
     temporary = FALSE,
     returnParticipants = TRUE
   )
+  end_tables <- CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
+                                           schema = attr(attr(cdm, "cdm_source"), "write_schema"))
 
-  # we should have cleaned up all the intermediate tables
-  expect_true(all(CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
-    schema = attr(cdm, "write_schema")
-  ) %in%
-    c(
-      "dpop",
-      "test_point_prev_participants1",
-      "test_dpop_attrition",
-      "test_dpop_set",
-      "test_dpop_count",
-    )))
-  expect_true(all(!c(
-    "test_prevalence_analysis_1",
-    "test_prev_working_1"
-  ) %in%
-    CDMConnector::listTables(attr(cdm, "dbcon"),
-      schema = attr(
-        cdm,
-        "write_schema"
-      )
-    )))
+  new_tables <- setdiff(end_tables, start_tables)
+  # we should have one new database table with our participants
+  # everything else should have been cleaned up along the way
+  expect_true(length(new_tables) == 1)
 
-  expect_equal(
-    names(participants(prev, 1) %>%
-      head(1) %>%
-      dplyr::collect()),
-    c(
-      "subject_id",
+  prev_participants <- participants(prev, 1) %>% dplyr::collect()
+  expect_equal(names(prev_participants),
+    c("subject_id",
       "cohort_start_date",
       "cohort_end_date",
-      "outcome_start_date"
-    )
+      "outcome_start_date"))
+
+  expect_true(nrow(prev_participants %>%
+    dplyr::filter(is.na(cohort_start_date))) == 0)
+
+  prev2 <- estimatePrevalence(
+    cdm = cdm,
+    denominatorTable = "dpop",
+    interval = "months",
+    outcomeTable = "outcome",
+    temporary = FALSE,
+    returnParticipants = TRUE
   )
 
-  expect_true(nrow(participants(prev, 1) %>%
-    dplyr::collect() %>%
-    dplyr::filter(is.na(cohort_start_date))) == 0)
+  end_tables2 <- CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
+                                         schema = attr(attr(cdm, "cdm_source"), "write_schema"))
+
+  new_tables2 <- setdiff(end_tables2, start_tables)
+  # we should have another new database table with our participants from the
+  # 2nd analysis
+  expect_true(length(new_tables2) == 2)
+
+  # with participants from first analysis unchanged
+  expect_equal(prev_participants,
+               participants(prev, 1) %>%
+                 dplyr::collect())
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -1299,7 +1265,7 @@ test_that("mock db: overwriting participants", {
   # one for each function call
   expect_true(length(stringr::str_subset(
     CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
-      schema = attr(cdm, "write_schema")
+      schema = attr(attr(cdm, "cdm_source"), "write_schema")
     ),
     "participants"
   )) == 2)

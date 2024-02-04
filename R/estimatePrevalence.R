@@ -378,7 +378,7 @@ estimatePrevalence <- function(cdm,
   # the denominator cohort used
   for (i in seq_along(studySpecs)) {
     prsList[names(prsList) == "attrition"][[i]] <- dplyr::bind_rows(
-      CDMConnector::cohortAttrition(cdm[[denominatorTable]]) %>%
+      CDMConnector::attrition(cdm[[denominatorTable]]) %>%
         dplyr::rename("denominator_cohort_id" = "cohort_definition_id") %>%
         dplyr::filter(.data$denominator_cohort_id ==
           studySpecs[[i]]$denominatorCohortId) %>%
@@ -446,7 +446,6 @@ estimatePrevalence <- function(cdm,
       dplyr::compute(
         name = paste0(type, "_prev_participants", p),
         temporary = FALSE,
-        schema = attr(attr(cdm, "cdm_source"), "write_schema"),
         overwrite = TRUE
       )
     CDMConnector::dropTable(
