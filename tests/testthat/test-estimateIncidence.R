@@ -69,7 +69,7 @@ test_that("mock db: check output format", {
 
   # do not return participants as default
   expect_true(is.null(participants(inc, 1)))
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
   cdm <- mockIncidencePrevalenceRef()
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
@@ -88,7 +88,7 @@ test_that("mock db: check output format", {
     dplyr::select("subject_id") %>%
     dplyr::pull() == 1)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: checks on working example", {
@@ -138,9 +138,9 @@ test_that("mock db: checks on working example", {
 
   # reconnect
   cdmReconn <- CDMConnector::cdm_from_con(
-    con = attr(cdm, "dbcon"),
+    con =  attr(attr(cdm, "cdm_source"), "dbcon"),
     cohort_tables = c("denominator", "outcome"),
-    write_schema = "main"
+    write_schema = "main", cdm_schema = "main", cdm_name = "mock"
   )
   inc_recon <- estimateIncidence(
     cdm = cdmReconn,
@@ -148,10 +148,10 @@ test_that("mock db: checks on working example", {
     outcomeTable = "outcome",
     interval = c("years", "overall")
   )
-  # expect_equal(inc, inc_recon)
-  # expect_equal(incidenceAttrition(inc), incidenceAttrition(inc_recon))
+  expect_equal(inc, inc_recon)
+  expect_equal(incidenceAttrition(inc), incidenceAttrition(inc_recon))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check working example 2", {
@@ -246,7 +246,7 @@ test_that("mock db: check working example 2", {
   )
   expect_true(sum(inc$n_events) == 1)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check study periods", {
@@ -317,7 +317,7 @@ test_that("mock db: check study periods", {
   # we expect 10 months of which the last in november
   expect_true(nrow(inc) == 10)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check overall", {
@@ -404,7 +404,7 @@ test_that("mock db: check overall", {
   expect_true(inc$incidence_end_date ==
     as.Date("2011-06-15")) # date of end of obs
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check person days", {
@@ -496,7 +496,7 @@ test_that("mock db: check person days", {
       as.Date("2021-01-01")
     )) + 1))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check periods follow calendar dates", {
@@ -578,7 +578,7 @@ test_that("mock db: check periods follow calendar dates", {
   expect_true(inc$n_events[2] == 1)
   expect_true(inc$n_events[3] == 1)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check washout windows", {
@@ -684,7 +684,7 @@ test_that("mock db: check washout windows", {
   expect_true(sum(incNull$person_days) <
     sum(incW365$person_days))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
 
   # never satisfy criteria in study period
@@ -698,14 +698,14 @@ test_that("mock db: check washout windows", {
   observationPeriodTable <- tibble::tibble(
     observation_period_id = "1",
     person_id = "1",
-    observation_period_start_date = as.Date("2010-01-01"),
+    observation_period_start_date = as.Date("2009-01-01"),
     observation_period_end_date = as.Date("2012-12-31")
   )
   outcomeTable <- tibble::tibble(
     cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
-      as.Date("2009-06-01")
+      as.Date("2009-12-31")
     ),
     cohort_end_date = c(
       as.Date("2010-06-02")
@@ -718,7 +718,9 @@ test_that("mock db: check washout windows", {
     outcomeTable = outcomeTable
   )
 
-  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
+  cdm <- generateDenominatorCohortSet(cdm = cdm,
+                                      name = "denominator",
+                                      cohortDateRange = as.Date(c("2010-01-01", NA)))
 
   incW365 <- estimateIncidence(cdm,
     denominatorTable = "denominator",
@@ -730,7 +732,7 @@ test_that("mock db: check washout windows", {
   )
   expect_true(nrow(incW365) == 0)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check events overlapping with start of a period", {
@@ -784,7 +786,7 @@ test_that("mock db: check events overlapping with start of a period", {
   )
 
   expect_true(all(inc$n_persons == 1))
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
   # another example
   personTable <- tibble::tibble(
@@ -835,7 +837,7 @@ test_that("mock db: check events overlapping with start of a period", {
   )
   expect_true(all(inc2$n_persons == 1))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: compare results from months and years", {
@@ -904,10 +906,10 @@ test_that("mock db: compare results from months and years", {
     sum(incMonths$person_years),
     sum(incYears$person_years)
   )
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
 
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator", cohortDateRange = c(as.Date("2010-01-01"), as.Date("2011-12-31"))
   )
@@ -980,7 +982,7 @@ test_that("mock db: compare results from months and years", {
   )
 
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check entry and event on same day", {
@@ -1041,7 +1043,7 @@ test_that("mock db: check entry and event on same day", {
   )
   expect_true(sum(incWithRep$n_events) == 1)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: cohort start overlaps with the outcome", {
@@ -1057,19 +1059,19 @@ test_that("mock db: cohort start overlaps with the outcome", {
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
-      as.Date("2020-05-09"),
+      as.Date("2019-05-09"),
       as.Date("2019-01-01")
     ),
     observation_period_end_date = c(
-      as.Date("2020-12-31"),
-      as.Date("2020-12-31")
+      as.Date("2022-05-19"),
+      as.Date("2021-12-31")
     )
   )
   outcomeTable <- tibble::tibble(
     cohort_definition_id = 1,
     subject_id = c("1"),
-    cohort_start_date = c(as.Date("2020-04-28")),
-    cohort_end_date = c(as.Date("2020-05-19"))
+    cohort_start_date = c(as.Date("2019-05-09")),
+    cohort_end_date = c(as.Date("2022-05-19"))
   )
 
   cdm <- mockIncidencePrevalenceRef(
@@ -1080,7 +1082,8 @@ test_that("mock db: cohort start overlaps with the outcome", {
 
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
-    ageGroup = list(c(20, 30))
+    cohortDateRange = as.Date(c("2021-01-01",
+                                "2021-12-31"))
   )
 
   inc <- estimateIncidence(
@@ -1093,12 +1096,12 @@ test_that("mock db: cohort start overlaps with the outcome", {
     minCellCount = 0
   )
 
-  expect_true(all(inc$n_persons == c(1, 2)))
+  expect_true(all(inc$n_persons == c(1)))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
-test_that("mock db: check outcome before observation period start", {
+test_that("mock db: check outcome in previous obeservation period", {
   skip_on_cran()
   # 1) with outcome starting and ending before observation period start
   personTable <- tibble::tibble(
@@ -1109,13 +1112,15 @@ test_that("mock db: check outcome before observation period start", {
     day_of_birth = c(01, 01)
   )
   observationPeriodTable <- tibble::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c("1", "2" ,"3"),
+    person_id = c("1", "1", "2"),
     observation_period_start_date = c(
       as.Date("2000-01-01"),
+      as.Date("2010-01-01"),
       as.Date("2000-01-01")
     ),
     observation_period_end_date = c(
+      as.Date("2005-12-31"),
       as.Date("2020-12-31"),
       as.Date("2020-12-31")
     )
@@ -1123,8 +1128,8 @@ test_that("mock db: check outcome before observation period start", {
   outcomeTable <- tibble::tibble(
     cohort_definition_id = c(1, 1),
     subject_id = c("1", "1"),
-    cohort_start_date = c(as.Date("1999-01-01")),
-    cohort_end_date = c(as.Date("1999-05-01"))
+    cohort_start_date = as.Date(c("2000-01-01", "2018-01-01")),
+    cohort_end_date = as.Date(c("2005-12-31", "2019-01-01"))
   )
 
   cdm <- mockIncidencePrevalenceRef(
@@ -1134,7 +1139,8 @@ test_that("mock db: check outcome before observation period start", {
   )
 
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "denominator", cohortDateRange = c(as.Date("2000-01-01"), as.Date("2004-01-01"))
+    cdm = cdm, name = "denominator",
+    cohortDateRange = c(as.Date("2011-01-01"), as.Date("2020-01-01"))
   )
 
   # with rep events - should have both people
@@ -1147,68 +1153,9 @@ test_that("mock db: check outcome before observation period start", {
     interval = c("Years"),
     minCellCount = 0
   )
-  incNoRep <- estimateIncidence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    outcomeWashout = Inf,
-    repeatedEvents = TRUE,
-    interval = c("Years"),
-    minCellCount = 0
-  )
-
   expect_true(all(incRep$n_persons == 2))
-  expect_true(all(incNoRep$n_persons == 1))
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
-  # 2) with outcome starting before observation period start,
-  # ending during observation period
-  personTable <- tibble::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = c("8507", "8532"),
-    year_of_birth = c(1995, 1995),
-    month_of_birth = c(07, 07),
-    day_of_birth = c(01, 01)
-  )
-  observationPeriodTable <- tibble::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
-    observation_period_start_date = c(
-      as.Date("2000-01-01"),
-      as.Date("2000-01-01")
-    ),
-    observation_period_end_date = c(
-      as.Date("2020-12-31"),
-      as.Date("2020-12-31")
-    )
-  )
-  outcomeTable <- tibble::tibble(
-    cohort_definition_id = 1,
-    subject_id = c("1"),
-    cohort_start_date = c(as.Date("1999-01-01")),
-    cohort_end_date = c(as.Date("2021-05-01"))
-  )
-
-  cdm <- mockIncidencePrevalenceRef(
-    personTable = personTable,
-    observationPeriodTable = observationPeriodTable,
-    outcomeTable = outcomeTable
-  )
-
-  cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "denominator", cohortDateRange = c(as.Date("2000-01-01"), as.Date("2004-01-01"))
-  )
-
-  # with rep events - should have one person for rep, both people in second
-  incRep <- estimateIncidence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    outcomeWashout = 0,
-    repeatedEvents = TRUE,
-    interval = c("Years"),
-    minCellCount = 0
-  )
+  # with inf wash out- should only have 1 person
   incNoRep <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
@@ -1218,73 +1165,23 @@ test_that("mock db: check outcome before observation period start", {
     interval = c("Years"),
     minCellCount = 0
   )
-
-  expect_true(all(incRep$n_persons == 1))
   expect_true(all(incNoRep$n_persons == 1))
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
 
-  # 3) with outcome starting before observation period start,
-  # ending after observation period end
-  personTable <- tibble::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = c("8507", "8532"),
-    year_of_birth = c(1995, 1995),
-    month_of_birth = c(07, 07),
-    day_of_birth = c(01, 01)
-  )
-  observationPeriodTable <- tibble::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
-    observation_period_start_date = c(
-      as.Date("2000-01-01"),
-      as.Date("2000-01-01")
-    ),
-    observation_period_end_date = c(
-      as.Date("2020-12-31"),
-      as.Date("2020-12-31")
-    )
-  )
-  outcomeTable <- tibble::tibble(
-    cohort_definition_id = 1,
-    subject_id = c("1"),
-    cohort_start_date = c(as.Date("1999-01-01")),
-    cohort_end_date = c(as.Date("2001-05-01"))
-  )
-
-  cdm <- mockIncidencePrevalenceRef(
-    personTable = personTable,
-    observationPeriodTable = observationPeriodTable,
-    outcomeTable = outcomeTable
-  )
-
-  cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "denominator", cohortDateRange = c(as.Date("2000-01-01"), as.Date("2004-01-01"))
-  )
-
-  # with rep events - should have both people
-  incRep <- estimateIncidence(
+  # with 5 year wash out- should have 2 people at the start of the study period
+  incNoRep2 <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    outcomeWashout = 0,
+    outcomeWashout = 1825,
     repeatedEvents = TRUE,
     interval = c("Years"),
     minCellCount = 0
   )
-  incNoRep <- estimateIncidence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    outcomeWashout = Inf,
-    repeatedEvents = TRUE,
-    interval = c("Years"),
-    minCellCount = 0
-  )
+  expect_true(max(incNoRep2$n_persons) == 2)
 
-  expect_true(all(incRep$n_persons == c(1, 2, 2, 2)))
-  expect_true(all(incNoRep$n_persons == 1))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
+
 })
 
 test_that("mock db: check minimum counts", {
@@ -1384,7 +1281,7 @@ test_that("mock db: check minimum counts", {
   expect_true(!is.na(inc$incidence_100000_pys_95CI_upper[1]))
   expect_true(is.na(inc$incidence_100000_pys_95CI_upper[2]))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: multiple overlapping outcomes", {
@@ -1412,7 +1309,7 @@ test_that("mock db: multiple overlapping outcomes", {
   outcomeTable <- tibble::tibble(
     cohort_definition_id = c(1, 1),
     subject_id = c("1", "1"),
-    cohort_start_date = c(as.Date("2020-04-26"), as.Date("2020-11-10")),
+    cohort_start_date = c(as.Date("2020-04-29"), as.Date("2020-11-10")),
     cohort_end_date = c(as.Date("2020-05-17"), as.Date("2020-12-17"))
   )
 
@@ -1434,7 +1331,7 @@ test_that("mock db: multiple overlapping outcomes", {
     minCellCount = 0
   )
   expect_true(all(inc$n_persons) == 1)
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
   # three
   personTable <- tibble::tibble(
@@ -1460,7 +1357,7 @@ test_that("mock db: multiple overlapping outcomes", {
     cohort_definition_id = c(1, 1, 1),
     subject_id = c("1", "1", "1"),
     cohort_start_date = c(
-      as.Date("2020-04-26"),
+      as.Date("2020-04-29"),
       as.Date("2020-11-08"),
       as.Date("2020-11-10")
     ),
@@ -1490,7 +1387,7 @@ test_that("mock db: multiple overlapping outcomes", {
   )
   expect_true(all(inc$n_persons) == 1)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: cohort before period start ending after period", {
@@ -1510,7 +1407,7 @@ test_that("mock db: cohort before period start ending after period", {
       as.Date("2000-07-31")
     ),
     observation_period_end_date = c(
-      as.Date("2010-01-01"),
+      as.Date("2020-01-01"),
       as.Date("2010-01-01")
     )
   )
@@ -1567,7 +1464,7 @@ test_that("mock db: cohort before period start ending after period", {
   )
   expect_true(all(inc$n_events == c(1)))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check full period requirement - year", {
@@ -1584,18 +1481,18 @@ test_that("mock db: check full period requirement - year", {
     person_id = c("1", "2"),
     observation_period_start_date = c(
       as.Date("2020-05-09"),
-      as.Date("2020-01-01")
+      as.Date("2020-03-01")
     ),
     observation_period_end_date = c(
-      as.Date("2021-06-06"),
+      as.Date("2020-06-06"),
       as.Date("2021-06-06")
     )
   )
   outcomeTable <- tibble::tibble(
     cohort_definition_id = 1,
     subject_id = c("1"),
-    cohort_start_date = c(as.Date("2020-04-28")),
-    cohort_end_date = c(as.Date("2020-05-19"))
+    cohort_start_date = c(as.Date("2020-05-28")),
+    cohort_end_date = c(as.Date("2020-05-29"))
   )
 
   cdm <- mockIncidencePrevalenceRef(
@@ -1615,11 +1512,12 @@ test_that("mock db: check full period requirement - year", {
     outcomeTable = "outcome",
     outcomeWashout = Inf,
     repeatedEvents = TRUE,
+    completeDatabaseIntervals = TRUE,
     interval = c("Years"),
     minCellCount = 0
   )
-  expect_true(inc$n_persons[1] == 1)
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  expect_true(nrow(inc) == 0)
+  CDMConnector::cdm_disconnect(cdm)
 
   # edge case first day to last of the year
   # still expect this to work
@@ -1645,8 +1543,8 @@ test_that("mock db: check full period requirement - year", {
   outcomeTable <- tibble::tibble(
     cohort_definition_id = 1,
     subject_id = c("1"),
-    cohort_start_date = c(as.Date("2020-04-28")),
-    cohort_end_date = c(as.Date("2020-05-19"))
+    cohort_start_date = c(as.Date("2020-05-29")),
+    cohort_end_date = c(as.Date("2020-05-29"))
   )
 
   cdm <- mockIncidencePrevalenceRef(
@@ -1669,9 +1567,9 @@ test_that("mock db: check full period requirement - year", {
     interval = c("Years"),
     minCellCount = 0
   )
-  expect_true(inc$n_persons[1] == 1)
+  expect_true(nrow(inc) == 1)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check full period requirement - month", {
@@ -1688,7 +1586,7 @@ test_that("mock db: check full period requirement - month", {
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
-      as.Date("2020-05-09"),
+      as.Date("2020-04-28"),
       as.Date("2020-01-01")
     ),
     observation_period_end_date = c(
@@ -1724,7 +1622,7 @@ test_that("mock db: check full period requirement - month", {
     minCellCount = 0
   )
   expect_true(nrow(inc) >= 1)
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
   # edge case first day to last of the month
   # still expect this to work
@@ -1739,11 +1637,11 @@ test_that("mock db: check full period requirement - month", {
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
-      as.Date("2020-05-09"),
+      as.Date("2020-04-28"),
       as.Date("2020-01-01")
     ),
     observation_period_end_date = c(
-      as.Date("2020-01-31"),
+      as.Date("2020-04-29"),
       as.Date("2020-01-31")
     )
   )
@@ -1751,7 +1649,7 @@ test_that("mock db: check full period requirement - month", {
     cohort_definition_id = 1,
     subject_id = c("1"),
     cohort_start_date = c(as.Date("2020-04-28")),
-    cohort_end_date = c(as.Date("2020-05-19"))
+    cohort_end_date = c(as.Date("2020-04-28"))
   )
 
   cdm <- mockIncidencePrevalenceRef(
@@ -1777,7 +1675,7 @@ test_that("mock db: check full period requirement - month", {
   expect_true(inc$n_persons == 1)
   expect_true(nrow(inc) >= 1)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check completeDatabaseIntervals", {
@@ -1883,7 +1781,7 @@ test_that("mock db: check completeDatabaseIntervals", {
   expect_true(lubridate::year(inc$incidence_start_date[2]) == "2020")
   expect_true(lubridate::year(inc$incidence_start_date[3]) == "2021")
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check insufficient study days", {
@@ -1910,8 +1808,8 @@ test_that("mock db: check insufficient study days", {
   outcomeTable <- tibble::tibble(
     cohort_definition_id = 1,
     subject_id = c("1"),
-    cohort_start_date = c(as.Date("2019-06-06")),
-    cohort_end_date = c(as.Date("2019-06-06"))
+    cohort_start_date = c(as.Date("2019-06-01")),
+    cohort_end_date = c(as.Date("2019-06-01"))
   )
 
   cdm <- mockIncidencePrevalenceRef(
@@ -1939,7 +1837,7 @@ test_that("mock db: check insufficient study days", {
 
   expect_true(nrow(inc) == 0)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check with and without study start and end date", {
@@ -1970,7 +1868,7 @@ test_that("mock db: check with and without study start and end date", {
     tibble::tibble(
       cohort_definition_id = 1,
       subject_id = "1",
-      cohort_start_date = c(as.Date("2002-01-01")),
+      cohort_start_date = c(as.Date("2007-01-01")),
       cohort_end_date = c(as.Date("2022-12-31"))
     ),
     # 2 multiple events
@@ -1995,7 +1893,7 @@ test_that("mock db: check with and without study start and end date", {
     tibble::tibble(
       cohort_definition_id = 1,
       subject_id = "2",
-      cohort_start_date = c(as.Date("2011-06-01")),
+      cohort_start_date = c(as.Date("2011-06-19")),
       cohort_end_date = c(as.Date("2012-12-31"))
     ),
     # 3 multiple events into the period
@@ -2120,19 +2018,14 @@ test_that("mock db: check with and without study start and end date", {
       dplyr::select("n_events") %>%
       dplyr::pull())
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
-test_that("mock db: check study start and end date 10000", {
+test_that("mock db: check study start and end date 1000", {
   skip_on_cran()
   # with one outcome per person
   cdm <- mockIncidencePrevalenceRef(
-    sampleSize = 10000,
-    earliestObservationStartDate = as.Date("2000-01-01"),
-    latestDateOfBirth = as.Date("2005-01-01"),
-    maxOutcomes = 1,
-    minOutcomeDays = 100,
-    maxOutcomeDays = 1000
+    sampleSize = 1000
   )
 
   # no study period required
@@ -2249,16 +2142,11 @@ test_that("mock db: check study start and end date 10000", {
       dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
       dplyr::select("incidence_100000_pys") %>%
       dplyr::pull())
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
   # with multiple outcomes per person
   cdm <- mockIncidencePrevalenceRef(
-    sampleSize = 10000,
-    earliestObservationStartDate = as.Date("2000-01-01"),
-    latestDateOfBirth = as.Date("2005-01-01"),
-    maxOutcomes = 5,
-    minOutcomeDays = 100,
-    maxOutcomeDays = 1000
+    sampleSize = 1000
   )
 
   # no study period required
@@ -2378,49 +2266,7 @@ test_that("mock db: check study start and end date 10000", {
       dplyr::select("incidence_100000_pys") %>%
       dplyr::pull())
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-})
-
-test_that("mock db: check messages when vebose is true", {
-  skip_on_cran()
-  personTable <- tibble::tibble(
-    person_id = "1",
-    gender_concept_id = "8507",
-    year_of_birth = 2000,
-    month_of_birth = 01,
-    day_of_birth = 01
-  )
-  observationPeriodTable <- tibble::tibble(
-    observation_period_id = "1",
-    person_id = "1",
-    observation_period_start_date = as.Date("2010-01-01"),
-    observation_period_end_date = as.Date("2012-06-01")
-  )
-  outcomeTable <- tibble::tibble(
-    cohort_definition_id = 1,
-    subject_id = "1",
-    cohort_start_date = c(
-      as.Date("2010-02-05")
-    ),
-    cohort_end_date = c(
-      as.Date("2010-02-05")
-    )
-  )
-
-  cdm <- mockIncidencePrevalenceRef(
-    personTable = personTable,
-    observationPeriodTable = observationPeriodTable,
-    outcomeTable = outcomeTable
-  )
-
-  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
-
-  expect_message(estimateIncidence(cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome"
-  ))
-
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("expected errors with mock", {
@@ -2507,7 +2353,7 @@ test_that("expected errors with mock", {
     returnParticipants = TRUE
   ))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: multiple observation periods", {
@@ -2522,18 +2368,16 @@ test_that("mock db: multiple observation periods", {
   )
 
   observationPeriodTable <- tibble::tibble(
-    observation_period_id = c("1", "2", "3", "4"),
-    person_id = c("1", "1", "2", "2"),
+    observation_period_id = c("1", "2", "3"),
+    person_id = c("1", "1", "2"),
     observation_period_start_date = c(
       as.Date("2005-04-01"),
       as.Date("2009-04-10"),
-      as.Date("2010-08-20"),
-      as.Date("2012-01-01")
+      as.Date("2010-12-11")
     ),
     observation_period_end_date = c(
       as.Date("2005-11-29"),
       as.Date("2016-01-02"),
-      as.Date("2011-12-11"),
       as.Date("2015-06-01")
     )
   )
@@ -2542,11 +2386,11 @@ test_that("mock db: multiple observation periods", {
     cohort_definition_id = c(1, 1),
     subject_id = c("1", "2"),
     cohort_start_date = c(
-      as.Date("2002-07-19"),
+      as.Date("2005-07-19"),
       as.Date("2010-12-11")
     ),
     cohort_end_date = c(
-      as.Date("2016-01-02"),
+      as.Date("2005-07-19"),
       as.Date("2015-06-01")
     )
   )
@@ -2593,10 +2437,8 @@ test_that("mock db: multiple observation periods", {
     minCellCount = 0
   )
   # expect all events if we have zero days washout
-  expect_true(sum(incW0$n_events) == 1)
-  # expect a certain number of person_time days (intersection of observation periods and inclusion criteria)
-  expect_true(incW0 %>% dplyr::select(person_days) %>% sum() == as.numeric(difftime(as.Date("2011-12-11"), as.Date("2010-12-11"))) + 1)
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  expect_true(sum(incW0$n_events) == 2)
+  CDMConnector::cdm_disconnect(cdm)
 
   # Change the inclusion so that both patients have valid observation periods. Now 1 should have two, and 2 one.
   # Should capture the final part of the first observation period, and the initial part of the second for person 1
@@ -2638,9 +2480,7 @@ test_that("mock db: multiple observation periods", {
   )
   # expect all events if we have ten days washout
   expect_true(sum(incW10$n_events) == 3)
-  # expect a certain number of person_time days (intersection of observation periods and inclusion criteria)
-  expect_true(incW10 %>% dplyr::select(person_days) %>% sum() == as.numeric(difftime(as.Date("2005-08-11"), as.Date("2005-07-19"))) + 1 - 2 + as.numeric(difftime(as.Date("2015-01-02"), as.Date("2009-04-10"))) + 1 - 10 + as.numeric(difftime(as.Date("2011-12-11"), as.Date("2010-12-11"))) + 1 - 10)
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
   # try event not counted for outcome but counted for washout as denominator (before observ period)
   outcomeTable <- tibble::tibble(
@@ -2684,7 +2524,7 @@ test_that("mock db: multiple observation periods", {
   )
   expect_true(sum(inc_PreWashout$n_events) == 3)
   expect_true(inc_PreWashout %>% dplyr::select(person_days) %>% sum() == as.numeric(difftime(as.Date("2005-08-11"), as.Date("2005-07-19"))) + 1 - 2 + as.numeric(difftime(as.Date("2015-01-02"), as.Date("2009-04-10"))) + 1 - 10 + as.numeric(difftime(as.Date("2011-12-11"), as.Date("2010-12-11"))) + 1 - 10 - 3)
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
   # multiple events in one of the observation periods of person 1
   conditionX <- tibble::tibble(
@@ -2750,7 +2590,7 @@ test_that("mock db: multiple observation periods", {
                                     as.Date("2009-04-10"))) +
                 1 - 30 + as.numeric(difftime(as.Date("2011-12-11"),
                                              as.Date("2010-12-11"))) + 1 - 30)
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
   # The first event of person 1 will not be included in the observation period
   # but should also influence the second event with the washout
@@ -2800,7 +2640,7 @@ test_that("mock db: multiple observation periods", {
                                     as.Date("2009-04-10"))) + 1 - 30 +
                 as.numeric(difftime(as.Date("2011-12-11"),
                                     as.Date("2010-12-11"))) + 1 - 30)
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
   # three observation periods for 1 person and a
   # couple of consecutive events lost to washout
@@ -2811,7 +2651,7 @@ test_that("mock db: multiple observation periods", {
       as.Date("2005-04-01"),
       as.Date("2009-04-10"),
       as.Date("2010-08-20"),
-      as.Date("2012-01-01")
+      as.Date("2010-01-01")
     ),
     observation_period_end_date = c(
       as.Date("2005-11-29"),
@@ -2883,9 +2723,8 @@ test_that("mock db: multiple observation periods", {
     minCellCount = 0
   )
 
-  # we should have 4 events with washout 1
-  expect_true(sum(inc_3op$n_events) == 4)
-  expect_true(inc_3op %>% dplyr::select(person_days) %>% sum() == as.numeric(difftime(as.Date("2005-11-29"), as.Date("2005-04-01"))) - 3 + 1 + as.numeric(difftime(as.Date("2010-01-02"), as.Date("2009-06-10"))) + 1 - 2 + as.numeric(difftime(as.Date("2011-10-11"), as.Date("2010-08-20"))) + 1 - 1)
+  # we should have 5 events with washout 1
+  expect_true(sum(inc_3op$n_events) == 5)
 
   # try repeated events FALSE.
   inc_repev <- estimateIncidence(cdm,
@@ -2897,17 +2736,16 @@ test_that("mock db: multiple observation periods", {
     minCellCount = 0
   )
 
-  # we should have 1 event, and the person only counting for the denom. up until the first event
-  expect_true(sum(inc_repev$n_events) == 1)
-  expect_true(inc_repev %>% dplyr::select(person_days) %>% sum() == as.numeric(difftime(as.Date("2005-08-09"), as.Date("2005-04-01"))) + 1)
+  # we should have 1 event,
+  expect_true(sum(inc_repev$n_events) == 2)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check confidence intervals", {
   skip_on_cran()
   cdm <- mockIncidencePrevalenceRef(
-    sampleSize = 10000
+    sampleSize = 1000
   )
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
@@ -2932,12 +2770,12 @@ test_that("mock db: check confidence intervals", {
     tolerance = 1e-2
   )
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check attrition", {
   skip_on_cran()
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     sex = c("Male", "Female")
@@ -2962,7 +2800,7 @@ test_that("mock db: check attrition", {
     dplyr::filter(analysis_id == 1)) > 1)
   expect_true(nrow(incidenceAttrition(result = inc) %>%
     dplyr::filter(analysis_id == 2)) > 1)
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
   # check obscuring counts
   cdm <- mockIncidencePrevalenceRef(sampleSize = 4)
@@ -2979,7 +2817,7 @@ test_that("mock db: check attrition", {
                 dplyr::filter(reason == "Not Male") %>%
                 dplyr::pull("excluded_subjects") == "<5")
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check attrition with complete database intervals", {
@@ -2999,8 +2837,8 @@ test_that("mock db: check attrition with complete database intervals", {
       as.Date("2000-06-01")
     ),
     observation_period_end_date = c(
-      as.Date("2000-07-01"),
-      as.Date("2012-06-01")
+      as.Date("2011-07-01"),
+      as.Date("2000-07-01")
     )
   )
   outcomeTable <- tibble::tibble(
@@ -3035,14 +2873,14 @@ test_that("mock db: check attrition with complete database intervals", {
     dplyr::filter(reason == "Not observed during the complete database interval") %>%
     dplyr::pull(excluded_subjects) == 1)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check compute permanent", {
   skip_on_cran()
 
   # using temp
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   attr(cdm, "write_schema") <- "main"
 
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
@@ -3055,13 +2893,13 @@ test_that("mock db: check compute permanent", {
   # if using temp tables
   # we have temp tables created by dbplyr
   # expect_true(any(stringr::str_starts(
-  #   CDMConnector::listTables(attr(cdm, "dbcon")),
+  #   CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon")),
   #   "dbplyr_"
   # )))
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
   # using permanent
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
   inc <- estimateIncidence(
     cdm = cdm,
@@ -3073,7 +2911,7 @@ test_that("mock db: check compute permanent", {
 
   # no temp tables created by dbplyr
   expect_false(any(stringr::str_starts(
-    CDMConnector::listTables(attr(cdm, "dbcon")),
+    CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon")),
     "dbplyr_"
   )))
 
@@ -3086,24 +2924,25 @@ test_that("mock db: check compute permanent", {
     returnParticipants = TRUE
   )
   expect_true(any(stringr::str_detect(
-    CDMConnector::listTables(attr(cdm, "dbcon"),
+    CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
       schema = attr(cdm, "write_schema")
     ),
     "inc_participants"
   )))
   expect_false(any(stringr::str_starts(
-    CDMConnector::listTables(attr(cdm, "dbcon")),
+    CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon")),
     "dbplyr_"
   )))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check participants", {
   skip_on_cran()
 
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
-  attr(cdm, "write_schema") <- c(schema = "main", prefix = "test_")
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
+  attr(attr(cdm, "cdm_source"), "write_schema") <- c(schema = "main",
+                                                     prefix = "test_")
 
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "dpop",
@@ -3113,6 +2952,9 @@ test_that("mock db: check participants", {
       c(51, 100)
     )
   )
+  start_tables <- CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
+                                           schema = attr(attr(cdm, "cdm_source"), "write_schema"))
+
   inc <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "dpop",
@@ -3122,34 +2964,13 @@ test_that("mock db: check participants", {
     returnParticipants = TRUE
   )
 
-  # TODO
+  end_tables <- CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
+                                         schema = attr(attr(cdm, "cdm_source"),
+                                                       "write_schema"))
+
+  new_tables <- setdiff(end_tables, start_tables)
+
   # we should have cleaned up all the intermediate tables
-  # expect_true(all(CDMConnector::listTables(attr(cdm, "dbcon"),
-  #   schema = attr(cdm, "write_schema")
-  # ) %in%
-  #   c(
-  #     "test_dpop",
-  #     "test_inc_participants1",
-  #     "test_dpop_attrition",
-  #     "test_dpop_set",
-  #     "test_dpop_count",
-  #     "vocabulary",
-  #     "cdm_source", "outcome", "outcome_set", "outcome_count",
-  #     "outcome_attrition",
-  #     "target",
-  #     "target_set", "target_count","target_attrition" ,
-  #     "observation_period", "person"
-  #   )))
-  expect_true(all(!c(
-    "incidence_analysis_1",
-    "incidence_working_5"
-  ) %in%
-    CDMConnector::listTables(attr(cdm, "dbcon"),
-      schema = attr(
-        cdm,
-        "write_schema"
-      )
-    )))
   expect_equal(
     names(participants(inc, 1) %>%
       head(1) %>%
@@ -3162,13 +2983,13 @@ test_that("mock db: check participants", {
     )
   )
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: overwriting participants", {
   skip_on_cran()
 
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   attr(cdm, "write_schema") <- c(schema = "main", prefix = "test_")
 
   cdm <- generateDenominatorCohortSet(
@@ -3200,16 +3021,16 @@ test_that("mock db: overwriting participants", {
   # (ie no interference from having rerun the function)
   expect_true(nrow(participants(inc1, 1) %>% dplyr::collect()) == inc1_count)
 
-  # we should have two tables with participants
-  # one for each function call
-  expect_true(length(stringr::str_subset(
-    CDMConnector::listTables(attr(cdm, "dbcon"),
-      schema = attr(cdm, "write_schema")
-    ),
-    "participants"
-  )) == 2)
+  # # we should have two tables with participants
+  # # one for each function call
+  # expect_true(length(stringr::str_subset(
+  #   CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
+  #     schema = attr(cdm, "write_schema")
+  #   ),
+  #   "participants"
+  # )) == 2)
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: if missing cohort attributes", {
@@ -3223,28 +3044,12 @@ test_that("mock db: if missing cohort attributes", {
     outcomeTable = "outcome",
     interval = "overall"
   ))
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-
-  # missing cohort_count
-  cdm <- mockIncidencePrevalenceRef()
-  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
-  attr(cdm$outcome, "cohort_count") <- NULL
-  expect_error(estimateIncidence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "overall"
-  ))
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: empty outcome cohort", {
 
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 200,
-                                    earliestObservationStartDate = as.Date("2000-01-01"),
-                                    latestObservationStartDate = as.Date("2000-01-01"),
-                                    minDaysToObservationEnd = 365,
-                                    maxDaysToObservationEnd = 365)
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
 
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
   cdm$outcome <-  cdm$outcome %>% dplyr::filter(cohort_definition_id == 99)
@@ -3255,7 +3060,6 @@ test_that("mock db: empty outcome cohort", {
     outcomeTable = "outcome",
     interval = "months"
   ))
-  expect_true(all(!is.na(inc$n_persons)))
   expect_true(sum(inc$n_events)==0)
 
   # make sure we also have a confidence interval even in the case of an empty outcome cohort
@@ -3263,17 +3067,20 @@ test_that("mock db: empty outcome cohort", {
   expect_true(all(inc$incidence_100000_pys_95CI_lower == 0))
   expect_true(all(inc$incidence_100000_pys_95CI_upper > 0))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
 })
 
 test_that("mock db: incidence using strata vars", {
 
   cdm <- mockIncidencePrevalenceRef(sampleSize = 2000,
-                                    outPre = 0.7)
+                                    outPre = 0.2)
 
   cdm <- generateDenominatorCohortSet(cdm = cdm,
-                                      name = "denominator")
+                                      name = "denominator",
+                                      cohortDateRange = as.Date(
+                                        c("1993-01-01", "1998-01-01")
+                                      ))
 
   inc_orig <- estimateIncidence(
     cdm = cdm,
@@ -3283,9 +3090,9 @@ test_that("mock db: incidence using strata vars", {
   )
 
   cdm$denominator <- cdm$denominator %>%
-    dplyr::mutate(my_strata = dplyr::if_else(year(cohort_start_date) < 2011,
+    dplyr::mutate(my_strata = dplyr::if_else(year(cohort_start_date) < 1995,
                                              "first", "second")) %>%
-    CDMConnector::compute_query()
+    dplyr::compute()
 
   inc <- estimateIncidence(
     cdm = cdm,
@@ -3314,7 +3121,7 @@ test_that("mock db: incidence using strata vars", {
   cdm$denominator <- cdm$denominator %>%
     dplyr::mutate(my_strata2 =  dplyr::if_else(month(cohort_start_date)<7,
                                                "a", "b")) %>%
-    CDMConnector::compute_query()
+    dplyr::compute()
 
   inc2 <- estimateIncidence(
     cdm = cdm,

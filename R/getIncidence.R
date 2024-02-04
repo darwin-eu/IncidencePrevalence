@@ -54,10 +54,9 @@ getIncidence <- function(cdm,
     )
 
   studyPop <- studyPop %>%
-    CDMConnector::computeQuery(
+    dplyr::compute(
       name = paste0(tablePrefix, "_inc_5"),
       temporary = FALSE,
-      schema = attr(cdm, "write_schema"),
       overwrite = TRUE
     )
 
@@ -124,10 +123,9 @@ getIncidence <- function(cdm,
         dplyr::filter(.data$events_post == 0)
 
       studyPopOutcomeWH <- studyPopOutcomeWH %>%
-        CDMConnector::computeQuery(
+        dplyr::compute(
           name = paste0(tablePrefix, "_inc_5a"),
           temporary = FALSE,
-          schema = attr(cdm, "write_schema"),
           overwrite = TRUE
         )
 
@@ -357,14 +355,13 @@ getIncidence <- function(cdm,
           analysisId
         ) := "outcome_start_date"
       ) %>%
-      CDMConnector::computeQuery(
+      dplyr::compute(
         name = paste0(
           tablePrefix,
           "_analysis_",
           analysisId
         ),
         temporary = FALSE,
-        schema = attr(cdm, "write_schema"),
         overwrite = TRUE
       )
     # keep a record of the table name

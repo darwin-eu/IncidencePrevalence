@@ -74,7 +74,7 @@ acute_asthma <- tibble(
     as.Date("2015-12-31"),
     as.Date("2015-04-01"),
     as.Date("2010-06-01"),
-    as.Date("2006-08-20")
+    as.Date("2005-09-20")
   )
 )
 

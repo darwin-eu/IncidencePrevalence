@@ -141,14 +141,12 @@ checkInputEstimateIncidence <- function(cdm,
       "- `outcomeTable` is not found in cdm"
     )
   }
-  outcomeAttributeCheck <- (!is.null(attr(
-    cdm[[outcomeTable]],
-    "cohort_count"
-  )) &
-    !is.null(attr(
-      cdm[[outcomeTable]],
-      "cohort_set"
-    )))
+  outcomeAttributeCheck <- (!is.null(
+    CDMConnector::cohort_count(cdm[[outcomeTable]])
+  ) &
+    !is.null(
+      CDMConnector::settings(cdm[[outcomeTable]])
+    ))
   checkmate::assertTRUE(outcomeAttributeCheck,
     add = errorMessage
   )

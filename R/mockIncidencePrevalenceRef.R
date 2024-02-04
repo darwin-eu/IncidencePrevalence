@@ -447,20 +447,3 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
 }
 
 
-# workaround to add cohort attributes to mock cohort table
-addCohortCountAttr <- function(cohort) {
-  cohort_count <- cohort %>%
-    dplyr::group_by(.data$cohort_definition_id) %>%
-    dplyr::tally(name = "number_records") %>%
-    dplyr::collect()
-
-  attr(cohort, "cohort_count") <- cohort_count
-  attr(cohort, "cohort_set") <- cohort_count %>%
-    dplyr::select("cohort_definition_id") %>%
-    dplyr::mutate("cohort_name" = paste0(
-      "cohort_",
-      .data$cohort_definition_id
-    ))
-
-  return(cohort)
-}

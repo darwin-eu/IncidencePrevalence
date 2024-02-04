@@ -1,5 +1,5 @@
 test_that("basic incidence plot", {
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
@@ -28,11 +28,11 @@ test_that("basic incidence plot", {
   plot <- plotIncidence(inc, x = "denominator_age_group")
   expect_true(ggplot2::is.ggplot(plot))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-})
+  CDMConnector::cdm_disconnect(cdm)
+  })
 
 test_that("basic prevalence plot", {
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
@@ -64,12 +64,12 @@ test_that("basic prevalence plot", {
   )
   expect_true(ggplot2::is.ggplot(plot))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 
 test_that("plot facets", {
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm,name = "denominator",
     ageGroup = list(
@@ -109,12 +109,12 @@ test_that("plot facets", {
   )
   expect_true(ggplot2::is.ggplot(plot))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 
 test_that("plot colour", {
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm,name = "denominator", overwrite = TRUE,
     ageGroup = list(
@@ -158,5 +158,5 @@ test_that("plot colour", {
 
   expect_true(ggplot2::is.ggplot(plot))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })

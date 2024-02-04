@@ -54,7 +54,7 @@
 #'
 #' @examples
 #' \donttest{
-#' cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+#' cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
 #' cdm <- generateDenominatorCohortSet(
 #'   cdm = cdm,
 #'   name = "denominator",
@@ -131,7 +131,7 @@ generateDenominatorCohortSet <- function(cdm,
 #'
 #' @examples
 #' \donttest{
-#' cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+#' cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
 #' cdm <- generateTargetDenominatorCohortSet(
 #'   cdm = cdm,
 #'   name = "denominator",
@@ -770,29 +770,6 @@ unionCohorts <- function(cdm,
   return(studyPops)
 }
 
-
-# insert attributes into database
-insertAttributes <- function(cdm, tablePrefix, name,
-                             cohortCount, cohortSet, cohortAttrition) {
-  DBI::dbWriteTable(attr(cdm, "dbcon"),
-    name = CDMConnector::inSchema(attr(cdm, "write_schema"),
-                                  paste0(tablePrefix, "_count")),
-    value = as.data.frame(cohortCount),
-    overwrite = TRUE
-  )
-  DBI::dbWriteTable(attr(cdm, "dbcon"),
-    name = CDMConnector::inSchema(attr(cdm, "write_schema"),
-                                  paste0(tablePrefix, "_set")),
-    value = as.data.frame(cohortSet),
-    overwrite = TRUE
-  )
-  DBI::dbWriteTable(attr(cdm, "dbcon"),
-    name = CDMConnector::inSchema(attr(cdm, "write_schema"),
-                                  paste0(tablePrefix, "_attrition")),
-    value = as.data.frame(cohortAttrition),
-    overwrite = TRUE
-  )
-}
 
 updateCohort <- function(table, x, name, cdm, overwrite) {
   if (is.null(table)) {

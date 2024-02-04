@@ -69,7 +69,7 @@ or \code{estimatePeriodPrevalence()}.
 }
 \examples{
 \donttest{
-cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
 cdm <- generateTargetDenominatorCohortSet(
   cdm = cdm,
   name = "denominator",

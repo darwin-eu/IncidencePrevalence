@@ -29,7 +29,7 @@ test_that("check with mock db", {
   ) %>%
     dplyr::filter(dplyr::row_number() == 1)
   expect_no_error(incCombined <- bindIncidenceEstimates(inc1, inc2))
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
   cdm <- mockIncidencePrevalenceRef(sampleSize = 100)
   cdm <- generateDenominatorCohortSet(
@@ -49,8 +49,8 @@ test_that("check with mock db", {
     outcomeTable = "outcome"
   )
   expect_no_error(prevCombined <- bindPrevalenceEstimates(prev1, prev2))
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-})
+  CDMConnector::cdm_disconnect(cdm)
+  })
 
 test_that("simple example", {
   x <- dplyr::tibble(incidence_result = 0.65, analysis_id = 1)
