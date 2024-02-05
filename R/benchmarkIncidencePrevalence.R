@@ -43,9 +43,17 @@
 #' cdm <- mockIncidencePrevalenceRef(
 #'   sampleSize = 100,
 #'   earliestObservationStartDate = as.Date("2010-01-01"),
-#'   latestObservationStartDate = as.Date("2018-01-01")
+#'   latestObservationStartDate = as.Date("2010-01-01"),
+#'   minDaysToObservationEnd = 364,
+#'   maxDaysToObservationEnd = 364,
+#'   outPre = 0.1
 #' )
-#' timings <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm)
+#'
+#' timings <- benchmarkIncidencePrevalence(cdm,
+#'                                         nOutcomes = 2,
+#'                                         prevOutcomes = c(0.1),
+#'                                         analysisType = "only incidence"
+#' )
 #' }
 benchmarkIncidencePrevalence <- function(cdm,
                                          cohortDateRange = as.Date(c(NA, NA)),
