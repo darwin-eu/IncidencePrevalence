@@ -431,9 +431,9 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
       dplyr::mutate(period_type_concept_id = NA)),
     cohortTables = list(
       "target" = targetCohortTable %>%
-        dplyr::mutate(cohort_definition_id = as.integer(cohort_definition_id)),
+        dplyr::mutate(cohort_definition_id = as.integer(.data$cohort_definition_id)),
       "outcome" = outcomeTable %>%
-        dplyr::mutate(cohort_definition_id = as.integer(cohort_definition_id))
+        dplyr::mutate(cohort_definition_id = as.integer(.data$cohort_definition_id))
     ),
   cdmName = "mock")
 
