@@ -264,6 +264,8 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
           .data$days_to_outcome) %>%
         dplyr::mutate(cohort_end_date = .data$cohort_start_date +
           lubridate::days(sample(minOutcomeDays:maxOutcomeDays, 1))) %>%
+        dplyr::mutate(cohort_end_date = dplyr::if_else(.data$cohort_end_date > .data$observation_period_end_date,
+                                                       .data$observation_period_end_date, .data$cohort_end_date)) %>%
         dplyr::select(
           "subject_id",
           "cohort_start_date",
@@ -328,6 +330,8 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
           .data$days_to_outcome) %>%
         dplyr::mutate(cohort_end_date = .data$cohort_start_date +
           lubridate::days(sample(minOutcomeDays:maxOutcomeDays, 1))) %>%
+        dplyr::mutate(cohort_end_date = dplyr::if_else(.data$cohort_end_date > .data$observation_period_end_date,
+                                                       .data$observation_period_end_date, .data$cohort_end_date)) %>%
         dplyr::select(
           "subject_id",
           "cohort_start_date",
@@ -422,6 +426,8 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
     vocabulary_version = "test",
     vocabulary_concept_id = NA
   )
+
+
 
   cdm_df <- omopgenerics::cdmFromTables(tables = list(
     "person" = personTable %>%

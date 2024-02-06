@@ -1,6 +1,5 @@
 test_that("check working example with defaults", {
-  db <- mockIncidencePrevalenceRef()
-
+  db <- mockIncidencePrevalenceRef(sampleSize = 10000, outPre = 0.5)
   cdmCheck <- inherits(db, "cdm_reference")
   expect_true(cdmCheck)
 
@@ -49,9 +48,7 @@ test_that("check working example with outcome table", {
   )
 
   db <- mockIncidencePrevalenceRef(outcomeTable = outcomeTable,
-                                   earliestObservationStartDate = as.Date("2007-08-21"),
-                                   latestObservationStartDate = as.Date("2007-08-21"),
-                                   minDaysToObservationEnd = 1000)
+                                   sampleSize = 100000)
 
   expect_true(nrow(db$outcome %>%
     dplyr::collect()) == 1)
