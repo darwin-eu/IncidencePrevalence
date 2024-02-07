@@ -291,7 +291,7 @@ getDenominatorCohorts <- function(cdm,
 
     studyPopDb <- studyPopDb %>%
       dplyr::mutate(!!!minAgeDates, !!!maxAgeDates, !!!priorHistoryDates) %>%
-      dplyr::collapse() %>%
+      # dplyr::collapse() %>%
       dplyr::mutate(!!!maxAgeDatesMinusDay)
 
       studyPopDb <- studyPopDb %>%
