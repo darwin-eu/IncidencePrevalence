@@ -449,6 +449,9 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
                           schema = "main",
                           overwrite = TRUE)
 
+  attr(cdm, "cdm_schema") <- "main"
+  attr(cdm, "write_schema") <- "main"
+
   return(cdm)
 }
 
