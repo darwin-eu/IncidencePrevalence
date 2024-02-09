@@ -15,14 +15,6 @@ checkInputGenerateDCS <- function(cdm,
     cli::cli_abort(c("name must be given in snake case",
                      "i" = "for example 'my_cohort' is allowed but 'MyCohort' is not"))
   }
-
-  if(is.null(attr(cdm, "write_schema"))){
-  cli::cli_abort("cdm must have a write_schema specified",
-                 call = call)
-  }
-  if(is.null(attr(cdm, "write_schema"))){
-    cli::cli_abort("cdm must have write schema specified")
-  }
   if (!is.null(targetCohortTable)) {
     cdmTargetCheck(cdm, targetCohortTable = targetCohortTable)
   }
@@ -149,14 +141,12 @@ checkInputEstimateIncidence <- function(cdm,
       "- `outcomeTable` is not found in cdm"
     )
   }
-  outcomeAttributeCheck <- (!is.null(attr(
-    cdm[[outcomeTable]],
-    "cohort_count"
-  )) &
-    !is.null(attr(
-      cdm[[outcomeTable]],
-      "cohort_set"
-    )))
+  outcomeAttributeCheck <- (!is.null(
+    CDMConnector::cohort_count(cdm[[outcomeTable]])
+  ) &
+    !is.null(
+      CDMConnector::settings(cdm[[outcomeTable]])
+    ))
   checkmate::assertTRUE(outcomeAttributeCheck,
     add = errorMessage
   )
@@ -263,14 +253,10 @@ checkInputEstimatePrevalence <- function(cdm,
       "- `outcomeTable` is not found in cdm"
     )
   }
-  outcomeAttributeCheck <- (!is.null(attr(
-    cdm[[outcomeTable]],
-    "cohort_count"
-  )) &
-    !is.null(attr(
-      cdm[[outcomeTable]],
-      "cohort_set"
-    )))
+  outcomeAttributeCheck <- (!is.null(
+  CDMConnector::cohort_count(cdm[[outcomeTable]])) &
+    !is.null(
+      CDMConnector::settings(cdm[[outcomeTable]])))
   checkmate::assertTRUE(outcomeAttributeCheck,
     add = errorMessage
   )

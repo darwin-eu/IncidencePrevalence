@@ -166,10 +166,10 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
     # define earliest and latest observation start date for obs table
     # if not specified by user
     if (is.null(earliestObservationStartDate)) {
-      earliestObservationStartDate <- as.Date("2005-01-01")
+      earliestObservationStartDate <- as.Date("1950-01-01")
     }
     if (is.null(latestObservationStartDate)) {
-      latestObservationStartDate <- as.Date("2020-01-01")
+      latestObservationStartDate <- as.Date("1990-01-01")
     }
     obsStartDate <-
       sample(
@@ -185,10 +185,10 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
 
     # define min and max day to observation end
     if (is.null(minDaysToObservationEnd)) {
-      minDaysToObservationEnd <- 1
+      minDaysToObservationEnd <- 3652
     }
     if (is.null(maxDaysToObservationEnd)) {
-      maxDaysToObservationEnd <- 1000
+      maxDaysToObservationEnd <- 36525
     }
 
     if (minDaysToObservationEnd == maxDaysToObservationEnd) {
@@ -264,6 +264,8 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
           .data$days_to_outcome) %>%
         dplyr::mutate(cohort_end_date = .data$cohort_start_date +
           lubridate::days(sample(minOutcomeDays:maxOutcomeDays, 1))) %>%
+        dplyr::mutate(cohort_end_date = dplyr::if_else(.data$cohort_end_date > .data$observation_period_end_date,
+                                                       .data$observation_period_end_date, .data$cohort_end_date)) %>%
         dplyr::select(
           "subject_id",
           "cohort_start_date",
@@ -328,12 +330,14 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
           .data$days_to_outcome) %>%
         dplyr::mutate(cohort_end_date = .data$cohort_start_date +
           lubridate::days(sample(minOutcomeDays:maxOutcomeDays, 1))) %>%
+        dplyr::mutate(cohort_end_date = dplyr::if_else(.data$cohort_end_date > .data$observation_period_end_date,
+                                                       .data$observation_period_end_date, .data$cohort_end_date)) %>%
         dplyr::select(
           "subject_id",
           "cohort_start_date",
           "cohort_end_date"
         ) %>%
-        dplyr::mutate(cohort_definition_id = c("1")) %>%
+        dplyr::mutate(cohort_definition_id = 1L) %>%
         dplyr::relocate("cohort_definition_id")
     }
 
@@ -391,7 +395,7 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
     targetCohortTable <- dplyr::sample_frac(personTable, 0.8) %>%
       dplyr::left_join(observationPeriodTable, by = "person_id") %>%
       dplyr::rename("subject_id" = "person_id") %>%
-      dplyr::mutate(cohort_definition_id = "1") %>%
+      dplyr::mutate(cohort_definition_id = 1L) %>%
       dplyr::rename("cohort_start_date" = "observation_period_start_date") %>%
       dplyr::rename("cohort_end_date" = "observation_period_end_date") %>%
       dplyr::select(
@@ -401,37 +405,6 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
   }
 
   # into in-memory database
-  db <- DBI::dbConnect(duckdb::duckdb(), ":memory:")
-
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "person",
-      personTable,
-      overwrite = TRUE
-    )
-  })
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db,
-      "observation_period",
-      observationPeriodTable,
-      overwrite = TRUE
-    )
-  })
-
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "target",
-      targetCohortTable,
-      overwrite = TRUE
-    )
-  })
-
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "outcome",
-      outcomeTable,
-      overwrite = TRUE
-    )
-  })
-
-
   # add other tables required for snapshot
   cdmSource <- dplyr::tibble(
     cdm_source_name = "test_database",
@@ -445,12 +418,6 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
     cdm_version = NA,
     vocabulary_version = NA
   )
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "cdm_source",
-      cdmSource,
-      overwrite = TRUE
-    )
-  })
 
   vocabulary <- dplyr::tibble(
     vocabulary_id = "None",
@@ -459,39 +426,33 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
     vocabulary_version = "test",
     vocabulary_concept_id = NA
   )
-  DBI::dbWithTransaction(db, {
-    DBI::dbWriteTable(db, "vocabulary",
-      vocabulary,
-      overwrite = TRUE
-    )
-  })
 
-  cdm <- CDMConnector::cdm_from_con(
-    db,
-    cohort_tables = c("target", "outcome"),
-    write_schema = "main"
-  )
-  cdm$outcome <- addCohortCountAttr(cdm$outcome)
-  cdm$target <- addCohortCountAttr(cdm$target)
+
+
+  cdm_df <- omopgenerics::cdmFromTables(tables = list(
+    "person" = personTable %>%
+      dplyr::mutate(race_concept_id = NA,
+                    ethnicity_concept_id = NA),
+    "observation_period" = observationPeriodTable %>%
+      dplyr::mutate(period_type_concept_id = NA)),
+    cohortTables = list(
+      "target" = targetCohortTable %>%
+        dplyr::mutate(cohort_definition_id = as.integer(.data$cohort_definition_id)),
+      "outcome" = outcomeTable %>%
+        dplyr::mutate(cohort_definition_id = as.integer(.data$cohort_definition_id))
+    ),
+  cdmName = "mock")
+
+  db <- DBI::dbConnect(duckdb::duckdb(), ":memory:")
+  cdm <- CDMConnector::copyCdmTo(con = db,
+                          cdm = cdm_df,
+                          schema = "main",
+                          overwrite = TRUE)
+
+  attr(cdm, "cdm_schema") <- "main"
+  attr(cdm, "write_schema") <- "main"
 
   return(cdm)
 }
 
 
-# workaround to add cohort attributes to mock cohort table
-addCohortCountAttr <- function(cohort) {
-  cohort_count <- cohort %>%
-    dplyr::group_by(.data$cohort_definition_id) %>%
-    dplyr::tally(name = "number_records") %>%
-    dplyr::collect()
-
-  attr(cohort, "cohort_count") <- cohort_count
-  attr(cohort, "cohort_set") <- cohort_count %>%
-    dplyr::select("cohort_definition_id") %>%
-    dplyr::mutate("cohort_name" = paste0(
-      "cohort_",
-      .data$cohort_definition_id
-    ))
-
-  return(cohort)
-}

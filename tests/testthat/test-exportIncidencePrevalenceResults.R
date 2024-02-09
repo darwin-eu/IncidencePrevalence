@@ -18,8 +18,8 @@ test_that("writing results", {
   )
   expect_true("test.zip" %in% list.files(tempdir()))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-})
+  CDMConnector::cdm_disconnect(cdm)
+  })
 
 test_that("writing results- expected errors", {
   cdm <- mockIncidencePrevalenceRef()
@@ -57,5 +57,5 @@ test_that("writing results- expected errors", {
     outputFolder = file.path(tempdir(), "doesn_not_exist")
   ))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-})
+  CDMConnector::cdm_disconnect(cdm)
+  })

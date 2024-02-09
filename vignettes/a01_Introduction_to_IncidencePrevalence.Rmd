@@ -56,7 +56,7 @@ For this example though we´ll generate 50,000 hypothetical patients using the `
 
 ```{r, message= FALSE, warning=FALSE}
 cdm <- mockIncidencePrevalenceRef(
-  sampleSize = 50000,
+  sampleSize = 5000,
   outPre = 0.2
 )
 ```

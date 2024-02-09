@@ -1,6 +1,5 @@
 test_that("check working example with defaults", {
-  db <- mockIncidencePrevalenceRef()
-
+  db <- mockIncidencePrevalenceRef(sampleSize = 10000, outPre = 0.5)
   cdmCheck <- inherits(db, "cdm_reference")
   expect_true(cdmCheck)
 
@@ -32,7 +31,7 @@ test_that("check working example with defaults", {
       dplyr::rename_with(tolower)))
   expect_true(obsPeriodNamesCheck)
 
-  DBI::dbDisconnect(attr(db, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(db)
 })
 
 test_that("check working example with outcome table", {
@@ -48,7 +47,8 @@ test_that("check working example with outcome table", {
     )
   )
 
-  db <- mockIncidencePrevalenceRef(outcomeTable = outcomeTable)
+  db <- mockIncidencePrevalenceRef(outcomeTable = outcomeTable,
+                                   sampleSize = 100000)
 
   expect_true(nrow(db$outcome %>%
     dplyr::collect()) == 1)
@@ -64,12 +64,16 @@ test_that("check working example with outcome table", {
       dplyr::rename_with(tolower)))
   expect_true(outcomeNamesCheck)
 
-  DBI::dbDisconnect(attr(db, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(db)
 })
 
 test_that("check working example sample size and outcome prevalence option", {
   skip_on_cran()
-  db <- mockIncidencePrevalenceRef(sampleSize = 100, outPre = 0.2)
+  db <- mockIncidencePrevalenceRef(sampleSize = 100,
+                                   outPre = 0.2,
+                                   earliestObservationStartDate = as.Date("2007-08-21"),
+                                   latestObservationStartDate = as.Date("2007-08-21"),
+                                   minDaysToObservationEnd = 1000)
 
   expect_true(nrow(db$person %>%
     dplyr::collect()) == 100)
@@ -88,7 +92,7 @@ test_that("check working example sample size and outcome prevalence option", {
       dplyr::rename_with(tolower)))
   expect_true(outcomeNamesCheck)
 
-  DBI::dbDisconnect(attr(db, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(db)
 })
 
 test_that("outcome varies by gender and age option", {
@@ -98,14 +102,20 @@ test_that("outcome varies by gender and age option", {
     outPre = 0.2,
     genderBeta = -1,
     ageBeta = 1,
-    intercept = -1
+    intercept = -1,
+    earliestObservationStartDate = as.Date("2007-08-21"),
+    latestObservationStartDate = as.Date("2007-08-21"),
+    minDaysToObservationEnd = 1000
   )
 
   db2 <- mockIncidencePrevalenceRef(
     sampleSize = 100,
     outPre = 0.2,
     genderBeta = -1,
-    ageBeta = 1
+    ageBeta = 1,
+    earliestObservationStartDate = as.Date("2007-08-21"),
+    latestObservationStartDate = as.Date("2007-08-21"),
+    minDaysToObservationEnd = 1000
   )
 
   expect_true(nrow(db$person %>%
@@ -132,47 +142,58 @@ test_that("outcome varies by gender and age option", {
       dplyr::rename_with(tolower)))
   expect_true(outcomeNamesCheck)
 
-  DBI::dbDisconnect(attr(db, "dbcon"), shutdown = TRUE)
-  DBI::dbDisconnect(attr(db2, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(db)
+  CDMConnector::cdm_disconnect(db2)
 })
 
 test_that("multiple outcomes", {
   skip_on_cran()
-  db <-
-    mockIncidencePrevalenceRef(
-      sampleSize = 200,
-      outPre = 0.2,
-      maxOutcomes = 1
-    )
+  db <- mockIncidencePrevalenceRef(
+    sampleSize = 200,
+    outPre = 0.2,
+    maxOutcomes = 1,
+    earliestObservationStartDate = as.Date("2007-08-21"),
+    latestObservationStartDate = as.Date("2007-08-21"),
+    minDaysToObservationEnd = 100000
+  )
   db2 <-
     mockIncidencePrevalenceRef(
       sampleSize = 200,
       outPre = 0.2,
-      maxOutcomes = 2
+      maxOutcomes = 2,
+      earliestObservationStartDate = as.Date("2007-08-21"),
+      latestObservationStartDate = as.Date("2007-08-21"),
+      minDaysToObservationEnd = 100000
     )
   db3 <-
     mockIncidencePrevalenceRef(
       sampleSize = 200,
       outPre = 0.2,
-      maxOutcomes = 3
+      maxOutcomes = 3,
+      earliestObservationStartDate = as.Date("2007-08-21"),
+      latestObservationStartDate = as.Date("2007-08-21"),
+      minDaysToObservationEnd = 100000
     )
   db4 <-
     mockIncidencePrevalenceRef(
       sampleSize = 1,
       outPre = 1,
-      maxOutcomes = 10
+      maxOutcomes = 10,
+      earliestObservationStartDate = as.Date("2007-08-21"),
+      latestObservationStartDate = as.Date("2007-08-21"),
+      minDaysToObservationEnd = 100000
     )
 
   expect_true(nrow(db$outcome %>%
-    dplyr::collect()) == 40)
+                     dplyr::collect()) == 40)
 
   expect_true(nrow(db2$outcome %>%
-    dplyr::collect()) > nrow(db$outcome %>%
-    dplyr::collect()))
+                     dplyr::collect()) > nrow(db$outcome %>%
+                                                dplyr::collect()))
 
   expect_true(nrow(db3$outcome %>%
-    dplyr::collect()) > nrow(db2$outcome %>%
-    dplyr::collect()))
+                     dplyr::collect()) > nrow(db2$outcome %>%
+                                                dplyr::collect()))
 
   expect_true(
     nrow(
@@ -199,9 +220,9 @@ test_that("multiple outcomes", {
       dplyr::select(cohort_end_date) %>%
       dplyr::collect() <
       db4$outcome %>%
-        dplyr::filter(row_number() == 2) %>%
-        dplyr::select(cohort_start_date) %>%
-        dplyr::collect()
+      dplyr::filter(row_number() == 2) %>%
+      dplyr::select(cohort_start_date) %>%
+      dplyr::collect()
   )
 
 
@@ -211,16 +232,16 @@ test_that("multiple outcomes", {
     "cohort_start_date", "cohort_end_date"
   )
   outcomeNamesCheck <- all(outcomeDbNames %in%
-    names(db$outcome %>%
-      utils::head(1) %>%
-      dplyr::collect() %>%
-      dplyr::rename_with(tolower)))
+                             names(db$outcome %>%
+                                     utils::head(1) %>%
+                                     dplyr::collect() %>%
+                                     dplyr::rename_with(tolower)))
   expect_true(outcomeNamesCheck)
 
-  DBI::dbDisconnect(attr(db, "dbcon"), shutdown = TRUE)
-  DBI::dbDisconnect(attr(db2, "dbcon"), shutdown = TRUE)
-  DBI::dbDisconnect(attr(db3, "dbcon"), shutdown = TRUE)
-  DBI::dbDisconnect(attr(db4, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(db)
+  CDMConnector::cdm_disconnect(db2)
+  CDMConnector::cdm_disconnect(db3)
+  CDMConnector::cdm_disconnect(db4)
 })
 
 test_that("check expected errors", {
