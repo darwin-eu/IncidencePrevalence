@@ -1,8 +1,8 @@
 test_that("dbms test", {
   # Update  to your database details as appropriate here
-  skip_if(Sys.getenv("DB_SERVER_pharmetrics_dbi") == "")
+  skip_if(Sys.getenv("DB_SERVER_cdmgold202007_dbi") == "")
   db <- DBI::dbConnect(RPostgres::Postgres(),
-    dbname = Sys.getenv("DB_SERVER_pharmetrics_dbi"),
+    dbname = "cdm_gold_202207",
     port = Sys.getenv("DB_PORT"),
     host = Sys.getenv("DB_HOST"),
     user = Sys.getenv("DB_USER"),
@@ -14,9 +14,6 @@ test_that("dbms test", {
     write_schema = c(schema = "results", prefix = "incprev_bench_")
   )
   dplyr::count(cdm$person)
-
-  cdm <- generateDenominatorCohortSet(cdm, name = "denom")
-
 
   timings_temp <- benchmarkIncidencePrevalence(cdm,
     nOutcomes = 1,

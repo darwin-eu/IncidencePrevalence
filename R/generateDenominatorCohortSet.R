@@ -306,11 +306,14 @@ for(i in 1:length(denominatorSet)){
                             table = cohortRef,
                             overwrite = TRUE)
 
-  cdm[[name]] <- cdm[[name]] %>%
+  if(nrow(cdm[[name]] %>% utils::head(10) %>% dplyr::collect()) == 0){
+    cdm[[name]] <- cdm[[name]] %>%
       dplyr::mutate(cohort_definition_id = as.integer(.data$cohort_definition_id),
                     subject_id  = as.integer(.data$subject_id),
                     cohort_start_date  = as.Date(.data$cohort_start_date),
-                    cohort_end_date  = as.Date(.data$cohort_end_date)) %>%
+                    cohort_end_date  = as.Date(.data$cohort_end_date))
+  }
+  cdm[[name]] <- cdm[[name]] %>%
       omopgenerics::newCohortTable(cohortSetRef = cohortSetRef,
                                    cohortAttritionRef = cohortAttritionRef)
 
