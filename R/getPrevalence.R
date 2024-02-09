@@ -145,7 +145,7 @@ getPrevalence <- function(cdm,
             0L
           )
         ) %>%
-        dplyr::collapse() %>%
+        # dplyr::collapse() %>%
         dplyr::filter(.data$has_full_contribution >= 1) %>%
         dplyr::select(-"has_full_contribution")
 

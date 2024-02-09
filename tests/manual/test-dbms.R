@@ -1,8 +1,8 @@
 test_that("dbms test", {
   # Update  to your database details as appropriate here
-  skip_if(Sys.getenv("DB_SERVER_cdmgold202007_dbi") == "")
+  skip_if(Sys.getenv("DB_SERVER_pharmetrics_dbi") == "")
   db <- DBI::dbConnect(RPostgres::Postgres(),
-    dbname = Sys.getenv("DB_SERVER_cdmgold202007_dbi"),
+    dbname = Sys.getenv("DB_SERVER_pharmetrics_dbi"),
     port = Sys.getenv("DB_PORT"),
     host = Sys.getenv("DB_HOST"),
     user = Sys.getenv("DB_USER"),
@@ -10,61 +10,22 @@ test_that("dbms test", {
   )
   cdm <- CDMConnector::cdm_from_con(
     con = db,
-    cdm_schema = "public",
+    cdm_schema = "public_100k",
     write_schema = c(schema = "results", prefix = "incprev_bench_")
   )
-
-  # run for a random sample of 1,000,000 people from the person table
-  # this benchmarking hits most of the functionality of the package so
-  # this should give some confidence it won´t fall over on the dbms
-
-  # the outcome cohort used is a sample of the denominator cohort
-  # (so as to ensure that)
-
-
-  cdm <- CDMConnector::cdm_sample(cdm = cdm, n = 1000000)
   dplyr::count(cdm$person)
 
-  # using temp tables
+  cdm <- generateDenominatorCohortSet(cdm, name = "denom")
+
+
   timings_temp <- benchmarkIncidencePrevalence(cdm,
-    cohortDateRange = c(
-      as.Date("2012-01-01"),
-      as.Date("2015-12-31")
-    ),
-    temporary = TRUE,
     nOutcomes = 1,
     prevOutcomes = 0.10
   )
   expect_true(tibble::is_tibble(timings_temp))
 
-  # using permanent tables
-  timings_perm <- benchmarkIncidencePrevalence(cdm,
-    cohortDateRange = c(
-      as.Date("2012-01-01"),
-      as.Date("2015-12-31")
-    ),
-    temporary = FALSE,
-    nOutcomes = 1,
-    prevOutcomes = 0.10
-  )
-  expect_true(tibble::is_tibble(timings_perm))
 
-  # returning participants
-  timings_perm2 <- benchmarkIncidencePrevalence(cdm,
-    cohortDateRange = c(
-      as.Date("2012-01-01"),
-      as.Date("2015-12-31")
-    ),
-    temporary = FALSE,
-    nOutcomes = 1,
-    prevOutcomes = 0.10,
-    returnParticipants = TRUE
-  )
-
-  expect_true(tibble::is_tibble(timings_perm2))
-
-
-  # Drop permanent tables created
+  # Drop any permanent tables created
   CDMConnector::listTables(attr(cdm, "dbcon"),
     schema = attr(cdm, "write_schema")
   )

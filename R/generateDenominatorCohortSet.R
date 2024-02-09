@@ -198,7 +198,7 @@ fetchDenominatorCohortSet <- function(cdm,
   }
 
   # we'll use this as the stem for any intermediate tables we create along the way
-  intermediateTable <- paste0("ip_d_",
+  intermediateTable <- paste0("incpr",
                               tolower(paste0(sample(LETTERS, 4, replace = TRUE),
                                              collapse = "")))
 
@@ -467,11 +467,11 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
         dplyr::rename(
           # cohort start
           "cohort_start_date" =
-            glue::glue("date_min_age{popSpecs$min_age[[i]]}prior_history{popSpecs$days_prior_observation[[i]]}"),
+            glue::glue("date_min_age_{popSpecs$min_age[[i]]}_prior_history_{popSpecs$days_prior_observation[[i]]}"),
           # cohort end
           "cohort_end_date" =
             glue::glue(
-              "date_max_age{popSpecs$max_age[[i]]}"
+              "date_max_age_{popSpecs$max_age[[i]]}"
             ),
           "subject_id" = "person_id"
         ) %>%
