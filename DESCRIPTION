@@ -61,8 +61,6 @@ Suggests:
     testthat (>= 0.3.1),
     spelling,
     PaRe
-Remotes:
-    darwin-eu/CDMConnector
 Config/testthat/edition: 3
 Config/testthat/parallel: true
 VignetteBuilder: knitr
