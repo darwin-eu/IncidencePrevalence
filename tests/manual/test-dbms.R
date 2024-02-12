@@ -15,11 +15,31 @@ test_that("dbms test", {
   )
   dplyr::count(cdm$person)
 
-  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denom")
-  cdm <- CDMConnector::generate_concept_cohort_set(cdm, list(a = 4050747))
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm,
+    name = "denom" ,
+    cohortDateRange = c(as.Date("2000-01-01"), as.Date("2022-01-01")),
+    ageGroup =list(
+      c(18, 150),
+      c(18, 49),
+      c(50, 59),
+      c(60, 69),
+      c(70, 79),
+      c(80, 150)
+    ),
+    sex = c("Male", "Female", "Both"),
+    daysPriorObservation = 365,
+    overwrite = TRUE
+  )
+
+  cdm <- CDMConnector::generate_concept_cohort_set(cdm,
+                                                   concept_set =
+                                                     list(a = 4050747,
+                                                         b = 4077375))
   expect_no_error(estimateIncidence(cdm,
                     denominatorTable = "denom",
                     outcomeTable = "cohort",
+                    outcomeCohortId = 1,
                     temporary = FALSE,
                     returnParticipants = TRUE))
   expect_no_error(estimatePointPrevalence(cdm,

@@ -415,12 +415,10 @@ estimateIncidence <- function(cdm,
               )
             ),
             by = "subject_id"
-          ) %>%
-          dplyr::compute(
-            name = paste0(tablePrefix, "_p_", i),
-            temporary = FALSE,
-            overwrite = TRUE
           )
+        cdm <- omopgenerics::insertTable(cdm = cdm,
+                                         name = paste0(tablePrefix, "_p_", i),
+                                         table = participants)
       }
     }
 
