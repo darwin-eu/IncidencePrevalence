@@ -433,7 +433,11 @@ estimateIncidence <- function(cdm,
       "inc_participants"
     ))
 
-    participants <- participants %>%
+
+    cdm <- omopgenerics::insertTable(cdm = cdm,
+                                     name = paste0("inc_participants", p),
+                                     table = participants)
+    cdm[[paste0("inc_participants", p)]] <- cdm[[paste0("inc_participants", p)]] %>%
       dplyr::compute(
         name = paste0("inc_participants", p),
         temporary = FALSE,
@@ -474,7 +478,7 @@ estimateIncidence <- function(cdm,
   # return results as an IncidencePrevalenceResult class
   attr(irs, "attrition") <- attrition
   if (returnParticipants == TRUE) {
-    attr(irs, "participants") <- participants
+    attr(irs, "participants") <- cdm$inc_participants1
   }
   class(irs) <- c("IncidencePrevalenceResult", "IncidenceResult", class(irs))
 

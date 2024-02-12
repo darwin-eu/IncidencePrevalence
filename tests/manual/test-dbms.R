@@ -15,6 +15,19 @@ test_that("dbms test", {
   )
   dplyr::count(cdm$person)
 
+  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denom")
+  cdm <- CDMConnector::generate_concept_cohort_set(cdm, list(a = 4050747))
+  expect_no_error(estimateIncidence(cdm,
+                    denominatorTable = "denom",
+                    outcomeTable = "cohort",
+                    temporary = FALSE,
+                    returnParticipants = TRUE))
+  expect_no_error(estimatePointPrevalence(cdm,
+                    denominatorTable = "denom",
+                    outcomeTable = "cohort",
+                    temporary = FALSE,
+                    returnParticipants = TRUE))
+
   timings <- benchmarkIncidencePrevalence(cdm,
     nOutcomes = 1,
     prevOutcomes = 0.10

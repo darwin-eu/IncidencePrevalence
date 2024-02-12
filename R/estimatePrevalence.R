@@ -442,12 +442,16 @@ estimatePrevalence <- function(cdm,
       paste0(type, "_prev_participants")
     ))
 
-    participants <- participants %>%
+    cdm <- omopgenerics::insertTable(cdm = cdm,
+                                     name = paste0(type, "_prev_participants", p),
+                                     table = participants)
+    cdm[[paste0(type, "_prev_participants", p)]] <- cdm[[paste0(type, "_prev_participants", p)]] %>%
       dplyr::compute(
         name = paste0(type, "_prev_participants", p),
         temporary = FALSE,
         overwrite = TRUE
       )
+
     CDMConnector::dropTable(
       cdm = cdm,
       name = tidyselect::starts_with(paste0(
@@ -523,7 +527,7 @@ estimatePrevalence <- function(cdm,
   # return results as an IncidencePrevalenceResult class
   attr(prs, "attrition") <- attrition
   if (returnParticipants == TRUE) {
-    attr(prs, "participants") <- participants
+    attr(prs, "participants") <- cdm[[paste0(type, "_prev_participants", p)]]
   }
 
   class(prs) <- c("IncidencePrevalenceResult", "PrevalenceResult", class(prs))
