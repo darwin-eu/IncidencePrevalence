@@ -15,21 +15,21 @@ test_that("dbms test", {
   )
   dplyr::count(cdm$person)
 
-  timings_temp <- benchmarkIncidencePrevalence(cdm,
+  timings <- benchmarkIncidencePrevalence(cdm,
     nOutcomes = 1,
     prevOutcomes = 0.10
   )
-  expect_true(tibble::is_tibble(timings_temp))
+  expect_true(tibble::is_tibble(timings))
 
 
   # Drop any permanent tables created
   CDMConnector::listTables(attr(cdm, "dbcon"),
     schema = attr(cdm, "write_schema")
   )
-  CDMConnector::dropTable(cdm = cdm, name = starts_with("incprev_bench_"))
+  CDMConnector::dropTable(cdm = cdm, name = tidyselect::starts_with("incprev_bench_"))
 
   # 06 May 2023, CPRD GOLD, Postgres
-  timings_temp %>% dplyr::select("task", "time_taken_mins")
+  timings %>% dplyr::select("task", "time_taken_mins")
   # task                                    time_taken_mins
   # <chr>                                             <dbl>
   # 1 generating denominator (8 cohorts)                 1.79
@@ -63,10 +63,7 @@ test_that("dbms test", {
   # 7 monthly incidence, 1 outcome(s)                    0.66
 })
 
-
 test_that("postgres test", {
-
-
  db <- DBI::dbConnect(RPostgres::Postgres(),
             dbname = Sys.getenv("CDM5_POSTGRESQL_DBNAME"),
             host = Sys.getenv("CDM5_POSTGRESQL_HOST"),
@@ -84,39 +81,64 @@ test_that("postgres test", {
                                                                  "b" = 138525),
                                                overwrite = TRUE)
 
- cdm <- generateDenominatorCohortSet(
-   cdm = cdm, name = "denominator_typical",
-   overwrite =TRUE,
-   cohortDateRange = c(
-     as.Date("2000-01-01"),
-     as.Date("2018-12-31")),
-   daysPriorObservation = 180,
-   sex = c("Male", "Female"),
-   ageGroup = list(
-     c(0, 25), c(26, 64),
-     c(65, 79), c(80, 150)
-   )
- )
+ timings <- benchmarkIncidencePrevalence(cdm,
+                                         nOutcomes = 1,
+                                         prevOutcomes = 0.10)
 
- pp1 <- estimatePointPrevalence(cdm = cdm,
-                         denominatorTable = "denominator_typical",
-                         outcomeTable = "test_outcome")
- expect_true(tibble::is_tibble(pp1))
-
- pp2 <- estimatePeriodPrevalence(cdm = cdm,
-                               denominatorTable = "denominator_typical",
-                               outcomeTable = "test_outcome")
- expect_true(tibble::is_tibble(pp2))
-
-
- inc <- estimateIncidence(cdm = cdm,
-                                 denominatorTable = "denominator_typical",
-                                 outcomeTable = "test_outcome")
- expect_true(tibble::is_tibble(inc))
-
- CDMConnector::dropTable(cdm = cdm, name = starts_with("incp_"))
+ CDMConnector::dropTable(cdm = cdm, name = tidyselect::starts_with("incp_"))
 
  CDMConnector::cdm_disconnect(cdm = cdm)
+
+})
+
+test_that("redshift test", {
+  db <- DBI::dbConnect(RPostgres::Redshift(),
+                       dbname   = Sys.getenv("CDM5_REDSHIFT_DBNAME"),
+                       host     = Sys.getenv("CDM5_REDSHIFT_HOST"),
+                       port     = Sys.getenv("CDM5_REDSHIFT_PORT"),
+                       user     = Sys.getenv("CDM5_REDSHIFT_USER"),
+                       password = Sys.getenv("CDM5_REDSHIFT_PASSWORD"))
+  cdm <- CDMConnector::cdm_from_con(
+    con = db,
+    cdm_schema = Sys.getenv("CDM5_REDSHIFT_CDM_SCHEMA"),
+    write_schema = c(schema = Sys.getenv("CDM5_REDSHIFT_SCRATCH_SCHEMA"),
+                     prefix = "incp_")
+  )
+
+  timings <- benchmarkIncidencePrevalence(cdm,
+                                          nOutcomes = 1,
+                                          prevOutcomes = 0.10)
+
+  CDMConnector::dropTable(cdm = cdm, name = tidyselect::starts_with("incp_"))
+
+  CDMConnector::cdm_disconnect(cdm = cdm)
+
+})
+
+test_that("sql server test", {
+  db <- DBI::dbConnect(odbc::odbc(),
+                       Driver   = Sys.getenv("SQL_SERVER_DRIVER"),
+                       Server   = Sys.getenv("CDM5_SQL_SERVER_SERVER"),
+                       Database = Sys.getenv("CDM5_SQL_SERVER_CDM_DATABASE"),
+                       UID      = Sys.getenv("CDM5_SQL_SERVER_USER"),
+                       PWD      = Sys.getenv("CDM5_SQL_SERVER_PASSWORD"),
+                       TrustServerCertificate="yes",
+                       Port     = Sys.getenv("CDM5_SQL_SERVER_PORT"))
+
+  cdm <- CDMConnector::cdm_from_con(
+    con = db,
+    cdm_schema = strsplit(Sys.getenv("CDM5_SQL_SERVER_CDM_SCHEMA"), "\\.")[[1]],
+    write_schema = c(schema =  strsplit(Sys.getenv("CDM5_SQL_SERVER_SCRATCH_SCHEMA"), "\\.")[[1]],
+                     prefix = "incp_")
+  )
+
+  timings <- benchmarkIncidencePrevalence(cdm,
+                                               nOutcomes = 1,
+                                               prevOutcomes = 0.10)
+
+  CDMConnector::dropTable(cdm = cdm, name = starts_with("incp_"))
+
+  CDMConnector::cdm_disconnect(cdm = cdm)
 
 })
 
