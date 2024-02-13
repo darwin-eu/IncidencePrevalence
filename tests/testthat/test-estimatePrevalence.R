@@ -67,6 +67,8 @@ test_that("mock db: check output format", {
   ) %in%
     names(prevalenceAttrition(prev))))
 
+  expect_equal(prevalenceAttrition(prev), attrition(prev))
+
   my_settings <- prevalenceSet(prev)
   expect_true(nrow(my_settings) > 0)
 

@@ -67,6 +67,9 @@ test_that("mock db: check output format", {
   ) %in%
     names(incidenceAttrition(inc))))
 
+  expect_equal(incidenceAttrition(inc), attrition(inc))
+
+
   my_settings <- incidenceSet(inc)
   expect_true(nrow(my_settings) > 0)
 
