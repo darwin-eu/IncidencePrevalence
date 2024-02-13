@@ -39,6 +39,7 @@ Imports:
     ggplot2 (>= 3.4.0),
     omopgenerics,
     scales (>= 1.1.0),
+    lifecycle,
     lubridate (>= 1.0.0),
     magrittr (>= 2.0.0),
     purrr (>= 0.3.5),
