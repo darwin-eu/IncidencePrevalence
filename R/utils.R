@@ -105,7 +105,7 @@ incidenceSet.IncidenceResult <- function(result) {
 #' @export
 #' @importFrom omopgenerics settings
 settings.IncidenceResult <- function(x) {
-  settings <- attr(result, "settings")
+  settings <- attr(x, "settings")
   return(settings)
 }
 
@@ -141,7 +141,7 @@ prevalenceSet.PrevalenceResult <- function(result) {
 #' @export
 #' @importFrom omopgenerics settings
 settings.PrevalenceResult <- function(x) {
-  settings <- attr(result, "settings")
+  settings <- attr(x, "settings")
   return(settings)
 }
 
