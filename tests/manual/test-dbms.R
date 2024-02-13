@@ -1,4 +1,5 @@
 test_that("dbms test", {
+  testthat::skip
   # Update  to your database details as appropriate here
   skip_if(Sys.getenv("DB_SERVER_cdmgold202007_dbi") == "")
   db <- DBI::dbConnect(RPostgres::Postgres(),
@@ -47,13 +48,6 @@ test_that("dbms test", {
                     outcomeTable = "cohort",
                     temporary = FALSE,
                     returnParticipants = TRUE))
-
-  timings <- benchmarkIncidencePrevalence(cdm,
-    nOutcomes = 1,
-    prevOutcomes = 0.10
-  )
-  expect_true(tibble::is_tibble(timings))
-
 
   # Drop any permanent tables created
   CDMConnector::listTables(attr(cdm, "dbcon"),

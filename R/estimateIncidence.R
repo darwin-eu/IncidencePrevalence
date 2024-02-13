@@ -475,6 +475,7 @@ estimateIncidence <- function(cdm,
 
   # return results as an IncidencePrevalenceResult class
   attr(irs, "attrition") <- attrition
+  attr(irs, "settings") <- analysisSettings
   if (returnParticipants == TRUE) {
     attr(irs, "participants") <- cdm$inc_participants1
   }

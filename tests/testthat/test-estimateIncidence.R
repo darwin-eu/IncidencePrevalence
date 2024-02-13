@@ -67,6 +67,12 @@ test_that("mock db: check output format", {
   ) %in%
     names(incidenceAttrition(inc))))
 
+  my_settings <- incidenceSet(inc)
+  expect_true(nrow(my_settings) > 0)
+
+  expect_equal(settings(inc),
+               incidenceSet(inc))
+
   # do not return participants as default
   expect_true(is.null(participants(inc, 1)))
   CDMConnector::cdm_disconnect(cdm)

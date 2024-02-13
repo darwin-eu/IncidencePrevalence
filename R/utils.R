@@ -97,6 +97,14 @@ incidenceSet <- function(result) {
 
 #' @export
 incidenceSet.IncidenceResult <- function(result) {
+  lifecycle::deprecate_warn(when = "0.6.2", what =  "incidenceSet()", with = "setings()")
+  settings <- attr(result, "settings")
+  return(settings)
+}
+
+#' @export
+#' @importFrom omopgenerics settings
+settings.IncidenceResult <- function(result) {
   settings <- attr(result, "settings")
   return(settings)
 }
@@ -125,9 +133,18 @@ prevalenceSet <- function(result) {
 
 #' @export
 prevalenceSet.PrevalenceResult <- function(result) {
+  lifecycle::deprecate_warn(when = "0.6.2", what =  "prevalenceSet()", with = "setings()")
   settings <- attr(result, "settings")
   return(settings)
 }
+
+#' @export
+#' @importFrom omopgenerics settings
+settings.PrevalenceResult <- function(result) {
+  settings <- attr(result, "settings")
+  return(settings)
+}
+
 
 #'  Participants contributing to an analysis
 #'

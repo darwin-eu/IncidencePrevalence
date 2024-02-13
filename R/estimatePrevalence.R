@@ -521,6 +521,7 @@ estimatePrevalence <- function(cdm,
     dplyr::left_join(analysisSettings, by = "analysis_id")
 
   # return results as an IncidencePrevalenceResult class
+  attr(prs, "settings") <- analysisSettings
   attr(prs, "attrition") <- attrition
   if (returnParticipants == TRUE) {
     attr(prs, "participants") <- cdm[[paste0(type, "_prev_participants", p)]]
