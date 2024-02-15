@@ -41,8 +41,6 @@
 #' strata specific results (when strata has been specified).
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
-#' @param temporary If TRUE, temporary tables will be used throughout. If
-#' FALSE, permanent tables will be created in the write_schema of the cdm.
 #' @param returnParticipants Either TRUE or FALSE. If TRUE references to
 #' participants from the analysis will be returned allowing for further
 #' analysis. Note, if using permanent tables and returnParticipants is TRUE,
@@ -75,7 +73,6 @@ estimatePointPrevalence <- function(cdm,
                                     strata = list(),
                                     includeOverallStrata = TRUE,
                                     minCellCount = 5,
-                                    temporary = TRUE,
                                     returnParticipants = FALSE) {
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(
@@ -102,7 +99,6 @@ estimatePointPrevalence <- function(cdm,
     strata = strata,
     includeOverallStrata = includeOverallStrata,
     minCellCount = minCellCount,
-    temporary = temporary,
     returnParticipants = returnParticipants
   )
 }
@@ -141,8 +137,6 @@ estimatePointPrevalence <- function(cdm,
 #' strata specific results (when strata has been specified).
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
-#' @param temporary If TRUE, temporary tables will be used throughout. If
-#' FALSE, permanent tables will be created in the write_schema of the cdm.
 #' @param returnParticipants Either TRUE or FALSE. If TRUE references to
 #' participants from the analysis will be returned allowing for further
 #' analysis. Note, if using permanent tables and returnParticipants is TRUE,
@@ -176,7 +170,6 @@ estimatePeriodPrevalence <- function(cdm,
                                      strata = list(),
                                      includeOverallStrata = TRUE,
                                      minCellCount = 5,
-                                     temporary = TRUE,
                                      returnParticipants = FALSE) {
   estimatePrevalence(
     cdm = cdm,
@@ -192,7 +185,6 @@ estimatePeriodPrevalence <- function(cdm,
     strata = strata,
     includeOverallStrata = includeOverallStrata,
     minCellCount = minCellCount,
-    temporary = temporary,
     returnParticipants = returnParticipants
   )
 }
@@ -210,7 +202,6 @@ estimatePrevalence <- function(cdm,
                                strata = list(),
                                includeOverallStrata = TRUE,
                                minCellCount = 5,
-                               temporary = TRUE,
                                returnParticipants = FALSE) {
   startCollect <- Sys.time()
 
@@ -231,7 +222,7 @@ estimatePrevalence <- function(cdm,
     type,
     interval, completeDatabaseIntervals,
     fullContribution, timePoint,
-    minCellCount, temporary,
+    minCellCount,
     returnParticipants
   )
 
@@ -421,15 +412,11 @@ estimatePrevalence <- function(cdm,
               )
             ),
             by = "subject_id"
-          ) %>%
-          dplyr::compute(
-            name = paste0(
-              tablePrefix,
-              "_p_", i
-            ),
-            temporary = FALSE,
-            overwrite = TRUE
           )
+
+        cdm <- omopgenerics::insertTable(cdm = cdm,
+                                         name = paste0(tablePrefix,"_p_", i),
+                                         table = participants)
       }
     }
 
@@ -442,12 +429,16 @@ estimatePrevalence <- function(cdm,
       paste0(type, "_prev_participants")
     ))
 
-    participants <- participants %>%
+    cdm <- omopgenerics::insertTable(cdm = cdm,
+                                     name = paste0(type, "_prev_participants", p),
+                                     table = participants)
+    cdm[[paste0(type, "_prev_participants", p)]] <- cdm[[paste0(type, "_prev_participants", p)]] %>%
       dplyr::compute(
         name = paste0(type, "_prev_participants", p),
         temporary = FALSE,
         overwrite = TRUE
       )
+
     CDMConnector::dropTable(
       cdm = cdm,
       name = tidyselect::starts_with(paste0(
@@ -521,9 +512,10 @@ estimatePrevalence <- function(cdm,
     dplyr::left_join(analysisSettings, by = "analysis_id")
 
   # return results as an IncidencePrevalenceResult class
+  attr(prs, "settings") <- analysisSettings
   attr(prs, "attrition") <- attrition
   if (returnParticipants == TRUE) {
-    attr(prs, "participants") <- participants
+    attr(prs, "participants") <- cdm[[paste0(type, "_prev_participants", p)]]
   }
 
   class(prs) <- c("IncidencePrevalenceResult", "PrevalenceResult", class(prs))

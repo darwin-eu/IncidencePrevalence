@@ -65,7 +65,16 @@ test_that("mock db: check output format", {
     "denominator_target_cohort_name",
     "cdm_name"
   ) %in%
-    names(prevalenceAttrition(prev))))
+    names(attrition(prev))))
+
+  expect_equal(prevalenceAttrition(prev), attrition(prev))
+
+  my_settings <- prevalenceSet(prev)
+  expect_true(nrow(my_settings) > 0)
+
+  expect_equal(settings(prev),
+               prevalenceSet(prev))
+
 
   # by default we don´t return the participants
   expect_true(is.null(participants(prev, analysisId = 1)))
@@ -79,7 +88,6 @@ test_that("mock db: check output format", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "years",
-    temporary = FALSE,
     returnParticipants = TRUE
   )
   # now we do return the participants
@@ -505,7 +513,7 @@ test_that("mock db: check fullContribution requirement", {
 
   expect_true(all(prev$n_population == c(2, 1, 1)))
 
-  expect_true(prevalenceAttrition(prev) %>%
+  expect_true(attrition(prev) %>%
     dplyr::filter(reason ==
       "Do not satisfy full contribution requirement for an interval") %>%
     dplyr::pull("excluded_subjects") == 1)
@@ -585,7 +593,7 @@ test_that("mock db: check periods follow calendar dates", {
 
   # for months
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "denominator", overwrite = TRUE,
+    cdm = cdm, name = "denominator",
     cohortDateRange = c(as.Date("2011-01-15"), as.Date(NA))
   )
 
@@ -778,15 +786,6 @@ test_that("mock db: check expected errors", {
     denominatorCohortId = 1
   ))
 
-  expect_error(estimatePrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    outcomeCohortId = 1,
-    denominatorCohortId = 1,
-    temporary = TRUE,
-    returnParticipants = TRUE
-  ))
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -1006,18 +1005,18 @@ test_that("mock db: check attrition", {
   )
 
   # for female cohort we should have a row for those excluded for not being male
-  expect_true(any("Not Female" == prevalenceAttrition(prev) %>%
+  expect_true(any("Not Female" == attrition(prev) %>%
     dplyr::filter(denominator_sex == "Female") %>%
     dplyr::pull(.data$reason)))
   # for male, the opposite
-  expect_true(any("Not Male" == prevalenceAttrition(prev) %>%
+  expect_true(any("Not Male" == attrition(prev) %>%
     dplyr::filter(denominator_sex == "Male") %>%
     dplyr::pull(.data$reason)))
 
   # check we can pick out specific analysis attrition
-  expect_true(nrow(prevalenceAttrition(result = prev) %>%
+  expect_true(nrow(attrition(prev) %>%
     dplyr::filter(analysis_id == 1)) > 1)
-  expect_true(nrow(prevalenceAttrition(result = prev) %>%
+  expect_true(nrow(attrition(prev) %>%
     dplyr::filter(analysis_id == 2)) > 1)
 
   CDMConnector::cdm_disconnect(cdm)
@@ -1079,7 +1078,7 @@ test_that("mock db: check attrition with complete database intervals", {
     minCellCount = 0
   )
 
-  expect_true(prevalenceAttrition(prev) %>%
+  expect_true(attrition(prev) %>%
     dplyr::filter(reason == "Not observed during the complete database interval") %>%
     dplyr::pull("excluded_subjects") == 1)
 
@@ -1093,7 +1092,7 @@ test_that("mock db: check attrition with complete database intervals", {
                              minCellCount = 5
   )
 
-  expect_true(prevalenceAttrition(prev2) %>%
+  expect_true(attrition(prev2) %>%
                 dplyr::filter(reason == "Not observed during the complete database interval") %>%
                 dplyr::pull("excluded_subjects") == "<5")
 
@@ -1114,8 +1113,7 @@ test_that("mock db: check compute permanent", {
     cdm = cdm,
     denominatorTable = "dpop",
     outcomeTable = "outcome",
-    interval = "years",
-    temporary = FALSE
+    interval = "years"
   )
   # no temp tables created by dbplyr
   expect_false(any(stringr::str_starts(
@@ -1131,7 +1129,6 @@ test_that("mock db: check compute permanent", {
     outcomeTable = "outcome",
     interval = "years",
     type = "point",
-    temporary = FALSE,
     returnParticipants = TRUE
   )
   expect_true(any(stringr::str_detect(
@@ -1147,7 +1144,6 @@ test_that("mock db: check compute permanent", {
     outcomeTable = "outcome",
     interval = "years",
     type = "period",
-    temporary = FALSE,
     returnParticipants = TRUE
   )
   expect_true(any(stringr::str_detect(
@@ -1181,7 +1177,6 @@ test_that("mock db: check participants", {
     cdm = cdm,
     denominatorTable = "dpop",
     outcomeTable = "outcome",
-    temporary = FALSE,
     returnParticipants = TRUE
   )
   end_tables <- CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
@@ -1207,7 +1202,6 @@ test_that("mock db: check participants", {
     denominatorTable = "dpop",
     interval = "months",
     outcomeTable = "outcome",
-    temporary = FALSE,
     returnParticipants = TRUE
   )
 
@@ -1244,7 +1238,6 @@ test_that("mock db: overwriting participants", {
     denominatorTable = "dpop",
     denominatorCohortId = 1,
     outcomeTable = "outcome",
-    temporary = FALSE,
     returnParticipants = TRUE
   )
   prev1_count <- nrow(participants(prev1, 1) %>% dplyr::collect())
@@ -1254,7 +1247,6 @@ test_that("mock db: overwriting participants", {
     denominatorTable = "dpop",
     denominatorCohortId = 2,
     outcomeTable = "outcome",
-    temporary = FALSE,
     returnParticipants = TRUE
   )
   # participants from prev1 should still be the same

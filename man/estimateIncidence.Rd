@@ -17,7 +17,6 @@ estimateIncidence(
   minCellCount = 5,
   strata = list(),
   includeOverallStrata = TRUE,
-  temporary = TRUE,
   returnParticipants = FALSE
 )
 }
@@ -69,9 +68,6 @@ stratify estimates.}
 
 \item{includeOverallStrata}{Whether to include an overall result as well as
 strata specific results (when strata has been specified).}
-
-\item{temporary}{If TRUE, temporary tables will be used throughout. If
-FALSE, permanent tables will be created in the write_schema of the cdm.}
 
 \item{returnParticipants}{Either TRUE or FALSE. If TRUE references to
 participants from the analysis will be returned allowing for further

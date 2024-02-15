@@ -109,14 +109,14 @@ cohortSet(cdm$denominator)
 #> # A tibble: 6 × 9
 #>   cohort_definition_id cohort_name        age_group sex   days_prior_observation
 #>                  <int> <chr>              <chr>     <chr>                  <dbl>
-#> 1                    1 Denominator cohor… 0 to 64   Male                     180
-#> 2                    2 Denominator cohor… 0 to 64   Fema…                    180
-#> 3                    3 Denominator cohor… 0 to 64   Both                     180
-#> 4                    4 Denominator cohor… 65 to 100 Male                     180
-#> 5                    5 Denominator cohor… 65 to 100 Fema…                    180
-#> 6                    6 Denominator cohor… 65 to 100 Both                     180
+#> 1                    1 denominator_cohor… 0 to 64   Male                     180
+#> 2                    2 denominator_cohor… 0 to 64   Fema…                    180
+#> 3                    3 denominator_cohor… 0 to 64   Both                     180
+#> 4                    4 denominator_cohor… 65 to 100 Male                     180
+#> 5                    5 denominator_cohor… 65 to 100 Fema…                    180
+#> 6                    6 denominator_cohor… 65 to 100 Both                     180
 #> # ℹ 4 more variables: start_date <date>, end_date <date>,
-#> #   target_cohort_definition_id <dbl>, target_cohort_name <lgl>
+#> #   target_cohort_definition_id <int>, target_cohort_name <lgl>
 ```
 
 These cohorts will be in the typical OMOP CDM structure
@@ -124,19 +124,19 @@ These cohorts will be in the typical OMOP CDM structure
 ``` r
 cdm$denominator
 #> # Source:   table<denominator> [?? x 4]
-#> # Database: DuckDB 0.8.1 [eburn@Windows 10 x64:R 4.2.1/:memory:]
+#> # Database: DuckDB v0.9.2 [eburn@Windows 10 x64:R 4.2.1/:memory:]
 #>    cohort_definition_id subject_id cohort_start_date cohort_end_date
 #>                   <int> <chr>      <date>            <date>         
-#>  1                    1 3          2008-01-01        2008-04-02     
-#>  2                    1 4          2009-12-16        2010-01-03     
-#>  3                    1 17         2012-07-30        2014-09-09     
-#>  4                    1 25         2014-06-27        2015-10-01     
-#>  5                    1 26         2008-05-27        2009-02-06     
-#>  6                    1 29         2012-07-12        2014-08-05     
-#>  7                    1 31         2008-01-01        2008-12-15     
-#>  8                    1 37         2016-07-28        2016-07-31     
-#>  9                    1 48         2017-09-12        2017-10-13     
-#> 10                    1 55         2015-04-13        2017-04-09     
+#>  1                    1 2          2008-01-01        2018-01-01     
+#>  2                    1 3          2008-01-01        2018-01-01     
+#>  3                    1 4          2008-01-01        2010-05-26     
+#>  4                    1 9          2008-01-01        2018-01-01     
+#>  5                    1 10         2008-01-01        2014-04-23     
+#>  6                    1 17         2008-01-01        2018-01-01     
+#>  7                    1 19         2008-01-01        2009-10-20     
+#>  8                    1 25         2008-01-01        2018-01-01     
+#>  9                    1 26         2008-01-01        2018-01-01     
+#> 10                    1 31         2008-01-01        2012-07-22     
 #> # ℹ more rows
 ```
 
@@ -150,19 +150,19 @@ outcome cohort.
 ``` r
 cdm$outcome
 #> # Source:   table<outcome> [?? x 4]
-#> # Database: DuckDB 0.8.1 [eburn@Windows 10 x64:R 4.2.1/:memory:]
+#> # Database: DuckDB v0.9.2 [eburn@Windows 10 x64:R 4.2.1/:memory:]
 #>    cohort_definition_id subject_id cohort_start_date cohort_end_date
-#>    <chr>                <chr>      <date>            <date>         
-#>  1 1                    1          2016-05-20        2018-02-27     
-#>  2 1                    2          2005-02-27        2006-12-07     
-#>  3 1                    7          2012-05-12        2014-02-19     
-#>  4 1                    14         2009-09-19        2011-06-29     
-#>  5 1                    28         2014-03-11        2015-12-19     
-#>  6 1                    32         2008-06-25        2010-04-04     
-#>  7 1                    40         2014-07-09        2016-04-17     
-#>  8 1                    43         2016-11-01        2018-08-11     
-#>  9 1                    46         2008-04-30        2010-02-07     
-#> 10 1                    51         2018-05-18        2020-02-25     
+#>                   <int> <chr>      <date>            <date>         
+#>  1                    1 2          2018-04-27        2026-04-20     
+#>  2                    1 3          1999-08-30        2007-08-23     
+#>  3                    1 10         2027-12-25        2035-12-18     
+#>  4                    1 13         1985-12-10        1993-12-03     
+#>  5                    1 15         1977-06-17        1980-04-14     
+#>  6                    1 16         1970-09-08        1978-09-01     
+#>  7                    1 17         1984-03-20        1992-03-13     
+#>  8                    1 21         2022-10-21        2030-10-14     
+#>  9                    1 27         2046-06-18        2048-02-11     
+#> 10                    1 29         1988-04-30        1996-04-23     
 #> # ℹ more rows
 ```
 

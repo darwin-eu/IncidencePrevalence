@@ -97,7 +97,6 @@ test_that("mock db: checks on working example", {
   expect_warning(cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     name = "denominator",
-    overwrite = TRUE,
     ageGroup = list(c(50, 59), c(60, 69)),
     daysPriorObservation = c(0, 365)
   ))
@@ -167,7 +166,7 @@ test_that("mock db: check example we expect to work", {
     dplyr::pull(cohort_end_date) == as.Date("2015-06-01"))
 
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "denominator", overwrite = TRUE,
+    cdm = cdm, name = "denominator",
     cohortDateRange = c(as.Date("2010-02-15"), as.Date("2010-05-15"))
   )
   expect_true(nrow(cdm$denominator %>%
@@ -217,7 +216,7 @@ test_that("mock db: check another example we expect to work", {
 
 
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "denominator", overwrite =TRUE,
+    cdm = cdm, name = "denominator",
     ageGroup = list(c(10, 100))
   )
   # check min age change cohort start date
@@ -246,7 +245,7 @@ test_that("mock db: check another example we expect to work", {
   # check max age change cohort start date
   # check imputation
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "denominator", overwrite =TRUE,
+    cdm = cdm, name = "denominator",
     ageGroup = list(c(0, 10))
   )
   expect_true(cdm$denominator %>%
@@ -271,7 +270,7 @@ test_that("mock db: check another example we expect to work", {
     dplyr::pull())
 
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "denominator", overwrite = TRUE,
+    cdm = cdm, name = "denominator",
     cohortDateRange = c(as.Date("2010-02-15"), as.Date("2010-05-15"))
   )
   expect_true(nrow(cdm$denominator %>%
@@ -304,7 +303,6 @@ test_that("mock db: mock example 1000", {
 
   # all options being used
   cdm <- generateDenominatorCohortSet(cdm, name = "denominator",
-                                      overwrite = TRUE,
     cohortDateRange = c(as.Date("2011-01-01"), as.Date("2013-06-15")),
     ageGroup = list(c(0, 59), c(60, 69)),
     sex = c("Female", "Male", "Both"),
@@ -372,8 +370,7 @@ test_that("mock db: subset denominator by cohort", {
   cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "target_cohort",
     targetCohortTable = "target",
-    targetCohortId = 1,
-    overwrite = TRUE
+    targetCohortId = 1
   )
   expect_true(all(cdm$target_cohort %>%
     dplyr::collect() %>%
@@ -420,7 +417,7 @@ test_that("mock db: subset denominator by cohort", {
   cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "target_cohort_mult1",
     targetCohortTable = "target",
-    targetCohortId = c(1,2), overwrite = TRUE
+    targetCohortId = c(1,2),
   )
   expect_true(nrow(CDMConnector::settings(cdm$target_cohort_mult1))==2)
   # without specifying target, should run for both
@@ -453,7 +450,7 @@ test_that("mock db: subset denominator by cohort", {
   )
   cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "target_cohort_mult1",
-    targetCohortTable = "target", overwrite = TRUE
+    targetCohortTable = "target",
   )
   expect_true(nrow(CDMConnector::settings(cdm$target_cohort_mult1))==12)
 
@@ -611,8 +608,7 @@ test_that("mock db: one male, one female", {
 
   # female only
   cdm <- generateDenominatorCohortSet(cdm, name = "denominator",
-    sex = c("Female"),
-    overwrite = TRUE
+    sex = c("Female")
   )
   expect_true(cdm$denominator %>%
     dplyr::collect() %>%
@@ -620,8 +616,7 @@ test_that("mock db: one male, one female", {
 
   # both
   cdm <- generateDenominatorCohortSet(cdm, name = "denominator",
-    sex = c("Both"),
-    overwrite = TRUE
+    sex = c("Both")
   )
   expect_true(all(cdm$denominator %>%
     dplyr::collect() %>%
@@ -791,8 +786,7 @@ test_that("mock db: check example with restriction on age", {
   # exit once they reach the max age criteria
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
-    ageGroup = list(c(0, 10)),
-    overwrite = TRUE
+    ageGroup = list(c(0, 10))
   )
   # end date is the day before their 11th birthday
   expect_true(cdm$denominator %>%
@@ -940,7 +934,7 @@ test_that("mock db check target prior observation requirement", {
     dplyr::pull() == as.Date("2011-01-01"))
   # add prior observation requirement
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "denominator", overwrite = TRUE,
+    cdm = cdm, name = "denominator",
     ageGroup = list(
       c(11, 12)
     ), daysPriorObservation = 365
@@ -954,7 +948,7 @@ test_that("mock db check target prior observation requirement", {
   # result should be unaffected
   # (as prior observation based on obs period achieved before target cohort start)
   cdm <- generateTargetDenominatorCohortSet(
-    cdm = cdm, name = "denominator",overwrite = TRUE,
+    cdm = cdm, name = "denominator",
     targetCohortTable = "target",
     targetCohortId = 1,
     ageGroup = list(
@@ -968,7 +962,7 @@ test_that("mock db check target prior observation requirement", {
 
  expect_message(cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "denominator", targetCohortTable = "target",
-    targetCohortId = 1,overwrite = TRUE,
+    targetCohortId = 1,
     ageGroup = list(
       c(11, 12)
     ), daysPriorObservation = 365
@@ -1087,7 +1081,6 @@ test_that("mock db: targetRequirementsAtEntry", {
   cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm,
     name = "denom_reqs_cohort_entry",
-    overwrite = TRUE,
     ageGroup = list(c(09,100), c(10,100)),
     targetCohortTable = "target",
     targetCohortId = 1
@@ -1141,7 +1134,7 @@ test_that("mock db: check example with multiple observation periods", {
 
   # expect one rows- if start date is 1st Jan 2011
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "denominator", overwrite = TRUE,
+    cdm = cdm, name = "denominator",
     cohortDateRange = c(as.Date("2011-01-01"), as.Date(NA))
   )
   expect_true(nrow(cdm$denominator %>% dplyr::collect()) == 1)
@@ -1154,7 +1147,7 @@ test_that("mock db: check example with multiple observation periods", {
 
   # expect one row- if start date is end of 2020
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "denominator", overwrite = TRUE,
+    cdm = cdm, name = "denominator",
     cohortDateRange = c(as.Date(NA), as.Date("2010-12-31"))
   )
   expect_true(nrow(cdm$denominator %>%
@@ -1251,13 +1244,13 @@ test_that("mock db: check edge cases (zero results expected)", {
   expect_true(CDMConnector::cohortCount(cdm$denominator)$number_records == 0)
 
   expect_warning( cdm <- generateDenominatorCohortSet(
-    cdm = cdm,name = "denominator", overwrite = TRUE,
+    cdm = cdm,name = "denominator",
     cohortDateRange = c(as.Date(NA), as.Date("1800-01-01"))
   ))
   expect_true(CDMConnector::cohortCount(cdm$denominator)$number_records == 0)
 
   expect_warning(cdm <- generateDenominatorCohortSet(
-    cdm = cdm,name = "denominator",overwrite = TRUE,
+    cdm = cdm,name = "denominator",
     ageGroup = list(c(155, 200))
   ))
   expect_true(CDMConnector::cohortCount(cdm$denominator)$number_records == 0)
@@ -1265,13 +1258,13 @@ test_that("mock db: check edge cases (zero results expected)", {
   # note could include people as it would go up to day before first birthday
   # but given observation period, here we would expect a null
   expect_warning(cdm <- generateDenominatorCohortSet(
-    cdm = cdm,name = "denominator",overwrite = TRUE,
+    cdm = cdm,name = "denominator",
     ageGroup = list(c(0, 1))
   ))
   expect_true(CDMConnector::cohortCount(cdm$denominator)$number_records == 0)
 
   expect_warning(cdm <- generateDenominatorCohortSet(
-    cdm = cdm,name = "denominator",overwrite = TRUE,
+    cdm = cdm,name = "denominator",
     ageGroup = list(c(0, 15)),
     daysPriorObservation = 365000
   ))
@@ -1393,14 +1386,14 @@ test_that("mock db: check attrition table logic", {
     CDMConnector::attrition(cdm$denominator)$number_records[7])
 
   # check missings
-  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator", overwrite = TRUE)
+  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
   expect_true(CDMConnector::attrition(cdm$denominator)$excluded_records[2] == 1)
   expect_true(CDMConnector::attrition(cdm$denominator)$excluded_records[3] == 1)
 
   # check sex criteria
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
-    sex = "Male", overwrite = TRUE
+    sex = "Male"
   )
   expect_true(nrow(cdm$denominator %>% dplyr::collect()) ==
     tail(CDMConnector::attrition(cdm$denominator)$number_records, 1))
@@ -1410,7 +1403,7 @@ test_that("mock db: check attrition table logic", {
 
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
-    sex = "Female", overwrite = TRUE
+    sex = "Female"
   )
   expect_true(nrow(cdm$denominator %>% dplyr::collect()) ==
     tail(CDMConnector::attrition(cdm$denominator)$number_records, 1))
@@ -1421,14 +1414,14 @@ test_that("mock db: check attrition table logic", {
   # check age criteria
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
-    ageGroup = list(c(24, 25)), overwrite = TRUE
+    ageGroup = list(c(24, 25))
   )
   expect_true(CDMConnector::attrition(cdm$denominator)$excluded_records[3] == 1)
 
   # check observation criteria
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
-    cohortDateRange = c(as.Date("2010-01-01"), as.Date("2012-01-01")), overwrite = TRUE
+    cohortDateRange = c(as.Date("2010-01-01"), as.Date("2012-01-01"))
   )
   expect_true(CDMConnector::attrition(cdm$denominator)$excluded_records[5] == 2)
 
@@ -1436,7 +1429,7 @@ test_that("mock db: check attrition table logic", {
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     cohortDateRange = c(as.Date("2015-01-01"), as.Date("2016-06-30")),
-    daysPriorObservation = 365, overwrite = TRUE
+    daysPriorObservation = 365
   )
   expect_true(CDMConnector::attrition(cdm$denominator)$excluded_records[7] == 1)
   CDMConnector::cdm_disconnect(cdm)
@@ -1468,8 +1461,7 @@ test_that("mock db: check attrition table logic", {
     personTable = personTable,
     observationPeriodTable = observationPeriodTable
   )
-  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator",
-                                      overwrite = TRUE)
+  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
   expect_true(all(
     CDMConnector::attrition(cdm$denominator)$number_records == 3))
   expect_true(all(
@@ -1551,8 +1543,7 @@ test_that("mock db: check attrition with multiple cohorts", {
     dplyr::pull(.data$reason)) == FALSE)
 
   cdm <- generateDenominatorCohortSet(cdm,name = "denominator",
-    daysPriorObservation = c(0, 1000),
-    overwrite = TRUE
+    daysPriorObservation = c(0, 1000)
   )
 
   # nobody dropped for prior hist when req is 0
@@ -1649,7 +1640,7 @@ test_that("mock db: requirement interactions", {
     ageGroup = list(
       c(0, 100), c(0, 10),
       c(11, 15), c(16, 20)
-    ), overwrite = TRUE,
+    ),
     sex = c("Both", "Female", "Male"),
     daysPriorObservation = c(0, 30),
     requirementInteractions = FALSE
@@ -1691,19 +1682,4 @@ test_that("mock db: requirement interactions", {
   CDMConnector::cdm_disconnect(cdm)
 })
 
-test_that("test overwrite", {
-  skip_on_cran()
-
-  cdm <- mockIncidencePrevalenceRef()
-
-  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
-  expect_error(generateDenominatorCohortSet(cdm = cdm, name = "denominator",
-                                            overwrite = FALSE))
-  expect_no_error(generateDenominatorCohortSet(cdm = cdm, name = "denominator",
-                                            overwrite = TRUE))
-
-  CDMConnector::cdm_disconnect(cdm)
-
-
-})
 

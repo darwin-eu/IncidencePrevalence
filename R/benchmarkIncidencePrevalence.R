@@ -116,7 +116,6 @@ benchmarkIncidencePrevalence <- function(cdm,
   tictoc::tic()
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator_typical",
-    overwrite =TRUE,
     cohortDateRange = cohortDateRange,
     daysPriorObservation = 180,
     sex = c("Male", "Female"),

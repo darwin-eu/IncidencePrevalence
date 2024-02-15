@@ -1,6 +1,6 @@
 Package: IncidencePrevalence
 Title: Estimate Incidence and Prevalence using the OMOP Common Data Model
-Version: 0.6.1
+Version: 0.7.0
 Authors@R: c(
     person("Edward", "Burn", email = "edward.burn@ndorms.ox.ac.uk", 
     role = c("aut", "cre"), 
@@ -39,6 +39,7 @@ Imports:
     ggplot2 (>= 3.4.0),
     omopgenerics,
     scales (>= 1.1.0),
+    lifecycle,
     lubridate (>= 1.0.0),
     magrittr (>= 2.0.0),
     purrr (>= 0.3.5),
