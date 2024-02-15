@@ -554,25 +554,18 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
 # If the user doesn't specify date range
 # range to min and max of obs period
 getCohortDateRange <- function(cdm, cohortDateRange){
+
+  obsStartEnd <- cdm[["observation_period"]] %>%
+            dplyr::summarise(
+              min_start = as.Date(min(.data$observation_period_start_date,na.rm = TRUE)),
+              max_end = as.Date(max(.data$observation_period_end_date, na.rm = TRUE))) %>%
+            dplyr::collect()
+
   if (is.na(cohortDateRange[1])) {
-    cohortDateRange[1] <- as.Date(cdm[["observation_period"]] %>%
-                                    dplyr::summarise(
-                                      min(.data$observation_period_start_date,
-                                          na.rm = TRUE
-                                      )
-                                    ) %>%
-                                    dplyr::collect() %>%
-                                    dplyr::pull())
+    cohortDateRange[1] <- obsStartEnd$min_start
   }
   if (is.na(cohortDateRange[2])) {
-    cohortDateRange[2] <- as.Date(cdm[["observation_period"]] %>%
-                                    dplyr::summarise(
-                                      max(.data$observation_period_end_date,
-                                          na.rm = TRUE
-                                      )
-                                    ) %>%
-                                    dplyr::collect() %>%
-                                    dplyr::pull())
+    cohortDateRange[2] <- obsStartEnd$max_end
   }
   return(cohortDateRange)
 }

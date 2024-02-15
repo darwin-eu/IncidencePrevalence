@@ -2937,13 +2937,20 @@ test_that("mock db: check compute permanent", {
 test_that("mock db: check participants", {
   skip_on_cran()
 
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
-  attr(attr(cdm, "cdm_source"), "write_schema") <- c(schema = "main",
-                                                     prefix = "test_")
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10)
+  cdm$outcome2 <- cdm$outcome %>%
+    mutate(cohort_definition_id = subject_id)  %>%
+    dplyr::compute(name = "outcome2")
+
+  cdm <- omopgenerics::insertTable(cdm = cdm,
+                                   table = cdm$outcome2 %>%
+                                     dplyr::collect(),
+                            name = "outcome2")
+  cdm$outcome2 <- cdm$outcome2 %>%
+    omopgenerics::newCohortTable()
 
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "dpop",
-    sex = c("Male", "Female", "Both"),
     ageGroup = list(
       c(0, 50),
       c(51, 100)
@@ -2955,7 +2962,7 @@ test_that("mock db: check participants", {
   inc <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "dpop",
-    outcomeTable = "outcome",
+    outcomeTable = "outcome2",
     interval = "overall",
     returnParticipants = TRUE
   )
