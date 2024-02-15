@@ -85,6 +85,13 @@ getIncidence <- function(cdm,
       .data$cohort_end_date
     ))
 
+ nStudyPopOutcome <- studyPopOutcome %>%
+    utils::head(10) %>%
+    dplyr::tally() %>%
+    dplyr::pull("n")
+
+
+ if(nStudyPopOutcome > 0){
   if (is.null(outcomeWashout)) {
     # exclude anyone with a previous outcome
     studyPopOutcome <- studyPopOutcome %>%
@@ -92,11 +99,12 @@ getIncidence <- function(cdm,
         .data$cohort_start_date <= .data$cohort_end_date)
   } else {
     # otherwise add the washout to the previous outcome
-    outcomeWashoutPlusOne <- outcomeWashout + 1
+    outcomeWashoutPlusOne <- as.integer(outcomeWashout + 1)
     studyPopOutcome <- studyPopOutcome %>%
+      dplyr::mutate(outcome_prev_end_date = as.Date(.data$outcome_prev_end_date)) %>%
       dplyr::mutate(outcome_prev_end_date = dplyr::if_else(
         is.na(.data$outcome_prev_end_date),
-        .data$outcome_prev_end_date,
+        as.Date(.data$outcome_prev_end_date),
         as.Date(!!CDMConnector::dateadd("outcome_prev_end_date",
           {{ outcomeWashoutPlusOne }},
           interval = "day"
@@ -151,6 +159,8 @@ getIncidence <- function(cdm,
       .data$outcome_start_date,
       .data$cohort_end_date
     ))
+
+ }
 
   # combine those without an outcome back with those with an outcome
   # this is now our study population to get the incidence rates for
@@ -312,6 +322,9 @@ getIncidence <- function(cdm,
   }
 
   # study design related variables
+  if(is.null(outcomeWashout)){
+    outcomeWashout <- "inf"
+  }
   analysisSettings <- dplyr::tibble(
     analysis_outcome_washout = .env$outcomeWashout,
     analysis_repeated_events = .env$repeatedEvents,

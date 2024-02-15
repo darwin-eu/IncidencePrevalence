@@ -11,8 +11,7 @@ generateDenominatorCohortSet(
   ageGroup = list(c(0, 150)),
   sex = "Both",
   daysPriorObservation = 0,
-  requirementInteractions = TRUE,
-  overwrite = TRUE
+  requirementInteractions = TRUE
 )
 }
 \arguments{
@@ -45,8 +44,6 @@ a cohort.}
 all combinations of ageGroup, sex, and daysPriorObservation. If FALSE, only the
 first value specified for the other factors will be used. Consequently,
 order of values matters when requirementInteractions is FALSE.}
-
-\item{overwrite}{Whether to overwrite any existing table with the same name}
 }
 \value{
 A cohort reference

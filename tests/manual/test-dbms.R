@@ -29,8 +29,7 @@ test_that("dbms test", {
       c(80, 150)
     ),
     sex = c("Male", "Female", "Both"),
-    daysPriorObservation = 365,
-    overwrite = TRUE
+    daysPriorObservation = 365
   )
 
   cdm <- CDMConnector::generate_concept_cohort_set(cdm,
@@ -103,10 +102,29 @@ test_that("postgres test", {
                     prefix = "incp_")
  )
 
+ profvis::profvis({
+   cdm <- generateDenominatorCohortSet(
+     cdm = cdm,
+     name = "denom",
+     cohortDateRange = c(as.Date("2000-01-01"), as.Date("2022-01-01")),
+     ageGroup =list(
+       c(18, 150),
+       c(18, 49),
+       c(50, 59),
+       c(60, 69),
+       c(70, 79),
+       c(80, 150)
+     ),
+     sex = c("Male", "Female", "Both"),
+     daysPriorObservation = 365
+   )
+ })
+
  cdm <- CDMConnector::generateConceptCohortSet(cdm = cdm, name = "test_outcome",
                                                conceptSet = list("a" = 381566,
                                                                  "b" = 138525),
                                                overwrite = TRUE)
+
 
  timings <- benchmarkIncidencePrevalence(cdm,
                                          nOutcomes = 1,
@@ -131,6 +149,33 @@ test_that("redshift test", {
     write_schema = c(schema = Sys.getenv("CDM5_REDSHIFT_SCRATCH_SCHEMA"),
                      prefix = "incp_")
   )
+
+  profvis::profvis({
+    cdm <- generateDenominatorCohortSet(
+      cdm = cdm,
+      name = "denominator",
+      cohortDateRange = as.Date(c("1990-01-01", "2020-12-31")),
+      ageGroup = list(c(18,44), c(45,64),
+                      c(65,74), c(75,100)),
+      sex = c("Male", "Female", "Both"),
+      daysPriorObservation = 1,
+      requirementInteractions=FALSE
+    )
+  })
+
+
+  cdm <- CDMConnector::generateConceptCohortSet(cdm = cdm, name = "test_outcome",
+                                                conceptSet = list("a" = 80502,
+                                                                  "b" = 134736),
+                                                overwrite = TRUE)
+
+expect_no_error(estimateIncidence(
+    cdm = a_cdm,
+    returnParticipants = FALSE,
+    denominatorTable = "denom",
+    outcomeTable = "test_outcome",
+    interval = "years"
+  ))
 
   timings <- benchmarkIncidencePrevalence(cdm,
                                           nOutcomes = 1,
@@ -159,11 +204,31 @@ test_that("sql server test", {
                      prefix = "incp_")
   )
 
+
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm,
+    name = "denom" ,
+    overwrite = TRUE
+  )
+
+  cdm <- CDMConnector::generateConceptCohortSet(cdm = cdm, name = "test_outcome",
+                                                conceptSet = list("a" = 80502,
+                                                                  "b" = 134736),
+                                                overwrite = TRUE)
+
+  estimateIncidence(
+    cdm = cdm,
+    returnParticipants = FALSE,
+    denominatorTable = "denom",
+    outcomeTable = "test_outcome",
+    interval = "years"
+  )
+
   timings <- benchmarkIncidencePrevalence(cdm,
                                                nOutcomes = 1,
                                                prevOutcomes = 0.10)
 
-  CDMConnector::dropTable(cdm = cdm, name = starts_with("incp_"))
+  CDMConnector::dropTable(cdm = cdm, name = tidyselect::starts_with("incp_"))
 
   CDMConnector::cdm_disconnect(cdm = cdm)
 

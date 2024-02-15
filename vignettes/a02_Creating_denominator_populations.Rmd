@@ -154,7 +154,6 @@ We can get specify a study period like so
 cdm <- generateDenominatorCohortSet(
   cdm = cdm,
   name = "denominator", 
-  overwrite = TRUE,
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2009-12-31")),
   ageGroup = list(c(0, 150)),
   sex = "Both",
@@ -214,7 +213,6 @@ We can add some requirement of prior history
 cdm <- generateDenominatorCohortSet(
   cdm = cdm,
   name = "denominator",
-  overwrite = TRUE,
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2009-12-31")),
   ageGroup = list(c(0, 150)),
   sex = "Both",
@@ -273,7 +271,6 @@ In addition to all the above we could also add some requirements around age and 
 cdm <- generateDenominatorCohortSet(
   cdm = cdm,
   name = "denominator",
-  overwrite = TRUE,
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2009-12-31")),
   ageGroup = list(c(18, 65)),
   sex = "Female",
@@ -324,7 +321,6 @@ cdm <- mockIncidencePrevalenceRef(sampleSize = 500,
 cdm <- generateDenominatorCohortSet(
   cdm = cdm,
   name = "denominator",
-  overwrite = TRUE,
   ageGroup = list(
     c(0, 40),
     c(41, 100)
@@ -357,7 +353,6 @@ We can then also sex specific denominator cohorts.
 cdm <- generateDenominatorCohortSet(
   cdm = cdm,
   name = "denominator",
-  overwrite = TRUE,
   ageGroup = list(
     c(0, 40),
     c(41, 100)
@@ -391,7 +386,6 @@ And we could also specifying multiple prior history requirements
 cdm <- generateDenominatorCohortSet(
   cdm = cdm,
   name = "denominator",
-  overwrite = TRUE,
   ageGroup = list(
     c(0, 40),
     c(41, 100)
@@ -425,7 +419,6 @@ Note, setting requirementInteractions to FALSE would mean that only the first va
 cdm <- generateDenominatorCohortSet(
   cdm = cdm,
   name = "denominator",
-  overwrite = TRUE,
   ageGroup = list(
     c(0, 40),
     c(41, 100)
@@ -463,7 +456,6 @@ Considering the following example, we can see:
 cdm <- generateDenominatorCohortSet(
   cdm = cdm,
   name = "denominator",
-  overwrite = TRUE,
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2009-12-31")),
   ageGroup = list(
     c(0, 18),

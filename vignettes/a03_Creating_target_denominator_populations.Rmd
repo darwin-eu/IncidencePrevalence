@@ -90,8 +90,7 @@ As we´ve already seen, we can get a denominator population without including an
 ```{r, message=FALSE, warning=FALSE}
 cdm <- generateDenominatorCohortSet(
   cdm = cdm, 
-  name = "denominator",
-  overwrite = TRUE
+  name = "denominator"
 )
 cdm$denominator
 ```
@@ -119,7 +118,6 @@ But if we use `generateTargetDenominatorCohortSet()` to create a denominator coh
 cdm <- generateTargetDenominatorCohortSet(
   cdm = cdm, 
   name = "denominator_acute_asthma",
-  overwrite = TRUE,
   targetCohortTable = "target"
 )
 ```
@@ -149,7 +147,6 @@ In the case below we can see that person "3" and "5" satisfy the sex and age req
 cdm <- generateTargetDenominatorCohortSet(
   cdm = cdm, 
   name = "denominator_acute_asthma_2",
-  overwrite = TRUE,
   ageGroup = list(c(11, 15)),
   sex = "Female",
   daysPriorObservation = 0,

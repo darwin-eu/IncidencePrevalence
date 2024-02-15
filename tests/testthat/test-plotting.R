@@ -14,7 +14,7 @@ test_that("basic incidence plot", {
 
   # with a different x axis
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm,name = "denominator", overwrite = TRUE,
+    cdm = cdm,name = "denominator",
     ageGroup = list(
       c(0, 30),
       c(31, 100)
@@ -47,7 +47,7 @@ test_that("basic prevalence plot", {
 
   # with a different x axis
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm,name = "denominator", overwrite = TRUE,
+    cdm = cdm,name = "denominator",
     cohortDateRange = c(as.Date("2010-01-01"), as.Date("2010-06-01")),
     ageGroup = list(
       c(0, 30),
@@ -88,7 +88,7 @@ test_that("plot facets", {
 
   # multiple facet grouping
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm,name = "denominator", overwrite = TRUE,
+    cdm = cdm,name = "denominator",
     ageGroup = list(
       c(0, 30),
       c(31, 100)
@@ -116,7 +116,7 @@ test_that("plot facets", {
 test_that("plot colour", {
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm,name = "denominator", overwrite = TRUE,
+    cdm = cdm,name = "denominator",
     ageGroup = list(
       c(0, 30),
       c(31, 100)
@@ -136,7 +136,7 @@ test_that("plot colour", {
 
   # multiple grouping
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm,name = "denominator", overwrite = TRUE,
+    cdm = cdm,name = "denominator",
     ageGroup = list(
       c(0, 30),
       c(31, 100)

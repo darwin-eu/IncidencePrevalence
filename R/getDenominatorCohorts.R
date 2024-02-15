@@ -58,8 +58,7 @@ getDenominatorCohorts <- function(cdm,
       personDb <- personDb %>%
         dplyr::compute(
           name = paste0(intermediateTable,"_working_person"),
-          temporary = FALSE,
-          overwrite = TRUE
+          temporary = FALSE
         )
 
     observationPeriodDb <- observationPeriodDb %>%
@@ -111,8 +110,7 @@ getDenominatorCohorts <- function(cdm,
       personDb <- personDb %>%
         dplyr::compute(
           name = paste0(intermediateTable,"_working_obs_period"),
-          temporary = FALSE,
-          overwrite = TRUE
+          temporary = FALSE
         )
   }
 
@@ -152,8 +150,7 @@ getDenominatorCohorts <- function(cdm,
     studyPopDb <- studyPopDb %>%
       dplyr::compute(
         name = paste0(intermediateTable, "_i_1"),
-        temporary = FALSE,
-        overwrite = TRUE
+        temporary = FALSE
       )
 
   attrition <- recordAttrition(
@@ -223,8 +220,7 @@ getDenominatorCohorts <- function(cdm,
     studyPopDb <- studyPopDb %>%
       dplyr::compute(
         name = paste0(intermediateTable, "_i_2"),
-        temporary = FALSE,
-        overwrite = TRUE
+        temporary = FALSE
       )
 
   attrition <- recordAttrition(
@@ -246,8 +242,7 @@ getDenominatorCohorts <- function(cdm,
     studyPopDb <- studyPopDb %>%
       dplyr::compute(
         name = paste0(intermediateTable, "_i_3"),
-        temporary = FALSE,
-        overwrite = TRUE
+        temporary = FALSE
       )
 
   attrition <- recordAttrition(
@@ -297,8 +292,7 @@ getDenominatorCohorts <- function(cdm,
       studyPopDb <- studyPopDb %>%
         dplyr::compute(
           name = paste0(intermediateTable, "_i_4"),
-          temporary = FALSE,
-          overwrite = TRUE
+          temporary = FALSE
         )
 
     # keep people only if they
@@ -350,8 +344,7 @@ getDenominatorCohorts <- function(cdm,
       studyPopDb <- studyPopDb %>%
         dplyr::compute(
           name = paste0(intermediateTable, "_i_5"),
-          temporary = FALSE,
-          overwrite = TRUE
+          temporary = FALSE
         )
 
 
@@ -398,8 +391,7 @@ getDenominatorCohorts <- function(cdm,
       studyPopDb <- studyPopDb %>%
         dplyr::compute(
           name = paste0(intermediateTable, "_i_6"),
-          temporary = FALSE,
-          overwrite = TRUE
+          temporary = FALSE
         )
 
     # cohort end dates
@@ -427,8 +419,7 @@ getDenominatorCohorts <- function(cdm,
       studyPopDb <- studyPopDb %>%
         dplyr::compute(
           name = paste0(intermediateTable, "cohorts"),
-          temporary = FALSE,
-          overwrite = TRUE
+          temporary = FALSE
         )
   }
 
@@ -436,8 +427,7 @@ getDenominatorCohorts <- function(cdm,
   studyPopDb <- studyPopDb %>%
     dplyr::compute(
       name = intermediateTable,
-      temporary = FALSE,
-      overwrite = TRUE
+      temporary = FALSE
     )
 
   # remove intermediate tables
