@@ -2939,7 +2939,7 @@ test_that("mock db: check participants", {
 
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10)
   cdm$outcome2 <- cdm$outcome %>%
-    mutate(cohort_definition_id = subject_id)  %>%
+    dplyr::mutate(cohort_definition_id = subject_id)  %>%
     dplyr::compute(name = "outcome2")
 
   cdm <- omopgenerics::insertTable(cdm = cdm,
