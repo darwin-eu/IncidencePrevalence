@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -119,84 +119,152 @@ prevalence, they can also provide a single integer</p></dd>
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
     <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
 <span class="r-in"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="mockIncidencePrevalenceRef.html">mockIncidencePrevalenceRef</a></span><span class="op">(</span></span></span>
-<span class="r-in"><span>  sampleSize <span class="op">=</span> <span class="fl">10000</span>,</span></span>
+<span class="r-in"><span>  sampleSize <span class="op">=</span> <span class="fl">100</span>,</span></span>
 <span class="r-in"><span>  earliestObservationStartDate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2010-01-01"</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  latestObservationStartDate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2018-01-01"</span><span class="op">)</span></span></span>
+<span class="r-in"><span>  latestObservationStartDate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2010-01-01"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  minDaysToObservationEnd <span class="op">=</span> <span class="fl">364</span>,</span></span>
+<span class="r-in"><span>  maxDaysToObservationEnd <span class="op">=</span> <span class="fl">364</span>,</span></span>
+<span class="r-in"><span>  outPre <span class="op">=</span> <span class="fl">0.1</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">timings</span> <span class="op">&lt;-</span> <span class="fu">IncidencePrevalence</span><span class="fu">::</span><span class="fu">benchmarkIncidencePrevalence</span><span class="op">(</span><span class="va">cdm</span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="va">timings</span> <span class="op">&lt;-</span> <span class="fu">benchmarkIncidencePrevalence</span><span class="op">(</span><span class="va">cdm</span>,</span></span>
+<span class="r-in"><span>                                        nOutcomes <span class="op">=</span> <span class="fl">2</span>,</span></span>
+<span class="r-in"><span>                                        prevOutcomes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>                                        analysisType <span class="op">=</span> <span class="st">"only incidence"</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Loading required namespace: testthat</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Creating denominator cohorts</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Cohorts created in 0 min and 6 sec</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 1 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 2 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 3 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 4 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 5 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 6 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 7 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 8 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken: 0 mins and 6 secs</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 1 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 2 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 3 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 4 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 5 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 6 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 7 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 8 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken: 0 mins and 13 secs</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 1 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 2 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 3 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 4 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 5 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 6 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 7 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 8 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken: 0 mins and 8 secs</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 1 of 8</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Your SQL query is over 10,000 characters which can cause issues on some database platforms!</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> Try calling computeQuery earlier in your pipeline.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 2 of 8</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Your SQL query is over 10,000 characters which can cause issues on some database platforms!</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> Try calling computeQuery earlier in your pipeline.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 3 of 8</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Your SQL query is over 10,000 characters which can cause issues on some database platforms!</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> Try calling computeQuery earlier in your pipeline.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 4 of 8</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Your SQL query is over 10,000 characters which can cause issues on some database platforms!</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> Try calling computeQuery earlier in your pipeline.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 5 of 8</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Your SQL query is over 10,000 characters which can cause issues on some database platforms!</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> Try calling computeQuery earlier in your pipeline.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 6 of 8</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Your SQL query is over 10,000 characters which can cause issues on some database platforms!</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> Try calling computeQuery earlier in your pipeline.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 7 of 8</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Your SQL query is over 10,000 characters which can cause issues on some database platforms!</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> Try calling computeQuery earlier in your pipeline.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 8 of 8</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Your SQL query is over 10,000 characters which can cause issues on some database platforms!</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> Try calling computeQuery earlier in your pipeline.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken: 0 mins and 21 secs</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 1 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 2 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 3 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 4 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 5 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 6 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 7 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 8 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Overall time taken: 0 mins and 5 secs</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 1 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 2 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 3 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 4 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 5 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 6 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 7 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 8 of 8</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Overall time taken: 0 mins and 14 secs</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 1 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 2 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 3 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 4 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 5 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 6 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 7 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 8 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 9 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 10 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 11 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 12 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 13 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 14 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 15 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 16 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 17 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 18 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 19 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 20 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 21 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 22 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 23 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 24 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 25 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 26 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 27 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 28 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 29 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 30 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 31 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 32 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 33 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 34 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 35 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 36 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 37 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 38 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 39 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 40 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 41 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 42 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 43 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 44 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 45 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 46 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 47 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 48 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 49 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 50 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 51 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 52 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 53 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 54 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 55 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 56 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 57 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 58 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 59 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 60 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 61 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 62 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 63 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 64 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Overall time taken: 0 mins and 26 secs</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 1 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 2 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 3 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 4 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 5 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 6 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 7 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 8 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 9 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 10 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 11 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 12 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 13 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 14 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 15 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 16 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 17 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 18 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 19 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 20 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 21 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 22 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 23 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 24 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 25 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 26 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 27 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 28 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 29 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 30 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 31 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 32 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 33 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 34 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 35 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 36 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 37 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 38 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 39 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 40 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 41 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 42 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 43 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 44 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 45 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 46 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 47 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 48 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 49 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 50 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 51 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 52 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 53 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 54 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 55 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 56 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 57 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 58 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 59 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 60 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 61 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 62 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 63 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 64 of 64</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Overall time taken: 0 mins and 29 secs</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.6.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -173,7 +173,7 @@ than temporary tables which would be used by default).</p>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://tidyr.tidyverse.org" class="external-link">tidyr</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mockIncidencePrevalenceRef.html">mockIncidencePrevalenceRef</a></span><span class="op">(</span></span>
-<span>  sampleSize <span class="op">=</span> <span class="fl">50000</span>,</span>
+<span>  sampleSize <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  outPre <span class="op">=</span> <span class="fl">0.5</span></span>
 <span><span class="op">)</span></span>
 <span></span>
@@ -192,11 +192,11 @@ than temporary tables which would be used by default).</p>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: ??</span></span>
 <span><span class="co">#&gt; Columns: 4</span></span>
-<span><span class="co">#&gt; Database: DuckDB v0.9.2 [unknown@Linux 6.2.0-1018-azure:R 4.3.2/:memory:]</span></span>
+<span><span class="co">#&gt; Database: DuckDB v0.9.2 [unknown@Linux 6.2.0-1019-azure:R 4.3.2/:memory:]</span></span>
 <span><span class="co">#&gt; $ cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…</span></span>
-<span><span class="co">#&gt; $ subject_id           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "2", "3", "4", "6", "7", "8", "12", "13", "19", "…</span></span>
-<span><span class="co">#&gt; $ cohort_start_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2009-12-20, 2011-04-26, 2011-10-13, …</span></span>
-<span><span class="co">#&gt; $ cohort_end_date      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-08-03, 2011-10-16, 2011-07-16, 2012-01-01, …</span></span></code></pre></div>
+<span><span class="co">#&gt; $ subject_id           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "2", "3", "4", "6", "7", "8", "10", "11", "12", "…</span></span>
+<span><span class="co">#&gt; $ cohort_start_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-01-01, 2008-01-01, …</span></span>
+<span><span class="co">#&gt; $ cohort_end_date      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2009-01-30, 2012-01-01, 2012-01-01, 2012-01-01, …</span></span></code></pre></div>
 <p>Let´s first calculate incidence rates on a yearly basis, without
 allowing repetitive events</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
@@ -206,8 +206,7 @@ allowing repetitive events</p>
 <span>  outcomeTable <span class="op">=</span> <span class="st">"outcome"</span>,</span>
 <span>  interval <span class="op">=</span> <span class="st">"years"</span>,</span>
 <span>  outcomeWashout <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  repeatedEvents <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  temporary <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  repeatedEvents <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">inc</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -215,34 +214,34 @@ allowing repetitive events</p>
 <span><span class="co">#&gt; Rows: 4</span></span>
 <span><span class="co">#&gt; Columns: 29</span></span>
 <span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1"</span></span>
-<span><span class="co">#&gt; $ n_persons                               <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 7926, 7055, 6862, 6872</span></span>
-<span><span class="co">#&gt; $ person_days                             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1465281, 1285865, 1278246, 128…</span></span>
-<span><span class="co">#&gt; $ n_events                                <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1672, 1708, 1682, 1708</span></span>
+<span><span class="co">#&gt; $ n_persons                               <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 691, 668, 651, 641</span></span>
+<span><span class="co">#&gt; $ person_days                             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 249072, 240050, 235229, 232626</span></span>
+<span><span class="co">#&gt; $ n_events                                <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 6, 8, NA, NA</span></span>
 <span><span class="co">#&gt; $ incidence_start_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2009-01-01, 2010-0…</span></span>
 <span><span class="co">#&gt; $ incidence_end_date                      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-12-31, 2009-12-31, 2010-1…</span></span>
-<span><span class="co">#&gt; $ person_years                            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 4011.721, 3520.507, 3499.647, …</span></span>
-<span><span class="co">#&gt; $ incidence_100000_pys                    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 41677.88, 48515.75, 48061.99,…</span></span>
-<span><span class="co">#&gt; $ incidence_100000_pys_95CI_lower         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 39703.87, 46241.92, 45792.30,…</span></span>
-<span><span class="co">#&gt; $ incidence_100000_pys_95CI_upper         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 43724.63, 50872.45, 50415.07, …</span></span>
+<span><span class="co">#&gt; $ person_years                            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 681.9220, 657.2211, 644.0219, …</span></span>
+<span><span class="co">#&gt; $ incidence_100000_pys                    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 879.8661, 1217.2464, NA, NA</span></span>
+<span><span class="co">#&gt; $ incidence_100000_pys_95CI_lower         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 322.8953, 525.5206, NA, NA</span></span>
+<span><span class="co">#&gt; $ incidence_100000_pys_95CI_upper         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1915.098, 2398.461, NA, NA</span></span>
 <span><span class="co">#&gt; $ cohort_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
-<span><span class="co">#&gt; $ result_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
-<span><span class="co">#&gt; $ outcome_cohort_id                       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1"</span></span>
-<span><span class="co">#&gt; $ outcome_cohort_name                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "cohort_1", "cohort_1", "cohor…</span></span>
-<span><span class="co">#&gt; $ analysis_outcome_washout                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0</span></span>
+<span><span class="co">#&gt; $ result_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "TRUE", "TR…</span></span>
+<span><span class="co">#&gt; $ outcome_cohort_id                       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1</span></span>
+<span><span class="co">#&gt; $ outcome_cohort_name                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "cohort_1", "cohort_1", "coho…</span></span>
+<span><span class="co">#&gt; $ analysis_outcome_washout                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0", "0", "0", "0"</span></span>
 <span><span class="co">#&gt; $ analysis_repeated_events                <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE</span></span>
 <span><span class="co">#&gt; $ analysis_interval                       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "years", "years", "years", "ye…</span></span>
 <span><span class="co">#&gt; $ analysis_complete_database_intervals    <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> TRUE, TRUE, TRUE, TRUE</span></span>
 <span><span class="co">#&gt; $ denominator_cohort_id                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1</span></span>
 <span><span class="co">#&gt; $ analysis_min_cell_count                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 5, 5, 5, 5</span></span>
-<span><span class="co">#&gt; $ denominator_cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Denominator cohort 1", "Denom…</span></span>
+<span><span class="co">#&gt; $ denominator_cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "denominator_cohort_1", "denom…</span></span>
 <span><span class="co">#&gt; $ denominator_age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0 to 150", "0 to 150", "0 to …</span></span>
 <span><span class="co">#&gt; $ denominator_sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Both", "Both", "Both", "Both"</span></span>
 <span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0</span></span>
 <span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-0…</span></span>
 <span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-0…</span></span>
-<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> NA, NA, NA, NA</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> NA, NA, NA, NA</span></span>
 <span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
-<span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "test_database", "test_databas…</span></span>
+<span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "mock", "mock", "mock", "mock"</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span></code></pre></div>
 <p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-7-1.png" width="672"></p>
@@ -256,8 +255,7 @@ use a washout of all prior history for an individual.</p>
 <span>  outcomeTable <span class="op">=</span> <span class="st">"outcome"</span>,</span>
 <span>  interval <span class="op">=</span> <span class="st">"years"</span>,</span>
 <span>  outcomeWashout <span class="op">=</span> <span class="cn">Inf</span>,</span>
-<span>  repeatedEvents <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  temporary <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  repeatedEvents <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">inc</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -265,34 +263,34 @@ use a washout of all prior history for an individual.</p>
 <span><span class="co">#&gt; Rows: 4</span></span>
 <span><span class="co">#&gt; Columns: 29</span></span>
 <span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1"</span></span>
-<span><span class="co">#&gt; $ n_persons                               <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 6832, 6822, 6850, 6872</span></span>
-<span><span class="co">#&gt; $ person_days                             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1261517, 1252799, 1277510, 128…</span></span>
-<span><span class="co">#&gt; $ n_events                                <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1672, 1708, 1682, 1708</span></span>
+<span><span class="co">#&gt; $ n_persons                               <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 484, 471, 460, 454</span></span>
+<span><span class="co">#&gt; $ person_days                             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 174903, 169371, 166289, 164782</span></span>
+<span><span class="co">#&gt; $ n_events                                <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 6, 8, NA, NA</span></span>
 <span><span class="co">#&gt; $ incidence_start_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2009-01-01, 2010-0…</span></span>
 <span><span class="co">#&gt; $ incidence_end_date                      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-12-31, 2009-12-31, 2010-1…</span></span>
-<span><span class="co">#&gt; $ person_years                            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 3453.845, 3429.977, 3497.632, …</span></span>
-<span><span class="co">#&gt; $ incidence_100000_pys                    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 48409.81, 49796.26, 48089.68,…</span></span>
-<span><span class="co">#&gt; $ incidence_100000_pys_95CI_lower         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 46116.95, 47462.42, 45818.69,…</span></span>
-<span><span class="co">#&gt; $ incidence_100000_pys_95CI_upper         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 50787.16, 52215.16, 50444.11, …</span></span>
+<span><span class="co">#&gt; $ person_years                            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 478.8583, 463.7125, 455.2745, …</span></span>
+<span><span class="co">#&gt; $ incidence_100000_pys                    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1252.980, 1725.207, NA, NA</span></span>
+<span><span class="co">#&gt; $ incidence_100000_pys_95CI_lower         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 459.8217, 744.8218, NA, NA</span></span>
+<span><span class="co">#&gt; $ incidence_100000_pys_95CI_upper         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 2727.210, 3399.345, NA, NA</span></span>
 <span><span class="co">#&gt; $ cohort_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
-<span><span class="co">#&gt; $ result_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
-<span><span class="co">#&gt; $ outcome_cohort_id                       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1"</span></span>
-<span><span class="co">#&gt; $ outcome_cohort_name                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "cohort_1", "cohort_1", "cohor…</span></span>
+<span><span class="co">#&gt; $ result_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "TRUE", "TR…</span></span>
+<span><span class="co">#&gt; $ outcome_cohort_id                       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1</span></span>
+<span><span class="co">#&gt; $ outcome_cohort_name                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "cohort_1", "cohort_1", "coho…</span></span>
+<span><span class="co">#&gt; $ analysis_outcome_washout                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "inf", "inf", "inf", "inf"</span></span>
 <span><span class="co">#&gt; $ analysis_repeated_events                <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE</span></span>
 <span><span class="co">#&gt; $ analysis_interval                       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "years", "years", "years", "ye…</span></span>
 <span><span class="co">#&gt; $ analysis_complete_database_intervals    <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> TRUE, TRUE, TRUE, TRUE</span></span>
 <span><span class="co">#&gt; $ denominator_cohort_id                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1</span></span>
-<span><span class="co">#&gt; $ analysis_outcome_washout                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> NA, NA, NA, NA</span></span>
 <span><span class="co">#&gt; $ analysis_min_cell_count                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 5, 5, 5, 5</span></span>
-<span><span class="co">#&gt; $ denominator_cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Denominator cohort 1", "Denom…</span></span>
+<span><span class="co">#&gt; $ denominator_cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "denominator_cohort_1", "denom…</span></span>
 <span><span class="co">#&gt; $ denominator_age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0 to 150", "0 to 150", "0 to …</span></span>
 <span><span class="co">#&gt; $ denominator_sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Both", "Both", "Both", "Both"</span></span>
 <span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0</span></span>
 <span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-0…</span></span>
 <span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-0…</span></span>
-<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> NA, NA, NA, NA</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> NA, NA, NA, NA</span></span>
 <span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
-<span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "test_database", "test_databas…</span></span>
+<span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "mock", "mock", "mock", "mock"</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span></code></pre></div>
 <p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-8-1.png" width="672"></p>
@@ -305,8 +303,7 @@ repetitive events</p>
 <span>  outcomeTable <span class="op">=</span> <span class="st">"outcome"</span>,</span>
 <span>  interval <span class="op">=</span> <span class="st">"years"</span>,</span>
 <span>  outcomeWashout <span class="op">=</span> <span class="fl">180</span>,</span>
-<span>  repeatedEvents <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  temporary <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  repeatedEvents <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">inc</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -314,34 +311,34 @@ repetitive events</p>
 <span><span class="co">#&gt; Rows: 4</span></span>
 <span><span class="co">#&gt; Columns: 29</span></span>
 <span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1"</span></span>
-<span><span class="co">#&gt; $ n_persons                               <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 7738, 7055, 6862, 6872</span></span>
-<span><span class="co">#&gt; $ person_days                             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1418998, 1285865, 1278246, 128…</span></span>
-<span><span class="co">#&gt; $ n_events                                <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1672, 1708, 1682, 1708</span></span>
+<span><span class="co">#&gt; $ n_persons                               <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 691, 668, 651, 641</span></span>
+<span><span class="co">#&gt; $ person_days                             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 248694, 240050, 235229, 232626</span></span>
+<span><span class="co">#&gt; $ n_events                                <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 6, 8, NA, NA</span></span>
 <span><span class="co">#&gt; $ incidence_start_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2009-01-01, 2010-0…</span></span>
 <span><span class="co">#&gt; $ incidence_end_date                      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-12-31, 2009-12-31, 2010-1…</span></span>
-<span><span class="co">#&gt; $ person_years                            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 3885.005, 3520.507, 3499.647, …</span></span>
-<span><span class="co">#&gt; $ incidence_100000_pys                    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 43037.27, 48515.75, 48061.99,…</span></span>
-<span><span class="co">#&gt; $ incidence_100000_pys_95CI_lower         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 40998.87, 46241.92, 45792.30,…</span></span>
-<span><span class="co">#&gt; $ incidence_100000_pys_95CI_upper         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 45150.78, 50872.45, 50415.07, …</span></span>
+<span><span class="co">#&gt; $ person_years                            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 680.8871, 657.2211, 644.0219, …</span></span>
+<span><span class="co">#&gt; $ incidence_100000_pys                    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 881.2034, 1217.2464, NA, NA</span></span>
+<span><span class="co">#&gt; $ incidence_100000_pys_95CI_lower         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 323.3861, 525.5206, NA, NA</span></span>
+<span><span class="co">#&gt; $ incidence_100000_pys_95CI_upper         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1918.009, 2398.461, NA, NA</span></span>
 <span><span class="co">#&gt; $ cohort_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
-<span><span class="co">#&gt; $ result_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
-<span><span class="co">#&gt; $ outcome_cohort_id                       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1"</span></span>
-<span><span class="co">#&gt; $ outcome_cohort_name                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "cohort_1", "cohort_1", "cohor…</span></span>
-<span><span class="co">#&gt; $ analysis_outcome_washout                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 180, 180, 180, 180</span></span>
+<span><span class="co">#&gt; $ result_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "TRUE", "TR…</span></span>
+<span><span class="co">#&gt; $ outcome_cohort_id                       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1</span></span>
+<span><span class="co">#&gt; $ outcome_cohort_name                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "cohort_1", "cohort_1", "coho…</span></span>
+<span><span class="co">#&gt; $ analysis_outcome_washout                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "180", "180", "180", "180"</span></span>
 <span><span class="co">#&gt; $ analysis_repeated_events                <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE</span></span>
 <span><span class="co">#&gt; $ analysis_interval                       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "years", "years", "years", "ye…</span></span>
 <span><span class="co">#&gt; $ analysis_complete_database_intervals    <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> TRUE, TRUE, TRUE, TRUE</span></span>
 <span><span class="co">#&gt; $ denominator_cohort_id                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1</span></span>
 <span><span class="co">#&gt; $ analysis_min_cell_count                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 5, 5, 5, 5</span></span>
-<span><span class="co">#&gt; $ denominator_cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Denominator cohort 1", "Denom…</span></span>
+<span><span class="co">#&gt; $ denominator_cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "denominator_cohort_1", "denom…</span></span>
 <span><span class="co">#&gt; $ denominator_age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0 to 150", "0 to 150", "0 to …</span></span>
 <span><span class="co">#&gt; $ denominator_sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Both", "Both", "Both", "Both"</span></span>
 <span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0</span></span>
 <span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-0…</span></span>
 <span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-0…</span></span>
-<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> NA, NA, NA, NA</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> NA, NA, NA, NA</span></span>
 <span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
-<span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "test_database", "test_databas…</span></span>
+<span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "mock", "mock", "mock", "mock"</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span></code></pre></div>
 <p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-9-1.png" width="672"></p>
@@ -354,8 +351,7 @@ events</p>
 <span>  outcomeTable <span class="op">=</span> <span class="st">"outcome"</span>,</span>
 <span>  interval <span class="op">=</span> <span class="st">"years"</span>,</span>
 <span>  outcomeWashout <span class="op">=</span> <span class="fl">180</span>,</span>
-<span>  repeatedEvents <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  temporary <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  repeatedEvents <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">inc</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
@@ -363,34 +359,34 @@ events</p>
 <span><span class="co">#&gt; Rows: 4</span></span>
 <span><span class="co">#&gt; Columns: 29</span></span>
 <span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1"</span></span>
-<span><span class="co">#&gt; $ n_persons                               <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 7738, 7790, 7875, 7850</span></span>
-<span><span class="co">#&gt; $ person_days                             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1448414, 1454027, 1487577, 149…</span></span>
-<span><span class="co">#&gt; $ n_events                                <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1672, 1708, 1682, 1708</span></span>
+<span><span class="co">#&gt; $ n_persons                               <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 691, 674, 665, 657</span></span>
+<span><span class="co">#&gt; $ person_days                             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 248981, 242477, 240455, 238398</span></span>
+<span><span class="co">#&gt; $ n_events                                <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 6, 8, NA, NA</span></span>
 <span><span class="co">#&gt; $ incidence_start_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2009-01-01, 2010-0…</span></span>
 <span><span class="co">#&gt; $ incidence_end_date                      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-12-31, 2009-12-31, 2010-1…</span></span>
-<span><span class="co">#&gt; $ person_years                            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 3965.541, 3980.909, 4072.764, …</span></span>
-<span><span class="co">#&gt; $ incidence_100000_pys                    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 42163.22, 42904.77, 41298.74,…</span></span>
-<span><span class="co">#&gt; $ incidence_100000_pys_95CI_lower         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 40166.22, 40893.93, 39348.44,…</span></span>
-<span><span class="co">#&gt; $ incidence_100000_pys_95CI_upper         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 44233.81, 44988.92, 43320.69, …</span></span>
+<span><span class="co">#&gt; $ person_years                            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 681.6728, 663.8658, 658.3299, …</span></span>
+<span><span class="co">#&gt; $ incidence_100000_pys                    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 880.1876, 1205.0627, NA, NA</span></span>
+<span><span class="co">#&gt; $ incidence_100000_pys_95CI_lower         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 323.0134, 520.2606, NA, NA</span></span>
+<span><span class="co">#&gt; $ incidence_100000_pys_95CI_upper         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1915.798, 2374.454, NA, NA</span></span>
 <span><span class="co">#&gt; $ cohort_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
-<span><span class="co">#&gt; $ result_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
-<span><span class="co">#&gt; $ outcome_cohort_id                       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1"</span></span>
-<span><span class="co">#&gt; $ outcome_cohort_name                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "cohort_1", "cohort_1", "cohor…</span></span>
-<span><span class="co">#&gt; $ analysis_outcome_washout                <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 180, 180, 180, 180</span></span>
+<span><span class="co">#&gt; $ result_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "TRUE", "TR…</span></span>
+<span><span class="co">#&gt; $ outcome_cohort_id                       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1</span></span>
+<span><span class="co">#&gt; $ outcome_cohort_name                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "cohort_1", "cohort_1", "coho…</span></span>
+<span><span class="co">#&gt; $ analysis_outcome_washout                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "180", "180", "180", "180"</span></span>
 <span><span class="co">#&gt; $ analysis_repeated_events                <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> TRUE, TRUE, TRUE, TRUE</span></span>
 <span><span class="co">#&gt; $ analysis_interval                       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "years", "years", "years", "ye…</span></span>
 <span><span class="co">#&gt; $ analysis_complete_database_intervals    <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> TRUE, TRUE, TRUE, TRUE</span></span>
 <span><span class="co">#&gt; $ denominator_cohort_id                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1</span></span>
 <span><span class="co">#&gt; $ analysis_min_cell_count                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 5, 5, 5, 5</span></span>
-<span><span class="co">#&gt; $ denominator_cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Denominator cohort 1", "Denom…</span></span>
+<span><span class="co">#&gt; $ denominator_cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "denominator_cohort_1", "denom…</span></span>
 <span><span class="co">#&gt; $ denominator_age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0 to 150", "0 to 150", "0 to …</span></span>
 <span><span class="co">#&gt; $ denominator_sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Both", "Both", "Both", "Both"</span></span>
 <span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0</span></span>
 <span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-0…</span></span>
 <span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-0…</span></span>
-<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> NA, NA, NA, NA</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> NA, NA, NA, NA</span></span>
 <span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
-<span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "test_database", "test_databas…</span></span>
+<span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "mock", "mock", "mock", "mock"</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span></code></pre></div>
 <p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-10-1.png" width="672"></p>
@@ -419,15 +415,15 @@ when estimating incidence</p>
 <span>  outcomeTable <span class="op">=</span> <span class="st">"outcome"</span>,</span>
 <span>  interval <span class="op">=</span> <span class="st">"years"</span>,</span>
 <span>  outcomeWashout <span class="op">=</span> <span class="fl">180</span>,</span>
-<span>  repeatedEvents <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  temporary <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  repeatedEvents <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Getting incidence for analysis 1 of 3</span></span>
 <span><span class="co">#&gt; Getting incidence for analysis 2 of 3</span></span>
 <span><span class="co">#&gt; Getting incidence for analysis 3 of 3</span></span>
 <span><span class="co">#&gt; Overall time taken: 0 mins and 2 secs</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span>, facet <span class="op">=</span> <span class="st">"denominator_age_group"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span>, facet <span class="op">=</span> <span class="st">"denominator_age_group"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: Removed 10 rows containing missing values (`geom_point()`).</span></span></code></pre></div>
 <p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-11-1.png" width="672"></p>
 <p>And again, as with prevalence while we specify time-varying
 stratifications when defining our denominator populations, if we have
@@ -449,7 +445,8 @@ estimation stage.</p>
 <span><span class="co">#&gt; Overall time taken: 0 mins and 1 secs</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span>, </span>
-<span>               facet <span class="op">=</span> <span class="st">"strata_level"</span><span class="op">)</span></span></code></pre></div>
+<span>               facet <span class="op">=</span> <span class="st">"strata_level"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: Removed 8 rows containing missing values (`geom_point()`).</span></span></code></pre></div>
 <p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-12-1.png" width="672"></p>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
@@ -471,7 +468,8 @@ estimation stage.</p>
 <span><span class="co">#&gt; Overall time taken: 0 mins and 1 secs</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span>, </span>
-<span>               facet <span class="op">=</span> <span class="st">"strata_level"</span><span class="op">)</span></span></code></pre></div>
+<span>               facet <span class="op">=</span> <span class="st">"strata_level"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Warning: Removed 8 rows containing missing values (`geom_point()`).</span></span></code></pre></div>
 <p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-12-2.png" width="672"></p>
 <div class="section level4">
 <h4 id="other-parameters">Other parameters<a class="anchor" aria-label="anchor" href="#other-parameters"></a>
@@ -504,8 +502,7 @@ By default, no progress is reported (verbose=FALSE).</p>
 <span>  completeDatabaseIntervals <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  outcomeWashout <span class="op">=</span> <span class="fl">180</span>,</span>
 <span>  repeatedEvents <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  minCellCount <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  temporary <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span>  minCellCount <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Getting incidence for analysis 1 of 1</span></span>
 <span><span class="co">#&gt; Overall time taken: 0 mins and 3 secs</span></span></code></pre></div>
@@ -526,26 +523,25 @@ also be associated with attributes such as settings and attrition.</p>
 <span>  interval <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"Years"</span><span class="op">)</span>,</span>
 <span>  outcomeWashout <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">180</span><span class="op">)</span>,</span>
 <span>  repeatedEvents <span class="op">=</span> <span class="cn">TRUE</span>,</span>
-<span>  temporary <span class="op">=</span> <span class="cn">FALSE</span>,</span>
 <span>  returnParticipants <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/incidenceAttrition.html">incidenceAttrition</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 22 × 24</span></span></span>
 <span><span class="co">#&gt;    analysis_id number_records number_subjects reason_id reason  excluded_records</span></span>
 <span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>               <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>           </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 1           50000          50000                   1 Starti… <span style="color: #BB0000;">NA</span>              </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 1           50000          50000                   2 Missin… 0               </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 1           50000          50000                   3 Missin… 0               </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 1           50000          50000                   4 Cannot… 0               </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 1           18018          18018                   5 No obs… 31982           </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 1           18018          18018                   6 Doesn'… 0               </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 1           18018          18018                   7 Prior … 0               </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 1           18018          18018                  10 No obs… 0               </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 1           25886          18018                  11 Starti… <span style="color: #BB0000;">NA</span>              </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 1           24509          18018                  12 Exclud… 1377            </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span> 1           1000           1000                    1 Starti… <span style="color: #BB0000;">NA</span>              </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 1           1000           1000                    2 Missin… 0               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 1           1000           1000                    3 Missin… 0               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 1           1000           1000                    4 Cannot… 0               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 1           691            691                     5 No obs… 309             </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 1           691            691                     6 Doesn'… 0               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 1           691            691                     7 Prior … 0               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 1           691            691                    10 No obs… 0               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 1           918            691                    11 Starti… <span style="color: #BB0000;">NA</span>              </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 1           711            691                    12 Exclud… 207             </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 12 more rows</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 18 more variables: excluded_subjects &lt;chr&gt;, outcome_cohort_id &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   outcome_cohort_name &lt;chr&gt;, analysis_outcome_washout &lt;dbl&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 18 more variables: excluded_subjects &lt;chr&gt;, outcome_cohort_id &lt;int&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   outcome_cohort_name &lt;chr&gt;, analysis_outcome_washout &lt;chr&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   analysis_repeated_events &lt;lgl&gt;, analysis_interval &lt;chr&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   analysis_complete_database_intervals &lt;lgl&gt;, denominator_cohort_id &lt;int&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   analysis_min_cell_count &lt;dbl&gt;, denominator_cohort_name &lt;chr&gt;,</span></span></span>
@@ -559,33 +555,29 @@ to analysis 1 by running</p>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: ??</span></span>
 <span><span class="co">#&gt; Columns: 4</span></span>
-<span><span class="co">#&gt; Database: DuckDB v0.9.2 [unknown@Linux 6.2.0-1018-azure:R 4.3.2/:memory:]</span></span>
-<span><span class="co">#&gt; $ subject_id         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "6", "75", "163", "185", "391", "473", "527", "623"…</span></span>
-<span><span class="co">#&gt; $ cohort_start_date  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2011-10-13, 2008-01-01, 2009-01-16, 2009-02-24, 20…</span></span>
-<span><span class="co">#&gt; $ cohort_end_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2009-06-25, 2011-01-31, 2009-07-21, 20…</span></span>
+<span><span class="co">#&gt; Database: DuckDB v0.9.2 [unknown@Linux 6.2.0-1019-azure:R 4.3.2/:memory:]</span></span>
+<span><span class="co">#&gt; $ subject_id         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "3", "4", "6", "7", "8", "10", "14", "20", "23", "2…</span></span>
+<span><span class="co">#&gt; $ cohort_start_date  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-01-01, 2008-01-01, 20…</span></span>
+<span><span class="co">#&gt; $ cohort_end_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-01-01, 2012-01-01, 20…</span></span>
 <span><span class="co">#&gt; $ outcome_start_date <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA, NA…</span></span></code></pre></div>
 <p>As we;ve used permanent tables for this example, we can drop these
 after running our analysis.</p>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/list_tables.html" class="external-link">listTables</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">cdm</span>, <span class="st">"dbcon"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [1] "cdm_source"                    "denominator"                  </span></span>
-<span><span class="co">#&gt;  [3] "denominator_age_sex"           "denominator_age_sex_attrition"</span></span>
-<span><span class="co">#&gt;  [5] "denominator_age_sex_count"     "denominator_age_sex_set"      </span></span>
-<span><span class="co">#&gt;  [7] "denominator_attrition"         "denominator_count"            </span></span>
-<span><span class="co">#&gt;  [9] "denominator_set"               "inc_participants1"            </span></span>
-<span><span class="co">#&gt; [11] "observation_period"            "outcome"                      </span></span>
-<span><span class="co">#&gt; [13] "outcome_attrition"             "outcome_count"                </span></span>
-<span><span class="co">#&gt; [15] "outcome_set"                   "person"                       </span></span>
-<span><span class="co">#&gt; [17] "target"                        "target_attrition"             </span></span>
-<span><span class="co">#&gt; [19] "target_count"                  "target_set"                   </span></span>
-<span><span class="co">#&gt; [21] "vocabulary"</span></span>
-<span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/dropTable.html" class="external-link">dropTable</a></span><span class="op">(</span>cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"denominator"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/dropTable.html" class="external-link">dropTable</a></span><span class="op">(</span>cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"inc_participants"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/list_tables.html" class="external-link">listTables</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">cdm</span>, <span class="st">"dbcon"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [1] "cdm_source"         "observation_period" "outcome"           </span></span>
-<span><span class="co">#&gt;  [4] "outcome_attrition"  "outcome_count"      "outcome_set"       </span></span>
-<span><span class="co">#&gt;  [7] "person"             "target"             "target_attrition"  </span></span>
-<span><span class="co">#&gt; [10] "target_count"       "target_set"         "vocabulary"</span></span></code></pre></div>
+<code class="sourceCode R"><span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/list_tables.html" class="external-link">listTables</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">cdm</span>, <span class="st">"cdm_source"</span><span class="op">)</span>, <span class="st">"dbcon"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt;  [1] "denominator"                   "denominator_age_sex"          </span></span>
+<span><span class="co">#&gt;  [3] "denominator_age_sex_attrition" "denominator_age_sex_set"      </span></span>
+<span><span class="co">#&gt;  [5] "denominator_attrition"         "denominator_set"              </span></span>
+<span><span class="co">#&gt;  [7] "inc_participants1"             "observation_period"           </span></span>
+<span><span class="co">#&gt;  [9] "outcome"                       "outcome_attrition"            </span></span>
+<span><span class="co">#&gt; [11] "outcome_set"                   "person"                       </span></span>
+<span><span class="co">#&gt; [13] "target"                        "target_attrition"             </span></span>
+<span><span class="co">#&gt; [15] "target_set"</span></span>
+<span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu-dev.github.io/omopgenerics/reference/dropTable.html" class="external-link">dropTable</a></span><span class="op">(</span>cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"denominator"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu-dev.github.io/omopgenerics/reference/dropTable.html" class="external-link">dropTable</a></span><span class="op">(</span>cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"inc_participants"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/list_tables.html" class="external-link">listTables</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">cdm</span>, <span class="st">"cdm_source"</span><span class="op">)</span>, <span class="st">"dbcon"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] "observation_period" "outcome"            "outcome_attrition" </span></span>
+<span><span class="co">#&gt; [4] "outcome_set"        "person"             "target"            </span></span>
+<span><span class="co">#&gt; [7] "target_attrition"   "target_set"</span></span></code></pre></div>
 </div>
 </div>
 </div>
