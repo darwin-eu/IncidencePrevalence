@@ -55,8 +55,8 @@ library(dplyr)
 library(tidyr)
 
 cdm <- mockIncidencePrevalenceRef(
-  sampleSize = 50000,
-  outPre = 0.5
+  sampleSize = 20000,
+  outPre = 0.3
 )
 
 cdm <- generateDenominatorCohortSet(
@@ -79,8 +79,7 @@ prev <- estimatePointPrevalence(
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "Years",
-  minCellCount = 0,
-  temporary = FALSE
+  minCellCount = 0
 )
 
 prev %>%
@@ -96,8 +95,7 @@ prev <- estimatePointPrevalence(
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "Months",
-  minCellCount = 0,
-  temporary = FALSE
+  minCellCount = 0
 )
 
 prev %>%
@@ -115,8 +113,7 @@ prev <- estimatePointPrevalence(
   outcomeTable = "outcome",
   interval = "Years",
   timePoint = "middle",
-  minCellCount = 0,
-  temporary = FALSE
+  minCellCount = 0
 )
 
 prev %>%
@@ -133,8 +130,7 @@ prev <- estimatePeriodPrevalence(
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "Years",
-  minCellCount = 0,
-  temporary = FALSE
+  minCellCount = 0
 )
 
 prev %>%
@@ -151,8 +147,7 @@ prev <- estimatePeriodPrevalence(
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "Months",
-  minCellCount = 0,
-  temporary = FALSE
+  minCellCount = 0
 )
 
 prev %>%
@@ -170,8 +165,7 @@ prev <- estimatePeriodPrevalence(
   outcomeTable = "outcome",
   interval = "Months",
   fullContribution = FALSE,
-  minCellCount = 0,
-  temporary = FALSE
+  minCellCount = 0
 )
 
 prev %>%
@@ -263,7 +257,6 @@ prev <- estimatePeriodPrevalence(
   interval = "Years",
   fullContribution = c(TRUE, FALSE),
   minCellCount = 0,
-  temporary = FALSE, # returnParticipants can only be TRUE with temporary = FALSE
   returnParticipants = TRUE
 )
 prevalenceAttrition(prev)
@@ -279,7 +272,6 @@ As we´ve used permanent tables for this example, we can drop these after runnin
 when creating the cdm reference).
 
 ```{r, message= FALSE, warning=FALSE}
-CDMConnector::listTables(attr(cdm, "dbcon"), schema = attr(cdm, "write_schema"))
 # drop tables created when instantiating denominator cohorts
 CDMConnector::dropTable(
   cdm = cdm,
@@ -290,4 +282,6 @@ CDMConnector::dropTable(
   cdm = cdm,
   name = "period_prev_participants1"
 )
+CDMConnector::cdm_disconnect(cdm)
+
 ```

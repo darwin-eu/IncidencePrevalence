@@ -41,11 +41,19 @@
 #' @examples
 #' \donttest{
 #' cdm <- mockIncidencePrevalenceRef(
-#'   sampleSize = 10000,
+#'   sampleSize = 100,
 #'   earliestObservationStartDate = as.Date("2010-01-01"),
-#'   latestObservationStartDate = as.Date("2018-01-01")
+#'   latestObservationStartDate = as.Date("2010-01-01"),
+#'   minDaysToObservationEnd = 364,
+#'   maxDaysToObservationEnd = 364,
+#'   outPre = 0.1
 #' )
-#' timings <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm)
+#'
+#' timings <- benchmarkIncidencePrevalence(cdm,
+#'                                         nOutcomes = 2,
+#'                                         prevOutcomes = c(0.1),
+#'                                         analysisType = "only incidence"
+#' )
 #' }
 benchmarkIncidencePrevalence <- function(cdm,
                                          cohortDateRange = as.Date(c(NA, NA)),
@@ -108,7 +116,6 @@ benchmarkIncidencePrevalence <- function(cdm,
   tictoc::tic()
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator_typical",
-    overwrite =TRUE,
     cohortDateRange = cohortDateRange,
     daysPriorObservation = 180,
     sex = c("Male", "Female"),
@@ -136,7 +143,10 @@ benchmarkIncidencePrevalence <- function(cdm,
   cdm$bench_outcome <- cdm$denominator_typical %>%
     dplyr::distinct(.data$subject_id, .keep_all = TRUE) %>%
     dplyr::slice_sample(n = nSample) %>%
-    dplyr::mutate(cohort_definition_id = 1)
+    dplyr::mutate(cohort_definition_id = 1) %>%
+    dplyr::compute(name="bench_outcome",
+                   temporary = FALSE,
+                   overwite = TRUE)
 
   # add as many hypothetical outcome cohorts as required
   if (nOutcomes > 1) {
@@ -154,10 +164,14 @@ benchmarkIncidencePrevalence <- function(cdm,
           "cohort_definition_id",
           "subject_id", "cohort_start_date",
           "cohort_end_date"
-        ))
+        )) %>%
+        dplyr::compute(name="bench_outcome",
+                       temporary = FALSE,
+                       overwite = TRUE)
     }
   }
-  cdm$bench_outcome <- addCohortCountAttr(cdm$bench_outcome)
+  cdm$bench_outcome <- cdm$bench_outcome %>%
+    omopgenerics::newCohortTable()
 
   # calculate prevalence if analysisType is not "only incidence"
   if (analysisType != "only incidence") {
@@ -259,7 +273,7 @@ benchmarkIncidencePrevalence <- function(cdm,
     dplyr::mutate(time_taken_secs = round(.data$time_taken_secs, 2)) %>%
     dplyr::mutate(time_taken_mins = round(.data$time_taken_secs / 60, 2)) %>%
     dplyr::mutate(time_taken_hours = round(.data$time_taken_mins / 60, 2)) %>%
-    dplyr::mutate(dbms = CDMConnector::dbms(cdm)) %>%
+    dplyr::mutate(dbms = attr(attr(cdm, "cdm_source"), "source_type")) %>%
     dplyr::mutate(person_n = cdm$person %>%
       dplyr::count() %>%
         dplyr::pull()) %>%

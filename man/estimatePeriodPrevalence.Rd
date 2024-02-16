@@ -16,7 +16,6 @@ estimatePeriodPrevalence(
   strata = list(),
   includeOverallStrata = TRUE,
   minCellCount = 5,
-  temporary = TRUE,
   returnParticipants = FALSE
 )
 }
@@ -63,9 +62,6 @@ strata specific results (when strata has been specified).}
 \item{minCellCount}{Minimum number of events to report- results
 lower than this will be obscured. If NULL all results will be reported.}
 
-\item{temporary}{If TRUE, temporary tables will be used throughout. If
-FALSE, permanent tables will be created in the write_schema of the cdm.}
-
 \item{returnParticipants}{Either TRUE or FALSE. If TRUE references to
 participants from the analysis will be returned allowing for further
 analysis. Note, if using permanent tables and returnParticipants is TRUE,
@@ -79,7 +75,7 @@ Estimate period prevalence
 }
 \examples{
 \donttest{
-cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
 cdm <- generateDenominatorCohortSet(
   cdm = cdm, name = "denominator",
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))

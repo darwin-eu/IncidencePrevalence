@@ -26,7 +26,7 @@ test_that("full benchmark", {
     outputFolder = "not a path"
   ))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("benchmark multiple outcomes, prevalences and analysis types", {
@@ -92,5 +92,5 @@ test_that("benchmark multiple outcomes, prevalences and analysis types", {
     analysisType = "prevalence",
     outputFolder = tempdir()
   ))
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })

@@ -46,7 +46,6 @@
 #' all combinations of ageGroup, sex, and daysPriorObservation. If FALSE, only the
 #' first value specified for the other factors will be used. Consequently,
 #' order of values matters when requirementInteractions is FALSE.
-#' @param overwrite Whether to overwrite any existing table with the same name
 #'
 #' @return A cohort reference
 #' @importFrom rlang .data
@@ -54,7 +53,7 @@
 #'
 #' @examples
 #' \donttest{
-#' cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+#' cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
 #' cdm <- generateDenominatorCohortSet(
 #'   cdm = cdm,
 #'   name = "denominator",
@@ -68,8 +67,7 @@ generateDenominatorCohortSet <- function(cdm,
                                          ageGroup = list(c(0, 150)),
                                          sex = "Both",
                                          daysPriorObservation = 0,
-                                         requirementInteractions = TRUE,
-                                         overwrite = TRUE){
+                                         requirementInteractions = TRUE){
 
   fetchDenominatorCohortSet(
     cdm = cdm,
@@ -80,8 +78,7 @@ generateDenominatorCohortSet <- function(cdm,
     daysPriorObservation = daysPriorObservation,
     requirementInteractions = requirementInteractions,
     targetCohortTable = NULL,
-    targetCohortId = NULL,
-    overwrite = overwrite
+    targetCohortId = NULL
   )
 
 }
@@ -123,7 +120,6 @@ generateDenominatorCohortSet <- function(cdm,
 #' all combinations of ageGroup, sex, and daysPriorObservation. If FALSE, only the
 #' first value specified for the other factors will be used. Consequently,
 #' order of values matters when requirementInteractions is FALSE.
-#' @param overwrite Whether to overwrite any existing table with the same name
 #'
 #' @return A cohort reference
 #' @importFrom rlang .data
@@ -131,7 +127,7 @@ generateDenominatorCohortSet <- function(cdm,
 #'
 #' @examples
 #' \donttest{
-#' cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+#' cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
 #' cdm <- generateTargetDenominatorCohortSet(
 #'   cdm = cdm,
 #'   name = "denominator",
@@ -148,8 +144,7 @@ generateTargetDenominatorCohortSet <- function(cdm,
                                                ageGroup = list(c(0, 150)),
                                                sex = "Both",
                                                daysPriorObservation = 0,
-                                               requirementInteractions = TRUE,
-                                               overwrite = TRUE){
+                                               requirementInteractions = TRUE){
 
   fetchDenominatorCohortSet(
     cdm = cdm,
@@ -160,8 +155,7 @@ generateTargetDenominatorCohortSet <- function(cdm,
     daysPriorObservation = daysPriorObservation,
     requirementInteractions = requirementInteractions,
     targetCohortTable = targetCohortTable,
-    targetCohortId = targetCohortId,
-    overwrite = overwrite
+    targetCohortId = targetCohortId
   )
 
 }
@@ -176,8 +170,7 @@ fetchDenominatorCohortSet <- function(cdm,
                                          daysPriorObservation = 0,
                                          requirementInteractions = TRUE,
                                          targetCohortTable = NULL,
-                                         targetCohortId = NULL,
-                                         overwrite = FALSE) {
+                                         targetCohortId = NULL) {
   startCollect <- Sys.time()
 
   checkInputGenerateDCS(
@@ -198,7 +191,7 @@ fetchDenominatorCohortSet <- function(cdm,
   }
 
   # we'll use this as the stem for any intermediate tables we create along the way
-  intermediateTable <- paste0("ip_d_",
+  intermediateTable <- paste0("incpr",
                               tolower(paste0(sample(LETTERS, 4, replace = TRUE),
                                              collapse = "")))
 
@@ -221,7 +214,7 @@ fetchDenominatorCohortSet <- function(cdm,
 
   # get target cohort ids if not given
   if(!is.null(targetCohortTable) && is.null(targetCohortId)){
-    targetCohortId <- sort(CDMConnector::cohortSet(cdm[[targetCohortTable]]) %>%
+    targetCohortId <- sort(CDMConnector::settings(cdm[[targetCohortTable]]) %>%
       dplyr::pull("cohort_definition_id"))
   }
 
@@ -275,38 +268,37 @@ for(i in 1:length(denominatorSet)){
       table = cohortRef,
       x = denom,
       name = name,
-      cdm = cdm,
-      overwrite = overwrite
+      cdm = cdm
     )
   }
   CDMConnector::dropTable(cdm = cdm, name = dplyr::starts_with(paste0(intermediateTable, i)))
 }
 
   if (is.null(cohortRef)) {
-    DBI::dbWriteTable(
-      conn = attr(cdm, "dbcon"),
-      name = CDMConnector::inSchema(schema = attr(cdm, "write_schema"), table =  name),
-      value = dplyr::tibble(
-        cohort_definition_id = as.integer(numeric()),
-        subject_id = character(),
-        cohort_start_date = date(),
-        cohort_end_date = date()
-      ),
-      overwrite = overwrite
-    )
-    cohortRef <- dplyr::tbl(attr(cdm, "dbcon"), CDMConnector::inSchema(
-      attr(cdm, "write_schema"), name
-    ))
+   cdm <- omopgenerics::insertTable(cdm = cdm,
+                                            name = name,
+                                            table =  dplyr::tibble(
+                                              cohort_definition_id = as.integer(numeric()),
+                                              subject_id = character(),
+                                              cohort_start_date = date(),
+                                              cohort_end_date = date()
+                                            ),
+                                            overwrite = TRUE)
+  } else {
+    cdm[[name]] <- cohortRef
   }
-  # create final cohort
-  attr(cohortRef, "cdm_reference") <- cdm
-  cdm[[name]] <- CDMConnector::newGeneratedCohortSet(
-    cohortRef = cohortRef,
-    cohortSetRef = cohortSetRef,
-    cohortAttritionRef = cohortAttritionRef,
-    cohortCountRef = cohortCountRef,
-    overwrite = overwrite
-  )
+
+  if(nrow(cdm[[name]] %>% utils::head(10) %>% dplyr::collect()) == 0){
+    cdm[[name]] <- cdm[[name]] %>%
+      dplyr::mutate(cohort_definition_id = as.integer(.data$cohort_definition_id),
+                    subject_id  = as.integer(.data$subject_id),
+                    cohort_start_date  = as.Date(.data$cohort_start_date),
+                    cohort_end_date  = as.Date(.data$cohort_end_date))
+  }
+  cdm[[name]] <- cdm[[name]] %>%
+      omopgenerics::newCohortTable(cohortSetRef = cohortSetRef,
+                                   cohortAttritionRef = cohortAttritionRef)
+
   class(cdm[[name]]) <- c("denominator_cohort_set", class(cdm[[name]]))
 
  # drop the intermediate tables
@@ -460,11 +452,11 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
         dplyr::rename(
           # cohort start
           "cohort_start_date" =
-            glue::glue("date_min_age{popSpecs$min_age[[i]]}prior_history{popSpecs$days_prior_observation[[i]]}"),
+            glue::glue("date_min_age_{popSpecs$min_age[[i]]}_prior_history_{popSpecs$days_prior_observation[[i]]}"),
           # cohort end
           "cohort_end_date" =
             glue::glue(
-              "date_max_age{popSpecs$max_age[[i]]}"
+              "date_max_age_{popSpecs$max_age[[i]]}"
             ),
           "subject_id" = "person_id"
         ) %>%
@@ -540,9 +532,9 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
   attr(studyPops, "cohort_count") <- cohortCount
 
   cohortSet <- popSpecs %>%
-    dplyr::mutate(target_cohort_definition_id = unique(popSpecs$targetCohortId)) %>%
+    dplyr::mutate(target_cohort_definition_id = as.integer(unique(popSpecs$targetCohortId))) %>%
     dplyr::mutate(target_cohort_name = .env$targetCohortName) %>%
-    dplyr::mutate(cohort_name = paste0("Denominator cohort ",
+    dplyr::mutate(cohort_name = paste0("denominator_cohort_",
                                        .data$cohort_definition_id)) %>%
     dplyr::select(!c("min_age", "max_age","targetCohortTable", "targetCohortId")) %>%
     dplyr::relocate("cohort_definition_id") %>%
@@ -562,25 +554,18 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
 # If the user doesn't specify date range
 # range to min and max of obs period
 getCohortDateRange <- function(cdm, cohortDateRange){
+
+  obsStartEnd <- cdm[["observation_period"]] %>%
+            dplyr::summarise(
+              min_start = as.Date(min(.data$observation_period_start_date,na.rm = TRUE)),
+              max_end = as.Date(max(.data$observation_period_end_date, na.rm = TRUE))) %>%
+            dplyr::collect()
+
   if (is.na(cohortDateRange[1])) {
-    cohortDateRange[1] <- as.Date(cdm[["observation_period"]] %>%
-                                    dplyr::summarise(
-                                      min(.data$observation_period_start_date,
-                                          na.rm = TRUE
-                                      )
-                                    ) %>%
-                                    dplyr::collect() %>%
-                                    dplyr::pull())
+    cohortDateRange[1] <- obsStartEnd$min_start
   }
   if (is.na(cohortDateRange[2])) {
-    cohortDateRange[2] <- as.Date(cdm[["observation_period"]] %>%
-                                    dplyr::summarise(
-                                      max(.data$observation_period_end_date,
-                                          na.rm = TRUE
-                                      )
-                                    ) %>%
-                                    dplyr::collect() %>%
-                                    dplyr::pull())
+    cohortDateRange[2] <- obsStartEnd$max_end
   }
   return(cohortDateRange)
 }
@@ -682,43 +667,35 @@ unionCohorts <- function(cdm,
       )
 
         studyPopsBatches[[i]] <- studyPopsBatches[[i]] %>%
-          CDMConnector::computeQuery(
+          dplyr::compute(
             name = paste0(
               intermediateTable,
               "_batch_", i
             ),
-            temporary = FALSE,
-            schema = attr(cdm, "write_schema"),
-            overwrite = TRUE
+            temporary = FALSE
           )
 
         if(length(allCohortSet) > 0){
           allCohortSetBatches[[i]] <- Reduce(dplyr::union_all,
                                              allCohortSetBatches[[i]]) %>%
-            CDMConnector::computeQuery(
+            dplyr::compute(
               name = paste0(intermediateTable, "_cohort_set",
                             "_batch_", i),
-              temporary = FALSE,
-              schema = attr(cdm, "write_schema"),
-              overwrite = TRUE
+              temporary = FALSE
             )
           allCohortCountBatches[[i]] <- Reduce(dplyr::union_all,
                                              allCohortCountBatches[[i]]) %>%
-            CDMConnector::computeQuery(
+            dplyr::compute(
               name = paste0(intermediateTable, "_cohort_count",
                             "_batch_", i),
-              temporary = FALSE,
-              schema = attr(cdm, "write_schema"),
-              overwrite = TRUE
+              temporary = FALSE
             )
           allCohortAttritionBatches[[i]] <- Reduce(dplyr::union_all,
                                                allCohortAttritionBatches[[i]]) %>%
-            CDMConnector::computeQuery(
+            dplyr::compute(
               name = paste0(intermediateTable, "_cohort_attrition",
                             "_batch_", i),
-              temporary = FALSE,
-              schema = attr(cdm, "write_schema"),
-              overwrite = TRUE
+              temporary = FALSE
             )
         }
 
@@ -728,33 +705,25 @@ unionCohorts <- function(cdm,
     cli::cli_progress_done()
 
      studyPops <- Reduce(dplyr::union_all, studyPopsBatches) %>%
-        CDMConnector::computeQuery(
+        dplyr::compute(
           name = intermediateTable,
-          temporary = FALSE,
-          schema = attr(cdm, "write_schema"),
-          overwrite = TRUE
+          temporary = FALSE
         )
      if(length(allCohortSet) > 0){
      allCohortSet <- Reduce(dplyr::union_all, allCohortSetBatches) %>%
-       CDMConnector::computeQuery(
+       dplyr::compute(
          name = paste0(intermediateTable, "_cohort_set"),
-         temporary = FALSE,
-         schema = attr(cdm, "write_schema"),
-         overwrite = TRUE
+         temporary = FALSE
        )
      allCohortCount <- Reduce(dplyr::union_all, allCohortCountBatches) %>%
-       CDMConnector::computeQuery(
+       dplyr::compute(
          name = paste0(intermediateTable, "_cohort_count"),
-         temporary = FALSE,
-         schema = attr(cdm, "write_schema"),
-         overwrite = TRUE
+         temporary = FALSE
        )
      allCohortAttrition <- Reduce(dplyr::union_all, allCohortAttritionBatches) %>%
-       CDMConnector::computeQuery(
+       dplyr::compute(
          name = paste0(intermediateTable, "_cohort_attrition"),
-         temporary = FALSE,
-         schema = attr(cdm, "write_schema"),
-         overwrite = TRUE
+         temporary = FALSE
        )
      }
 
@@ -776,43 +745,17 @@ unionCohorts <- function(cdm,
 }
 
 
-# insert attributes into database
-insertAttributes <- function(cdm, tablePrefix, name,
-                             cohortCount, cohortSet, cohortAttrition) {
-  DBI::dbWriteTable(attr(cdm, "dbcon"),
-    name = CDMConnector::inSchema(attr(cdm, "write_schema"),
-                                  paste0(tablePrefix, "_count")),
-    value = as.data.frame(cohortCount),
-    overwrite = TRUE
-  )
-  DBI::dbWriteTable(attr(cdm, "dbcon"),
-    name = CDMConnector::inSchema(attr(cdm, "write_schema"),
-                                  paste0(tablePrefix, "_set")),
-    value = as.data.frame(cohortSet),
-    overwrite = TRUE
-  )
-  DBI::dbWriteTable(attr(cdm, "dbcon"),
-    name = CDMConnector::inSchema(attr(cdm, "write_schema"),
-                                  paste0(tablePrefix, "_attrition")),
-    value = as.data.frame(cohortAttrition),
-    overwrite = TRUE
-  )
-}
-
-updateCohort <- function(table, x, name, cdm, overwrite) {
+updateCohort <- function(table, x, name, cdm) {
   if (is.null(table)) {
     table <- x %>%
-      CDMConnector::computeQuery(
+      dplyr::compute(
         name = name,
-        temporary = FALSE,
-        schema = attr(cdm, "write_schema"),
-        overwrite = overwrite
+        temporary = FALSE
       )
   } else {
     table <- CDMConnector::appendPermanent(
       x = x,
-      name = name,
-      schema = attr(cdm, "write_schema")
+      name = name
     )
   }
   return(table)

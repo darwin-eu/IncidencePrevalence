@@ -39,6 +39,7 @@ incidenceAttrition <- function(result) {
 
 #' @export
 incidenceAttrition.IncidenceResult <- function(result) {
+  lifecycle::deprecate_warn(when = "0.6.2", what =  "incidenceAttrition()", with = "attrition()")
   attrition <- attr(result, "attrition")
   return(attrition)
 }
@@ -67,6 +68,7 @@ prevalenceAttrition <- function(result) {
 
 #' @export
 prevalenceAttrition.PrevalenceResult <- function(result) {
+  lifecycle::deprecate_warn(when = "0.6.2", what =  "prevalenceAttrition()", with = "attrition()")
   attrition <- attr(result, "attrition")
   return(attrition)
 }
@@ -97,9 +99,11 @@ incidenceSet <- function(result) {
 
 #' @export
 incidenceSet.IncidenceResult <- function(result) {
+  lifecycle::deprecate_warn(when = "0.6.2", what =  "incidenceSet()", with = "setings()")
   settings <- attr(result, "settings")
   return(settings)
 }
+
 
 #' Settings associated with a prevalence analysis
 #'
@@ -125,9 +129,11 @@ prevalenceSet <- function(result) {
 
 #' @export
 prevalenceSet.PrevalenceResult <- function(result) {
+  lifecycle::deprecate_warn(when = "0.6.2", what =  "prevalenceSet()", with = "setings()")
   settings <- attr(result, "settings")
   return(settings)
 }
+
 
 #'  Participants contributing to an analysis
 #'

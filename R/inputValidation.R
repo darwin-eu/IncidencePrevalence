@@ -15,14 +15,6 @@ checkInputGenerateDCS <- function(cdm,
     cli::cli_abort(c("name must be given in snake case",
                      "i" = "for example 'my_cohort' is allowed but 'MyCohort' is not"))
   }
-
-  if(is.null(attr(cdm, "write_schema"))){
-  cli::cli_abort("cdm must have a write_schema specified",
-                 call = call)
-  }
-  if(is.null(attr(cdm, "write_schema"))){
-    cli::cli_abort("cdm must have write schema specified")
-  }
   if (!is.null(targetCohortTable)) {
     cdmTargetCheck(cdm, targetCohortTable = targetCohortTable)
   }
@@ -122,7 +114,6 @@ checkInputEstimateIncidence <- function(cdm,
                                         outcomeWashout,
                                         repeatedEvents,
                                         minCellCount,
-                                        temporary,
                                         returnParticipants) {
   cdmCheck(cdm)
 
@@ -140,23 +131,15 @@ checkInputEstimateIncidence <- function(cdm,
     add = errorMessage,
     null.ok = TRUE
   )
-  outcomeCheck <- outcomeTable %in% names(cdm)
-  checkmate::assertTRUE(outcomeCheck,
-    add = errorMessage
-  )
-  if (!isTRUE(outcomeCheck)) {
-    errorMessage$push(
-      "- `outcomeTable` is not found in cdm"
-    )
+  if(!outcomeTable %in% names(cdm)){
+    cli::cli_abort(paste0("outcomeTable ", outcomeTable, " is not found in cdm"))
   }
-  outcomeAttributeCheck <- (!is.null(attr(
-    cdm[[outcomeTable]],
-    "cohort_count"
-  )) &
-    !is.null(attr(
-      cdm[[outcomeTable]],
-      "cohort_set"
-    )))
+  outcomeAttributeCheck <- (!is.null(
+    CDMConnector::cohort_count(cdm[[outcomeTable]])
+  ) &
+    !is.null(
+      CDMConnector::settings(cdm[[outcomeTable]])
+    ))
   checkmate::assertTRUE(outcomeAttributeCheck,
     add = errorMessage
   )
@@ -182,8 +165,13 @@ checkInputEstimateIncidence <- function(cdm,
   checkmate::assert_logical(completeDatabaseIntervals,
     add = errorMessage
   )
+  if (any(is.null(outcomeWashout))) {
+    cli::cli_abort("outcomeWashout cannot be NULL")
+    }
   if (any(outcomeWashout != Inf)) {
     checkmate::assert_numeric(outcomeWashout[which(!is.infinite(outcomeWashout))],
+                              lower = 0, upper = 99999,
+                              null.ok = FALSE,
       add = errorMessage
     )
   }
@@ -191,15 +179,6 @@ checkInputEstimateIncidence <- function(cdm,
     add = errorMessage
   )
   checkmate::assert_number(minCellCount)
-  checkmate::assert_logical(temporary,
-    add = errorMessage
-  )
-  if (isTRUE(temporary)) {
-    # returnParticipants only when we are using permanent tables
-    checkmate::assert_false(returnParticipants,
-      add = errorMessage
-    )
-  }
   checkmate::assert_logical(returnParticipants,
     add = errorMessage
   )
@@ -236,7 +215,6 @@ checkInputEstimatePrevalence <- function(cdm,
                                          fullContribution,
                                          timePoint,
                                          minCellCount,
-                                         temporary,
                                          returnParticipants) {
   cdmCheck(cdm)
 
@@ -263,14 +241,10 @@ checkInputEstimatePrevalence <- function(cdm,
       "- `outcomeTable` is not found in cdm"
     )
   }
-  outcomeAttributeCheck <- (!is.null(attr(
-    cdm[[outcomeTable]],
-    "cohort_count"
-  )) &
-    !is.null(attr(
-      cdm[[outcomeTable]],
-      "cohort_set"
-    )))
+  outcomeAttributeCheck <- (!is.null(
+  CDMConnector::cohort_count(cdm[[outcomeTable]])) &
+    !is.null(
+      CDMConnector::settings(cdm[[outcomeTable]])))
   checkmate::assertTRUE(outcomeAttributeCheck,
     add = errorMessage
   )
@@ -306,18 +280,9 @@ checkInputEstimatePrevalence <- function(cdm,
   checkmate::assert_logical(completeDatabaseIntervals,
     add = errorMessage
   )
-  checkmate::assert_logical(temporary,
-    add = errorMessage
-  )
   checkmate::assert_logical(returnParticipants,
     add = errorMessage
   )
-  if (isTRUE(temporary)) {
-    # returnParticipants only when we are using permanent tables
-    checkmate::assert_false(returnParticipants,
-      add = errorMessage
-    )
-  }
   return(checkmate::reportAssertions(collection = errorMessage))
 }
 

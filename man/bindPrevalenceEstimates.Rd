@@ -18,7 +18,7 @@ Bind multiple prevalence estimates into a single set of estimates
 }
 \examples{
 \donttest{
-cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
 cdm <- generateDenominatorCohortSet(
   cdm = cdm, name = "denominator"
 )

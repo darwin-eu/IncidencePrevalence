@@ -17,7 +17,6 @@ estimateIncidence(
   minCellCount = 5,
   strata = list(),
   includeOverallStrata = TRUE,
-  temporary = TRUE,
   returnParticipants = FALSE
 )
 }
@@ -70,9 +69,6 @@ stratify estimates.}
 \item{includeOverallStrata}{Whether to include an overall result as well as
 strata specific results (when strata has been specified).}
 
-\item{temporary}{If TRUE, temporary tables will be used throughout. If
-FALSE, permanent tables will be created in the write_schema of the cdm.}
-
 \item{returnParticipants}{Either TRUE or FALSE. If TRUE references to
 participants from the analysis will be returned allowing for further
 analysis. Note, if using permanent tables and returnParticipants is TRUE,
@@ -86,7 +82,7 @@ Collect population incidence estimates
 }
 \examples{
 \donttest{
-cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
 cdm <- generateDenominatorCohortSet(
   cdm = cdm, name = "denominator",
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
