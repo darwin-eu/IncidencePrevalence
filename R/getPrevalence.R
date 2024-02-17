@@ -310,11 +310,7 @@ getPrevalence <- function(cdm,
   results[["pr"]] <- pr
   results[["attrition"]] <- attrition
   if (returnParticipants == TRUE) {
-    results[["person_table"]] <- paste0(
-      tablePrefix,
-      "_analysis_",
-      analysisId
-    )
+    results[["person_table"]] <- studyPop
   }
 
   return(results)

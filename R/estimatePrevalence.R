@@ -382,78 +382,28 @@ estimatePrevalence <- function(cdm,
 
   # participants
   if (returnParticipants == TRUE) {
-    participantTables <- unname(purrr::as_vector(prsList[stringr::str_detect(
-      names(prsList),
-      "study_population"
-    )]))
-
-    # combine to a single participants
-    # from 1st analysis
-
-    participants <- dplyr::tbl(
-      attr(attr(cdm, "cdm_source"), "dbcon"),
-      CDMConnector::inSchema(
-        attr(attr(cdm, "cdm_source"), "write_schema"),
-        participantTables[[1]]
-      )
-    )
-
-    if (length(participantTables) >= 2) {
-      # join additional analyses
-      participantTables <- participantTables[2:length(participantTables)]
-      for (i in seq_along(participantTables)) {
-        participants <- participants %>%
-          dplyr::full_join(
-            dplyr::tbl(
-              attr(attr(cdm, "cdm_source"), "dbcon"),
-              CDMConnector::inSchema(
-                attr(attr(cdm, "cdm_source"), "write_schema"),
-                participantTables[[i]]
-              )
-            ),
-            by = "subject_id"
-          )
-
-        cdm <- omopgenerics::insertTable(cdm = cdm,
-                                         name = paste0(tablePrefix,"_p_", i),
-                                         table = participants)
-      }
-    }
+    participantTables <- prsList[grepl("study_population_analyis_", names(prsList))]
 
     # make sure to not overwrite any existing participant table (from
     # previous function calls)
     p <- 1 + length(stringr::str_subset(
       CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
-        schema = attr(attr(cdm, "cdm_source"), "write_schema")
+                               schema = attr(attr(cdm, "cdm_source"), "write_Schema")
       ),
-      paste0(type, "_prev_participants")
+      paste0(type, "_prev_participants_")
     ))
 
-    cdm <- omopgenerics::insertTable(cdm = cdm,
-                                     name = paste0(type, "_prev_participants", p),
-                                     table = participants)
-    cdm[[paste0(type, "_prev_participants", p)]] <- cdm[[paste0(type, "_prev_participants", p)]] %>%
-      dplyr::compute(
-        name = paste0(type, "_prev_participants", p),
-        temporary = FALSE,
-        overwrite = TRUE
-      )
-
-    CDMConnector::dropTable(
-      cdm = cdm,
-      name = tidyselect::starts_with(paste0(
-        tablePrefix,
-        "_analysis_"
-      ))
-    )
-    CDMConnector::dropTable(
-      cdm = cdm,
-      name = tidyselect::starts_with(paste0(
-        tablePrefix,
-        "_p_"
-      ))
-    )
+    nm <- paste0(type, "_prev_participants_", p)
+    cdm[[nm]] <- purrr::reduce(
+      participantTables, dplyr::full_join, by = "subject_id"
+    ) %>%
+      dplyr::compute(name = nm, temporary = FALSE, overwrite = TRUE)
   }
+
+  CDMConnector::dropTable(
+    cdm = cdm,
+    name = tidyselect::starts_with(paste0(tablePrefix, "_analysis_"))
+  )
 
   # prevalence estimates
   prs <- prsList[names(prsList) == "pr"]
@@ -515,22 +465,18 @@ estimatePrevalence <- function(cdm,
   attr(prs, "settings") <- analysisSettings
   attr(prs, "attrition") <- attrition
   if (returnParticipants == TRUE) {
-    attr(prs, "participants") <- cdm[[paste0(type, "_prev_participants", p)]]
+    attr(prs, "participants") <- cdm[[nm]]
   }
 
   class(prs) <- c("IncidencePrevalenceResult", "PrevalenceResult", class(prs))
-
 
   dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
   message(glue::glue(
     "Time taken: {floor(dur/60)} mins and {dur %% 60 %/% 1} secs"
   ))
 
-
   return(prs)
 }
-
-
 
 binomialCiWilson <- function(x, n) {
   alpha <- 0.05

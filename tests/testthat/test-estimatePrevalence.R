@@ -67,14 +67,12 @@ test_that("mock db: check output format", {
   ) %in%
     names(attrition(prev))))
 
-  expect_equal(prevalenceAttrition(prev), attrition(prev))
+  expect_equal(suppressWarnings(prevalenceAttrition(prev)), attrition(prev))
 
-  my_settings <- prevalenceSet(prev)
+  my_settings <- settings(prev)
   expect_true(nrow(my_settings) > 0)
 
-  expect_equal(settings(prev),
-               prevalenceSet(prev))
-
+  expect_equal(settings(prev), suppressWarnings(prevalenceSet(prev)))
 
   # by default we don´t return the participants
   expect_true(is.null(participants(prev, analysisId = 1)))
@@ -1135,7 +1133,7 @@ test_that("mock db: check compute permanent", {
     CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
       schema = attr(attr(cdm, "cdm_source"), "write_schema")
     ),
-    "point_prev_participants1"
+    "point_prev_participants_1"
   )))
 
   prev <- estimatePrevalence(
@@ -1150,7 +1148,7 @@ test_that("mock db: check compute permanent", {
     CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
       schema = attr(attr(cdm, "cdm_source"), "write_schema")
     ),
-    "period_prev_participants1"
+    "period_prev_participants_1"
   )))
 
   CDMConnector::cdm_disconnect(cdm)

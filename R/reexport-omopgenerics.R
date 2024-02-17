@@ -14,29 +14,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+#' @importFrom omopgenerics cohortCount
 #' @export
+omopgenerics::cohortCount
+
 #' @importFrom omopgenerics settings
+#' @export
+omopgenerics::settings
+
+#' @importFrom omopgenerics attrition
+#' @export
+omopgenerics::attrition
+
+#' @export
 settings.IncidenceResult <- function(x) {
   settings <- attr(x, "settings")
   return(settings)
 }
 
 #' @export
-#' @importFrom omopgenerics settings
 settings.PrevalenceResult <- function(x) {
   settings <- attr(x, "settings")
   return(settings)
 }
 
 #' @export
-#' @importFrom omopgenerics attrition
 attrition.IncidenceResult <- function(x) {
   attrition <- attr(x, "attrition")
   return(attrition)
 }
 
 #' @export
-#' @importFrom omopgenerics attrition
 attrition.PrevalenceResult <- function(x) {
   attrition <- attr(x, "attrition")
   return(attrition)
