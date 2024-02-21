@@ -11,42 +11,74 @@ test_that("dbms test", {
   )
   cdm <- CDMConnector::cdm_from_con(
     con = db,
-    cdm_schema = "public_100k",
-    write_schema = c(schema = "results", prefix = "incprev_bench_")
+    cdm_schema = "public",
+    write_schema = c(schema ="results", prefix = "ip_b_")
   )
-  dplyr::count(cdm$person)
 
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm,
+    name = "denom"
+  )
+  cdm <- CDMConnector::generate_concept_cohort_set(cdm,
+                                                   concept_set =
+                                                     list(a = 4050747),
+                                                   name = "ip_outcome") # 3 mins and 36 secs
+
+  expect_no_error(estimateIncidence(cdm,
+                                    denominatorTable = "denom",
+                                    outcomeTable = "ip_outcome")) #
+  expect_no_error(estimatePointPrevalence(cdm,
+                                          denominatorTable = "denom",
+                                          outcomeTable = "ip_outcome")) #3 mins and 54 secs
+
+
+  profvis::profvis({
+    estimateIncidence(cdm,
+                      denominatorTable = "denom",
+                      outcomeTable = "ip_outcome")
+  })
+
+  profvis::profvis({
+    estimatePointPrevalence(cdm,
+                            denominatorTable = "denom",
+                            outcomeTable = "ip_outcome")
+  })
+
+
+
+
+  cdm <- CDMConnector::cdm_from_con(
+    con = db,
+    cdm_schema = "public_100k",
+    write_schema = c(schema ="results", prefix = "ip_b_")
+  )
   cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     name = "denom" ,
     cohortDateRange = c(as.Date("2000-01-01"), as.Date("2022-01-01")),
     ageGroup =list(
-      c(18, 150),
-      c(18, 49),
-      c(50, 59),
-      c(60, 69),
-      c(70, 79),
-      c(80, 150)
+      c(0, 150),
+      c(0, 150),
+      c(0, 150)
     ),
-    sex = c("Male", "Female", "Both"),
-    daysPriorObservation = 365
+    sex = c("Both", "Both", "Both"),
+    daysPriorObservation = c(0, 365)
   )
 
   cdm <- CDMConnector::generate_concept_cohort_set(cdm,
                                                    concept_set =
                                                      list(a = 4050747,
-                                                         b = 4077375))
+                                                          b = 4077375),
+                                                   name = "ip_outcome")
+
+
+
   expect_no_error(estimateIncidence(cdm,
                     denominatorTable = "denom",
-                    outcomeTable = "cohort",
-                    outcomeCohortId = 1,
-                    temporary = FALSE,
-                    returnParticipants = TRUE))
+                    outcomeTable = "ip_outcome")) # 1 mins and 28 secs
   expect_no_error(estimatePointPrevalence(cdm,
                     denominatorTable = "denom",
-                    outcomeTable = "cohort",
-                    temporary = FALSE,
-                    returnParticipants = TRUE))
+                    outcomeTable = "ip_outcome")) # 1 mins and 56 secs
 
   # Drop any permanent tables created
   CDMConnector::listTables(attr(cdm, "dbcon"),
