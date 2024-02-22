@@ -130,10 +130,17 @@ getPrevalence <- function(cdm,
 
     # drop people who never fulfill contribution requirement
     if (fullContribution == TRUE) {
-      checkExpression <- glue::glue("(.data$cohort_end_date >= studyDays$end_time[{seq_along(studyDays$end_time)}]) &
+      if(isTRUE(returnParticipants)){
+        checkExpression <- glue::glue("(.data$cohort_end_date >= local(studyDays$end_time[{seq_along(studyDays$end_time)}]) &
+           .data$cohort_start_date <= local(studyDays$start_time[{seq_along(studyDays$start_time)}]))") %>%
+          paste0(collapse = "||") %>%
+          rlang::parse_expr()
+      } else {
+        checkExpression <- glue::glue("(.data$cohort_end_date >= studyDays$end_time[{seq_along(studyDays$end_time)}]) &
            (.data$cohort_start_date <= studyDays$start_time[{seq_along(studyDays$start_time)}])") %>%
-        paste0(collapse = "|") %>%
-        rlang::parse_expr()
+          paste0(collapse = "|") %>%
+          rlang::parse_expr()
+      }
 
       studyPop <- studyPop %>%
         dplyr::mutate(
