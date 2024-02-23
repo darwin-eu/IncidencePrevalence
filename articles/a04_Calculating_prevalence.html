@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -480,7 +480,7 @@ estimating prevalence.</p>
 <span><span class="co">#&gt; Getting prevalence for analysis 1 of 3</span></span>
 <span><span class="co">#&gt; Getting prevalence for analysis 2 of 3</span></span>
 <span><span class="co">#&gt; Getting prevalence for analysis 3 of 3</span></span>
-<span><span class="co">#&gt; Time taken: 0 mins and 2 secs</span></span>
+<span><span class="co">#&gt; Time taken: 0 mins and 0 secs</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotPrevalence.html">plotPrevalence</a></span><span class="op">(</span><span class="va">prev</span>, facet <span class="op">=</span> <span class="st">"denominator_age_group"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-11-1.png" width="672"></p>
@@ -525,7 +525,7 @@ results.</p>
 <span>  minCellCount <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Getting prevalence for analysis 1 of 1</span></span>
-<span><span class="co">#&gt; Time taken: 0 mins and 1 secs</span></span>
+<span><span class="co">#&gt; Time taken: 0 mins and 0 secs</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotPrevalence.html">plotPrevalence</a></span><span class="op">(</span><span class="va">prev</span>, </span>
 <span>               facet <span class="op">=</span> <span class="st">"strata_level"</span><span class="op">)</span></span></code></pre></div>
@@ -589,7 +589,7 @@ information on settings and attrition.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 1           13910          13910                   7 Prior … 0               </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 1           13910          13910                  10 No obs… 0               </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 1           13910          13910                  11 Starti… <span style="color: #BB0000;">NA</span>              </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 1           13910          13910                  14 Not ob… 0               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 1           13910          13910                  12 Not ob… 0               </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 12 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 19 more variables: excluded_subjects &lt;chr&gt;, outcome_cohort_id &lt;int&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   outcome_cohort_name &lt;chr&gt;, analysis_type &lt;chr&gt;, analysis_interval &lt;chr&gt;,</span></span></span>
@@ -623,7 +623,7 @@ write_prefix specified when creating the cdm reference).</p>
 <span><span class="co"># drop table with study participants when returnParticipants = TRUE</span></span>
 <span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu-dev.github.io/omopgenerics/reference/dropTable.html" class="external-link">dropTable</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
-<span>  name <span class="op">=</span> <span class="st">"period_prev_participants1"</span></span>
+<span>  name <span class="op">=</span> <span class="st">"period_prev_participants_1"</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/cdmDisconnect.html" class="external-link">cdm_disconnect</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">)</span></span></code></pre></div>
 </div>
