@@ -369,20 +369,12 @@ getIncidence <- function(cdm,
         ) := "outcome_start_date"
       ) %>%
       dplyr::compute(
-        name = paste0(
-          tablePrefix,
-          "_analysis_",
-          analysisId
-        ),
+        name = paste0(tablePrefix, "_analysis_", analysisId),
         temporary = FALSE,
         overwrite = TRUE
       )
     # keep a record of the table name
-    results[["person_table"]] <- paste0(
-      tablePrefix,
-      "_analysis_",
-      analysisId
-    )
+    results[["person_table"]] <- studyPopDb
   }
 
   return(results)

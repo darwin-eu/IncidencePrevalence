@@ -365,41 +365,7 @@ estimateIncidence <- function(cdm,
 
   # person_table summary
   if (returnParticipants == TRUE) {
-    participantTables <- unname(purrr::as_vector(irsList[stringr::str_detect(
-      names(irsList),
-      "study_population"
-    )]))
-    # combine to a single participants
-    # from 1st analysis
-    participants <- dplyr::tbl(
-      attr(attr(cdm, "cdm_source"), "dbcon"),
-      CDMConnector::inSchema(
-        attr(attr(cdm, "cdm_source"), "write_schema"),
-        participantTables[[1]]
-      )
-    )
-
-
-    if (length(participantTables) >= 2) {
-      # join additional analyses
-      participantTables <- participantTables[2:length(participantTables)]
-      for (i in seq_along(participantTables)) {
-        participants <- participants %>%
-          dplyr::full_join(
-            dplyr::tbl(
-              attr(attr(cdm, "cdm_source"), "dbcon"),
-              CDMConnector::inSchema(
-                attr(attr(cdm, "cdm_source"), "write_schema"),
-                participantTables[[i]]
-              )
-            ),
-            by = "subject_id"
-          )
-        cdm <- omopgenerics::insertTable(cdm = cdm,
-                                         name = paste0(tablePrefix, "_p_", i),
-                                         table = participants)
-      }
-    }
+    participantTables <- irsList[grepl("study_population_analyis_", names(irsList))]
 
     # make sure to not overwrite any existing participant table (from
     # previous function calls)
@@ -407,23 +373,14 @@ estimateIncidence <- function(cdm,
       CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
         schema = attr(attr(cdm, "cdm_source"), "write_Schema")
       ),
-      "inc_participants"
+      "inc_participants_"
     ))
 
-
-    cdm <- omopgenerics::insertTable(cdm = cdm,
-                                     name = paste0("inc_participants", p),
-                                     table = participants)
-    cdm[[paste0("inc_participants", p)]] <- cdm[[paste0("inc_participants", p)]] %>%
-      dplyr::compute(
-        name = paste0("inc_participants", p),
-        temporary = FALSE,
-        overwrite = TRUE
-      )
-    CDMConnector::dropTable(
-      cdm = cdm,
-      name = tidyselect::starts_with(paste0(tablePrefix, "_p_"))
-    )
+    nm <- paste0("inc_participants_", p)
+    cdm[[nm]] <- purrr::reduce(
+      participantTables, dplyr::full_join, by = "subject_id"
+    ) %>%
+      dplyr::compute(name = nm, temporary = FALSE, overwrite = TRUE)
   }
 
   CDMConnector::dropTable(
@@ -456,7 +413,7 @@ estimateIncidence <- function(cdm,
   attr(irs, "attrition") <- attrition
   attr(irs, "settings") <- analysisSettings
   if (returnParticipants == TRUE) {
-    attr(irs, "participants") <- cdm$inc_participants1
+    attr(irs, "participants") <- cdm[[nm]]
   }
   class(irs) <- c("IncidencePrevalenceResult", "IncidenceResult", class(irs))
 

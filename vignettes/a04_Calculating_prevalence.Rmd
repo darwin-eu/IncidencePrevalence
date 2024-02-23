@@ -280,7 +280,7 @@ CDMConnector::dropTable(
 # drop table with study participants when returnParticipants = TRUE
 CDMConnector::dropTable(
   cdm = cdm,
-  name = "period_prev_participants1"
+  name = "period_prev_participants_1"
 )
 CDMConnector::cdm_disconnect(cdm)
 
