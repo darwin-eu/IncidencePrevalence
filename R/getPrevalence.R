@@ -48,8 +48,21 @@ getPrevalence <- function(cdm,
           "outcome_end_date"
         ),
       by = "subject_id"
-    ) %>%
-    dplyr::collect()
+    )
+
+  if(isTRUE(returnParticipants)){
+    # continue on the database side so we can keep participants
+    studyPop <- studyPop %>%
+      dplyr::compute(
+        name = paste0(tablePrefix, "_prev_working_1"),
+        temporary = FALSE,
+        overwrite = TRUE
+      )
+  } else {
+    # otherwise collect already for
+    studyPop <- studyPop %>%
+      dplyr::collect()
+  }
 
   attrition <- recordAttrition(
     table = studyPop,
@@ -64,6 +77,7 @@ getPrevalence <- function(cdm,
       max = max(.data$cohort_end_date, na.rm = TRUE)
     ) %>%
     dplyr::collect()
+
   # get studyDays as a function of inputs
   studyDays <- getStudyDays(
     startDate = as.Date(startEnd$min),
@@ -116,10 +130,17 @@ getPrevalence <- function(cdm,
 
     # drop people who never fulfill contribution requirement
     if (fullContribution == TRUE) {
-      checkExpression <- glue::glue("(.data$cohort_end_date >= studyDays$end_time[{seq_along(studyDays$end_time)}]) &
+      if(isTRUE(returnParticipants)){
+        checkExpression <- glue::glue("(.data$cohort_end_date >= local(studyDays$end_time[{seq_along(studyDays$end_time)}]) &
+           .data$cohort_start_date <= local(studyDays$start_time[{seq_along(studyDays$start_time)}]))") %>%
+          paste0(collapse = "||") %>%
+          rlang::parse_expr()
+      } else {
+        checkExpression <- glue::glue("(.data$cohort_end_date >= studyDays$end_time[{seq_along(studyDays$end_time)}]) &
            (.data$cohort_start_date <= studyDays$start_time[{seq_along(studyDays$start_time)}])") %>%
-        paste0(collapse = "|") %>%
-        rlang::parse_expr()
+          paste0(collapse = "|") %>%
+          rlang::parse_expr()
+      }
 
       studyPop <- studyPop %>%
         dplyr::mutate(
@@ -148,10 +169,51 @@ getPrevalence <- function(cdm,
       )
     }
 
+    if (returnParticipants == TRUE) {
+      # if using permanent tables (that get overwritten)
+      # we need to keep a permanent one for a given analysis
+      # so that we can refer back to it (e.g when using participants() function)
+      studyPopParticipants <- studyPop %>%
+        dplyr::select(!"outcome_end_date") %>%
+        dplyr::rename(
+          !!paste0(
+            "cohort_start_date",
+            "_analysis_",
+            analysisId
+          ) := "cohort_start_date",
+          !!paste0(
+            "cohort_end_date",
+            "_analysis_",
+            analysisId
+          ) := "cohort_end_date",
+          !!paste0(
+            "outcome_start_date",
+            "_analysis_",
+            analysisId
+          ) := "outcome_start_date"
+        ) %>%
+        dplyr::compute(
+          name = paste0(
+            tablePrefix,
+            "_analysis_",
+            analysisId
+          ),
+          temporary = FALSE,
+          overwrite = TRUE
+        )
+
+      studyPop <- studyPop %>%
+        dplyr::collect()
+
+      CDMConnector::dropTable(
+        cdm = cdm,
+        name = tidyselect::starts_with(paste0(tablePrefix, "_prev_working_"))
+      )
+
+    }
+
     # fetch prevalence
     # looping through each time interval
-
-    # bring in to R
     pr <- vector(mode = "list", length = length(studyDays$time))
 
     for (i in seq_along(studyDays$time)) {
@@ -238,51 +300,12 @@ getPrevalence <- function(cdm,
       dplyr::rename("prevalence_end_date" = "end_time")
   }
 
-  if (returnParticipants == TRUE) {
-    # if using permanent tables (that get overwritten)
-    # we need to keep a permanent one for a given analysis
-    # so that we can refer back to it (e.g when using participants() function)
-    studyPop <- studyPop %>%
-      dplyr::select(!"outcome_end_date") %>%
-      dplyr::rename(
-        !!paste0(
-          "cohort_start_date",
-          "_analysis_",
-          analysisId
-        ) := "cohort_start_date",
-        !!paste0(
-          "cohort_end_date",
-          "_analysis_",
-          analysisId
-        ) := "cohort_end_date",
-        !!paste0(
-          "outcome_start_date",
-          "_analysis_",
-          analysisId
-        ) := "outcome_start_date"
-      )
-
-    cdm <- omopgenerics::insertTable(cdm = cdm,
-                              name = paste0(
-                                tablePrefix,
-                                "_analysis_",
-                                analysisId
-                              ),
-                              table = studyPop,
-                              overwrite = TRUE)
-
-  }
-
 
   results <- list()
   results[["pr"]] <- pr
   results[["attrition"]] <- attrition
   if (returnParticipants == TRUE) {
-    results[["person_table"]] <- cdm[[paste0(
-      tablePrefix,
-      "_analysis_",
-      analysisId
-    )]]
+    results[["person_table"]] <- studyPopParticipants
   }
 
   return(results)
