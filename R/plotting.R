@@ -25,9 +25,7 @@
 #'   denominatorTable = "denominator",
 #'   outcomeTable = "outcome"
 #' )
-#' plotIncidence(inc,
-#'               options = list('hideConfidenceInterval' = TRUE,
-#'                              'facetNcols' = 1))
+#' plotIncidence(inc)
 #' }
 plotIncidence <- function(result,
                           x = "incidence_start_date",
@@ -77,9 +75,7 @@ plotIncidence <- function(result,
 #'   denominatorTable = "denominator",
 #'   outcomeTable = "outcome"
 #' )
-#' plotPrevalence(result = prev,
-#'                options = list('hideConfidenceInterval' = TRUE,
-#'                               'facetNcols' = 1))
+#' plotPrevalence(result = prev)
 #' }
 plotPrevalence <- function(result,
                            x = "prevalence_start_date",
