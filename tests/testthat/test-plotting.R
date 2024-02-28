@@ -166,6 +166,7 @@ test_that("plot options", {
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm,
+    name = "denominator",
     ageGroup = list(c(0, 30),
                     c(31, 100))
   )
@@ -176,7 +177,7 @@ test_that("plot options", {
   )
 
   plotOptions <- list(list('hideConfidenceInterval' = TRUE,
-                            'facetNcols' = 1))
+                           'facetNcols' = 1))
   plot <- plotIncidence(inc,
                         colour = "denominator_age_group",
                         colour_name = "Age group",
@@ -198,6 +199,6 @@ test_that("plot options", {
 
   expect_true(ggplot2::is.ggplot(plot))
 
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 })
 
