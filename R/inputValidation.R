@@ -3,36 +3,41 @@ checkInputGenerateDCS <- function(cdm,
                                   cohortDateRange,
                                   ageGroup,
                                   sex,
-                                  daysPriorHistory,
-                                  strataTable,
-                                  strataCohortId,
-                                  temporary) {
-
+                                  daysPriorObservation,
+                                  requirementInteractions,
+                                  targetCohortTable,
+                                  targetCohortId,
+                                  call = parent.frame()) {
   cdmCheck(cdm)
 
-  if(!is.null(strataTable)){
-  cdmStrataCheck(cdm, strataTable = strataTable)
+
+  if(stringr::str_detect(name, "^[a-z0-9_]+$", negate = TRUE)){
+    cli::cli_abort(c("name must be given in snake case",
+                     "i" = "for example 'my_cohort' is allowed but 'MyCohort' is not"))
+  }
+  if (!is.null(targetCohortTable)) {
+    cdmTargetCheck(cdm, targetCohortTable = targetCohortTable)
   }
 
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::expect_character(name, len = 1)
-  checkmate::expect_date(cohortDateRange, len = 2, null.ok = TRUE)
+  checkmate::expect_date(cohortDateRange, len = 2)
   checkmate::assert_list(ageGroup,
-                         add = errorMessage
+    add = errorMessage
   )
   if (!is.null(ageGroup)) {
     for (i in seq_along(ageGroup)) {
       checkmate::assertTRUE(length(ageGroup[[i]]) == 2)
       checkmate::assert_numeric(ageGroup[[i]][1],
-                                add = errorMessage
+        add = errorMessage
       )
       checkmate::assert_numeric(ageGroup[[i]][2],
-                                add = errorMessage
+        add = errorMessage
       )
       ageCheck <- ageGroup[[i]][1] <=
         ageGroup[[i]][2]
       checkmate::assertTRUE(ageCheck,
-                            add = errorMessage
+        add = errorMessage
       )
       if (!isTRUE(ageCheck)) {
         errorMessage$push(
@@ -40,15 +45,15 @@ checkInputGenerateDCS <- function(cdm,
         )
       }
       checkmate::assertTRUE(ageGroup[[i]][1] >= 0,
-                            add = errorMessage
+        add = errorMessage
       )
       checkmate::assertTRUE(ageGroup[[i]][2] >= 0,
-                            add = errorMessage
+        add = errorMessage
       )
     }
   }
   checkmate::assert_vector(sex,
-                           add = errorMessage
+    add = errorMessage
   )
   sexCheck <- all(sex %in% c("Male", "Female", "Both"))
   if (!isTRUE(sexCheck)) {
@@ -56,45 +61,46 @@ checkInputGenerateDCS <- function(cdm,
       "- sex must be from: Male, Female, and Both"
     )
   }
-  checkmate::assert_numeric(daysPriorHistory,
-                            add = errorMessage
+  checkmate::assert_numeric(daysPriorObservation,
+    add = errorMessage
   )
-  daysCheck <- all(daysPriorHistory >= 0)
+  daysCheck <- all(daysPriorObservation >= 0)
   if (!isTRUE(daysCheck)) {
     errorMessage$push(
-      "- daysPriorHistory cannot be negative"
+      "- daysPriorObservation cannot be negative"
     )
   }
-  if (!is.null(strataTable)) {
-    strataTableCheck <- inherits(cdm[[strataTable]], "tbl_dbi")
-    checkmate::assertTRUE(strataTableCheck, add = errorMessage)
-    if (!isTRUE(strataTableCheck)) {
-      errorMessage$push(
-        "- table `strata` is not found"
-      )
-    }
-    strataNamesCheck <- all(names(cdm[[strataTable]] %>%
-                                    utils::head(1) %>%
-                                    dplyr::collect()) %in%
-                              c(
-                                "cohort_definition_id", "subject_id",
-                                "cohort_start_date", "cohort_end_date"
-                              ))
-    checkmate::assertTRUE(strataNamesCheck, add = errorMessage)
-    if (!isTRUE(strataNamesCheck)) {
-      errorMessage$push(
-        "- table `strata` does not conform to specification"
-      )
-    }
-  }
-  if (!is.null(strataTable)) {
-  checkmate::assertIntegerish(strataCohortId,
-                              len = 1,
-                              add = errorMessage,
-                              null.ok = FALSE
+  checkmate::assert_logical(requirementInteractions,
+    len = 1,
+    add = errorMessage
   )
+  if (!is.null(targetCohortTable)) {
+    targetCohortTableCheck <- inherits(cdm[[targetCohortTable]], "tbl_dbi")
+    checkmate::assertTRUE(targetCohortTableCheck, add = errorMessage)
+    if (!isTRUE(targetCohortTableCheck)) {
+      errorMessage$push(
+        "- targetCohortTable not found"
+      )
+    }
+    targetNamesCheck <- all(names(cdm[[targetCohortTable]] %>%
+      utils::head(1) %>%
+      dplyr::collect()) %in%
+      c(
+        "cohort_definition_id", "subject_id",
+        "cohort_start_date", "cohort_end_date"
+      ))
+    checkmate::assertTRUE(targetNamesCheck, add = errorMessage)
+    if (!isTRUE(targetNamesCheck)) {
+      errorMessage$push(
+        "- targetCohortTable does not conform to cohort table specification"
+      )
+    }
   }
-  checkmate::assert_logical(temporary, len = 1, add = errorMessage)
+    checkmate::assertIntegerish(targetCohortId,
+      add = errorMessage,
+      null.ok = TRUE
+    )
+
   return(checkmate::reportAssertions(collection = errorMessage))
 }
 
@@ -108,9 +114,7 @@ checkInputEstimateIncidence <- function(cdm,
                                         outcomeWashout,
                                         repeatedEvents,
                                         minCellCount,
-                                        temporary,
                                         returnParticipants) {
-
   cdmCheck(cdm)
 
   errorMessage <- checkmate::makeAssertCollection()
@@ -127,21 +131,17 @@ checkInputEstimateIncidence <- function(cdm,
     add = errorMessage,
     null.ok = TRUE
   )
-  outcomeCheck <- outcomeTable %in% names(cdm)
-  checkmate::assertTRUE(outcomeCheck,
-    add = errorMessage
-  )
-  if (!isTRUE(outcomeCheck)) {
-    errorMessage$push(
-      "- `outcomeTable` is not found in cdm"
-    )
+  if(!outcomeTable %in% names(cdm)){
+    cli::cli_abort(paste0("outcomeTable ", outcomeTable, " is not found in cdm"))
   }
-  outcomeAttributeCheck <-  (!is.null(attr(cdm[[outcomeTable]],
-                                           "cohort_count")) &
-                               !is.null(attr(cdm[[outcomeTable]],
-                                             "cohort_set")))
+  outcomeAttributeCheck <- (!is.null(
+    CDMConnector::cohort_count(cdm[[outcomeTable]])
+  ) &
+    !is.null(
+      CDMConnector::settings(cdm[[outcomeTable]])
+    ))
   checkmate::assertTRUE(outcomeAttributeCheck,
-                        add = errorMessage
+    add = errorMessage
   )
   if (!isTRUE(outcomeAttributeCheck)) {
     errorMessage$push(
@@ -165,24 +165,20 @@ checkInputEstimateIncidence <- function(cdm,
   checkmate::assert_logical(completeDatabaseIntervals,
     add = errorMessage
   )
-  if(any(outcomeWashout != Inf)){
-  checkmate::assert_numeric(outcomeWashout[which(!is.infinite(outcomeWashout))],
-    add = errorMessage
-  )
+  if (any(is.null(outcomeWashout))) {
+    cli::cli_abort("outcomeWashout cannot be NULL")
+    }
+  if (any(outcomeWashout != Inf)) {
+    checkmate::assert_numeric(outcomeWashout[which(!is.infinite(outcomeWashout))],
+                              lower = 0, upper = 99999,
+                              null.ok = FALSE,
+      add = errorMessage
+    )
   }
   checkmate::assert_logical(repeatedEvents,
     add = errorMessage
   )
   checkmate::assert_number(minCellCount)
-  checkmate::assert_logical(temporary,
-                            add = errorMessage
-  )
-  if(isTRUE(temporary)){
-    # returnParticipants only when we are using permanent tables
-    checkmate::assert_false(returnParticipants,
-                            add = errorMessage
-    )
-  }
   checkmate::assert_logical(returnParticipants,
     add = errorMessage
   )
@@ -190,15 +186,14 @@ checkInputEstimateIncidence <- function(cdm,
 }
 
 checkInputEstimateIncidenceAdditional <- function(cdm,
-                                        denominatorTable,
-                                        outcomeTable,
-                                        denominatorCohortId,
-                                        outcomeCohortId) {
-
+                                                  denominatorTable,
+                                                  outcomeTable,
+                                                  denominatorCohortId,
+                                                  outcomeCohortId) {
   errorMessage <- checkmate::makeAssertCollection()
   denomCountCheck <- cdm[[denominatorTable]] %>%
     dplyr::filter(.data$cohort_definition_id %in%
-                    .env$denominatorCohortId) %>%
+      .env$denominatorCohortId) %>%
     dplyr::count() %>%
     dplyr::pull() > 0
   if (!isTRUE(denomCountCheck)) {
@@ -206,20 +201,7 @@ checkInputEstimateIncidenceAdditional <- function(cdm,
       "- nobody in `denominatorTable` with one of the `denominatorCohortId`"
     )
   }
-  outcomeCountCheck <- cdm[[outcomeTable]] %>%
-    dplyr::filter(.data$cohort_definition_id %in% .env$outcomeCohortId) %>%
-    dplyr::count() %>%
-    dplyr::pull() > 0
-  checkmate::assertTRUE(outcomeCountCheck,
-                        add = errorMessage
-  )
-  if (!isTRUE(outcomeCountCheck)) {
-    errorMessage$push(
-      "- nobody in `outcomeTable` with one of the `outcomeCohortId`"
-    )
-  }
   return(checkmate::reportAssertions(collection = errorMessage))
-
 }
 
 checkInputEstimatePrevalence <- function(cdm,
@@ -227,23 +209,19 @@ checkInputEstimatePrevalence <- function(cdm,
                                          outcomeTable,
                                          denominatorCohortId,
                                          outcomeCohortId,
-                                         outcomeLookbackDays,
                                          type,
                                          interval,
                                          completeDatabaseIntervals,
                                          fullContribution,
                                          timePoint,
                                          minCellCount,
-                                         temporary,
-                                         returnParticipants){
-
+                                         returnParticipants) {
   cdmCheck(cdm)
-
 
   errorMessage <- checkmate::makeAssertCollection()
   denomCheck <- denominatorTable %in% names(cdm)
   checkmate::assertTRUE(denomCheck,
-                        add = errorMessage
+    add = errorMessage
   )
   if (!isTRUE(denomCheck)) {
     errorMessage$push(
@@ -251,24 +229,24 @@ checkInputEstimatePrevalence <- function(cdm,
     )
   }
   checkmate::assertIntegerish(denominatorCohortId,
-                              add = errorMessage,
-                              null.ok = TRUE
+    add = errorMessage,
+    null.ok = TRUE
   )
   outcomeCheck <- outcomeTable %in% names(cdm)
   checkmate::assertTRUE(outcomeCheck,
-                        add = errorMessage
+    add = errorMessage
   )
   if (!isTRUE(outcomeCheck)) {
     errorMessage$push(
       "- `outcomeTable` is not found in cdm"
     )
   }
-  outcomeAttributeCheck <-  (!is.null(attr(cdm[[outcomeTable]],
-                                           "cohort_count")) &
-                               !is.null(attr(cdm[[outcomeTable]],
-                                             "cohort_set")))
+  outcomeAttributeCheck <- (!is.null(
+  CDMConnector::cohort_count(cdm[[outcomeTable]])) &
+    !is.null(
+      CDMConnector::settings(cdm[[outcomeTable]])))
   checkmate::assertTRUE(outcomeAttributeCheck,
-                        add = errorMessage
+    add = errorMessage
   )
   if (!isTRUE(outcomeAttributeCheck)) {
     errorMessage$push(
@@ -276,57 +254,43 @@ checkInputEstimatePrevalence <- function(cdm,
     )
   }
   checkmate::assertIntegerish(outcomeCohortId,
-                              add = errorMessage,
-                              null.ok = TRUE
-  )
-  checkmate::assert_numeric(outcomeLookbackDays,
-                            add = errorMessage,
-                            null.ok = TRUE
+    add = errorMessage,
+    null.ok = TRUE
   )
   checkmate::assert_choice(type,
-                           choices = c("point", "period"),
-                           add = errorMessage
+    choices = c("point", "period"),
+    add = errorMessage
   )
   checkmate::assertTRUE(
     all(interval %in%
-          c(
-            "weeks", "months",
-            "quarters", "years",
-            "overall"
-          )),
+      c(
+        "weeks", "months",
+        "quarters", "years",
+        "overall"
+      )),
     add = errorMessage
   )
   checkmate::assertTRUE(all(timePoint %in% c("start", "middle", "end")),
-                        add = errorMessage
+    add = errorMessage
   )
   checkmate::assert_number(minCellCount)
   checkmate::assert_logical(fullContribution,
-                            add = errorMessage
+    add = errorMessage
   )
   checkmate::assert_logical(completeDatabaseIntervals,
-                            add = errorMessage
-  )
-  checkmate::assert_logical(temporary,
-                            add = errorMessage
+    add = errorMessage
   )
   checkmate::assert_logical(returnParticipants,
-                            add = errorMessage
+    add = errorMessage
   )
-  if(isTRUE(temporary)){
-    # returnParticipants only when we are using permanent tables
-    checkmate::assert_false(returnParticipants,
-                            add = errorMessage
-    )
-  }
   return(checkmate::reportAssertions(collection = errorMessage))
-
 }
 
-cdmCheck <- function(cdm){
+cdmCheck <- function(cdm) {
   errorMessage <- checkmate::makeAssertCollection()
   cdmCheck <- inherits(cdm, "cdm_reference")
   checkmate::assertTRUE(cdmCheck,
-                        add = errorMessage
+    add = errorMessage
   )
   if (!isTRUE(cdmCheck)) {
     errorMessage$push(
@@ -353,15 +317,29 @@ cdmCheck <- function(cdm){
   return(checkmate::reportAssertions(collection = errorMessage))
 }
 
-cdmStrataCheck <- function(cdm, strataTable){
-
+cdmTargetCheck <- function(cdm, targetCohortTable) {
   errorMessage <- checkmate::makeAssertCollection()
-  cdmStrataCheck <- inherits(cdm[[strataTable]], "tbl_dbi")
-  checkmate::assertTRUE(cdmStrataCheck, add = errorMessage)
-  if (!isTRUE(cdmStrataCheck)) {
+  cdmTargetCheck <- inherits(cdm[[targetCohortTable]], "tbl_dbi")
+  checkmate::assertTRUE(cdmTargetCheck, add = errorMessage)
+  if (!isTRUE(cdmTargetCheck)) {
     errorMessage$push(
-      "- strata table not found"
+      "- targetCohortTable table not found"
     )
   }
   return(checkmate::reportAssertions(collection = errorMessage))
+}
+
+checkStrata <- function(strata, table) {
+  errorMessage <- "strata should be a list that point to columns in the denominator table"
+  if (!is.list(strata)) {
+    cli::cli_abort(errorMessage)
+  }
+  if (length(strata) > 0) {
+    if (!is.character(unlist(strata))) {
+      cli::cli_abort(errorMessage)
+    }
+    if (!all(unlist(strata) %in% colnames(table))) {
+      cli::cli_abort(errorMessage)
+    }
+  }
 }

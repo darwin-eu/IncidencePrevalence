@@ -8,7 +8,7 @@ estimating incidence and prevalence}
 mockIncidencePrevalenceRef(
   personTable = NULL,
   observationPeriodTable = NULL,
-  strataTable = NULL,
+  targetCohortTable = NULL,
   outcomeTable = NULL,
   sampleSize = 1,
   outPre = 1,
@@ -33,7 +33,7 @@ mockIncidencePrevalenceRef(
 \item{observationPeriodTable}{A tibble in the format of the observation
 period table.}
 
-\item{strataTable}{A tibble in the format of a cohort table which can
+\item{targetCohortTable}{A tibble in the format of a cohort table which can
 be used for stratification}
 
 \item{outcomeTable}{A tibble in the format of a cohort table which can

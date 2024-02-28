@@ -6,8 +6,7 @@
 \usage{
 benchmarkIncidencePrevalence(
   cdm,
-  cohortDateRange = NULL,
-  temporary = TRUE,
+  cohortDateRange = as.Date(c(NA, NA)),
   returnParticipants = FALSE,
   nOutcomes = 1,
   prevOutcomes = 0.25,
@@ -25,12 +24,6 @@ NULL or the first date is set as missing, the earliest observation_start_date
 in the observation_period table will be used for the former. If  NULL or the
 second date is set as missing, the latest observation_end_date in the
 observation_period table will be used for the latter.}
-
-\item{temporary}{If TRUE, temporary tables will be used throughout. If
-FALSE, permanent tables will be created in the write_schema of the cdm
-using the write_prefix (if specified). Note existing permanent tables in
-the write schema starting with the write_prefix will be at risk of being
-dropped or overwritten.}
 
 \item{returnParticipants}{Whether to return participants (requires temporary
 to be FALSE)}
@@ -57,9 +50,19 @@ Run benchmark of incidence and prevalence analyses
 }
 \examples{
 \donttest{
-cdm <- mockIncidencePrevalenceRef(sampleSize = 10000,
-                                  earliestObservationStartDate = as.Date("2010-01-01") ,
-                                  latestObservationStartDate = as.Date("2018-01-01"))
-timings <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm)
+cdm <- mockIncidencePrevalenceRef(
+  sampleSize = 100,
+  earliestObservationStartDate = as.Date("2010-01-01"),
+  latestObservationStartDate = as.Date("2010-01-01"),
+  minDaysToObservationEnd = 364,
+  maxDaysToObservationEnd = 364,
+  outPre = 0.1
+)
+
+timings <- benchmarkIncidencePrevalence(cdm,
+                                        nOutcomes = 2,
+                                        prevOutcomes = c(0.1),
+                                        analysisType = "only incidence"
+)
 }
 }

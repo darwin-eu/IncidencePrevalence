@@ -25,7 +25,9 @@ getIncidence <- function(cdm,
                          repeatedEvents,
                          tablePrefix,
                          returnParticipants,
-                         analysisId) {
+                         analysisId,
+                         strata,
+                         includeOverallStrata) {
   if (!is.null(outcomeWashout)) {
     if (is.na(outcomeWashout)) {
       outcomeWashout <- NULL
@@ -37,12 +39,13 @@ getIncidence <- function(cdm,
   # along with their outcomes
   studyPop <- cdm[[denominatorTable]] %>%
     dplyr::filter(.data$cohort_definition_id ==
-                    .env$denominatorCohortId) %>%
+      .env$denominatorCohortId) %>%
     dplyr::select(-"cohort_definition_id") %>%
-    dplyr::left_join(cdm[[outcomeTable]] %>%
-                       dplyr::filter(.data$outcome_cohort_id ==
-                                       .env$outcomeCohortId) %>%
-                       dplyr::select(-"outcome_cohort_id"),
+    dplyr::left_join(
+      cdm[[outcomeTable]] %>%
+        dplyr::filter(.data$outcome_cohort_id ==
+          .env$outcomeCohortId) %>%
+        dplyr::select(-"outcome_cohort_id"),
       by = c(
         "subject_id",
         "cohort_start_date",
@@ -50,17 +53,12 @@ getIncidence <- function(cdm,
       )
     )
 
-  if(is.null(tablePrefix)){
-    studyPop <- studyPop %>%
-      CDMConnector::computeQuery()
-  } else {
-    studyPop <- studyPop %>%
-      CDMConnector::computeQuery(name = paste0(tablePrefix,
-                                               "_inc_5"),
-                                 temporary = FALSE,
-                                 schema = attr(cdm, "write_schema"),
-                                 overwrite = TRUE)
-  }
+  studyPop <- studyPop %>%
+    dplyr::compute(
+      name = paste0(tablePrefix, "_inc_5"),
+      temporary = FALSE,
+      overwrite = TRUE
+    )
 
   attrition <- recordAttrition(
     table = studyPop,
@@ -87,18 +85,26 @@ getIncidence <- function(cdm,
       .data$cohort_end_date
     ))
 
+ nStudyPopOutcome <- studyPopOutcome %>%
+    utils::head(10) %>%
+    dplyr::tally() %>%
+    dplyr::pull("n")
+
+
+ if(nStudyPopOutcome > 0){
   if (is.null(outcomeWashout)) {
     # exclude anyone with a previous outcome
     studyPopOutcome <- studyPopOutcome %>%
       dplyr::filter(is.na(.data$outcome_prev_end_date) &
-                  .data$cohort_start_date <= .data$cohort_end_date)
+        .data$cohort_start_date <= .data$cohort_end_date)
   } else {
     # otherwise add the washout to the previous outcome
-    outcomeWashoutPlusOne <- outcomeWashout + 1
+    outcomeWashoutPlusOne <- as.integer(outcomeWashout + 1)
     studyPopOutcome <- studyPopOutcome %>%
+      dplyr::mutate(outcome_prev_end_date = as.Date(.data$outcome_prev_end_date)) %>%
       dplyr::mutate(outcome_prev_end_date = dplyr::if_else(
         is.na(.data$outcome_prev_end_date),
-        .data$outcome_prev_end_date,
+        as.Date(.data$outcome_prev_end_date),
         as.Date(!!CDMConnector::dateadd("outcome_prev_end_date",
           {{ outcomeWashoutPlusOne }},
           interval = "day"
@@ -124,17 +130,12 @@ getIncidence <- function(cdm,
         dplyr::group_by(.data$subject_id) %>%
         dplyr::filter(.data$events_post == 0)
 
-      if(is.null(tablePrefix)){
-        studyPopOutcomeWH <- studyPopOutcomeWH %>%
-          CDMConnector::computeQuery()
-      } else {
-        studyPopOutcomeWH <- studyPopOutcomeWH %>%
-          CDMConnector::computeQuery(name = paste0(tablePrefix,
-                                                   "_inc_5a"),
-                                     temporary = FALSE,
-                                     schema = attr(cdm, "write_schema"),
-                                     overwrite = TRUE)
-      }
+      studyPopOutcomeWH <- studyPopOutcomeWH %>%
+        dplyr::compute(
+          name = paste0(tablePrefix, "_inc_5a"),
+          temporary = FALSE,
+          overwrite = TRUE
+        )
 
       studyPopOutcome <- dplyr::union_all(
         # with history of outcome, without outcome in follow up
@@ -159,6 +160,8 @@ getIncidence <- function(cdm,
       .data$cohort_end_date
     ))
 
+ }
+
   # combine those without an outcome back with those with an outcome
   # this is now our study population to get the incidence rates for
   studyPopDb <- studyPopNoOutcome %>%
@@ -177,39 +180,39 @@ getIncidence <- function(cdm,
   # study dates
   # based on the earliest start and latest end of those
   # in the relevant denominator
-  if(nrow(studyPop) > 0){
-  startEnd <- studyPop %>%
-    dplyr::summarise(
-      min = min(.data$cohort_start_date, na.rm = TRUE),
-      max = max(.data$cohort_end_date, na.rm = TRUE)
-    )
+  if (nrow(studyPop) > 0) {
+    startEnd <- studyPop %>%
+      dplyr::summarise(
+        min = min(.data$cohort_start_date, na.rm = TRUE),
+        max = max(.data$cohort_end_date, na.rm = TRUE)
+      )
 
-  if (interval == "overall") {
-    # note, full periods argument does not apply
-    # for overall we just go from start to end
-    studyDays <- tibble::tibble(
-      time = "overall",
-      start_time = startEnd$min,
-      end_time = startEnd$max
-    )
+    if (interval == "overall") {
+      # note, full periods argument does not apply
+      # for overall we just go from start to end
+      studyDays <- dplyr::tibble(
+        time = "overall",
+        start_time = startEnd$min,
+        end_time = startEnd$max
+      )
+    } else {
+      studyDays <- getStudyDays(
+        startDate = startEnd$min,
+        endDate = startEnd$max,
+        timeInterval = interval,
+        completeDatabaseIntervals = completeDatabaseIntervals
+      )
+    }
   } else {
-    studyDays <- getStudyDays(
-      startDate = startEnd$min,
-      endDate = startEnd$max,
-      timeInterval = interval,
-      completeDatabaseIntervals = completeDatabaseIntervals
-    )
-  }
-  } else {
-    studyDays <-tibble::tibble()
+    studyDays <- dplyr::tibble()
   }
 
   if (nrow(studyDays) == 0) {
     # if no study days we´ll return an empty tibble
-    ir <- tibble::tibble()
+    ir <- dplyr::tibble()
 
     attrition <- recordAttrition(
-      table = tibble::tibble(subject_id = integer()),
+      table = dplyr::tibble(subject_id = integer()),
       id = "subject_id",
       reasonId = 13,
       reason = "Not observed during the complete database interval",
@@ -280,6 +283,7 @@ getIncidence <- function(cdm,
             as.Date(NA)
           ))
 
+        if(length(strata)==0 || includeOverallStrata == TRUE){
         ir[[paste0(i)]] <- workingPop %>%
           dplyr::summarise(
             n_persons = dplyr::n_distinct(.data$subject_id),
@@ -288,6 +292,24 @@ getIncidence <- function(cdm,
           ) %>%
           dplyr::mutate(incidence_start_date = .env$workingStartTime) %>%
           dplyr::mutate(incidence_end_date = .env$workingEndTime)
+        } else {
+          ir[[paste0(i)]] <- dplyr::tibble()
+        }
+
+
+        if(length(strata)>=1){
+          ir[[paste0(i)]] <- ir[[paste0(i)]] %>%
+            dplyr::mutate(strata_name = "Overall",
+                          strata_level = "Overall")
+          for(j in seq_along(strata)){
+          ir[[paste0(i)]] <-  dplyr::bind_rows(ir[[paste0(i)]],
+                             getStratifiedIncidenceResult(workingPop = workingPop,
+                                                 workingStrata = strata[[j]],
+                                                 workingStartTime = workingStartTime,
+                                                 workingEndTime= workingEndTime))
+          }
+        }
+
       }
     }
 
@@ -300,7 +322,10 @@ getIncidence <- function(cdm,
   }
 
   # study design related variables
-  analysisSettings <- tibble::tibble(
+  if(is.null(outcomeWashout)){
+    outcomeWashout <- "inf"
+  }
+  analysisSettings <- dplyr::tibble(
     analysis_outcome_washout = .env$outcomeWashout,
     analysis_repeated_events = .env$repeatedEvents,
     analysis_interval = .env$interval,
@@ -319,34 +344,59 @@ getIncidence <- function(cdm,
   results[["analysis_settings"]] <- analysisSettings
   results[["attrition"]] <- attrition
 
-  if(returnParticipants==TRUE){
+  if (returnParticipants == TRUE) {
     # keep a table permanent one for the given analysis
     # so that we can refer back to it (e.g when using participants() function)
 
 
     studyPopDb <- studyPopDb %>%
       dplyr::select(!"outcome_prev_end_date") %>%
-      dplyr::rename(!!paste0("cohort_start_date",
-                             "_analysis_",
-                             analysisId) := "cohort_start_date",
-                    !!paste0("cohort_end_date",
-                             "_analysis_",
-                             analysisId) := "cohort_end_date",
-                    !!paste0("outcome_start_date",
-                             "_analysis_",
-                             analysisId) := "outcome_start_date"
-                    ) %>%
-      CDMConnector::computeQuery(name = paste0(tablePrefix,
-                                               "_analysis_",
-                                               analysisId),
-                                 temporary = FALSE,
-                                 schema = attr(cdm, "write_schema"),
-                                 overwrite = TRUE)
+      dplyr::rename(
+        !!paste0(
+          "cohort_start_date",
+          "_analysis_",
+          analysisId
+        ) := "cohort_start_date",
+        !!paste0(
+          "cohort_end_date",
+          "_analysis_",
+          analysisId
+        ) := "cohort_end_date",
+        !!paste0(
+          "outcome_start_date",
+          "_analysis_",
+          analysisId
+        ) := "outcome_start_date"
+      ) %>%
+      dplyr::compute(
+        name = paste0(tablePrefix, "_analysis_", analysisId),
+        temporary = FALSE,
+        overwrite = TRUE
+      )
     # keep a record of the table name
-    results[["person_table"]] <- paste0(tablePrefix,
-                                        "_analysis_",
-                                        analysisId)
+    results[["person_table"]] <- studyPopDb
   }
 
   return(results)
+}
+
+
+getStratifiedIncidenceResult <- function(workingPop, workingStrata,
+                                workingStartTime, workingEndTime){
+  workingPop %>%
+    dplyr::group_by(dplyr::pick(.env$workingStrata)) %>%
+    dplyr::summarise(
+      n_persons = dplyr::n_distinct(.data$subject_id),
+      person_days = sum(.data$workingDays),
+      n_events = sum(!is.na(.data$outcome_start_date))
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(incidence_start_date = .env$workingStartTime) %>%
+    dplyr::mutate(incidence_end_date = .env$workingEndTime) %>%
+    tidyr::unite("strata_level",
+                 c(dplyr::all_of(.env$workingStrata)),
+                 remove = FALSE, sep = " and ") %>%
+    dplyr::mutate(strata_name = !!paste0(workingStrata, collapse = " and ")) %>%
+    dplyr::relocate("strata_level", .after = "strata_name") %>%
+    dplyr::select(!dplyr::any_of(workingStrata))
 }

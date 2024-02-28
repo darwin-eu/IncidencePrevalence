@@ -15,7 +15,8 @@ estimateIncidence(
   outcomeWashout = Inf,
   repeatedEvents = FALSE,
   minCellCount = 5,
-  temporary = TRUE,
+  strata = list(),
+  includeOverallStrata = TRUE,
   returnParticipants = FALSE
 )
 }
@@ -45,9 +46,8 @@ start to last cohort end) can also be estimated. If more than one option is
 chosen then results will be estimated for each chosen interval.}
 
 \item{completeDatabaseIntervals}{TRUE/ FALSE. Where TRUE, incidence will
-only be estimated for those intervals where the database
-captures all the interval (based on the earliest and latest observation
-period start dates, respectively).}
+only be estimated for those intervals where the denominator cohort
+captures all the interval.}
 
 \item{outcomeWashout}{The number of days used for a 'washout' period
 between the end of one outcome and an individual starting to contribute
@@ -63,11 +63,11 @@ first event during the study period.}
 \item{minCellCount}{The minimum number of events to reported, below which
 results will be obscured. If 0, all results will be reported.}
 
-\item{temporary}{If TRUE, temporary tables will be used throughout. If
-FALSE, permanent tables will be created in the write_schema of the cdm
-using the write_prefix (if specified). Note existing permanent tables in
-the write schema starting with the write_prefix will be at risk of being
-dropped or overwritten.}
+\item{strata}{Variables added to the denominator cohort table for which to
+stratify estimates.}
+
+\item{includeOverallStrata}{Whether to include an overall result as well as
+strata specific results (when strata has been specified).}
 
 \item{returnParticipants}{Either TRUE or FALSE. If TRUE references to
 participants from the analysis will be returned allowing for further
@@ -82,7 +82,7 @@ Collect population incidence estimates
 }
 \examples{
 \donttest{
-cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
 cdm <- generateDenominatorCohortSet(
   cdm = cdm, name = "denominator",
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))

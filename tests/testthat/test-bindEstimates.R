@@ -13,7 +13,8 @@ test_that("test input format errors", {
 test_that("check with mock db", {
   cdm <- mockIncidencePrevalenceRef(sampleSize = 100)
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm, cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
+    cdm = cdm, name = "denominator",
+    cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
   )
   inc1 <- estimateIncidence(
     cdm = cdm,
@@ -28,12 +29,14 @@ test_that("check with mock db", {
   ) %>%
     dplyr::filter(dplyr::row_number() == 1)
   expect_no_error(incCombined <- bindIncidenceEstimates(inc1, inc2))
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
+  CDMConnector::cdm_disconnect(cdm)
 
   cdm <- mockIncidencePrevalenceRef(sampleSize = 100)
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm, cohortDateRange = c(as.Date("2008-01-01"),
-    endDate = as.Date("2018-01-01"))
+    cdm = cdm, name = "denominator",
+    cohortDateRange = c(as.Date("2008-01-01"),
+      endDate = as.Date("2018-01-01")
+    )
   )
   prev1 <- estimatePeriodPrevalence(
     cdm = cdm,
@@ -46,8 +49,8 @@ test_that("check with mock db", {
     outcomeTable = "outcome"
   )
   expect_no_error(prevCombined <- bindPrevalenceEstimates(prev1, prev2))
-  DBI::dbDisconnect(attr(cdm, "dbcon"), shutdown = TRUE)
-})
+  CDMConnector::cdm_disconnect(cdm)
+  })
 
 test_that("simple example", {
   x <- dplyr::tibble(incidence_result = 0.65, analysis_id = 1)
@@ -56,8 +59,10 @@ test_that("simple example", {
     analysis_id = 1, denominator_cohort_name = "this"
   )
   class(x) <- c("IncidencePrevalenceResult", "IncidenceResult", class(x))
-  y <- dplyr::tibble(incidence_result = c(0.45, 0.99, 0.1), analysis_id = c(2, 3, 4))
-  attr(y, "settings") <- dplyr::tibble(analysis_id = c(2, 3, 4), b = c("a", "b", "c"))
+  y <- dplyr::tibble(incidence_result = c(0.45, 0.99, 0.1),
+                     analysis_id = c(2, 3, 4))
+  attr(y, "settings") <- dplyr::tibble(analysis_id = c(2, 3, 4),
+                                       b = c("a", "b", "c"))
   attr(y, "attrition") <- dplyr::tibble(
     analysis_id = c(2, 3, 4),
     denominator_cohort_name = c("is", "a", "test")
@@ -71,10 +76,12 @@ test_that("simple example", {
   expect_true("attrition" %in% names(attributes(incCombined)))
   expectedInc <- dplyr::bind_rows(x, y, .id = "result_id")
   attr(expectedInc, "attrition") <- dplyr::bind_rows(
-    attr(x, "attrition"), attr(y, "attrition"), .id = "result_id"
+    attr(x, "attrition"), attr(y, "attrition"),
+    .id = "result_id"
   )
   attr(expectedInc, "settings") <- dplyr::bind_rows(
-    attr(x, "settings"), attr(y, "settings"), .id = "result_id"
+    attr(x, "settings"), attr(y, "settings"),
+    .id = "result_id"
   )
   expect_equal(incCombined, expectedInc)
 
@@ -88,11 +95,12 @@ test_that("simple example", {
   expect_true("attrition" %in% names(attributes(prevCombined)))
   expectedPrev <- dplyr::bind_rows(x, y, .id = "result_id")
   attr(expectedPrev, "attrition") <- dplyr::bind_rows(
-    attr(x, "attrition"), attr(y, "attrition"), .id = "result_id"
+    attr(x, "attrition"), attr(y, "attrition"),
+    .id = "result_id"
   )
   attr(expectedPrev, "settings") <- dplyr::bind_rows(
-    attr(x, "settings"), attr(y, "settings"), .id = "result_id"
+    attr(x, "settings"), attr(y, "settings"),
+    .id = "result_id"
   )
   expect_equal(prevCombined, expectedPrev)
 })
-

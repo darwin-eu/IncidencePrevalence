@@ -1,3 +1,3 @@
 ## R CMD check results
 
-This is a new release.
+This is a patch release because of a breaking change in the dependency omopgenerics. 

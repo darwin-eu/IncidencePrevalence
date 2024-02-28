@@ -10,12 +10,12 @@ estimatePeriodPrevalence(
   outcomeTable,
   denominatorCohortId = NULL,
   outcomeCohortId = NULL,
-  outcomeLookbackDays = 0,
   interval = "years",
   completeDatabaseIntervals = TRUE,
   fullContribution = FALSE,
+  strata = list(),
+  includeOverallStrata = TRUE,
   minCellCount = 5,
-  temporary = TRUE,
   returnParticipants = FALSE
 )
 }
@@ -37,10 +37,6 @@ analysis.}
 cohorts of interest. If NULL all cohorts will be considered in the
 analysis.}
 
-\item{outcomeLookbackDays}{Days lookback when considering an outcome
-as prevalent. If NULL any prior outcome will be considered as prevalent. If
-0, only ongoing outcomes will be considered as prevalent.}
-
 \item{interval}{Time intervals over which period prevalence is estimated.
 This can be "weeks", "months", "quarters", "years", or "overall".
 ISO weeks will be used for weeks. Calendar months, quarters, or
@@ -57,14 +53,14 @@ included if they in the database for the entire interval of interest. If
 FALSE they are only required to present for one day of the interval in
 order to contribute.}
 
+\item{strata}{Variables added to the denominator cohort table for which to
+stratify estimates.}
+
+\item{includeOverallStrata}{Whether to include an overall result as well as
+strata specific results (when strata has been specified).}
+
 \item{minCellCount}{Minimum number of events to report- results
 lower than this will be obscured. If NULL all results will be reported.}
-
-\item{temporary}{If TRUE, temporary tables will be used throughout. If
-FALSE, permanent tables will be created in the write_schema of the cdm
-using the write_prefix (if specified). Note existing permanent tables in
-the write schema starting with the write_prefix will be at risk of being
-dropped or overwritten.}
 
 \item{returnParticipants}{Either TRUE or FALSE. If TRUE references to
 participants from the analysis will be returned allowing for further
@@ -79,7 +75,7 @@ Estimate period prevalence
 }
 \examples{
 \donttest{
-cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
 cdm <- generateDenominatorCohortSet(
   cdm = cdm, name = "denominator",
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))

@@ -23,11 +23,6 @@
 #' in the observation_period table will be used for the former. If  NULL or the
 #' second date is set as missing, the latest observation_end_date in the
 #' observation_period table will be used for the latter.
-#' @param temporary If TRUE, temporary tables will be used throughout. If
-#' FALSE, permanent tables will be created in the write_schema of the cdm
-#' using the write_prefix (if specified). Note existing permanent tables in
-#' the write schema starting with the write_prefix will be at risk of being
-#' dropped or overwritten.
 #' @param returnParticipants Whether to return participants (requires temporary
 #' to be FALSE)
 #' @param nOutcomes An integer specifying the number of outcomes to create in
@@ -45,14 +40,23 @@
 #'
 #' @examples
 #' \donttest{
-#' cdm <- mockIncidencePrevalenceRef(sampleSize = 10000,
-#'                                   earliestObservationStartDate = as.Date("2010-01-01") ,
-#'                                   latestObservationStartDate = as.Date("2018-01-01"))
-#' timings <- IncidencePrevalence::benchmarkIncidencePrevalence(cdm)
+#' cdm <- mockIncidencePrevalenceRef(
+#'   sampleSize = 100,
+#'   earliestObservationStartDate = as.Date("2010-01-01"),
+#'   latestObservationStartDate = as.Date("2010-01-01"),
+#'   minDaysToObservationEnd = 364,
+#'   maxDaysToObservationEnd = 364,
+#'   outPre = 0.1
+#' )
+#'
+#' timings <- benchmarkIncidencePrevalence(cdm,
+#'                                         nOutcomes = 2,
+#'                                         prevOutcomes = c(0.1),
+#'                                         analysisType = "only incidence"
+#' )
 #' }
 benchmarkIncidencePrevalence <- function(cdm,
-                                         cohortDateRange = NULL,
-                                         temporary = TRUE,
+                                         cohortDateRange = as.Date(c(NA, NA)),
                                          returnParticipants = FALSE,
                                          nOutcomes = 1,
                                          prevOutcomes = 0.25,
@@ -66,28 +70,26 @@ benchmarkIncidencePrevalence <- function(cdm,
       "- cdm must be a CDMConnector CDM reference object"
     )
   }
-  checkmate::assertLogical(temporary,
-                             len = 1,
-                             add = errorMessage
-  )
   checkmate::assertIntegerish(nOutcomes,
-                           lower = 0,
-                           add = errorMessage
+    lower = 0,
+    add = errorMessage
   )
   checkmate::assertNumeric(prevOutcomes,
-                           add = errorMessage,
-                           any.missing = FALSE,
-                           lower = 0,
-                           upper = 1
+    add = errorMessage,
+    any.missing = FALSE,
+    lower = 0,
+    upper = 1
   )
-  lengthpOcheck <- length(prevOutcomes) %in% c(1,nOutcomes)
+  lengthpOcheck <- length(prevOutcomes) %in% c(1, nOutcomes)
   if (!isTRUE(lengthpOcheck)) {
     errorMessage$push(
       "- `prevOutcomes` is not of the expected length (either 1 or nOutcomes)"
     )
   }
-  analysistypeCheck <- analysisType %in% c("all", "only incidence",
-                                           "only prevalence")
+  analysistypeCheck <- analysisType %in% c(
+    "all", "only incidence",
+    "only prevalence"
+  )
   if (!isTRUE(analysistypeCheck)) {
     errorMessage$push(
       "- `analysisType` is not one of the possibilities
@@ -95,14 +97,16 @@ benchmarkIncidencePrevalence <- function(cdm,
     )
   }
   if (!is.null(outputFolder)) {
-    checkmate::assertDirectoryExists(outputFolder)
+    if(!dir.exists(outputFolder)){
+      cli::cli_abort("{outputFolder} does not exist")
+    }
   }
   if (!is.null(outputFolder)) {
-  checkmate::assertCharacter(fileName,
-                             len = 1,
-                             add = errorMessage,
-                             null.ok = FALSE
-  )
+    checkmate::assertCharacter(fileName,
+      len = 1,
+      add = errorMessage,
+      null.ok = FALSE
+    )
   }
   checkmate::reportAssertions(collection = errorMessage)
 
@@ -113,83 +117,90 @@ benchmarkIncidencePrevalence <- function(cdm,
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator_typical",
     cohortDateRange = cohortDateRange,
-    daysPriorHistory = 180,
+    daysPriorObservation = 180,
     sex = c("Male", "Female"),
     ageGroup = list(
       c(0, 25), c(26, 64),
       c(65, 79), c(80, 150)
-    ),
-    temporary = temporary
+    )
   )
   t <- tictoc::toc(quiet = TRUE)
-  timings[["typical_denominator"]] <- tibble::tibble(
+  timings[["typical_denominator"]] <- dplyr::tibble(
     task = "generating denominator (8 cohorts)",
     time_taken_secs = as.numeric(t$toc - t$tic)
   )
 
   # change prevOutcomes to a vector, if an integer, to simplify the code
-  if(length(prevOutcomes) == 1 && nOutcomes != 1) {
-    prevOutcomes <- c(rep(prevOutcomes,nOutcomes))
+  if (length(prevOutcomes) == 1 && nOutcomes != 1) {
+    prevOutcomes <- c(rep(prevOutcomes, nOutcomes))
   }
 
   # create table for the first outcome
-  n_sample <- as.integer(cdm$denominator_typical %>%
+  nSample <- as.integer(cdm$denominator_typical %>%
     dplyr::count() %>%
     dplyr::pull()) * prevOutcomes[1]
 
   cdm$bench_outcome <- cdm$denominator_typical %>%
-    dplyr::distinct(.data$subject_id,.keep_all=TRUE) %>%
-    dplyr::slice_sample(n=n_sample) %>% dplyr::mutate(cohort_definition_id = 1)
+    dplyr::distinct(.data$subject_id, .keep_all = TRUE) %>%
+    dplyr::slice_sample(n = nSample) %>%
+    dplyr::mutate(cohort_definition_id = 1) %>%
+    dplyr::compute(name="bench_outcome",
+                   temporary = FALSE,
+                   overwite = TRUE)
 
   # add as many hypothetical outcome cohorts as required
-  if(nOutcomes > 1) {
-    for(i in 1:(length(prevOutcomes)-1)) {
-      n_sample <- as.integer(cdm$denominator_typical %>%
-                               dplyr::count() %>%
-                               dplyr::pull()) * prevOutcomes[i+1]/100
+  if (nOutcomes > 1) {
+    for (i in 1:(length(prevOutcomes) - 1)) {
+      nSample <- as.integer(cdm$denominator_typical %>%
+        dplyr::count() %>%
+        dplyr::pull()) * prevOutcomes[i + 1] / 100
 
-      outcome_temp <- cdm$denominator_typical %>%
-        dplyr::distinct(.data$subject_id,.keep_all=TRUE) %>%
-        dplyr::slice_sample(n=n_sample) %>%
-        dplyr::mutate(cohort_definition_id = i+1)
+      outcomeTemp <- cdm$denominator_typical %>%
+        dplyr::distinct(.data$subject_id, .keep_all = TRUE) %>%
+        dplyr::slice_sample(n = nSample) %>%
+        dplyr::mutate(cohort_definition_id = i + 1)
       cdm$bench_outcome <- cdm$bench_outcome %>%
-        dplyr::full_join(outcome_temp, by = c("cohort_definition_id",
-                                              "subject_id","cohort_start_date",
-                                              "cohort_end_date"))
+        dplyr::full_join(outcomeTemp, by = c(
+          "cohort_definition_id",
+          "subject_id", "cohort_start_date",
+          "cohort_end_date"
+        )) %>%
+        dplyr::compute(name="bench_outcome",
+                       temporary = FALSE,
+                       overwite = TRUE)
     }
   }
-  cdm$bench_outcome <- addCohortCountAttr(cdm$bench_outcome)
+  cdm$bench_outcome <- cdm$bench_outcome %>%
+    omopgenerics::newCohortTable()
 
   # calculate prevalence if analysisType is not "only incidence"
-  if(analysisType != "only incidence") {
+  if (analysisType != "only incidence") {
     # point prevalence
     tictoc::tic()
-    point_prev_typical_years <- estimatePointPrevalence(
+    pointPrevTypicalYears <- estimatePointPrevalence(
       cdm = cdm,
-      temporary = temporary,
       returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "years"
     )
     t <- tictoc::toc(quiet = TRUE)
-    timings[["point_prev_typical_years"]] <- tibble::tibble(
-      task = paste0("yearly point prevalence, ",nOutcomes," outcome(s)"),
+    timings[["pointPrevTypicalYears"]] <- dplyr::tibble(
+      task = paste0("yearly point prevalence, ", nOutcomes, " outcome(s)"),
       time_taken_secs = as.numeric(t$toc - t$tic)
     )
 
     tictoc::tic()
-    point_prev_typical_months <- estimatePointPrevalence(
+    pointPrevTypicalMonths <- estimatePointPrevalence(
       cdm = cdm,
-      temporary = temporary,
       returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "months"
     )
     t <- tictoc::toc(quiet = TRUE)
-    timings[["point_prev_typical_months"]] <- tibble::tibble(
-      task = paste0("monthly point prevalence, ",nOutcomes," outcome(s)"),
+    timings[["pointPrevTypicalMonths"]] <- dplyr::tibble(
+      task = paste0("monthly point prevalence, ", nOutcomes, " outcome(s)"),
       time_taken_secs = as.numeric(t$toc - t$tic)
     )
 
@@ -197,7 +208,6 @@ benchmarkIncidencePrevalence <- function(cdm,
     tictoc::tic()
     period_prev_typical_years <- estimatePeriodPrevalence(
       cdm = cdm,
-      temporary = temporary,
       returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
@@ -205,15 +215,14 @@ benchmarkIncidencePrevalence <- function(cdm,
       fullContribution = TRUE
     )
     t <- tictoc::toc(quiet = TRUE)
-    timings[["period_prev_typical_years"]] <- tibble::tibble(
-      task = paste0("yearly period prevalence, ",nOutcomes," outcome(s)"),
+    timings[["period_prev_typical_years"]] <- dplyr::tibble(
+      task = paste0("yearly period prevalence, ", nOutcomes, " outcome(s)"),
       time_taken_secs = as.numeric(t$toc - t$tic)
     )
 
     tictoc::tic()
-    period_prev_typical_months <- estimatePeriodPrevalence(
+    periodPrevTypicalMonths <- estimatePeriodPrevalence(
       cdm = cdm,
-      temporary = temporary,
       returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
@@ -221,41 +230,39 @@ benchmarkIncidencePrevalence <- function(cdm,
       fullContribution = TRUE
     )
     t <- tictoc::toc(quiet = TRUE)
-    timings[["period_prev_typical_months"]] <- tibble::tibble(
-      task = paste0("monthly period prevalence, ",nOutcomes," outcome(s)"),
+    timings[["periodPrevTypicalMonths"]] <- dplyr::tibble(
+      task = paste0("monthly period prevalence, ", nOutcomes, " outcome(s)"),
       time_taken_secs = as.numeric(t$toc - t$tic)
     )
   }
 
   # calculate incidence if analysisType is not "only prevalence"
-  if(analysisType  != "only prevalence") {
+  if (analysisType != "only prevalence") {
     tictoc::tic()
-    inc_typical_years <- estimateIncidence(
+    incTypicalYears <- estimateIncidence(
       cdm = cdm,
-      temporary = temporary,
       returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "years"
     )
     t <- tictoc::toc(quiet = TRUE)
-    timings[["inc_typical_years"]] <- tibble::tibble(
-      task = paste0("yearly incidence, ",nOutcomes," outcome(s)"),
+    timings[["incTypicalYears"]] <- dplyr::tibble(
+      task = paste0("yearly incidence, ", nOutcomes, " outcome(s)"),
       time_taken_secs = as.numeric(t$toc - t$tic)
     )
 
     tictoc::tic()
-    inc_typical_months <- estimateIncidence(
+    incTypicalMonths <- estimateIncidence(
       cdm = cdm,
-      temporary = temporary,
       returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "months"
     )
     t <- tictoc::toc(quiet = TRUE)
-    timings[["inc_typical_months"]] <- tibble::tibble(
-      task = paste0("monthly incidence, ",nOutcomes," outcome(s)"),
+    timings[["incTypicalMonths"]] <- dplyr::tibble(
+      task = paste0("monthly incidence, ", nOutcomes, " outcome(s)"),
       time_taken_secs = as.numeric(t$toc - t$tic)
     )
   }
@@ -266,26 +273,28 @@ benchmarkIncidencePrevalence <- function(cdm,
     dplyr::mutate(time_taken_secs = round(.data$time_taken_secs, 2)) %>%
     dplyr::mutate(time_taken_mins = round(.data$time_taken_secs / 60, 2)) %>%
     dplyr::mutate(time_taken_hours = round(.data$time_taken_mins / 60, 2)) %>%
-    dplyr::mutate(dbms = CDMConnector::dbms(cdm)) %>%
-    dplyr::mutate(person_n = cdm$person %>% dplyr::count() %>% dplyr::pull()) %>%
+    dplyr::mutate(dbms = attr(attr(cdm, "cdm_source"), "source_type")) %>%
+    dplyr::mutate(person_n = cdm$person %>%
+      dplyr::count() %>%
+        dplyr::pull()) %>%
     dplyr::mutate(db_min_observation_start = cdm$observation_period %>%
-      dplyr::summarise(db_min_obs_start = min(.data$observation_period_start_date,
-                                              na.rm = TRUE)) %>%
+      dplyr::summarise(
+        db_min_obs_start =
+          min(.data$observation_period_start_date,
+            na.rm = TRUE
+          )
+      ) %>%
       dplyr::pull()) %>%
     dplyr::mutate(max_observation_end = cdm$observation_period %>%
-      dplyr::summarise(max_observation_end = max(.data$observation_period_end_date,
-                                                 na.rm = TRUE)) %>%
+      dplyr::summarise(
+        max_observation_end =
+          max(.data$observation_period_end_date,
+            na.rm = TRUE
+          )
+      ) %>%
       dplyr::pull())
 
-  if(isTRUE(temporary)){
-    timings <- timings %>%
-      dplyr::mutate(tables = "temporary")
-  } else {
-    timings <- timings %>%
-      dplyr::mutate(tables = "permanent")
-  }
-
-  if(isFALSE(returnParticipants)){
+  if (isFALSE(returnParticipants)) {
     timings <- timings %>%
       dplyr::mutate(with_participants = "No")
   } else {
@@ -295,7 +304,7 @@ benchmarkIncidencePrevalence <- function(cdm,
 
   if (!is.null(outputFolder) && dir.exists(outputFolder)) {
     utils::write.csv(timings,
-      file.path(outputFolder, paste0(fileName,".csv")),
+      file.path(outputFolder, paste0(fileName, ".csv")),
       row.names = FALSE
     )
   }

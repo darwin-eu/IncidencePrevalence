@@ -39,6 +39,7 @@ incidenceAttrition <- function(result) {
 
 #' @export
 incidenceAttrition.IncidenceResult <- function(result) {
+  lifecycle::deprecate_warn(when = "0.6.2", what =  "incidenceAttrition()", with = "attrition()")
   attrition <- attr(result, "attrition")
   return(attrition)
 }
@@ -67,6 +68,7 @@ prevalenceAttrition <- function(result) {
 
 #' @export
 prevalenceAttrition.PrevalenceResult <- function(result) {
+  lifecycle::deprecate_warn(when = "0.6.2", what =  "prevalenceAttrition()", with = "attrition()")
   attrition <- attr(result, "attrition")
   return(attrition)
 }
@@ -97,9 +99,11 @@ incidenceSet <- function(result) {
 
 #' @export
 incidenceSet.IncidenceResult <- function(result) {
+  lifecycle::deprecate_warn(when = "0.6.2", what =  "incidenceSet()", with = "setings()")
   settings <- attr(result, "settings")
   return(settings)
 }
+
 
 #' Settings associated with a prevalence analysis
 #'
@@ -125,9 +129,11 @@ prevalenceSet <- function(result) {
 
 #' @export
 prevalenceSet.PrevalenceResult <- function(result) {
+  lifecycle::deprecate_warn(when = "0.6.2", what =  "prevalenceSet()", with = "setings()")
   settings <- attr(result, "settings")
   return(settings)
 }
+
 
 #'  Participants contributing to an analysis
 #'
@@ -157,56 +163,54 @@ participants <- function(result, analysisId) {
 #' @export
 participants.IncidencePrevalenceResult <- function(result,
                                                    analysisId) {
-
   checkmate::assertIntegerish(analysisId)
 
-  if(!is.null(attr(result, "participants"))){
-
-  included <- attr(result, "participants") %>%
-    dplyr::select(
-      "subject_id",
-      paste0(
-        "cohort_start_date",
-        "_analysis_",
-        analysisId
-      ),
-      paste0(
-        "cohort_end_date",
-        "_analysis_",
-        analysisId
-      ),
-      paste0(
-        "outcome_start_date",
-        "_analysis_",
-        analysisId
+  if (!is.null(attr(result, "participants"))) {
+    included <- attr(result, "participants") %>%
+      dplyr::select(
+        "subject_id",
+        paste0(
+          "cohort_start_date",
+          "_analysis_",
+          analysisId
+        ),
+        paste0(
+          "cohort_end_date",
+          "_analysis_",
+          analysisId
+        ),
+        paste0(
+          "outcome_start_date",
+          "_analysis_",
+          analysisId
+        )
+      ) %>%
+      dplyr::rename(
+        "cohort_start_date" = paste0(
+          "cohort_start_date",
+          "_analysis_",
+          analysisId
+        ),
+        "cohort_end_date" = paste0(
+          "cohort_end_date",
+          "_analysis_",
+          analysisId
+        ),
+        "outcome_start_date" = paste0(
+          "outcome_start_date",
+          "_analysis_",
+          analysisId
+        )
       )
-    ) %>%
-    dplyr::rename(
-      "cohort_start_date" = paste0(
-        "cohort_start_date",
-        "_analysis_",
-        analysisId
-      ),
-      "cohort_end_date" = paste0(
-        "cohort_end_date",
-        "_analysis_",
-        analysisId
-      ),
-      "outcome_start_date" = paste0(
-        "outcome_start_date",
-        "_analysis_",
-        analysisId
-      )
-    )
 
-  included <- included %>%
-    dplyr::filter(!is.na(.data$cohort_start_date))
-
-  } else{
+    included <- included %>%
+      dplyr::filter(!is.na(.data$cohort_start_date)) %>%
+      dplyr::mutate(cohort_start_date = as.Date(.data$cohort_start_date),
+                    cohort_end_date  = as.Date(.data$cohort_end_date),
+                    outcome_start_date = as.Date(.data$outcome_start_date))
+  } else {
     included <- NULL
-}
+  }
 
   return(included)
 }
-
-

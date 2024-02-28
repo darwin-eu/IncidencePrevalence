@@ -1,7 +1,7 @@
 test_that("eunomia test - some empty cohorts", {
-
   db <- DBI::dbConnect(duckdb::duckdb(),
-                       dbdir = CDMConnector::eunomia_dir())
+    dbdir = CDMConnector::eunomia_dir()
+  )
   cdm <- CDMConnector::cdm_from_con(
     con = db,
     cdm_schema = "main",
@@ -14,44 +14,61 @@ test_that("eunomia test - some empty cohorts", {
 
   # celecoxib
   cdm$celecoxib <- cdm$drug_era %>%
-    inner_join(celecoxib_codes %>%
-                 select(concept_id),
-               by = c("drug_concept_id"="concept_id"),
-               copy = TRUE) %>%
-    rename("subject_id" = "person_id",
-           "cohort_start_date" = "drug_era_start_date",
-           "cohort_end_date" = "drug_era_end_date") %>%
-    mutate(cohort_definition_id = 1L) %>%
-    select("cohort_definition_id", "subject_id",
-           "cohort_start_date", "cohort_end_date") %>%
-    compute()
+    dplyr::inner_join(
+      celecoxib_codes %>%
+        dplyr::select(concept_id),
+      by = c("drug_concept_id" = "concept_id"),
+      copy = TRUE
+    ) %>%
+    dplyr::rename(
+      "subject_id" = "person_id",
+      "cohort_start_date" = "drug_era_start_date",
+      "cohort_end_date" = "drug_era_end_date"
+    ) %>%
+    dplyr::mutate(cohort_definition_id = 1L) %>%
+    dplyr::select(
+      "cohort_definition_id", "subject_id",
+      "cohort_start_date", "cohort_end_date"
+    ) %>%
+    CDMConnector::computeQuery()
 
   # diclofenac
   cdm$diclofenac <- cdm$drug_era %>%
-    inner_join(diclofenac_codes %>%
-                 select(concept_id),
-               by = c("drug_concept_id"="concept_id"),
-               copy = TRUE) %>%
-    rename("subject_id" = "person_id",
-           "cohort_start_date" = "drug_era_start_date",
-           "cohort_end_date" = "drug_era_end_date") %>%
-    mutate(cohort_definition_id = 2L) %>%
-    select("cohort_definition_id", "subject_id",
-           "cohort_start_date", "cohort_end_date") %>%
-    compute()
+    dplyr::inner_join(
+      diclofenac_codes %>%
+        dplyr::select(concept_id),
+      by = c("drug_concept_id" = "concept_id"),
+      copy = TRUE
+    ) %>%
+    dplyr::rename(
+      "subject_id" = "person_id",
+      "cohort_start_date" = "drug_era_start_date",
+      "cohort_end_date" = "drug_era_end_date"
+    ) %>%
+    dplyr::mutate(cohort_definition_id = 2L) %>%
+    dplyr::select(
+      "cohort_definition_id", "subject_id",
+      "cohort_start_date", "cohort_end_date"
+    ) %>%
+    CDMConnector::computeQuery()
 
-  cdm$exposure_cohort <- union_all(cdm$celecoxib,
-                                   cdm$diclofenac) %>%
-    compute()
-  cdm$outcome_cohort <- newGeneratedCohortSet(cdm$exposure_cohort)
+  cdm$exposure_cohort <- dplyr::union_all(
+    cdm$celecoxib,
+    cdm$diclofenac
+  ) %>%
+    CDMConnector::computeQuery()
+  cdm$outcome_cohort <- CDMConnector::newGeneratedCohortSet(cdm$exposure_cohort)
   cdm$outcome_cohort <- addCohortCountAttr(cdm$outcome_cohort)
 
-  #denominator
+  # denominator
   cdm <- generateDenominatorCohortSet(cdm,
-                                      name = "denominator",
-                                      cohortDateRange = c(as.Date("2000-01-01"),
-                                                          as.Date("2020-01-01")),
-                                      sex = c("Male", "Female"))
+    name = "denominator",
+    cohortDateRange = c(
+      as.Date("2000-01-01"),
+      as.Date("2020-01-01")
+    ),
+    sex = c("Male", "Female")
+  )
 
   inc <- estimateIncidence(
     cdm = cdm,
@@ -69,22 +86,24 @@ test_that("eunomia test - some empty cohorts", {
   )
   expect_true(nrow(prev) > 0)
 
-  plotIncidence(inc, facet = c("outcome_cohort_name", "denominator_sex"),
-                colour = "denominator_sex",
-                colour_name = "Sex")
+  plotIncidence(inc,
+    facet = c("outcome_cohort_name", "denominator_sex"),
+    colour = "denominator_sex",
+    colour_name = "Sex"
+  )
 
-  plotPrevalence(prev, facet = c("outcome_cohort_name", "denominator_sex"),
-                colour = "denominator_sex",
-                colour_name = "Sex")
-
-
-  })
+  plotPrevalence(prev,
+    facet = c("outcome_cohort_name", "denominator_sex"),
+    colour = "denominator_sex",
+    colour_name = "Sex"
+  )
+})
 
 test_that("eunomia test - strata", {
-
   # Update  to your database details as appropriate here
   db <- DBI::dbConnect(duckdb::duckdb(),
-                       dbdir = CDMConnector::eunomia_dir())
+    dbdir = CDMConnector::eunomia_dir()
+  )
   cdm <- CDMConnector::cdm_from_con(
     con = db,
     cdm_schema = "main",
@@ -92,12 +111,16 @@ test_that("eunomia test - strata", {
   )
 
   asthma_cohort1 <- Capr::cohort(entry = Capr::entry(
-    Capr::condition(Capr::cs(Capr::descendants(317009))),
+    Capr::conditionOccurrence(Capr::cs(Capr::descendants(317009),
+                                       name ="asthma")),
     primaryCriteriaLimit = "First"
   ))
   asthma_cohort2 <- Capr::cohort(entry = Capr::entry(
-    Capr::condition(Capr::cs(Capr::descendants(317009)),
-                    Capr::age(Capr::gte(18))),
+    Capr::conditionOccurrence(
+      Capr::cs(Capr::descendants(317009),
+               name ="asthma"),
+      Capr::age(Capr::gte(18))
+    ),
     primaryCriteriaLimit = "First"
   ))
 
@@ -131,15 +154,16 @@ test_that("eunomia test - strata", {
   )
 
 
-  cdm$dpop <- generateDenominatorCohortSet(cdm,
-                                           strataTable = "strata")
+  cdm$dpop <- generateDenominatorCohortSet(cdm, name ="dpop",
+    targetCohortTable = "strata"
+  )
 
 
   inc <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "dpop",
     outcomeTable = "asthma",
-    strataTable = "strata",
+    targetCohortTable = "target",
     interval = "years"
   )
   expect_true(nrow(inc) > 0)
@@ -151,13 +175,12 @@ test_that("eunomia test - strata", {
     interval = "years"
   )
   expect_true(nrow(prev) > 0)
-
 })
 
 test_that("eunomia test - participants", {
-
   db <- DBI::dbConnect(duckdb::duckdb(),
-                       dbdir = CDMConnector::eunomia_dir())
+    dbdir = CDMConnector::eunomia_dir()
+  )
   cdm <- CDMConnector::cdm_from_con(
     con = db,
     cdm_schema = "main",
@@ -203,6 +226,4 @@ test_that("eunomia test - participants", {
     interval = "years"
   )
   expect_true(nrow(prev) > 0)
-
-
 })

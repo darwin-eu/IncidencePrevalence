@@ -8,7 +8,7 @@ plotIncidence(
   result,
   x = "incidence_start_date",
   ylim = c(0, NA),
-  ribbon = TRUE,
+  ribbon = FALSE,
   facet = NULL,
   colour = NULL,
   colour_name = NULL
@@ -37,7 +37,7 @@ Plot incidence results
 }
 \examples{
 \donttest{
-cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
 cdm <- generateDenominatorCohortSet(
   cdm = cdm, name = "denominator",
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
