@@ -75,7 +75,7 @@ plotIncidence <- function(result,
 #'   denominatorTable = "denominator",
 #'   outcomeTable = "outcome"
 #' )
-#' plotPrevalence(result = prev)
+#' plotPrevalence(prev)
 #' }
 plotPrevalence <- function(result,
                            x = "prevalence_start_date",

@@ -50,6 +50,6 @@ prev <- estimatePointPrevalence(
   denominatorTable = "denominator",
   outcomeTable = "outcome"
 )
-plotPrevalence(result = prev)
+plotPrevalence(prev)
 }
 }
