@@ -176,8 +176,8 @@ test_that("plot options", {
     outcomeTable = "outcome"
   )
 
-  plotOptions <- list(list('hideConfidenceInterval' = TRUE,
-                           'facetNcols' = 1))
+  plotOptions <- list('hideConfidenceInterval' = TRUE,
+                      'facetNcols' = 1)
   plot <- plotIncidence(inc,
                         colour = "denominator_age_group",
                         colour_name = "Age group",
