@@ -11,7 +11,8 @@ plotPrevalence(
   ribbon = FALSE,
   facet = NULL,
   colour = NULL,
-  colour_name = NULL
+  colour_name = NULL,
+  options = list()
 )
 }
 \arguments{
@@ -28,6 +29,8 @@ plotPrevalence(
 \item{colour}{Variables to use for colours}
 
 \item{colour_name}{Colour legend name}
+
+\item{options}{a list of optional plot options}
 }
 \value{
 A ggplot with the prevalence results plotted

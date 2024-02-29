@@ -160,3 +160,45 @@ test_that("plot colour", {
 
   CDMConnector::cdm_disconnect(cdm)
 })
+
+test_that("plot options", {
+
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm,
+    name = "denominator",
+    ageGroup = list(c(0, 30),
+                    c(31, 100))
+  )
+  inc <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome"
+  )
+
+  plotOptions <- list('hideConfidenceInterval' = TRUE,
+                      'facetNcols' = 1)
+  plot <- plotIncidence(inc,
+                        colour = "denominator_age_group",
+                        colour_name = "Age group",
+                        options = plotOptions)
+  expect_true(ggplot2::is.ggplot(plot))
+
+  # prevalence
+  prev <- estimatePrevalence(
+    cdm = cdm, interval = "years",
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    minCellCount = 0
+  )
+
+  plot <- plotPrevalence(prev,
+                         colour = c("denominator_age_group",
+                                   "denominator_sex"),
+                         options = plotOptions)
+
+  expect_true(ggplot2::is.ggplot(plot))
+
+  CDMConnector::cdm_disconnect(cdm)
+})
+
