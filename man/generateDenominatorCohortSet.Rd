@@ -62,6 +62,6 @@ cdm <- generateDenominatorCohortSet(
   name = "denominator",
   cohortDateRange = as.Date(c("2008-01-01", "2020-01-01"))
 )
-cdm$denominator
+cdm
 }
 }

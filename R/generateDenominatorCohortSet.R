@@ -59,7 +59,7 @@
 #'   name = "denominator",
 #'   cohortDateRange = as.Date(c("2008-01-01", "2020-01-01"))
 #' )
-#' cdm$denominator
+#' cdm
 #' }
 generateDenominatorCohortSet <- function(cdm,
                                          name,
@@ -134,7 +134,7 @@ generateDenominatorCohortSet <- function(cdm,
 #'   targetCohortTable = "target",
 #'   cohortDateRange = as.Date(c("2008-01-01", "2020-01-01"))
 #' )
-#' cdm$denominator
+#' cdm
 #' }
 generateTargetDenominatorCohortSet <- function(cdm,
                                                name,
@@ -279,22 +279,15 @@ for(i in 1:length(denominatorSet)){
                                             name = name,
                                             table =  dplyr::tibble(
                                               cohort_definition_id = as.integer(numeric()),
-                                              subject_id = character(),
-                                              cohort_start_date = date(),
-                                              cohort_end_date = date()
+                                              subject_id = as.integer(numeric()),
+                                              cohort_start_date = as.Date(as.character()),
+                                              cohort_end_date = as.Date(as.character())
                                             ),
                                             overwrite = TRUE)
   } else {
     cdm[[name]] <- cohortRef
   }
 
-  if(nrow(cdm[[name]] %>% utils::head(10) %>% dplyr::collect()) == 0){
-    cdm[[name]] <- cdm[[name]] %>%
-      dplyr::mutate(cohort_definition_id = as.integer(.data$cohort_definition_id),
-                    subject_id  = as.integer(.data$subject_id),
-                    cohort_start_date  = as.Date(.data$cohort_start_date),
-                    cohort_end_date  = as.Date(.data$cohort_end_date))
-  }
   cdm[[name]] <- cdm[[name]] %>%
       omopgenerics::newCohortTable(cohortSetRef = cohortSetRef,
                                    cohortAttritionRef = cohortAttritionRef)
@@ -460,6 +453,8 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
             ),
           "subject_id" = "person_id"
         ) %>%
+        dplyr::mutate(cohort_start_date = as.Date(.data$cohort_start_date),
+                      cohort_end_date = as.Date(.data$cohort_end_date)) %>%
         dplyr::select(dplyr::any_of(c("subject_id", "cohort_start_date", "cohort_end_date",
                                       "target_cohort_start_date")))
 
