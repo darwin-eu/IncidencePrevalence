@@ -35,9 +35,6 @@ cdm <- mockIncidencePrevalenceRef(
   outPre = 0.1
 )
 
-timings <- benchmarkIncidencePrevalence(cdm,
-                                        nOutcomes = 2,
-                                        analysisType = "only incidence"
-)
+timings <- benchmarkIncidencePrevalence(cdm)
 }
 }
