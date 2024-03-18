@@ -47,7 +47,7 @@
 #' first value specified for the other factors will be used. Consequently,
 #' order of values matters when requirementInteractions is FALSE.
 #'
-#' @return A cohort reference
+#' @return A cdm reference
 #' @importFrom rlang .data
 #' @export
 #'
@@ -121,7 +121,7 @@ generateDenominatorCohortSet <- function(cdm,
 #' first value specified for the other factors will be used. Consequently,
 #' order of values matters when requirementInteractions is FALSE.
 #'
-#' @return A cohort reference
+#' @return A cdm reference
 #' @importFrom rlang .data
 #' @export
 #'
