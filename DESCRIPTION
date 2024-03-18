@@ -37,7 +37,7 @@ Imports:
     dplyr (>= 1.1.0),
     glue (>= 1.5.0),
     ggplot2 (>= 3.4.0),
-    omopgenerics,
+    omopgenerics (>= 0.1.2), 
     scales (>= 1.1.0),
     lifecycle,
     lubridate (>= 1.0.0),
