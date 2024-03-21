@@ -260,42 +260,33 @@ getDenominatorCohorts <- function(cdm,
     daysPriorObservation <- as.integer(daysPriorObservation)
 
     # for each min age, add the date at which they reach it
-    maxAgePlusOne <- as.integer(maxAge + 1)
-    if(omopgenerics::cdmSourceType(cdm) == "duckdb"){
-    minAgeDates <- glue::glue("dob + years({minAge[seq_along(minAge)]})")
-    maxAgeDates <- glue::glue("dob + years({maxAgePlusOne})")
-    maxAgeDatesMinusDay <- glue::glue("date_max_age_{maxAge} - days(1L)")
-    } else {
-      minAgeDates <- glue::glue("add_years(dob, {minAge[seq_along(minAge)]})")
-      maxAgeDates <- glue::glue("add_years(dob, {maxAgePlusOne})")
-      maxAgeDatesMinusDay <- glue::glue("add_days(date_max_age_{maxAge}, - 1L)")
-    }
-    minAgeDates <- minAgeDates %>%
-      rlang::parse_exprs() %>%
-      rlang::set_names(glue::glue("date_min_age_{minAge[seq_along(minAge)]}"))
-
     # for each max age, add the date at which they reach it
     # the day before their next birthday
-    maxAgeDates <- maxAgeDates %>%
-      rlang::parse_exprs() %>%
-      rlang::set_names(glue::glue("date_max_age_{maxAge}"))
-
-    maxAgeDatesMinusDay <- maxAgeDatesMinusDay %>%
-      rlang::parse_exprs() %>%
-      rlang::set_names(glue::glue("date_max_age_{maxAge}"))
+    maxAgePlusOne <- as.integer(maxAge + 1)
+    minAgeDates <- addDaysQuery(cdm = cdm,
+                             variable = "dob",
+                             number = minAge[seq_along(minAge)],
+                             type = "year",
+                             name_style = "date_min_age_{number}")
+    maxAgeDates <- addDaysQuery(cdm = cdm,
+                                variable = "dob",
+                                number = maxAgePlusOne,
+                                type = "year",
+                                name_style = "date_max_age_{number}")
+    maxAgeDatesMinusDay <- minusDaysQuery(cdm = cdm,
+                                variable = glue::glue("date_max_age_{maxAgePlusOne}"),
+                                number = 1,
+                                type = "day",
+                                names = glue::glue("date_max_age_{maxAgePlusOne-1}"))
 
     # for each prior_history requirement,
     # add the date at which they reach
     # observation start date + prior_history requirement
-    if(omopgenerics::cdmSourceType(cdm) == "duckdb"){
-      priorHistoryDates <- glue::glue("observation_period_start_date + days({daysPriorObservation})")
-    } else {
-      priorHistoryDates <- glue::glue("add_days(observation_period_start_date, {daysPriorObservation})")
-    }
-
-    priorHistoryDates <- priorHistoryDates %>%
-      rlang::parse_exprs() %>%
-      rlang::set_names(glue::glue("date_with_prior_history_{daysPriorObservation}"))
+    priorHistoryDates <- addDaysQuery(cdm = cdm,
+                                variable = "observation_period_start_date",
+                                number = daysPriorObservation,
+                                type = "day",
+                                name_style = "date_with_prior_history_{number}")
 
     studyPopDb <- studyPopDb %>%
       dplyr::mutate(!!!minAgeDates, !!!maxAgeDates, !!!priorHistoryDates) %>%
