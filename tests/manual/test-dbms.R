@@ -1,6 +1,6 @@
 test_that("postgres test", {
   skip_on_cran()
-  skip_if(Sys.getenv("CDM5_REDSHIFT_DBNAME") == "")
+  skip_if(Sys.getenv("CDM5_POSTGRESQL_DBNAME") == "")
 
  db <- DBI::dbConnect(RPostgres::Postgres(),
             dbname = Sys.getenv("CDM5_POSTGRESQL_DBNAME"),
