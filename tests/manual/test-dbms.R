@@ -14,6 +14,52 @@ test_that("postgres test", {
                     prefix = "incp_")
  )
 
+
+ # add days
+ days_q <-  addDaysQuery(cdm,
+                         variable = "observation_period_start_date",
+                         number = c(1,2),
+                         name_style = "a1_{number}",
+                         type = "day")
+
+ expect_equal(
+   cdm$observation_period |>
+     utils::head(5) |>
+     dplyr::mutate(!!!days_q) |>
+     dplyr::mutate(a1_1=as.Date(a1_1)) |>
+     dplyr::collect() |>
+     dplyr::pull("a1_1"),
+   cdm$observation_period |>
+     utils::head(5) |>
+     dplyr::collect() |>
+     dplyr::mutate(a1_1 = observation_period_start_date + lubridate::days(1)) |>
+     dplyr::mutate(a1_1 = as.Date(a1_1)) |>
+     dplyr::collect() |>
+     dplyr::pull("a1_1"))
+
+ # add years
+ years_q <-  addDaysQuery(cdm,
+                          variable = "observation_period_start_date",
+                          number = c(1,2),
+                          name_style = "a1_{number}",
+                          type = "year")
+
+ expect_equal(
+   cdm$observation_period |>
+     utils::head(5) |>
+     dplyr::mutate(!!!years_q) |>
+     dplyr::mutate(a1_1=as.Date(a1_1)) |>
+     dplyr::collect() |>
+     dplyr::pull("a1_1"),
+   cdm$observation_period |>
+     utils::head(5) |>
+     dplyr::collect() |>
+     dplyr::mutate(a1_1 = observation_period_start_date + lubridate::years(1)) |>
+     dplyr::mutate(a1_1 = as.Date(a1_1)) |>
+     dplyr::collect() |>
+     dplyr::pull("a1_1"))
+
+
  expect_no_error(postgres_timings <- benchmarkIncidencePrevalence(cdm))
  expect_no_error(postgres_timings_participants <- benchmarkIncidencePrevalence(cdm))
 
@@ -37,6 +83,51 @@ test_that("redshift test", {
     write_schema = c(schema = Sys.getenv("CDM5_REDSHIFT_SCRATCH_SCHEMA"),
                      prefix = "incp_")
   )
+
+
+  # add days
+  days_q <-  addDaysQuery(cdm,
+                          variable = "observation_period_start_date",
+                          number = c(1,2),
+                          name_style = "a1_{number}",
+                          type = "day")
+
+  expect_equal(
+    cdm$observation_period |>
+      utils::head(5) |>
+      dplyr::mutate(!!!days_q) |>
+      dplyr::mutate(a1_1=as.Date(a1_1)) |>
+      dplyr::collect() |>
+      dplyr::pull("a1_1"),
+    cdm$observation_period |>
+      utils::head(5) |>
+      dplyr::collect() |>
+      dplyr::mutate(a1_1 = observation_period_start_date + lubridate::days(1)) |>
+      dplyr::mutate(a1_1 = as.Date(a1_1)) |>
+      dplyr::collect() |>
+      dplyr::pull("a1_1"))
+
+  # add years
+  years_q <-  addDaysQuery(cdm,
+                           variable = "observation_period_start_date",
+                           number = c(1,2),
+                           name_style = "a1_{number}",
+                           type = "year")
+
+  expect_equal(
+    cdm$observation_period |>
+      utils::head(5) |>
+      dplyr::mutate(!!!years_q) |>
+      dplyr::mutate(a1_1=as.Date(a1_1)) |>
+      dplyr::collect() |>
+      dplyr::pull("a1_1"),
+    cdm$observation_period |>
+      utils::head(5) |>
+      dplyr::collect() |>
+      dplyr::mutate(a1_1 = observation_period_start_date + lubridate::years(1)) |>
+      dplyr::mutate(a1_1 = as.Date(a1_1)) |>
+      dplyr::collect() |>
+      dplyr::pull("a1_1"))
 
   expect_no_error(redshift_timings <- benchmarkIncidencePrevalence(cdm))
   expect_no_error(redshift_timings_participants <- benchmarkIncidencePrevalence(cdm,
@@ -66,6 +157,50 @@ test_that("sql server test", {
                      prefix = "incp_")
   )
 
+  # add days
+  days_q <-  addDaysQuery(cdm,
+                          variable = "observation_period_start_date",
+                          number = c(1,2),
+                          name_style = "a1_{number}",
+                          type = "day")
+
+  expect_equal(
+    cdm$observation_period |>
+      utils::head(5) |>
+      dplyr::mutate(!!!days_q) |>
+      dplyr::mutate(a1_1=as.Date(a1_1)) |>
+      dplyr::collect() |>
+      dplyr::pull("a1_1"),
+    cdm$observation_period |>
+      utils::head(5) |>
+      dplyr::collect() |>
+      dplyr::mutate(a1_1 = observation_period_start_date + lubridate::days(1)) |>
+      dplyr::mutate(a1_1 = as.Date(a1_1)) |>
+      dplyr::collect() |>
+      dplyr::pull("a1_1"))
+
+  # add years
+  years_q <-  addDaysQuery(cdm,
+                           variable = "observation_period_start_date",
+                           number = c(1,2),
+                           name_style = "a1_{number}",
+                           type = "year")
+
+  expect_equal(
+    cdm$observation_period |>
+      utils::head(5) |>
+      dplyr::mutate(!!!years_q) |>
+      dplyr::mutate(a1_1=as.Date(a1_1)) |>
+      dplyr::collect() |>
+      dplyr::pull("a1_1"),
+    cdm$observation_period |>
+      utils::head(5) |>
+      dplyr::collect() |>
+      dplyr::mutate(a1_1 = observation_period_start_date + lubridate::years(1)) |>
+      dplyr::mutate(a1_1 = as.Date(a1_1)) |>
+      dplyr::collect() |>
+      dplyr::pull("a1_1"))
+
   expect_no_error(sql_server_timings <- benchmarkIncidencePrevalence(cdm))
   expect_no_error(sql_server_timings_participants <- benchmarkIncidencePrevalence(cdm,
                                                                                   returnParticipants = TRUE))
@@ -93,6 +228,51 @@ test_that("snowflake test", {
                                     cdm_schema = cdm_schema,
                                     write_schema = write_schema,
                                     cdm_name = "snowflake")
+
+  # add days
+  days_q <-  addDaysQuery(cdm,
+                          variable = "observation_period_start_date",
+                          number = c(1,2),
+                          name_style = "a1_{number}",
+                          type = "day")
+
+  expect_equal(
+    cdm$observation_period |>
+      utils::head(5) |>
+      dplyr::mutate(!!!days_q) |>
+      dplyr::mutate(a1_1=as.Date(a1_1)) |>
+      dplyr::collect() |>
+      dplyr::pull("a1_1"),
+    cdm$observation_period |>
+      utils::head(5) |>
+      dplyr::collect() |>
+      dplyr::mutate(a1_1 = observation_period_start_date + lubridate::days(1)) |>
+      dplyr::mutate(a1_1 = as.Date(a1_1)) |>
+      dplyr::collect() |>
+      dplyr::pull("a1_1"))
+
+  # add years
+  years_q <-  addDaysQuery(cdm,
+                           variable = "observation_period_start_date",
+                           number = c(1,2),
+                           name_style = "a1_{number}",
+                           type = "year")
+
+  expect_equal(
+    cdm$observation_period |>
+      utils::head(5) |>
+      dplyr::mutate(!!!years_q) |>
+      dplyr::mutate(a1_1=as.Date(a1_1)) |>
+      dplyr::collect() |>
+      dplyr::pull("a1_1"),
+    cdm$observation_period |>
+      utils::head(5) |>
+      dplyr::collect() |>
+      dplyr::mutate(a1_1 = observation_period_start_date + lubridate::years(1)) |>
+      dplyr::mutate(a1_1 = as.Date(a1_1)) |>
+      dplyr::collect() |>
+      dplyr::pull("a1_1"))
+
 
  expect_no_error(snowflake_timings <- benchmarkIncidencePrevalence(cdm))
  expect_no_error(snowflake_timings_participants <- benchmarkIncidencePrevalence(cdm,
