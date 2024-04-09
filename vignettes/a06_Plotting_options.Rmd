@@ -86,15 +86,16 @@ plotIncidence(inc, facet = "denominator_sex", ribbon = TRUE,
               options = list('hideConfidenceInterval' = TRUE))
 ```
 
-## Faceted plot - with lines, no confidence interval, stacked
+## Faceted plot - with lines, no confidence interval, stacked, free scales
 
 This is the previous plot where the subplots are shown on top of each other. The `facetNcols` variable 
-defines the number of columns of the subplots.
+defines the number of columns of the subplots. In addition we set `facetScales` as "free" so that the axis can vary by facet.
 
 ```{r stackedplot}
 plotIncidence(inc, facet = "denominator_sex", ribbon = TRUE, 
               options = list('hideConfidenceInterval' = TRUE,
-                             'facetNcols' = 1))
+                             'facetNcols' = 1, 
+                             'facetScales' = "free"))
 ```
 
 As we've used permanent tables for this example, we can drop these after running our analysis.

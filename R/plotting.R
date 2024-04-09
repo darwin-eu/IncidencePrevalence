@@ -187,8 +187,15 @@ plotEstimates <- function(result,
     if ("facetNcols" %in% names(options)) {
       facetNcols <- options[["facetNcols"]]
     }
+    facetScales <- "fixed"
+    if ("facetScales" %in% names(options)) {
+      facetScales <- options[["facetScales"]]
+    }
+
     plot <- plot +
-      ggplot2::facet_wrap(ggplot2::vars(.data$facet_var), ncol = facetNcols) +
+      ggplot2::facet_wrap(ggplot2::vars(.data$facet_var),
+                          ncol = facetNcols,
+                          scales = facetScales) +
       ggplot2::theme_bw()
   } else {
     plot <- plot +

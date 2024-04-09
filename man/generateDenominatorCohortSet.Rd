@@ -46,7 +46,7 @@ first value specified for the other factors will be used. Consequently,
 order of values matters when requirementInteractions is FALSE.}
 }
 \value{
-A cohort reference
+A cdm reference
 }
 \description{
 \code{generateDenominatorCohortSet()} creates a set of cohorts that
@@ -62,6 +62,6 @@ cdm <- generateDenominatorCohortSet(
   name = "denominator",
   cohortDateRange = as.Date(c("2008-01-01", "2020-01-01"))
 )
-cdm$denominator
+cdm
 }
 }

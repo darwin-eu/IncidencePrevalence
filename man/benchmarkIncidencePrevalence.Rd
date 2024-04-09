@@ -6,41 +6,17 @@
 \usage{
 benchmarkIncidencePrevalence(
   cdm,
-  cohortDateRange = as.Date(c(NA, NA)),
   returnParticipants = FALSE,
-  nOutcomes = 1,
-  prevOutcomes = 0.25,
-  analysisType = "all",
-  outputFolder = NULL,
-  fileName = NULL
+  analysisType = "all"
 )
 }
 \arguments{
 \item{cdm}{A CDM reference object}
 
-\item{cohortDateRange}{Two dates. The first indicating the earliest cohort
-start date and the second indicating the latest possible cohort end date. If
-NULL or the first date is set as missing, the earliest observation_start_date
-in the observation_period table will be used for the former. If  NULL or the
-second date is set as missing, the latest observation_end_date in the
-observation_period table will be used for the latter.}
-
-\item{returnParticipants}{Whether to return participants (requires temporary
-to be FALSE)}
-
-\item{nOutcomes}{An integer specifying the number of outcomes to create in
-the denominator cohort}
-
-\item{prevOutcomes}{An array of integers for the prevalence of the outcomes
-in the population (in \%). If the user wants all the outcomes with the same
-prevalence, they can also provide a single integer}
+\item{returnParticipants}{Whether to return participants}
 
 \item{analysisType}{A string of the following: "all", "only incidence",
 "only prevalence"}
-
-\item{outputFolder}{Folder to save results as CSV}
-
-\item{fileName}{Name given to CSV with results}
 }
 \value{
 a tibble with time taken for different analyses
@@ -59,10 +35,6 @@ cdm <- mockIncidencePrevalenceRef(
   outPre = 0.1
 )
 
-timings <- benchmarkIncidencePrevalence(cdm,
-                                        nOutcomes = 2,
-                                        prevOutcomes = c(0.1),
-                                        analysisType = "only incidence"
-)
+timings <- benchmarkIncidencePrevalence(cdm)
 }
 }

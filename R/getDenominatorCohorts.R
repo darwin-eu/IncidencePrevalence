@@ -1,4 +1,4 @@
-# Copyright 2023 DARWIN EU®
+# Copyright 2024 DARWIN EU®
 #
 # This file is part of IncidencePrevalence
 #
@@ -55,11 +55,11 @@ getDenominatorCohorts <- function(cdm,
         by = "person_id"
       )
 
-      personDb <- personDb %>%
-        dplyr::compute(
-          name = paste0(intermediateTable,"_working_person"),
-          temporary = FALSE
-        )
+    personDb <- personDb %>%
+      dplyr::compute(
+        name = paste0(intermediateTable,"_working_person"),
+        temporary = FALSE
+      )
 
     observationPeriodDb <- observationPeriodDb %>%
       dplyr::inner_join(
@@ -91,27 +91,27 @@ getDenominatorCohorts <- function(cdm,
     # if not, drop
     observationPeriodDb <- observationPeriodDb %>%
       dplyr::filter(.data$observation_period_start_date <=
-        .data$cohort_start_date &
-        .data$observation_period_end_date >= .data$cohort_start_date)
+                      .data$cohort_start_date &
+                      .data$observation_period_end_date >= .data$cohort_start_date)
 
     # set observation end to whatever came first of cohort end or obs end
     observationPeriodDb <- observationPeriodDb %>%
       dplyr::mutate(
         observation_period_end_date =
           dplyr::if_else(.data$observation_period_end_date >=
-            .data$cohort_end_date,
-          .data$cohort_end_date,
-          .data$observation_period_end_date
+                           .data$cohort_end_date,
+                         .data$cohort_end_date,
+                         .data$observation_period_end_date
           )
       ) %>%
       dplyr::select(!c("cohort_end_date")) %>%
       dplyr::rename("target_cohort_start_date" = "cohort_start_date")
 
-      personDb <- personDb %>%
-        dplyr::compute(
-          name = paste0(intermediateTable,"_working_obs_period"),
-          temporary = FALSE
-        )
+    personDb <- personDb %>%
+      dplyr::compute(
+        name = paste0(intermediateTable,"_working_obs_period"),
+        temporary = FALSE
+      )
   }
 
   ## Identifying population of interest
@@ -119,7 +119,7 @@ getDenominatorCohorts <- function(cdm,
   # drop anyone missing year_of_birth or gender_concept_id
   studyPopDb <- personDb %>%
     dplyr::left_join(observationPeriodDb,
-      by = "person_id", x_as = "x", y_as = "y"
+                     by = "person_id", x_as = "x", y_as = "y"
     )
 
   attrition <- recordAttrition(
@@ -143,15 +143,15 @@ getDenominatorCohorts <- function(cdm,
   studyPopDb <- studyPopDb %>%
     dplyr::mutate(sex = dplyr::if_else(.data$gender_concept_id == "8507",
                                        "Male",
-      dplyr::if_else(.data$gender_concept_id == "8532", "Female", NA)
+                                       dplyr::if_else(.data$gender_concept_id == "8532", "Female", NA)
     )) %>%
     dplyr::filter(!is.na(.data$sex))
 
-    studyPopDb <- studyPopDb %>%
-      dplyr::compute(
-        name = paste0(intermediateTable, "_i_1"),
-        temporary = FALSE
-      )
+  studyPopDb <- studyPopDb %>%
+    dplyr::compute(
+      name = paste0(intermediateTable, "_i_1"),
+      temporary = FALSE
+    )
 
   attrition <- recordAttrition(
     table = studyPopDb,
@@ -171,12 +171,12 @@ getDenominatorCohorts <- function(cdm,
       year_of_birth1 = as.character(as.integer(.data$year_of_birth)),
       month_of_birth1 = as.character(as.integer(
         dplyr::if_else(is.na(.data$month_of_birth),
-          1L, .data$month_of_birth
+                       1L, .data$month_of_birth
         )
       )),
       day_of_birth1 = as.character(as.integer(
         dplyr::if_else(is.na(.data$day_of_birth),
-          1L, .data$day_of_birth
+                       1L, .data$day_of_birth
         )
       ))
     ) %>%
@@ -199,12 +199,12 @@ getDenominatorCohorts <- function(cdm,
   studyPopDb <- studyPopDb %>%
     dplyr::mutate(
       lower_age_check = !!CDMConnector::dateadd("dob",
-        {{ lowerAgeLimit }},
-        interval = "year"
+                                                {{ lowerAgeLimit }},
+                                                interval = "year"
       ),
       upper_age_check = !!CDMConnector::dateadd("dob",
-        {{ upperAgeLimit }},
-        interval = "year"
+                                                {{ upperAgeLimit }},
+                                                interval = "year"
       ),
       start_date = !!CDMConnector::asDate(.env$startDateChar),
       end_date = !!CDMConnector::asDate(.env$endDateChar),
@@ -217,11 +217,11 @@ getDenominatorCohorts <- function(cdm,
     ) %>%
     dplyr::select(-c("lower_age_check", "upper_age_check"))
 
-    studyPopDb <- studyPopDb %>%
-      dplyr::compute(
-        name = paste0(intermediateTable, "_i_2"),
-        temporary = FALSE
-      )
+  studyPopDb <- studyPopDb %>%
+    dplyr::compute(
+      name = paste0(intermediateTable, "_i_2"),
+      temporary = FALSE
+    )
 
   attrition <- recordAttrition(
     table = studyPopDb,
@@ -239,11 +239,11 @@ getDenominatorCohorts <- function(cdm,
         .data$observation_period_end_date >= .data$start_date
     )
 
-    studyPopDb <- studyPopDb %>%
-      dplyr::compute(
-        name = paste0(intermediateTable, "_i_3"),
-        temporary = FALSE
-      )
+  studyPopDb <- studyPopDb %>%
+    dplyr::compute(
+      name = paste0(intermediateTable, "_i_3"),
+      temporary = FALSE
+    )
 
   attrition <- recordAttrition(
     table = studyPopDb,
@@ -255,45 +255,49 @@ getDenominatorCohorts <- function(cdm,
 
   # finalise population (if we still have people)
   if ((studyPopDb %>% dplyr::count() %>% dplyr::pull()) > 0) {
-    # for each min age, add the date at which they reach it
-    minAgeDates <- glue::glue("CDMConnector::dateadd('dob',
-                      {minAge[seq_along(minAge)]},
-                      interval = 'year')") %>%
-      rlang::parse_exprs() %>%
-      rlang::set_names(glue::glue("date_min_age_{minAge[seq_along(minAge)]}"))
+    minAge <- as.integer(minAge)
+    maxAge <- as.integer(maxAge)
+    daysPriorObservation <- as.integer(daysPriorObservation)
 
+    # for each min age, add the date at which they reach it
     # for each max age, add the date at which they reach it
     # the day before their next birthday
-    maxAgePlusOne <- maxAge + 1
-    maxAgeDates <- glue::glue("CDMConnector::dateadd('dob',
-                       {maxAgePlusOne},
-                       interval = 'year')") %>%
-      rlang::parse_exprs() %>%
-      rlang::set_names(glue::glue("date_max_age_{maxAge}"))
-
-    maxAgeDatesMinusDay <- glue::glue("CDMConnector::dateadd('date_max_age_{maxAge}',
-                       -1, interval = 'day')") %>%
-      rlang::parse_exprs() %>%
-      rlang::set_names(glue::glue("date_max_age_{maxAge}"))
+    maxAgePlusOne <- as.integer(maxAge + 1)
+    minAgeDates <- addDaysQuery(cdm = cdm,
+                             variable = "dob",
+                             number = minAge[seq_along(minAge)],
+                             type = "year",
+                             name_style = "date_min_age_{number}")
+    maxAgeDates <- addDaysQuery(cdm = cdm,
+                                variable = "dob",
+                                number = maxAgePlusOne,
+                                type = "year",
+                                name_style = "date_max_age_{number}")
+    maxAgeDatesMinusDay <- minusDaysQuery(cdm = cdm,
+                                variable = glue::glue("date_max_age_{maxAgePlusOne}"),
+                                number = 1,
+                                type = "day",
+                                names = glue::glue("date_max_age_{maxAgePlusOne-1}"))
 
     # for each prior_history requirement,
     # add the date at which they reach
     # observation start date + prior_history requirement
-    priorHistoryDates <- glue::glue('CDMConnector::dateadd("observation_period_start_date",
-                      {daysPriorObservation}, interval = "day")') %>%
-      rlang::parse_exprs() %>%
-      rlang::set_names(glue::glue("date_with_prior_history_{daysPriorObservation}"))
+    priorHistoryDates <- addDaysQuery(cdm = cdm,
+                                variable = "observation_period_start_date",
+                                number = daysPriorObservation,
+                                type = "day",
+                                name_style = "date_with_prior_history_{number}")
 
     studyPopDb <- studyPopDb %>%
       dplyr::mutate(!!!minAgeDates, !!!maxAgeDates, !!!priorHistoryDates) %>%
       # dplyr::collapse() %>%
       dplyr::mutate(!!!maxAgeDatesMinusDay)
 
-      studyPopDb <- studyPopDb %>%
-        dplyr::compute(
-          name = paste0(intermediateTable, "_i_4"),
-          temporary = FALSE
-        )
+    studyPopDb <- studyPopDb %>%
+      dplyr::compute(
+        name = paste0(intermediateTable, "_i_4"),
+        temporary = FALSE
+      )
 
     # keep people only if they
     # satisfy age criteria at some point in the study
@@ -304,7 +308,7 @@ getDenominatorCohorts <- function(cdm,
         .data[[!!rlang::sym(varLowerAgeLimit)]] <=
           .data$end_date &
           .data[[!!rlang::sym(varUpperAgeLimit)]] >=
-            .data$start_date
+          .data$start_date
       )
 
     attrition <- recordAttrition(
@@ -325,9 +329,9 @@ getDenominatorCohorts <- function(cdm,
         dplyr::mutate(
           !!varLowerPriorHistory :=
             dplyr::if_else(.data$target_cohort_start_date >=
-              .data[[varLowerPriorHistory]],
-            .data$target_cohort_start_date,
-            .data[[varLowerPriorHistory]]
+                             .data[[varLowerPriorHistory]],
+                           .data$target_cohort_start_date,
+                           .data[[varLowerPriorHistory]]
             )
         )
     }
@@ -341,11 +345,11 @@ getDenominatorCohorts <- function(cdm,
           .data$observation_period_end_date
       )
 
-      studyPopDb <- studyPopDb %>%
-        dplyr::compute(
-          name = paste0(intermediateTable, "_i_5"),
-          temporary = FALSE
-        )
+    studyPopDb <- studyPopDb %>%
+      dplyr::compute(
+        name = paste0(intermediateTable, "_i_5"),
+        temporary = FALSE
+      )
 
 
     attrition <- recordAttrition(
@@ -388,11 +392,11 @@ getDenominatorCohorts <- function(cdm,
       # dplyr::collapse() %>%
       dplyr::mutate(!!!minAgeHistStartDates)
 
-      studyPopDb <- studyPopDb %>%
-        dplyr::compute(
-          name = paste0(intermediateTable, "_i_6"),
-          temporary = FALSE
-        )
+    studyPopDb <- studyPopDb %>%
+      dplyr::compute(
+        name = paste0(intermediateTable, "_i_6"),
+        temporary = FALSE
+      )
 
     # cohort end dates
     # study end date,
@@ -416,11 +420,11 @@ getDenominatorCohorts <- function(cdm,
       # dplyr::collapse() %>%
       dplyr::mutate(!!!maxAgeObsPeriodEndDates)
 
-      studyPopDb <- studyPopDb %>%
-        dplyr::compute(
-          name = paste0(intermediateTable, "cohorts"),
-          temporary = FALSE
-        )
+    studyPopDb <- studyPopDb %>%
+      dplyr::compute(
+        name = paste0(intermediateTable, "cohorts"),
+        temporary = FALSE
+      )
   }
 
   # table to return
@@ -441,5 +445,5 @@ getDenominatorCohorts <- function(cdm,
   dpop[["denominator_population"]] <- studyPopDb
   dpop[["attrition"]] <- attrition
 
-    return(dpop)
+  return(dpop)
 }

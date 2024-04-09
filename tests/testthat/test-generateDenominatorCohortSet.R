@@ -1598,7 +1598,7 @@ test_that("mock db: check tables were cleaned up", {
   expect_identical(
     sort(c(
       startTables, "my_denominator", "my_denominator_set",
-      "my_denominator_attrition"
+      "my_denominator_attrition", "my_denominator_codelist"
     )),
     sort(c(endTables))
   )
