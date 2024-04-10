@@ -8,6 +8,7 @@
 #' @param facet Variables to use for facets
 #' @param colour Variables to use for colours
 #' @param colour_name Colour legend name
+#' @param options a list of optional plot options
 #'
 #' @return A ggplot with the incidence results plotted
 #' @export
@@ -32,19 +33,19 @@ plotIncidence <- function(result,
                           ribbon = FALSE,
                           facet = NULL,
                           colour = NULL,
-                          colour_name = NULL) {
+                          colour_name = NULL,
+                          options = list()) {
   plotEstimates(
     result = result,
     x = x,
     y = "incidence_100000_pys",
-    yLower = "incidence_100000_pys_95CI_lower",
-    yUpper = "incidence_100000_pys_95CI_upper",
     ylim = ylim,
     ytype = "count",
     ribbon = ribbon,
     facet = facet,
     colour = colour,
-    colour_name = colour_name
+    colour_name = colour_name,
+    options = options
   )
 }
 
@@ -57,6 +58,7 @@ plotIncidence <- function(result,
 #' @param facet Variables to use for facets
 #' @param colour Variables to use for colours
 #' @param colour_name Colour legend name
+#' @param options a list of optional plot options
 #'
 #' @return A ggplot with the prevalence results plotted
 #' @export
@@ -81,19 +83,19 @@ plotPrevalence <- function(result,
                            ribbon = FALSE,
                            facet = NULL,
                            colour = NULL,
-                           colour_name = NULL) {
+                           colour_name = NULL,
+                           options = list()) {
   plotEstimates(
     result = result,
     x = x,
     y = "prevalence",
-    yLower = "prevalence_95CI_lower",
-    yUpper = "prevalence_95CI_upper",
     ylim = ylim,
     ytype = "percentage",
     ribbon = ribbon,
     facet = facet,
     colour = colour,
-    colour_name = colour_name
+    colour_name = colour_name,
+    options = options
   )
 }
 
@@ -104,17 +106,17 @@ plotPrevalence <- function(result,
 plotEstimates <- function(result,
                           x,
                           y,
-                          yLower,
-                          yUpper,
                           ylim,
                           ytype,
                           ribbon,
                           facet,
                           colour,
-                          colour_name) {
+                          colour_name,
+                          options) {
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(inherits(result, "IncidencePrevalenceResult"))
   checkmate::assertTRUE(all(c(x, y) %in% colnames(result)))
+  checkmate::assertList(options, add = errorMessage)
   checkmate::reportAssertions(collection = errorMessage)
 
   plot_data <- getPlotData(
@@ -149,6 +151,11 @@ plotEstimates <- function(result,
       )
   }
 
+  hideConfidenceInterval <- "hideConfidenceInterval" %in% names(options) &&
+    options[["hideConfidenceInterval"]]
+  yLower <- ifelse(hideConfidenceInterval, y, paste0(y, "_95CI_lower"))
+  yUpper <- ifelse(hideConfidenceInterval, y, paste0(y, "_95CI_upper"))
+
   plot <- plot +
     ggplot2::geom_point(size = 2.5) +
     ggplot2::geom_errorbar(
@@ -176,8 +183,19 @@ plotEstimates <- function(result,
   }
 
   if (!is.null(facet)) {
+    facetNcols <- NULL
+    if ("facetNcols" %in% names(options)) {
+      facetNcols <- options[["facetNcols"]]
+    }
+    facetScales <- "fixed"
+    if ("facetScales" %in% names(options)) {
+      facetScales <- options[["facetScales"]]
+    }
+
     plot <- plot +
-      ggplot2::facet_wrap(ggplot2::vars(.data$facet_var)) +
+      ggplot2::facet_wrap(ggplot2::vars(.data$facet_var),
+                          ncol = facetNcols,
+                          scales = facetScales) +
       ggplot2::theme_bw()
   } else {
     plot <- plot +

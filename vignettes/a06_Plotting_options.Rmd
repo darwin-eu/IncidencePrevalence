@@ -1,0 +1,108 @@
+---
+title: "Plotting options"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{a06_Plotting_options}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5,
+  eval = Sys.getenv("$RUNNER_OS") != "macOS"
+)
+```
+
+```{r, message= FALSE, warning=FALSE, echo=FALSE}
+library(here)
+library(DBI)
+library(dbplyr)
+library(dplyr)
+library(tibble)
+library(tidyr)
+library(duckdb)
+library(knitr)
+library(IncidencePrevalence)
+```
+
+# Introduction
+
+This package provides functions to create an incidence or prevalence plot. There are a couple of options that can be specified when creating such a plot. In this vignette we are using the options in the `plotIncidence` function, however these same options can be specified in the `plotPrevalence` function.
+
+```{r setup}
+cdm <- mockIncidencePrevalenceRef(
+  sampleSize = 10000,
+  outPre = 0.5
+)
+
+cdm <- generateDenominatorCohortSet(
+  cdm = cdm, name = "denominator",
+  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2012-01-01")),
+  sex = c("Male", "Female")
+)
+
+inc <- estimateIncidence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = "years"
+)
+```
+
+## Default plot
+
+This is the default incidence plot.
+
+```{r defplot}
+plotIncidence(inc)
+```
+
+## Faceted plot
+
+This is the default incidence plot where the plot has been faceted by sex.
+
+```{r facetplot}
+plotIncidence(inc, facet = "denominator_sex")
+```
+
+## Faceted plot - with lines
+
+This is the previous plot where the dots are connected.
+
+```{r linesplot}
+plotIncidence(inc, facet = "denominator_sex", ribbon = TRUE)
+```
+
+## Faceted plot - with lines, no confidence interval
+
+This is the previous plot where the dots are connected but no confidence interval is shown.
+
+```{r noconfplot}
+plotIncidence(inc, facet = "denominator_sex", ribbon = TRUE, 
+              options = list('hideConfidenceInterval' = TRUE))
+```
+
+## Faceted plot - with lines, no confidence interval, stacked, free scales
+
+This is the previous plot where the subplots are shown on top of each other. The `facetNcols` variable 
+defines the number of columns of the subplots. In addition we set `facetScales` as "free" so that the axis can vary by facet.
+
+```{r stackedplot}
+plotIncidence(inc, facet = "denominator_sex", ribbon = TRUE, 
+              options = list('hideConfidenceInterval' = TRUE,
+                             'facetNcols' = 1, 
+                             'facetScales' = "free"))
+```
+
+As we've used permanent tables for this example, we can drop these after running our analysis.
+
+```{r, message= FALSE, warning=FALSE}
+CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"))
+CDMConnector::dropTable(cdm = cdm, name = starts_with("denominator"))
+CDMConnector::dropTable(cdm = cdm, name = starts_with("inc_participants_"))
+CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"))
+```

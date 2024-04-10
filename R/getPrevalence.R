@@ -1,4 +1,4 @@
-# Copyright 2023 DARWIN EU®
+# Copyright 2024 DARWIN EU®
 #
 # This file is part of IncidencePrevalence
 #
@@ -305,7 +305,9 @@ getPrevalence <- function(cdm,
   results[["pr"]] <- pr
   results[["attrition"]] <- attrition
   if (returnParticipants == TRUE) {
+    if(nrow(pr) > 0){
     results[["person_table"]] <- studyPopParticipants
+    }
   }
 
   return(results)
