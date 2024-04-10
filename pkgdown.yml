@@ -1,4 +1,4 @@
-pandoc: 2.19.2
+pandoc: 3.1.11
 pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
@@ -7,7 +7,8 @@ articles:
   a03_Creating_target_denominator_populations: a03_Creating_target_denominator_populations.html
   a04_Calculating_prevalence: a04_Calculating_prevalence.html
   a05_Calculating_incidence: a05_Calculating_incidence.html
-last_built: 2024-02-23T15:59Z
+  a06_Plotting_options: a06_Plotting_options.html
+last_built: 2024-04-10T10:33Z
 urls:
   reference: https://darwin-eu.github.io/IncidencePrevalence/reference
   article: https://darwin-eu.github.io/IncidencePrevalence/articles

@@ -16,7 +16,7 @@ or estimatePeriodPrevalence()."><!-- mathjax --><script src="https://cdnjs.cloud
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.2</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -35,6 +35,7 @@ or estimatePeriodPrevalence()."><!-- mathjax --><script src="https://cdnjs.cloud
     <a class="dropdown-item" href="../articles/a03_Creating_target_denominator_populations.html">Creating target denominator populations</a>
     <a class="dropdown-item" href="../articles/a04_Calculating_prevalence.html">Calculating prevalence</a>
     <a class="dropdown-item" href="../articles/a05_Calculating_incidence.html">Calculating incidence</a>
+    <a class="dropdown-item" href="../articles/a06_Plotting_options.html">Plotting options</a>
   </div>
 </li>
       </ul><form class="form-inline my-2 my-lg-0" role="search">
@@ -136,7 +137,7 @@ order of values matters when requirementInteractions is FALSE.</p></dd>
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
     
 
-<p>A cohort reference</p>
+<p>A cdm reference</p>
     </div>
 
     <div class="section level2">
@@ -151,11 +152,13 @@ order of values matters when requirementInteractions is FALSE.</p></dd>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Creating denominator cohorts: target cohort id 1</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Cohorts created in 0 min and 3 sec</span>
-<span class="r-in"><span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># Source:   SQL [0 x 4]</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># Database: DuckDB v0.9.2 [unknown@Linux 6.2.0-1019-azure:R 4.3.2/:memory:]</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;"># ℹ 4 variables: cohort_definition_id &lt;int&gt;, subject_id &lt;int&gt;,</span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> <span style="color: #949494;">#   cohort_start_date &lt;date&gt;, cohort_end_date &lt;date&gt;</span></span>
+<span class="r-in"><span><span class="va">cdm</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">──</span> <span style="font-weight: bold;"># OMOP CDM reference (duckdb) of mock</span> <span style="color: #00BBBB;">───────────────────────────────────────</span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> • <span style="font-weight: bold;">omop tables:</span> person, observation_period</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> • <span style="font-weight: bold;">cohort tables:</span> target, outcome, denominator</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> • <span style="font-weight: bold;">achilles tables:</span> -</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> • <span style="font-weight: bold;">other tables:</span> -</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
