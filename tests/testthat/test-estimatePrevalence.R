@@ -67,8 +67,6 @@ test_that("mock db: check output format", {
   ) %in%
     names(attrition(prev))))
 
-  expect_equal(suppressWarnings(prevalenceAttrition(prev)), attrition(prev))
-
   my_settings <- settings(prev)
   expect_true(nrow(my_settings) > 0)
 

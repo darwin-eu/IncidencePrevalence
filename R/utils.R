@@ -39,7 +39,7 @@ incidenceAttrition <- function(result) {
 
 #' @export
 incidenceAttrition.IncidenceResult <- function(result) {
-  lifecycle::deprecate_warn(when = "0.6.2", what =  "incidenceAttrition()", with = "attrition()")
+  lifecycle::deprecate_stop(when = "0.8.0", what =  "incidenceAttrition()", with = "attrition()")
   attrition <- attr(result, "attrition")
   return(attrition)
 }
@@ -68,7 +68,7 @@ prevalenceAttrition <- function(result) {
 
 #' @export
 prevalenceAttrition.PrevalenceResult <- function(result) {
-  lifecycle::deprecate_warn(when = "0.6.2", what =  "prevalenceAttrition()", with = "attrition()")
+  lifecycle::deprecate_stop(when = "0.8.0", what =  "prevalenceAttrition()", with = "attrition()")
   attrition <- attr(result, "attrition")
   return(attrition)
 }
@@ -129,7 +129,7 @@ prevalenceSet <- function(result) {
 
 #' @export
 prevalenceSet.PrevalenceResult <- function(result) {
-  lifecycle::deprecate_warn(when = "0.6.2", what =  "prevalenceSet()", with = "setings()")
+  lifecycle::deprecate_stop(when = "0.8.0", what =  "prevalenceSet()", with = "setings()")
   settings <- attr(result, "settings")
   return(settings)
 }
