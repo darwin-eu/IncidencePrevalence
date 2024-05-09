@@ -21,25 +21,13 @@
 #' @return tibble with counts and reasons for attrition.
 #' @export
 #'
-#' @examples
-#' \donttest{
-#' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-#' cdm <- generateDenominatorCohortSet(cdm, name = "denominator")
-#' inc <- estimateIncidence(
-#'   cdm = cdm,
-#'   denominatorTable = "denominator",
-#'   outcomeTable = "outcome",
-#'   interval = "overall"
-#' )
-#' incidenceAttrition(inc)
-#' }
 incidenceAttrition <- function(result) {
   UseMethod("incidenceAttrition")
 }
 
 #' @export
 incidenceAttrition.IncidenceResult <- function(result) {
-  lifecycle::deprecate_warn(when = "0.6.2", what =  "incidenceAttrition()", with = "attrition()")
+  lifecycle::deprecate_stop(when = "0.8.0", what =  "incidenceAttrition()", with = "attrition()")
   attrition <- attr(result, "attrition")
   return(attrition)
 }
@@ -51,24 +39,13 @@ incidenceAttrition.IncidenceResult <- function(result) {
 #' @return tibble with counts and reasons for attrition.
 #' @export
 #'
-#' @examples
-#' \donttest{
-#' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-#' cdm <- generateDenominatorCohortSet(cdm, name = "denominator")
-#' prev <- estimatePointPrevalence(
-#'   cdm = cdm,
-#'   denominatorTable = "denominator",
-#'   outcomeTable = "outcome"
-#' )
-#' prevalenceAttrition(prev)
-#' }
 prevalenceAttrition <- function(result) {
   UseMethod("prevalenceAttrition")
 }
 
 #' @export
 prevalenceAttrition.PrevalenceResult <- function(result) {
-  lifecycle::deprecate_warn(when = "0.6.2", what =  "prevalenceAttrition()", with = "attrition()")
+  lifecycle::deprecate_stop(when = "0.8.0", what =  "prevalenceAttrition()", with = "attrition()")
   attrition <- attr(result, "attrition")
   return(attrition)
 }
@@ -81,25 +58,13 @@ prevalenceAttrition.PrevalenceResult <- function(result) {
 #' @return tibble with settings used when estimating incidence
 #' @export
 #'
-#' @examples
-#' \donttest{
-#' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-#' cdm <- generateDenominatorCohortSet(cdm, name = "denominator")
-#' inc <- estimateIncidence(
-#'   cdm = cdm,
-#'   denominatorTable = "denominator",
-#'   outcomeTable = "outcome",
-#'   interval = "overall"
-#' )
-#' incidenceSet(inc)
-#' }
 incidenceSet <- function(result) {
   UseMethod("incidenceSet")
 }
 
 #' @export
 incidenceSet.IncidenceResult <- function(result) {
-  lifecycle::deprecate_warn(when = "0.6.2", what =  "incidenceSet()", with = "setings()")
+  lifecycle::deprecate_stop(when = "0.8.0", what =  "incidenceSet()", with = "setings()")
   settings <- attr(result, "settings")
   return(settings)
 }
@@ -112,24 +77,13 @@ incidenceSet.IncidenceResult <- function(result) {
 #' @return tibble with settings used when estimating prevalence
 #' @export
 #'
-#' @examples
-#' \donttest{
-#' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-#' cdm <- generateDenominatorCohortSet(cdm, name = "denominator")
-#' prev <- estimatePointPrevalence(
-#'   cdm = cdm,
-#'   denominatorTable = "denominator",
-#'   outcomeTable = "outcome"
-#' )
-#' prevalenceSet(prev)
-#' }
 prevalenceSet <- function(result) {
   UseMethod("prevalenceSet")
 }
 
 #' @export
 prevalenceSet.PrevalenceResult <- function(result) {
-  lifecycle::deprecate_warn(when = "0.6.2", what =  "prevalenceSet()", with = "setings()")
+  lifecycle::deprecate_stop(when = "0.8.0", what =  "prevalenceSet()", with = "setings()")
   settings <- attr(result, "settings")
   return(settings)
 }

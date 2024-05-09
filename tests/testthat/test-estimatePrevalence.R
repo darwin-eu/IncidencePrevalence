@@ -67,12 +67,8 @@ test_that("mock db: check output format", {
   ) %in%
     names(attrition(prev))))
 
-  expect_equal(suppressWarnings(prevalenceAttrition(prev)), attrition(prev))
-
   my_settings <- settings(prev)
   expect_true(nrow(my_settings) > 0)
-
-  expect_equal(settings(prev), suppressWarnings(prevalenceSet(prev)))
 
   # by default we don´t return the participants
   expect_true(is.null(participants(prev, analysisId = 1)))
