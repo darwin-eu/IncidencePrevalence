@@ -20,8 +20,8 @@ checkInputGenerateDCS <- function(cdm,
   }
 
   errorMessage <- checkmate::makeAssertCollection()
-  checkmate::expect_character(name, len = 1)
-  checkmate::expect_date(cohortDateRange, len = 2)
+  checkmate::assertCharacter(name, len = 1)
+  checkmate::assertDate(cohortDateRange, len = 2)
   checkmate::assert_list(ageGroup,
     add = errorMessage
   )
