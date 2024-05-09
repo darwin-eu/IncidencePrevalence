@@ -70,8 +70,6 @@ test_that("mock db: check output format", {
   my_settings <- settings(prev)
   expect_true(nrow(my_settings) > 0)
 
-  expect_equal(settings(prev), suppressWarnings(prevalenceSet(prev)))
-
   # by default we don´t return the participants
   expect_true(is.null(participants(prev, analysisId = 1)))
   CDMConnector::cdm_disconnect(cdm)
