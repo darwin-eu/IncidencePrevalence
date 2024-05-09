@@ -99,7 +99,7 @@ incidenceSet <- function(result) {
 
 #' @export
 incidenceSet.IncidenceResult <- function(result) {
-  lifecycle::deprecate_warn(when = "0.6.2", what =  "incidenceSet()", with = "setings()")
+  lifecycle::deprecate_stop(when = "0.8.0", what =  "incidenceSet()", with = "setings()")
   settings <- attr(result, "settings")
   return(settings)
 }
