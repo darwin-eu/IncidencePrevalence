@@ -21,18 +21,6 @@
 #' @return tibble with counts and reasons for attrition.
 #' @export
 #'
-#' @examples
-#' \donttest{
-#' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-#' cdm <- generateDenominatorCohortSet(cdm, name = "denominator")
-#' inc <- estimateIncidence(
-#'   cdm = cdm,
-#'   denominatorTable = "denominator",
-#'   outcomeTable = "outcome",
-#'   interval = "overall"
-#' )
-#' incidenceAttrition(inc)
-#' }
 incidenceAttrition <- function(result) {
   UseMethod("incidenceAttrition")
 }
@@ -51,17 +39,6 @@ incidenceAttrition.IncidenceResult <- function(result) {
 #' @return tibble with counts and reasons for attrition.
 #' @export
 #'
-#' @examples
-#' \donttest{
-#' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-#' cdm <- generateDenominatorCohortSet(cdm, name = "denominator")
-#' prev <- estimatePointPrevalence(
-#'   cdm = cdm,
-#'   denominatorTable = "denominator",
-#'   outcomeTable = "outcome"
-#' )
-#' prevalenceAttrition(prev)
-#' }
 prevalenceAttrition <- function(result) {
   UseMethod("prevalenceAttrition")
 }
@@ -81,18 +58,6 @@ prevalenceAttrition.PrevalenceResult <- function(result) {
 #' @return tibble with settings used when estimating incidence
 #' @export
 #'
-#' @examples
-#' \donttest{
-#' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-#' cdm <- generateDenominatorCohortSet(cdm, name = "denominator")
-#' inc <- estimateIncidence(
-#'   cdm = cdm,
-#'   denominatorTable = "denominator",
-#'   outcomeTable = "outcome",
-#'   interval = "overall"
-#' )
-#' incidenceSet(inc)
-#' }
 incidenceSet <- function(result) {
   UseMethod("incidenceSet")
 }
@@ -112,17 +77,6 @@ incidenceSet.IncidenceResult <- function(result) {
 #' @return tibble with settings used when estimating prevalence
 #' @export
 #'
-#' @examples
-#' \donttest{
-#' cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-#' cdm <- generateDenominatorCohortSet(cdm, name = "denominator")
-#' prev <- estimatePointPrevalence(
-#'   cdm = cdm,
-#'   denominatorTable = "denominator",
-#'   outcomeTable = "outcome"
-#' )
-#' prevalenceSet(prev)
-#' }
 prevalenceSet <- function(result) {
   UseMethod("prevalenceSet")
 }

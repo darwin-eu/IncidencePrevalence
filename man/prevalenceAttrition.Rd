@@ -15,15 +15,3 @@ tibble with counts and reasons for attrition.
 \description{
 Attrition associated with an prevalence analysis
 }
-\examples{
-\donttest{
-cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-cdm <- generateDenominatorCohortSet(cdm, name = "denominator")
-prev <- estimatePointPrevalence(
-  cdm = cdm,
-  denominatorTable = "denominator",
-  outcomeTable = "outcome"
-)
-prevalenceAttrition(prev)
-}
-}
