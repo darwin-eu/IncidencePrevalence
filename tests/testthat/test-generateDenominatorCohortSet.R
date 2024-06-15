@@ -626,7 +626,7 @@ test_that("mock db: one male, one female", {
 })
 
 test_that("mock db: check example with restriction on sex", {
-  skip_on_cran()
+
   # two male, one female
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3"),
@@ -705,7 +705,7 @@ test_that("mock db: check example with restriction on sex", {
 })
 
 test_that("mock db: check example with restriction on age", {
-  skip_on_cran()
+
   # three people, born in 2000, 2005, and 2010
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3"),
