@@ -259,7 +259,7 @@ prev <- estimatePeriodPrevalence(
   minCellCount = 0,
   returnParticipants = TRUE
 )
-prevalenceAttrition(prev)
+attrition(prev)
 ```
 
 In addition, if we set returnParticipants as TRUE as above, we can identify the individuals who contributed to the prevalence rate analysis by using `participants(). For example, we can identify those people contributing to analysis 1 by running

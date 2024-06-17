@@ -262,7 +262,7 @@ inc <- estimateIncidence(
   repeatedEvents = TRUE,
   returnParticipants = TRUE
 )
-incidenceAttrition(inc)
+attrition(inc)
 ```
 
 As with incidence, if we set returnParticipants as TRUE, we can identify the individuals who contributed to the analysis by using `participants(). For example, we can identify those people contributing to analysis 1 by running

@@ -15,16 +15,3 @@ tibble with settings used when estimating incidence
 \description{
 Settings associated with an incidence analysis
 }
-\examples{
-\donttest{
-cdm <- mockIncidencePrevalenceRef(sampleSize = 200)
-cdm <- generateDenominatorCohortSet(cdm, name = "denominator")
-inc <- estimateIncidence(
-  cdm = cdm,
-  denominatorTable = "denominator",
-  outcomeTable = "outcome",
-  interval = "overall"
-)
-incidenceSet(inc)
-}
-}

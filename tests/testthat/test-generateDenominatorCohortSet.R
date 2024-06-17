@@ -626,7 +626,7 @@ test_that("mock db: one male, one female", {
 })
 
 test_that("mock db: check example with restriction on sex", {
-  skip_on_cran()
+
   # two male, one female
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3"),
@@ -705,7 +705,7 @@ test_that("mock db: check example with restriction on sex", {
 })
 
 test_that("mock db: check example with restriction on age", {
-  skip_on_cran()
+
   # three people, born in 2000, 2005, and 2010
   personTable <- tibble::tibble(
     person_id = c("1", "2", "3"),
@@ -1278,60 +1278,60 @@ test_that("mock db: check expected errors", {
   cdm <- mockIncidencePrevalenceRef()
 
   # not a cdm reference
-  testthat::expect_error(generateDenominatorCohortSet(
+  expect_error(generateDenominatorCohortSet(
     cdm = "a", name = "denominator"
   ))
-  testthat::expect_error(generateDenominatorCohortSet(
+  expect_error(generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     ageGroup = list(c(-2, 1))
   ))
-  testthat::expect_error(generateDenominatorCohortSet(
+  expect_error(generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     ageGroup = list(c(0, -1))
   ))
-  testthat::expect_error(generateDenominatorCohortSet(
+  expect_error(generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     max_age = c(100, 110)
   ))
-  testthat::expect_error(generateDenominatorCohortSet(
+  expect_error(generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     sex = "Men"
   ))
-  testthat::expect_error(generateDenominatorCohortSet(
+  expect_error(generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     daysPriorObservation = -30
   ))
 
   # name must be lower snake case
-  testthat::expect_error(generateDenominatorCohortSet(
+  expect_error(generateDenominatorCohortSet(
     cdm = cdm, name = "DENOM"
   ))
- testthat::expect_error(generateDenominatorCohortSet(
+  expect_error(generateDenominatorCohortSet(
     cdm = cdm, name = "MyDenom"
   ))
-  testthat::expect_error(generateDenominatorCohortSet(
+  expect_error(generateDenominatorCohortSet(
     cdm = cdm, name = "denom!!"
   ))
 
   # no person table
   cdm1 <- cdm
   cdm1$person <- NULL
-  testthat::expect_error(generateDenominatorCohortSet(
+  expect_error(generateDenominatorCohortSet(
     cdm = cdm1, name = "denominator"
   ))
   # no observation_period table
   cdm1 <- cdm
   cdm1$observation_period <- NULL
-  testthat::expect_error(generateDenominatorCohortSet(
+  expect_error(generateDenominatorCohortSet(
     cdm = cdm1, name = "denominator"
   ))
-  testthat::expect_error(generateDenominatorCohortSet(
+  expect_error(generateDenominatorCohortSet(
     cdm = cdm1, name = "denominator"
   ))
   # no target table
   cdm1 <- cdm
   cdm1$target <- NULL
-  testthat::expect_error(generateDenominatorCohortSet(
+  expect_error(generateDenominatorCohortSet(
     cdm = cdm1, name = "denominator",
     targetCohortTable = "target"
   ))
@@ -1343,7 +1343,7 @@ test_that("mock db: check expected errors", {
     start_date = as.Date("2012-06-06"),
     end_date = as.Date("2013-06-06")
   )
-  testthat::expect_error(mockIncidencePrevalenceRef(targetCohortTable = targetCohortTable))
+  expect_error(mockIncidencePrevalenceRef(targetCohortTable = targetCohortTable))
 
   CDMConnector::cdm_disconnect(cdm)
 
