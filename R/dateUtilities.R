@@ -10,19 +10,21 @@ addDaysQuery <- function(cdm,
     cli::cli_abort("type must be day or year")
   }
 
+  number <- as.integer(number)
+
   if(type == "day"){
-    if(omopgenerics::cdmSourceType(cdm) == c("duckdb")){
-      q <-  glue::glue("{variable} + days({number})")
-    }  else {
-      q <- glue::glue("add_days({variable} , as.integer({(number)}))")
-    }}
+      q <- glue::glue("clock::add_days({variable} , {(number)})")
+    }
 
   if(type == "year"){
-    if(omopgenerics::cdmSourceType(cdm) == c("duckdb")){
-      q <-  glue::glue("{variable} + years({number})")
+    if(omopgenerics::cdmSourceType(cdm) == "spark"){
+      # https://github.com/darwin-eu-dev/IncidencePrevalence/issues/395
+      number_days_to_years <- as.integer(number*365)
+      q <- glue::glue("clock::add_days({variable}, {(number_days_to_years)})")
     } else {
-      q <- glue::glue("add_years({variable} , as.integer({(number)}))")
-    }}
+      q <- glue::glue("clock::add_years({variable}, {(number)})")
+    }
+    }
 
   q %>%
     rlang::parse_exprs() %>%
@@ -40,21 +42,23 @@ minusDaysQuery <- function(cdm,
     cli::cli_abort("type must be day or year")
   }
 
+  number <- as.integer(number)
+
+
   if(type == "day"){
-    if(omopgenerics::cdmSourceType(cdm) == c("duckdb")){
-      q <-  glue::glue("{variable} - days({number})")
-    }  else {
-      q <- glue::glue("add_days({variable} , as.integer({(number)}))")
-    }}
-
+      q <- glue::glue("clock::add_days({variable} , {(number)})")
+    }
   if(type == "year"){
-    if(omopgenerics::cdmSourceType(cdm) == c("duckdb")){
-      q <-  glue::glue("{variable} - years({number})")
+    if(omopgenerics::cdmSourceType(cdm) == "spark"){
+      # https://github.com/darwin-eu-dev/IncidencePrevalence/issues/395
+      number_days_to_years <- as.integer(number*365)
+      q <- glue::glue("clock::add_days({variable}, {(number_days_to_years)})")
     } else {
-      q <- glue::glue("add_years({variable} , as.integer({(number)}))")
-    }}
+      q <- glue::glue("clock::add_years({variable} , {(number)})")
+    }
+    }
 
-  q<-q %>%
+  q <-q %>%
     rlang::parse_exprs()
 
   if(!is.null(name_style)){
@@ -73,6 +77,10 @@ minusDaysQuery <- function(cdm,
 
 
 
+#to solve note that "All declared Imports should be used."
+redundant_fun <- function() {
+ clock::add_days(as.Date("2000-01-01"), 1)
+}
 
 
 

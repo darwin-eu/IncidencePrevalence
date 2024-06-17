@@ -167,7 +167,7 @@ getDenominatorCohorts <- function(cdm,
   # month (January) and day (to 1st of month) if both missing
   # ie to impute to the center of the period
   studyPopDb <- studyPopDb %>%
-    PatientProfiles::addDateOfBirth(name = "dob")
+    PatientProfiles::addDateOfBirthQuery(dateOfBirthName = "dob")
 
   # filter for those within the age limits (of all the age strata)
   # during the study
@@ -257,7 +257,7 @@ getDenominatorCohorts <- function(cdm,
                                 name_style = "date_max_age_{number}")
     maxAgeDatesMinusDay <- minusDaysQuery(cdm = cdm,
                                 variable = glue::glue("date_max_age_{maxAgePlusOne}"),
-                                number = 1,
+                                number = -1,
                                 type = "day",
                                 names = glue::glue("date_max_age_{maxAgePlusOne-1}"))
 
