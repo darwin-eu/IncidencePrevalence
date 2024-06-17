@@ -55,7 +55,7 @@ Suggests:
     knitr,
     rmarkdown,
     RPostgres,
-    duckdb,
+    duckdb (>= 1.0.0),
     odbc,
     here,
     Hmisc,
