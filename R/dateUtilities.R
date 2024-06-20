@@ -13,16 +13,16 @@ addDaysQuery <- function(cdm,
   number <- as.integer(number)
 
   if(type == "day"){
-      q <- glue::glue("clock::add_days({variable} , {(number)})")
+      q <- glue::glue("clock::add_days({variable} , {(number)}L)")
     }
 
   if(type == "year"){
     if(omopgenerics::cdmSourceType(cdm) == "spark"){
       # https://github.com/darwin-eu-dev/IncidencePrevalence/issues/395
       number_days_to_years <- as.integer(number*365)
-      q <- glue::glue("clock::add_days({variable}, {(number_days_to_years)})")
+      q <- glue::glue("clock::add_days({variable}, {(number_days_to_years)}L)")
     } else {
-      q <- glue::glue("clock::add_years({variable}, {(number)})")
+      q <- glue::glue("clock::add_years({variable}, {(number)}L)")
     }
     }
 
@@ -46,15 +46,15 @@ minusDaysQuery <- function(cdm,
 
 
   if(type == "day"){
-      q <- glue::glue("clock::add_days({variable} , {(number)})")
+      q <- glue::glue("clock::add_days({variable} , {(number)}L)")
     }
   if(type == "year"){
     if(omopgenerics::cdmSourceType(cdm) == "spark"){
       # https://github.com/darwin-eu-dev/IncidencePrevalence/issues/395
       number_days_to_years <- as.integer(number*365)
-      q <- glue::glue("clock::add_days({variable}, {(number_days_to_years)})")
+      q <- glue::glue("clock::add_days({variable}, {(number_days_to_years)}L)")
     } else {
-      q <- glue::glue("clock::add_years({variable} , {(number)})")
+      q <- glue::glue("clock::add_years({variable} , {(number)}L)")
     }
     }
 
