@@ -30,7 +30,7 @@ test_that("eunomia test - some empty cohorts", {
       "cohort_definition_id", "subject_id",
       "cohort_start_date", "cohort_end_date"
     ) %>%
-    CDMConnector::computeQuery()
+    dplyr::compute()
 
   # diclofenac
   cdm$diclofenac <- cdm$drug_era %>%
@@ -50,13 +50,13 @@ test_that("eunomia test - some empty cohorts", {
       "cohort_definition_id", "subject_id",
       "cohort_start_date", "cohort_end_date"
     ) %>%
-    CDMConnector::computeQuery()
+    dplyr::compute()
 
   cdm$exposure_cohort <- dplyr::union_all(
     cdm$celecoxib,
     cdm$diclofenac
   ) %>%
-    CDMConnector::computeQuery()
+    dplyr::compute()
   cdm$outcome_cohort <- CDMConnector::newGeneratedCohortSet(cdm$exposure_cohort)
   cdm$outcome_cohort <- addCohortCountAttr(cdm$outcome_cohort)
 

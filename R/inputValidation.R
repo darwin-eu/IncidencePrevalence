@@ -135,10 +135,10 @@ checkInputEstimateIncidence <- function(cdm,
     cli::cli_abort(paste0("outcomeTable ", outcomeTable, " is not found in cdm"))
   }
   outcomeAttributeCheck <- (!is.null(
-    CDMConnector::cohort_count(cdm[[outcomeTable]])
+    omopgenerics::cohortCount(cdm[[outcomeTable]])
   ) &
     !is.null(
-      CDMConnector::settings(cdm[[outcomeTable]])
+      omopgenerics::settings(cdm[[outcomeTable]])
     ))
   checkmate::assertTRUE(outcomeAttributeCheck,
     add = errorMessage
@@ -242,9 +242,9 @@ checkInputEstimatePrevalence <- function(cdm,
     )
   }
   outcomeAttributeCheck <- (!is.null(
-  CDMConnector::cohort_count(cdm[[outcomeTable]])) &
+  omopgenerics::cohortCount(cdm[[outcomeTable]])) &
     !is.null(
-      CDMConnector::settings(cdm[[outcomeTable]])))
+      omopgenerics::settings(cdm[[outcomeTable]])))
   checkmate::assertTRUE(outcomeAttributeCheck,
     add = errorMessage
   )

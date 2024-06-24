@@ -110,13 +110,13 @@ estimateIncidence <- function(cdm,
 
   # if not given, use all denominator and outcome cohorts
   if (is.null(denominatorCohortId)) {
-    denominatorCohortId <- CDMConnector::cohortCount(
+    denominatorCohortId <- omopgenerics::cohortCount(
       cdm[[denominatorTable]]) %>%
       dplyr::filter(.data$number_records > 0) %>%
       dplyr::pull("cohort_definition_id")
   }
   if (is.null(outcomeCohortId)) {
-    outcomeCohortId <- CDMConnector::cohortCount(cdm[[outcomeTable]]) %>%
+    outcomeCohortId <- omopgenerics::cohortCount(cdm[[outcomeTable]]) %>%
       dplyr::pull("cohort_definition_id")
   }
 
@@ -126,7 +126,7 @@ estimateIncidence <- function(cdm,
   }
 
   ## add outcome from attribute
-  outcomeRef <- CDMConnector::settings(cdm[[outcomeTable]]) %>%
+  outcomeRef <- omopgenerics::settings(cdm[[outcomeTable]]) %>%
     dplyr::filter(.env$outcomeCohortId %in% .data$cohort_definition_id) %>%
     dplyr::collect("cohort_definition_id", "cohort_name") %>%
     dplyr::rename("outcome_cohort_id" = "cohort_definition_id",
@@ -310,7 +310,7 @@ estimateIncidence <- function(cdm,
   )
   analysisSettings <- analysisSettings %>%
     dplyr::left_join(
-      CDMConnector::settings(cdm[[denominatorTable]]) %>%
+      omopgenerics::settings(cdm[[denominatorTable]]) %>%
         dplyr::rename("cohort_id" = "cohort_definition_id") %>%
         dplyr::rename_with(
           .cols = tidyselect::everything(),
@@ -326,7 +326,7 @@ estimateIncidence <- function(cdm,
   # the denominator cohort used
   for (i in seq_along(studySpecs)) {
     irsList[names(irsList) == "attrition"][[i]] <- dplyr::bind_rows(
-      CDMConnector::attrition(cdm[[denominatorTable]]) %>%
+      omopgenerics::attrition(cdm[[denominatorTable]]) %>%
         dplyr::rename("denominator_cohort_id" = "cohort_definition_id") %>%
         dplyr::filter(.data$denominator_cohort_id ==
           studySpecs[[i]]$denominator_cohort_id) %>%
