@@ -515,7 +515,7 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
   # add target info to settings
   if (is.na(unique(popSpecs$targetCohortTable))) {
     targetCohortId <- NA
-    targetCohortName <- NA
+    targetCohortName <- "None"
   } else {
     targetCohortName <- attr(cdm[[unique(popSpecs$targetCohortTable)]], "cohort_set") %>%
       dplyr::filter(.data$cohort_definition_id == !!unique(popSpecs$targetCohortId)) %>%
