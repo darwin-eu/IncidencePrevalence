@@ -14,42 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-#' Attrition associated with an incidence analysis
-#'
-#' @param result Result for which to get attrition
-#'
-#' @return tibble with counts and reasons for attrition.
-#' @export
-#'
-incidenceAttrition <- function(result) {
-  UseMethod("incidenceAttrition")
-}
-
-#' @export
-incidenceAttrition.IncidenceResult <- function(result) {
-  lifecycle::deprecate_stop(when = "0.8.0", what =  "incidenceAttrition()", with = "attrition()")
-  attrition <- attr(result, "attrition")
-  return(attrition)
-}
-
-#' Attrition associated with an prevalence analysis
-#'
-#' @param result Result for which to get attrition
-#'
-#' @return tibble with counts and reasons for attrition.
-#' @export
-#'
-prevalenceAttrition <- function(result) {
-  UseMethod("prevalenceAttrition")
-}
-
-#' @export
-prevalenceAttrition.PrevalenceResult <- function(result) {
-  lifecycle::deprecate_stop(when = "0.8.0", what =  "prevalenceAttrition()", with = "attrition()")
-  attrition <- attr(result, "attrition")
-  return(attrition)
-}
-
 #'  Participants contributing to an analysis
 #'
 #' @param result Result object
