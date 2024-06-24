@@ -18,6 +18,10 @@
 #' @export
 omopgenerics::cohortCount
 
+#' @importFrom omopgenerics cohortCodelist
+#' @export
+omopgenerics::cohortCodelist
+
 #' @importFrom omopgenerics settings
 #' @export
 omopgenerics::settings
@@ -49,3 +53,15 @@ attrition.PrevalenceResult <- function(x) {
   attrition <- attr(x, "attrition")
   return(attrition)
 }
+
+#' @importFrom omopgenerics suppress
+#' @export
+omopgenerics::suppress
+
+#' @importFrom omopgenerics bind
+#' @export
+omopgenerics::bind
+
+#' @importFrom omopgenerics exportSummarisedResult
+#' @export
+omopgenerics::exportSummarisedResult
