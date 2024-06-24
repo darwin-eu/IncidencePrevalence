@@ -214,7 +214,7 @@ fetchDenominatorCohortSet <- function(cdm,
 
   # get target cohort ids if not given
   if(!is.null(targetCohortTable) && is.null(targetCohortId)){
-    targetCohortId <- sort(CDMConnector::settings(cdm[[targetCohortTable]]) %>%
+    targetCohortId <- sort(omopgenerics::settings(cdm[[targetCohortTable]]) %>%
       dplyr::pull("cohort_definition_id"))
   }
 
@@ -621,7 +621,7 @@ unionCohorts <- function(cdm,
   for(i in seq_along(studyPops)){
     if(!is.null(attr(studyPops[[i]], "cohort_set"))){
       allCohortSet[[i]] <- CDMConnector::cohort_set(studyPops[[i]])
-      allCohortCount[[i]] <- CDMConnector::cohort_count(studyPops[[i]])
+      allCohortCount[[i]] <- omopgenerics::cohortCount(studyPops[[i]])
       allCohortAttrition[[i]] <- CDMConnector::cohort_attrition(studyPops[[i]])
     }
   }

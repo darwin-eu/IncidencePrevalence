@@ -19,14 +19,14 @@ test_that("mock db: check output format", {
     "end_date",
     "days_prior_observation"
   ) %in%
-    names(CDMConnector::settings(cdm$denominator))))
+    names(omopgenerics::settings(cdm$denominator))))
 
   expect_true(all(c(
     "cohort_definition_id",
     "number_records",
     "number_subjects"
   ) %in%
-    names(CDMConnector::cohortCount(cdm$denominator))))
+    names(omopgenerics::cohortCount(cdm$denominator))))
 
   # variable names
   expect_true(all(c(
@@ -40,11 +40,11 @@ test_that("mock db: check output format", {
     "reason_id", "reason",
     "excluded_records", "excluded_subjects"
   ) %in%
-    names(CDMConnector::attrition(cdm$denominator))))
+    names(omopgenerics::attrition(cdm$denominator))))
 
-  expect_true(tibble::is_tibble(CDMConnector::attrition(cdm$denominator)))
-  expect_true(CDMConnector::cohortCount(cdm$denominator)$number_records == 1)
-  expect_true(CDMConnector::cohortCount(cdm$denominator) %>%
+  expect_true(tibble::is_tibble(omopgenerics::attrition(cdm$denominator)))
+  expect_true(omopgenerics::cohortCount(cdm$denominator)$number_records == 1)
+  expect_true(omopgenerics::cohortCount(cdm$denominator) %>%
     dplyr::filter(cohort_definition_id == 1) %>%
     dplyr::pull("number_records") == 1)
 
@@ -77,19 +77,19 @@ test_that("mock db: checks on working example", {
     sex = c("Female", "Male")
   )
 
-  femaleCohortIds <- CDMConnector::settings(cdm$denominator) %>%
+  femaleCohortIds <- omopgenerics::settings(cdm$denominator) %>%
     dplyr::filter(sex == "Female") %>%
     dplyr::pull("cohort_definition_id")
-  maleCohortIds <- CDMConnector::settings(cdm$denominator) %>%
+  maleCohortIds <- omopgenerics::settings(cdm$denominator) %>%
     dplyr::filter(sex == "Male") %>%
     dplyr::pull("cohort_definition_id")
 
   # Female cohorts should be empty
-  expect_true(CDMConnector::cohortCount(cdm$denominator) %>%
+  expect_true(omopgenerics::cohortCount(cdm$denominator) %>%
     dplyr::filter(cohort_definition_id %in% femaleCohortIds) %>%
     dplyr::summarise(n = sum(.data$number_records)) == 0)
   # We should have people in male cohorts
-  expect_true(CDMConnector::cohortCount(cdm$denominator) %>%
+  expect_true(omopgenerics::cohortCount(cdm$denominator) %>%
     dplyr::filter(cohort_definition_id %in% maleCohortIds) %>%
     dplyr::summarise(n = sum(.data$number_records)) > 0)
 
@@ -100,7 +100,7 @@ test_that("mock db: checks on working example", {
     ageGroup = list(c(50, 59), c(60, 69)),
     daysPriorObservation = c(0, 365)
   ))
-  expect_true(all(CDMConnector::cohortCount(cdm$denominator)$number_records == 0))
+  expect_true(all(omopgenerics::cohortCount(cdm$denominator)$number_records == 0))
   CDMConnector::cdm_disconnect(cdm)
 
   # using cohort target
@@ -157,7 +157,7 @@ test_that("mock db: check example we expect to work", {
   )
 
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
-  expect_true(CDMConnector::cohortCount(cdm$denominator)$number_records == 1)
+  expect_true(omopgenerics::cohortCount(cdm$denominator)$number_records == 1)
   expect_true(cdm$denominator %>%
     dplyr::collect() %>%
     dplyr::pull(cohort_start_date) == as.Date("2010-01-01"))
@@ -299,7 +299,7 @@ test_that("mock db: mock example 1000", {
     sex = c("Female", "Male", "Both"),
     daysPriorObservation = c(0, 30, 60, 90, 120, 150, 180)
   )
-  expect_true(any(CDMConnector::cohortCount(cdm$denominator)$number_records > 0))
+  expect_true(any(omopgenerics::cohortCount(cdm$denominator)$number_records > 0))
 
   # all options being used
   cdm <- generateDenominatorCohortSet(cdm, name = "denominator",
@@ -308,7 +308,7 @@ test_that("mock db: mock example 1000", {
     sex = c("Female", "Male", "Both"),
     daysPriorObservation = c(0, 180)
   )
-  expect_true(any(CDMConnector::cohortCount(cdm$denominator)$number_records > 0))
+  expect_true(any(omopgenerics::cohortCount(cdm$denominator)$number_records > 0))
   expect_true(min(cdm$denominator %>%
     dplyr::collect() %>%
     dplyr::pull(cohort_start_date)) >=
@@ -419,13 +419,13 @@ test_that("mock db: subset denominator by cohort", {
     targetCohortTable = "target",
     targetCohortId = c(1,2),
   )
-  expect_true(nrow(CDMConnector::settings(cdm$target_cohort_mult1))==2)
+  expect_true(nrow(omopgenerics::settings(cdm$target_cohort_mult1))==2)
   # without specifying target, should run for both
   cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "target_cohort_mult2",
     targetCohortTable = "target"
   )
-  expect_true(nrow(CDMConnector::settings(cdm$target_cohort_mult2))==2)
+  expect_true(nrow(omopgenerics::settings(cdm$target_cohort_mult2))==2)
 
   expect_identical(cdm$target_cohort_mult1 %>%
                      dplyr::collect(),
@@ -452,7 +452,7 @@ test_that("mock db: subset denominator by cohort", {
     cdm = cdm, name = "target_cohort_mult1",
     targetCohortTable = "target",
   )
-  expect_true(nrow(CDMConnector::settings(cdm$target_cohort_mult1))==12)
+  expect_true(nrow(omopgenerics::settings(cdm$target_cohort_mult1))==12)
 
 
 
@@ -659,9 +659,9 @@ test_that("mock db: check example with restriction on sex", {
     cdm = cdm, name = "denominator3",
     sex = "Female"
   )
-  expect_true(CDMConnector::cohortCount(cdm$denominator1)$number_records == 2)
-  expect_true(CDMConnector::cohortCount(cdm$denominator2)$number_records == 3)
-  expect_true(CDMConnector::cohortCount(cdm$denominator3)$number_records == 1)
+  expect_true(omopgenerics::cohortCount(cdm$denominator1)$number_records == 2)
+  expect_true(omopgenerics::cohortCount(cdm$denominator2)$number_records == 3)
+  expect_true(omopgenerics::cohortCount(cdm$denominator3)$number_records == 1)
   CDMConnector::cdm_disconnect(cdm)
 
   # one male only
@@ -697,9 +697,9 @@ test_that("mock db: check example with restriction on sex", {
     cdm = cdm, name = "denominator3",
     sex = "Female"
   )
-  expect_true(CDMConnector::cohortCount(cdm$denominator1)$number_records == 1)
-  expect_true(CDMConnector::cohortCount(cdm$denominator2)$number_records == 1)
-  expect_true(CDMConnector::cohortCount(cdm$denominator3)$number_records == 0)
+  expect_true(omopgenerics::cohortCount(cdm$denominator1)$number_records == 1)
+  expect_true(omopgenerics::cohortCount(cdm$denominator2)$number_records == 1)
+  expect_true(omopgenerics::cohortCount(cdm$denominator3)$number_records == 0)
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -744,10 +744,10 @@ test_that("mock db: check example with restriction on age", {
     ageGroup = list(c(40, 150))
   ))
 
-  expect_true(CDMConnector::cohortCount(cdm$denominator_a)$number_records == 3)
-  expect_true(CDMConnector::cohortCount(cdm$denominator_b)$number_records == 2)
-  expect_true(CDMConnector::cohortCount(cdm$denominator_c)$number_records == 1)
-  expect_true(CDMConnector::cohortCount(cdm$denominator_d)$number_records == 0)
+  expect_true(omopgenerics::cohortCount(cdm$denominator_a)$number_records == 3)
+  expect_true(omopgenerics::cohortCount(cdm$denominator_b)$number_records == 2)
+  expect_true(omopgenerics::cohortCount(cdm$denominator_c)$number_records == 1)
+  expect_true(omopgenerics::cohortCount(cdm$denominator_d)$number_records == 0)
 
   CDMConnector::cdm_disconnect(cdm)
 
@@ -1016,16 +1016,16 @@ test_that("mock db: targetRequirementsAtEntry", {
   )
   # enter when they satisfy prior hist reqs
   # subject 1 should be in both cohorts, subject 2 only in first with 0 day req
-  expect_true(CDMConnector::cohortCount(cdm$denom_reqs_any_time) %>%
+  expect_true(omopgenerics::cohortCount(cdm$denom_reqs_any_time) %>%
     dplyr::filter(cohort_definition_id == 1) %>%
     dplyr::pull("number_records") == 2)
-  expect_true(CDMConnector::cohortCount(cdm$denom_reqs_any_time) %>%
+  expect_true(omopgenerics::cohortCount(cdm$denom_reqs_any_time) %>%
                 dplyr::filter(cohort_definition_id == 2) %>%
                 dplyr::pull("number_records") == 1)
-  expect_true(CDMConnector::cohortCount(cdm$denom_reqs_any_time) %>%
+  expect_true(omopgenerics::cohortCount(cdm$denom_reqs_any_time) %>%
                 dplyr::filter(cohort_definition_id == 3) %>%
                 dplyr::pull("number_records") == 1)
-  expect_true(CDMConnector::cohortCount(cdm$denom_reqs_any_time) %>%
+  expect_true(omopgenerics::cohortCount(cdm$denom_reqs_any_time) %>%
                 dplyr::filter(cohort_definition_id == 4) %>%
                 dplyr::pull("number_records") == 0)
 
@@ -1087,11 +1087,11 @@ test_that("mock db: targetRequirementsAtEntry", {
   )
   # does enter
   # they satisfy age on cohort start date
-  expect_true(CDMConnector::cohortCount(cdm$denom_reqs_cohort_entry) %>%
+  expect_true(omopgenerics::cohortCount(cdm$denom_reqs_cohort_entry) %>%
                 dplyr::filter(cohort_definition_id == 1) %>%
                 dplyr::pull("number_records") == 1)
   # but they won´t contribute to the next age cohort
-  expect_true(CDMConnector::cohortCount(cdm$denom_reqs_cohort_entry) %>%
+  expect_true(omopgenerics::cohortCount(cdm$denom_reqs_cohort_entry) %>%
                 dplyr::filter(cohort_definition_id == 2) %>%
                 dplyr::pull("number_records") == 0)
 
@@ -1129,8 +1129,8 @@ test_that("mock db: check example with multiple observation periods", {
   # one per observation period
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
   expect_true(nrow(cdm$denominator %>% dplyr::collect()) == 2)
-  expect_true(CDMConnector::cohortCount(cdm$denominator)$number_records == 2)
-  expect_true(CDMConnector::cohortCount(cdm$denominator)$number_subjects == 1)
+  expect_true(omopgenerics::cohortCount(cdm$denominator)$number_records == 2)
+  expect_true(omopgenerics::cohortCount(cdm$denominator)$number_subjects == 1)
 
   # expect one rows- if start date is 1st Jan 2011
   cdm <- generateDenominatorCohortSet(
@@ -1241,19 +1241,19 @@ test_that("mock db: check edge cases (zero results expected)", {
     cdm = cdm,name = "denominator",
     cohortDateRange = c(as.Date("2100-01-01"), as.Date(NA))
   ))
-  expect_true(CDMConnector::cohortCount(cdm$denominator)$number_records == 0)
+  expect_true(omopgenerics::cohortCount(cdm$denominator)$number_records == 0)
 
   expect_warning( cdm <- generateDenominatorCohortSet(
     cdm = cdm,name = "denominator",
     cohortDateRange = c(as.Date(NA), as.Date("1800-01-01"))
   ))
-  expect_true(CDMConnector::cohortCount(cdm$denominator)$number_records == 0)
+  expect_true(omopgenerics::cohortCount(cdm$denominator)$number_records == 0)
 
   expect_warning(cdm <- generateDenominatorCohortSet(
     cdm = cdm,name = "denominator",
     ageGroup = list(c(155, 200))
   ))
-  expect_true(CDMConnector::cohortCount(cdm$denominator)$number_records == 0)
+  expect_true(omopgenerics::cohortCount(cdm$denominator)$number_records == 0)
 
   # note could include people as it would go up to day before first birthday
   # but given observation period, here we would expect a null
@@ -1261,14 +1261,14 @@ test_that("mock db: check edge cases (zero results expected)", {
     cdm = cdm,name = "denominator",
     ageGroup = list(c(0, 1))
   ))
-  expect_true(CDMConnector::cohortCount(cdm$denominator)$number_records == 0)
+  expect_true(omopgenerics::cohortCount(cdm$denominator)$number_records == 0)
 
   expect_warning(cdm <- generateDenominatorCohortSet(
     cdm = cdm,name = "denominator",
     ageGroup = list(c(0, 15)),
     daysPriorObservation = 365000
   ))
-  expect_true(CDMConnector::cohortCount(cdm$denominator)$number_records == 0)
+  expect_true(omopgenerics::cohortCount(cdm$denominator)$number_records == 0)
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -1383,12 +1383,12 @@ test_that("mock db: check attrition table logic", {
 
   # check last n_current equals the number of rows of the denominator pop
   expect_true(nrow(cdm$denominator %>% dplyr::collect()) ==
-    CDMConnector::attrition(cdm$denominator)$number_records[7])
+    omopgenerics::attrition(cdm$denominator)$number_records[7])
 
   # check missings
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
-  expect_true(CDMConnector::attrition(cdm$denominator)$excluded_records[2] == 1)
-  expect_true(CDMConnector::attrition(cdm$denominator)$excluded_records[3] == 1)
+  expect_true(omopgenerics::attrition(cdm$denominator)$excluded_records[2] == 1)
+  expect_true(omopgenerics::attrition(cdm$denominator)$excluded_records[3] == 1)
 
   # check sex criteria
   cdm <- generateDenominatorCohortSet(
@@ -1396,8 +1396,8 @@ test_that("mock db: check attrition table logic", {
     sex = "Male"
   )
   expect_true(nrow(cdm$denominator %>% dplyr::collect()) ==
-    tail(CDMConnector::attrition(cdm$denominator)$number_records, 1))
-  expect_true(CDMConnector::attrition(cdm$denominator) %>%
+    tail(omopgenerics::attrition(cdm$denominator)$number_records, 1))
+  expect_true(omopgenerics::attrition(cdm$denominator) %>%
     dplyr::filter(reason == "Not Male") %>%
     dplyr::pull("excluded_records") == 3)
 
@@ -1406,8 +1406,8 @@ test_that("mock db: check attrition table logic", {
     sex = "Female"
   )
   expect_true(nrow(cdm$denominator %>% dplyr::collect()) ==
-    tail(CDMConnector::attrition(cdm$denominator)$number_records, 1))
-  expect_true(CDMConnector::attrition(cdm$denominator) %>%
+    tail(omopgenerics::attrition(cdm$denominator)$number_records, 1))
+  expect_true(omopgenerics::attrition(cdm$denominator) %>%
     dplyr::filter(reason == "Not Female") %>%
     dplyr::pull("excluded_records") == 2)
 
@@ -1416,14 +1416,14 @@ test_that("mock db: check attrition table logic", {
     cdm = cdm, name = "denominator",
     ageGroup = list(c(24, 25))
   )
-  expect_true(CDMConnector::attrition(cdm$denominator)$excluded_records[3] == 1)
+  expect_true(omopgenerics::attrition(cdm$denominator)$excluded_records[3] == 1)
 
   # check observation criteria
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     cohortDateRange = c(as.Date("2010-01-01"), as.Date("2012-01-01"))
   )
-  expect_true(CDMConnector::attrition(cdm$denominator)$excluded_records[5] == 2)
+  expect_true(omopgenerics::attrition(cdm$denominator)$excluded_records[5] == 2)
 
   # check prior observation criteria
   cdm <- generateDenominatorCohortSet(
@@ -1431,7 +1431,7 @@ test_that("mock db: check attrition table logic", {
     cohortDateRange = c(as.Date("2015-01-01"), as.Date("2016-06-30")),
     daysPriorObservation = 365
   )
-  expect_true(CDMConnector::attrition(cdm$denominator)$excluded_records[7] == 1)
+  expect_true(omopgenerics::attrition(cdm$denominator)$excluded_records[7] == 1)
   CDMConnector::cdm_disconnect(cdm)
 
   # multiple observation periods per person
@@ -1463,9 +1463,9 @@ test_that("mock db: check attrition table logic", {
   )
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
   expect_true(all(
-    CDMConnector::attrition(cdm$denominator)$number_records == 3))
+    omopgenerics::attrition(cdm$denominator)$number_records == 3))
   expect_true(all(
-    CDMConnector::attrition(cdm$denominator)$number_subjects == 1))
+    omopgenerics::attrition(cdm$denominator)$number_subjects == 1))
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -1497,46 +1497,46 @@ test_that("mock db: check attrition with multiple cohorts", {
   )
 
   # for male cohort we should have a row for those excluded for not being male
-  expect_true(any("Not Male" == CDMConnector::settings(cdm$denominator) %>%
+  expect_true(any("Not Male" == omopgenerics::settings(cdm$denominator) %>%
     dplyr::filter(sex == "Male") %>%
-    dplyr::inner_join(CDMConnector::attrition(cdm$denominator),
+    dplyr::inner_join(omopgenerics::attrition(cdm$denominator),
       multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::pull(.data$reason)) == TRUE)
-  expect_true(any("Not Female" == CDMConnector::settings(cdm$denominator) %>%
+  expect_true(any("Not Female" == omopgenerics::settings(cdm$denominator) %>%
     dplyr::filter(sex == "Male") %>%
-    dplyr::inner_join(CDMConnector::attrition(cdm$denominator),
+    dplyr::inner_join(omopgenerics::attrition(cdm$denominator),
       multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::pull(.data$reason)) == FALSE)
   # for female cohort we should have a row for those excluded for not being male
-  expect_true(any("Not Male" == CDMConnector::settings(cdm$denominator) %>%
+  expect_true(any("Not Male" == omopgenerics::settings(cdm$denominator) %>%
     dplyr::filter(sex == "Female") %>%
-    dplyr::inner_join(CDMConnector::attrition(cdm$denominator),
+    dplyr::inner_join(omopgenerics::attrition(cdm$denominator),
       multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::pull(.data$reason)) == FALSE)
-  expect_true(any("Not Female" == CDMConnector::settings(cdm$denominator) %>%
+  expect_true(any("Not Female" == omopgenerics::settings(cdm$denominator) %>%
     dplyr::filter(sex == "Female") %>%
-    dplyr::inner_join(CDMConnector::attrition(cdm$denominator),
+    dplyr::inner_join(omopgenerics::attrition(cdm$denominator),
       multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::pull(.data$reason)) == TRUE)
   # for both cohort we should have a row for those excluded for not being male
-  expect_true(any("Not Male" == CDMConnector::settings(cdm$denominator) %>%
+  expect_true(any("Not Male" == omopgenerics::settings(cdm$denominator) %>%
     dplyr::filter(sex == "Both") %>%
-    dplyr::inner_join(CDMConnector::attrition(cdm$denominator),
+    dplyr::inner_join(omopgenerics::attrition(cdm$denominator),
       multiple = "all",
       by = "cohort_definition_id"
     ) %>%
     dplyr::pull(.data$reason)) == FALSE)
-  expect_true(any("Not Female" == CDMConnector::settings(cdm$denominator) %>%
+  expect_true(any("Not Female" == omopgenerics::settings(cdm$denominator) %>%
     dplyr::filter(sex == "Both") %>%
-    dplyr::inner_join(CDMConnector::attrition(cdm$denominator),
+    dplyr::inner_join(omopgenerics::attrition(cdm$denominator),
       multiple = "all",
       by = "cohort_definition_id"
     ) %>%
@@ -1547,8 +1547,8 @@ test_that("mock db: check attrition with multiple cohorts", {
   )
 
   # nobody dropped for prior hist when req is 0
-  expect_true(CDMConnector::settings(cdm$denominator) %>%
-    dplyr::inner_join(CDMConnector::attrition(cdm$denominator),
+  expect_true(omopgenerics::settings(cdm$denominator) %>%
+    dplyr::inner_join(omopgenerics::attrition(cdm$denominator),
       multiple = "all",
       by = "cohort_definition_id"
     ) %>%
@@ -1556,8 +1556,8 @@ test_that("mock db: check attrition with multiple cohorts", {
     dplyr::filter(reason == "No observation time available after applying age, prior observation and, if applicable, target criteria") %>%
     dplyr::pull(.data$excluded_records) == 0)
   # some people dropped for prior hist when req is 1000
-  expect_true(CDMConnector::settings(cdm$denominator) %>%
-    dplyr::inner_join(CDMConnector::attrition(cdm$denominator),
+  expect_true(omopgenerics::settings(cdm$denominator) %>%
+    dplyr::inner_join(omopgenerics::attrition(cdm$denominator),
       multiple = "all",
       by = "cohort_definition_id"
     ) %>%
@@ -1587,7 +1587,7 @@ test_that("mock db: check tables were cleaned up", {
     ),
     daysPriorObservation = c(0, 1, 2)
   )
-  start_cohort_set <- CDMConnector::settings(cdm$my_denominator)
+  start_cohort_set <- omopgenerics::settings(cdm$my_denominator)
   endTables <- CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
                                         schema = attr(cdm, "write_schema")
   )
@@ -1610,12 +1610,12 @@ test_that("mock db: check tables were cleaned up", {
     cdm_schema = "main",
     write_schema = "main", cdm_name = "mock"
   )
-  expect_true(tibble::is_tibble(CDMConnector::settings(cdmReconn$my_denominator)))
-  expect_true(tibble::is_tibble(CDMConnector::cohortCount(cdmReconn$my_denominator)))
-  expect_true(tibble::is_tibble(CDMConnector::attrition(cdmReconn$my_denominator)))
+  expect_true(tibble::is_tibble(omopgenerics::settings(cdmReconn$my_denominator)))
+  expect_true(tibble::is_tibble(omopgenerics::cohortCount(cdmReconn$my_denominator)))
+  expect_true(tibble::is_tibble(omopgenerics::attrition(cdmReconn$my_denominator)))
 
   expect_equal(start_cohort_set,
-               CDMConnector::settings(cdmReconn$my_denominator))
+               omopgenerics::settings(cdmReconn$my_denominator))
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -1634,7 +1634,7 @@ test_that("mock db: requirement interactions", {
     daysPriorObservation = c(0, 30),
     requirementInteractions = TRUE
   )
-  expect_true(nrow(CDMConnector::settings(cdm$denominator)) == 4 * 3 * 2)
+  expect_true(nrow(omopgenerics::settings(cdm$denominator)) == 4 * 3 * 2)
 
   cdm <- generateDenominatorCohortSet(cdm,name = "denominator",
     ageGroup = list(
@@ -1645,36 +1645,36 @@ test_that("mock db: requirement interactions", {
     daysPriorObservation = c(0, 30),
     requirementInteractions = FALSE
   )
-  expect_true(nrow(CDMConnector::settings(cdm$denominator)) == 7)
+  expect_true(nrow(omopgenerics::settings(cdm$denominator)) == 7)
 
   # order matters
   # will use first value
-  nrow(CDMConnector::settings(cdm$denominator) %>%
+  nrow(omopgenerics::settings(cdm$denominator) %>%
     dplyr::filter(sex == "Both") %>%
     dplyr::filter(age_group == "0 to 100") %>%
     dplyr::filter(days_prior_observation == 0)) == 1
 
-  nrow(CDMConnector::settings(cdm$denominator) %>%
+  nrow(omopgenerics::settings(cdm$denominator) %>%
     dplyr::filter(sex == "Male") %>%
     dplyr::filter(age_group == "0 to 100") %>%
     dplyr::filter(days_prior_observation == 0)) == 1
 
-  nrow(CDMConnector::settings(cdm$denominator) %>%
+  nrow(omopgenerics::settings(cdm$denominator) %>%
     dplyr::filter(sex == "Both") %>%
     dplyr::filter(age_group == "11 to 15") %>%
     dplyr::filter(days_prior_observation == 0)) == 1
-  nrow(CDMConnector::settings(cdm$denominator) %>%
+  nrow(omopgenerics::settings(cdm$denominator) %>%
     dplyr::filter(sex == "Both") %>%
     dplyr::filter(age_group == "0 to 100") %>%
     dplyr::filter(days_prior_observation == 30)) == 1
 
 
-  nrow(CDMConnector::settings(cdm$denominator) %>%
+  nrow(omopgenerics::settings(cdm$denominator) %>%
     dplyr::filter(sex == "Female") %>%
     dplyr::filter(age_group == "11 to 15") %>%
     dplyr::filter(days_prior_observation == 0)) == 0
 
-  nrow(CDMConnector::settings(cdm$denominator) %>%
+  nrow(omopgenerics::settings(cdm$denominator) %>%
     dplyr::filter(sex == "Male") %>%
     dplyr::filter(age_group == "0 to 100") %>%
     dplyr::filter(days_prior_observation == 30)) == 0
