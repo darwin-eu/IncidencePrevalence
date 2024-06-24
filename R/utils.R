@@ -50,45 +50,6 @@ prevalenceAttrition.PrevalenceResult <- function(result) {
   return(attrition)
 }
 
-
-#' Settings associated with an incidence analysis
-#'
-#' @param result Result for which to get settings
-#'
-#' @return tibble with settings used when estimating incidence
-#' @export
-#'
-incidenceSet <- function(result) {
-  UseMethod("incidenceSet")
-}
-
-#' @export
-incidenceSet.IncidenceResult <- function(result) {
-  lifecycle::deprecate_stop(when = "0.8.0", what =  "incidenceSet()", with = "setings()")
-  settings <- attr(result, "settings")
-  return(settings)
-}
-
-
-#' Settings associated with a prevalence analysis
-#'
-#' @param result Result for which to get settings
-#'
-#' @return tibble with settings used when estimating prevalence
-#' @export
-#'
-prevalenceSet <- function(result) {
-  UseMethod("prevalenceSet")
-}
-
-#' @export
-prevalenceSet.PrevalenceResult <- function(result) {
-  lifecycle::deprecate_stop(when = "0.8.0", what =  "prevalenceSet()", with = "setings()")
-  settings <- attr(result, "settings")
-  return(settings)
-}
-
-
 #'  Participants contributing to an analysis
 #'
 #' @param result Result object
