@@ -37,26 +37,11 @@ library(tidyr)
 library(ggplot2)
 ```
 
-The IncidencePrevalence package works with data mapped to the OMOP CDM and we will first need to connect to a database, after which we can use the CDMConnector package to represent our mapped data as a single R object. This could like something like:
-
-```{r eval=FALSE}
-con <- DBI::dbConnect(RPostgres::Postgres(),
-  dbname = Sys.getenv("CDM5_POSTGRESQL_DBNAME"),
-  host = Sys.getenv("CDM5_POSTGRESQL_HOST"),
-  user = Sys.getenv("CDM5_POSTGRESQL_USER"),
-  password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD")
-)
-cdm <- CDMConnector::cdm_from_con(con,
-  cdm_schema = Sys.getenv("CDM5_POSTGRESQL_CDM_SCHEMA"),
-  write_schema = Sys.getenv("CDM5_POSTGRESQL_WRITE_SCHEMA")
-)
-```
-
-For this example though we´ll generate 50,000 hypothetical patients using the `mockIncidencePrevalenceRef()` function.
+The IncidencePrevalence package works with data mapped to the OMOP CDM and we will first need to connect to a database, after which we can use the CDMConnector package to represent our mapped data as a cdm reference. For this example though we´ll use a synthetic cdm reference containing 50,000 hypothetical patients which we create using the `mockIncidencePrevalenceRef()` function.
 
 ```{r, message= FALSE, warning=FALSE}
 cdm <- mockIncidencePrevalenceRef(
-  sampleSize = 5000,
+  sampleSize = 50000,
   outPre = 0.2
 )
 ```
@@ -64,10 +49,11 @@ cdm <- mockIncidencePrevalenceRef(
 This example data already includes an outcome cohort. 
 
 ```{r eval=FALSE}
-cdm$outcome
+cdm$outcome %>% 
+  glimpse()
 ```
 
-Once we have a connection to the database set-up, we can use the `generateDenominatorCohortSet()` to identify a denominator cohort to use later when calculating incidence and prevalence. In this case we identify three denominator cohorts one with males, one with females, and one with both males and females included. For each of these cohorts only those aged between 18 and 65 from 2008 to 2012, and who had 365 days of prior history available are included.
+Once we have a cdm reference, we can use the `generateDenominatorCohortSet()` to identify a denominator cohort to use later when calculating incidence and prevalence. In this case we identify three denominator cohorts one with males, one with females, and one with both males and females included. For each of these cohorts only those aged between 18 and 65 from 2008 to 2012, and who had 365 days of prior history available are included.
 
 ```{r, message= FALSE, warning=FALSE}
 cdm <- generateDenominatorCohortSet(
@@ -90,7 +76,7 @@ cdm$denominator %>%
 We can also see the settings associated with each cohort:
 
 ```{r}
-cohortSet(cdm$denominator)
+settings(cdm$denominator)
 ```
 
 And we can also see the count for each cohort
