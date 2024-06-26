@@ -52,13 +52,13 @@ captures all the interval.}
 \item{outcomeWashout}{The number of days used for a 'washout' period
 between the end of one outcome and an individual starting to contribute
 time at risk. If Inf, no time can be contributed after an event has
-occurred (whether during the study period or if occurring beforehand).}
+occurred.}
 
 \item{repeatedEvents}{TRUE/ FALSE. If TRUE, an individual will be able to
 contribute multiple events during the study period (time while they are
 present in an outcome cohort and any subsequent washout will be
 excluded). If FALSE, an individual will only contribute time up to their
-first event during the study period.}
+first event.}
 
 \item{minCellCount}{The minimum number of events to reported, below which
 results will be obscured. If 0, all results will be reported.}
