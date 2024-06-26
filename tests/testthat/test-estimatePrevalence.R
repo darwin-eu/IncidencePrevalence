@@ -671,6 +671,7 @@ test_that("mock db: check multiple outcome ids", {
   prev <- estimatePrevalence(cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
+    outcomeCohortId = c(1,2),
     type = "period",
     interval = "years",
     minCellCount = 0
