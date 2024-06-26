@@ -17,7 +17,8 @@ estimateIncidence(
   minCellCount = 5,
   strata = list(),
   includeOverallStrata = TRUE,
-  returnParticipants = FALSE
+  returnParticipants = FALSE,
+  summarisedResult = FALSE
 )
 }
 \arguments{
@@ -73,6 +74,9 @@ strata specific results (when strata has been specified).}
 participants from the analysis will be returned allowing for further
 analysis. Note, if using permanent tables and returnParticipants is TRUE,
 one table per analysis will be kept in the cdm write schema.}
+
+\item{summarisedResult}{If TRUE, result will be returned as in the
+summarised_result format}
 }
 \value{
 Incidence estimates
