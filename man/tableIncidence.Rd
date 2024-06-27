@@ -9,7 +9,7 @@ tableIncidence(
   formatEstimateName = c(`Denominator (N)` = "<denominator_count>", `Person-years` =
     "<person_years>", `Outcome (N)` = "<outcome_count>",
     `Incidence 100 person-years [95\% CI]` =
-    "<incidence_100000_pys> (<incidence_100000_pys_95CI_lower> - <incidence_100000_pys_95CI_upper>)"),
+    "<incidence_100000_pys> (<incidence_100000_pys_95CI_lower> -\\n      <incidence_100000_pys_95CI_upper>)"),
   header = c("group", "strata"),
   splitStrata = TRUE,
   cdmName = TRUE,
