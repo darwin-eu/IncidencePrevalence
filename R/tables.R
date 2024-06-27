@@ -19,7 +19,7 @@
 #' `r lifecycle::badge("experimental")`
 #'
 #' @param result A summarised_result object with results from
-#' estimatePointPrevalence().
+#' estimatePointPrevalence() or estimatePeriodPrevalence().
 #' @param prevalenceType Type of prevalence estimates: "point" or "period".
 #' @param formatEstimateName Named list of estimate name's to join, sorted by
 #' computation order. Indicate estimate_name's between <...>.
@@ -54,7 +54,7 @@
 #'   cdm = cdm,
 #'   denominatorTable = "denominator",
 #'   outcomeTable = "outcome",
-#'   summarisedResult = TRUE,
+#'   summarisedResult = TRUE
 #' )
 #'
 #' tablePrevalence(prev, prevalenceType = "point")
@@ -62,7 +62,7 @@
 #' CDMConnector::cdmDisconnect(cdm = cdm)
 #' }
 #'
-#' @return A table with a formatted version of the point prevalence result.
+#' @return A table with a formatted version of a prevalence result.
 #'
 #' @export
 #'
@@ -86,11 +86,141 @@ tablePrevalence <- function(
     type = "gt",
     .options = list()
 ) {
+
+  tableInternal(
+    result = result,
+    formatEstimateName = formatEstimateName,
+    header = header,
+    splitStrata = splitStrata,
+    cdmName = cdmName,
+    outcomeName = outcomeName,
+    outcomeSettings = outcomeSettings,
+    denominatorName = denominatorName,
+    denominatorSettings = denominatorSettings,
+    analysisSettings = analysisSettings,
+    groupColumn = groupColumn,
+    type = type,
+    resultType = paste0(prevalenceType, "_prevalence"),
+    .options = .options
+  )
+
+}
+
+#' Format a point_prevalence object into a visual table.
+#'
+#' `r lifecycle::badge("experimental")`
+#'
+#' @param result A summarised_result object with results from
+#' estimateIncidence().
+#' @param formatEstimateName Named list of estimate name's to join, sorted by
+#' computation order. Indicate estimate_name's between <...>.
+#' @param header A vector containing which elements should go into the header
+#' in order. Allowed are: `cdm_name`, `group`, `strata`, `additional`,
+#' `variable`, `estimate`, `settings`.
+#' @param splitStrata If TRUE strata columns will be splitted.
+#' @param cdmName If TRUE database names will be displayed.
+#' @param outcomeName If TRUE outcome cohort names will be displayed.
+#' @param outcomeSettings If TRUE settings related to the outcome cohorts will
+#' be displayed.
+#' @param denominatorName If TRUE denominator cohort names will be displayed.
+#' @param denominatorSettings If TRUE settings related to the denominator cohorts
+#' will be displayed.
+#' @param analysisSettings If TRUE database names will be displayed.
+#' @param groupColumn Column to use as group labels.
+#' #' @param type Type of desired formatted table, possibilities: "gt",
+#' "flextable", "tibble".
+#' @param .options Named list with additional formatting options.
+#' IncidencePrevalence::optionsTableIncidence() shows allowed
+#' arguments and their default values.
+#'
+#' @examples
+#' \donttest{
+#' library(IncidencePrevalence)
+#'
+#' cdm <- mockIncidencePrevalenceRef()
+#'
+#' cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
+#'
+#' inc <- estimateIncidence(
+#'   cdm = cdm,
+#'   denominatorTable = "denominator",
+#'   outcomeTable = "outcome",
+#'   summarisedResult = TRUE
+#' )
+#'
+#' tableIncidence(inc)
+#'
+#' CDMConnector::cdmDisconnect(cdm = cdm)
+#' }
+#'
+#' @return A table with a formatted version of incidence results.
+#'
+#' @export
+#'
+tableIncidence <- function(
+    result,
+    formatEstimateName = c(
+      "Denominator (N)" = "<denominator_count>",
+      "Person-years" = "person_years",
+      "Outcome (N)" = "<outcome_count>",
+      "Incidence 100 person-years [95% CI]" = "<incidence_100000_pys> (<incidence_100000_pys_95CI_lower> - <incidence_100000_pys_95CI_upper>)"
+    ),
+    header = c("group", "strata"),
+    splitStrata = TRUE,
+    cdmName = TRUE,
+    outcomeName = TRUE,
+    outcomeSettings = FALSE,
+    denominatorName = TRUE,
+    denominatorSettings = FALSE,
+    analysisSettings = FALSE,
+    groupColumn = NULL,
+    type = "gt",
+    .options = list()
+) {
+
+  tableInternal(
+    result = result,
+    formatEstimateName = formatEstimateName,
+    header = header,
+    splitStrata = splitStrata,
+    cdmName = cdmName,
+    outcomeName = outcomeName,
+    outcomeSettings = outcomeSettings,
+    denominatorName = denominatorName,
+    denominatorSettings = denominatorSettings,
+    analysisSettings = analysisSettings,
+    groupColumn = groupColumn,
+    type = type,
+    resultType = "incidence",
+    .options = .options
+  )
+
+}
+
+tableInternal <- function(
+    result,
+    formatEstimateName = c(
+      "Denominator (N)" = "<denominator_count>",
+      "Person-years" = "<person_years>",
+      "Outcome (N)" = "<outcome_count>",
+      "Incidence per 100,000 person-years [95% CI]" = "<incidence_100000_pys> (<incidence_100000_pys_95CI_lower> - <incidence_100000_pys_95CI_upper>)"
+    ),
+    header = c("group", "strata"),
+    splitStrata = TRUE,
+    cdmName = TRUE,
+    outcomeName = TRUE,
+    outcomeSettings = FALSE,
+    denominatorName = TRUE,
+    denominatorSettings = FALSE,
+    analysisSettings = FALSE,
+    groupColumn = NULL,
+    type = "gt",
+    resultType = "incidence",
+    .options = list()
+) {
   # check input
   result <- omopgenerics::newSummarisedResult(result) |>
-    visOmopResults::filterSettings(.data$result_type %in% c(
-      paste0(prevalenceType, "_prevalence")
-    ))
+    visOmopResults::filterSettings(.data$result_type == resultType)
   checkmate::assertList(.options)
   checkmate::assertLogical(
     c(splitStrata, cdmName, outcomeName, outcomeSettings, denominatorName,
@@ -99,7 +229,7 @@ tablePrevalence <- function(
   )
 
   # .options
-  .options <- defaultTableIncidencePrevalence(.options)
+  .options <- defaultTableIncidencePrevalence(.options, resultType)
 
   # prepare visOmopTable input
   ## settings
@@ -172,13 +302,15 @@ tablePrevalence <- function(
     excludeColumns = excludeColumns,
     .options = .options
   )
-
 }
 
-
-defaultTableIncidencePrevalence <- function(.options) {
+defaultTableIncidencePrevalence <- function(.options, type) {
 
   defaults <- visOmopResults::optionsVisOmopTable()
+
+  if (type == "incidence") {
+    defaults$keepNotFormatted = FALSE
+  }
 
   for (opt in names(.options)) {
     defaults[[opt]] <- .options[[opt]]
@@ -204,5 +336,25 @@ defaultTableIncidencePrevalence <- function(.options) {
 #' }
 #'
 optionsTablePrevalence <- function() {
-  defaults <- visOmopResults::optionsVisOmopTable()
+  defaultTableIncidencePrevalence(NULL, type = "prevalence")
+}
+
+#' Additional arguments for the functions tableIncidence.
+#'
+#' @description
+#' It provides a list of allowed inputs for .option argument in tableIncidence,
+#' and their given default values.
+#'
+#'
+#' @return The default .options named list.
+#'
+#' @export
+#'
+#' @examples
+#' {
+#' optionsTableIncidence()
+#' }
+#'
+optionsTableIncidence <- function() {
+  defaultTableIncidencePrevalence(NULL, "incidence")
 }

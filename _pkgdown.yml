@@ -22,7 +22,7 @@ reference:
   - matches("plotIncidence|plotPrevalence")
 - subtitle: Tabulate results
 - contents:
-  - matches("tablePrevalence|optionsTablePrevalence")
+  - matches("tablePrevalence|optionsTablePrevalence|tableIncidence|optionsTableIncidence")
 - subtitle: Mock data
 - contents:
   - matches("mockIncidencePrevalenceRef")

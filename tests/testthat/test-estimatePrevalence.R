@@ -1537,4 +1537,6 @@ test_that("summarise result works", {
     ))
   )
   expect_true(unique(settings(prev_sr)$result_type) == "period_prevalence")
+
+  CDMConnector::cdm_disconnect(cdm)
 })

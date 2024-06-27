@@ -1,4 +1,4 @@
-test_that("test tablePrevalence", {
+test_that("test tables", {
   cdm <- mockIncidencePrevalenceRef()
 
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
@@ -53,6 +53,7 @@ test_that("test tablePrevalence", {
     type = "flextable",
     prevalenceType = "period"
   )
+  expect_true("flextable" %in% class(fx2))
   expect_true(all(colnames(fx2$body$dataset) == c(
     'Database name', 'Denominator cohort name', 'Outcome cohort name', 'Start date', 'End date', 'Denominator (N)', 'Outcome (N)', 'Prevalence [95% CI]'
   )))
@@ -69,5 +70,26 @@ test_that("test tablePrevalence", {
     'Database name', 'Outcome cohort name', 'Estimate name', 'Start date', 'End date', 'Denominator age group',
     'Denominator sex', 'Denominator days prior observation', 'Denominator start date', 'Denominator end date',
     'Denominator target cohort name', '[header]Denominator cohort name\n[header_level]Denominator cohort 1'
+  )))
+
+  # incidence
+  cdm$denominator <- cdm$denominator %>%
+    dplyr::mutate(my_strata = dplyr::if_else(year(cohort_start_date) < 1995,
+                                             "first", "second")) %>%
+    dplyr::compute()
+  inc <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    strata = list(c("my_strata")),
+    summarisedResult = TRUE
+  )
+  tableInc <- tableIncidence(inc, outcomeName = FALSE, outcomeSettings = FALSE, type = "flextable")
+  expect_true("flextable" %in% class(tableInc))
+  expect_true(all(colnames(tableInc$body$dataset) == c(
+    'Database name', 'Estimate name', 'Start date', 'End date',
+    'Denominator cohort name\nDenominator cohort 1\nMy strata\nOverall',
+    'Denominator cohort name\nDenominator cohort 1\nMy strata\nFirst'
   )))
 })

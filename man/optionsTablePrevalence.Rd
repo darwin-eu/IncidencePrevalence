@@ -2,8 +2,7 @@
 % Please edit documentation in R/tables.R
 \name{optionsTablePrevalence}
 \alias{optionsTablePrevalence}
-\title{Additional arguments for the functions tablePointPrevalence,
-tablePeriodPrevalence, and tableIncidence.}
+\title{Additional arguments for the functions tablePrevalence.}
 \usage{
 optionsTablePrevalence()
 }
@@ -11,12 +10,12 @@ optionsTablePrevalence()
 The default .options named list.
 }
 \description{
-It provides a list of allowed inputs for .option argument in the table
-functions of the package IncidencePrevalence, and their given default values.
+It provides a list of allowed inputs for .option argument in tablePrevalence,
+and their given default values.
 }
 \examples{
 {
-optionsTableIncidencePrevalence()
+optionsTablePrevalence()
 }
 
 }
