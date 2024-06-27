@@ -1481,6 +1481,16 @@ test_that("summarise result works", {
   expect_true(all(c("overall", "first") %in%
                     unique(prev_tidy %>%
                              dplyr::pull("my_strata"))))
+  expect_true(
+    all(colnames(settings(prev_sr)) == c(
+      'result_id', 'result_type', 'package_name', 'package_version', 'analysis_type',
+      'analysis_interval', 'analysis_complete_database_intervals', 'analysis_full_contribution',
+      'denominator_cohort_name', 'denominator_age_group', 'denominator_sex',
+      'denominator_days_prior_observation', 'denominator_start_date', 'denominator_end_date',
+      'denominator_target_cohort_name', 'outcome_cohort_name', 'min_cell_count'
+    ))
+  )
+  expect_true(unique(settings(prev_sr)$result_type) == "point_prevalence")
 
   prev <- estimatePrevalence(
     cdm = cdm,
@@ -1500,6 +1510,6 @@ test_that("summarise result works", {
   expect_equal(participants(prev_sr, 1) |> dplyr::collect(), participants(prev, 1) |> dplyr::collect())
   expect_true(nrow(prev_tidy) == nrow(prev))
 
-  # TODO check suppress
+  # TODO check suppress and no strata
 
 })

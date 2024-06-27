@@ -489,7 +489,7 @@ estimatePrevalence <- function(cdm,
         package_name = "IncidencePrevalence",
         package_version = as.character(utils::packageVersion("IncidencePrevalence"))
       ) |>
-      dplyr::select(!dplyr::ends_with("_cohort_id|definition_id")) |>
+      dplyr::select(!c(dplyr::ends_with("_cohort_id"), dplyr::ends_with("_cohort_definition_id"))) |>
       dplyr::select(c(
         "result_id", "result_type", "package_name", "package_version",
         "analysis_type", "analysis_interval",
@@ -497,6 +497,10 @@ estimatePrevalence <- function(cdm,
         dplyr::starts_with("denominator_"), dplyr::starts_with("outcome_"),
       ))
     ## result
+    if (!"strata_name" %in% colnames(prs)) {
+      prs <- prs |>
+        visOmopResults::uniteStrata()
+    }
     prs <- prs |>
       dplyr::distinct() |>
       dplyr::mutate("analysis_id" = as.integer(.data$analysis_id)) |>
