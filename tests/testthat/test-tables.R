@@ -13,7 +13,7 @@ test_that("test tables", {
   default <- tablePrevalence(prev_period, prevalenceType = "period")
   expect_true("gt_tbl" %in% class(default))
   expect_true(all(colnames(default$`_data`) == c(
-    'Database name', 'Outcome cohort name', 'Estimate name', 'Start date', 'End date', '[header]Denominator cohort name\n[header_level]Denominator cohort 1'
+    'Database name', 'Outcome cohort name', 'Estimate name', 'Prevalence start date', 'Prevalence end date', '[header]Denominator cohort name\n[header_level]Denominator cohort 1'
   )))
   expect_true(all(unique(default$`_data`$`Estimate name`) == c(
     "Denominator (N)", "Outcome (N)", "Prevalence [95% CI]"
@@ -27,7 +27,7 @@ test_that("test tables", {
                           denominatorName = FALSE,
                           outcomeSettings = TRUE)
   )
-  expect_true(all(colnames(tib1) == c('Database name', 'Outcome cohort name', 'Estimate name', 'Estimate value', 'Start date', 'End date')))
+  expect_true(all(colnames(tib1) == c('Database name', 'Outcome cohort name', 'Estimate name', 'Estimate value', 'Prevalence start date', 'Prevalence end date')))
 
   # no split strata
   fx <- tablePrevalence(
@@ -41,7 +41,7 @@ test_that("test tables", {
     type = "flextable"
   )
   expect_true(all(colnames(fx$body$dataset) == c(
-    'Strata name', 'Strata level', 'Estimate name', 'Start date', 'End date', 'Analysis type',
+    'Strata name', 'Strata level', 'Estimate name', 'Prevalence start date', 'Prevalence end date', 'Analysis type',
     'Analysis interval', 'Analysis complete database intervals', 'Analysis full contribution', 'Database name\nmock'
     )))
 
@@ -55,7 +55,7 @@ test_that("test tables", {
   )
   expect_true("flextable" %in% class(fx2))
   expect_true(all(colnames(fx2$body$dataset) == c(
-    'Database name', 'Denominator cohort name', 'Outcome cohort name', 'Start date', 'End date', 'Denominator (N)', 'Outcome (N)', 'Prevalence [95% CI]'
+    'Database name', 'Denominator cohort name', 'Outcome cohort name', 'Prevalence start date', 'Prevalence end date', 'Denominator (N)', 'Outcome (N)', 'Prevalence [95% CI]'
   )))
 
   # point prevalence
@@ -67,7 +67,7 @@ test_that("test tables", {
   )
   gt2 <- tablePrevalence(prev_period, denominatorSettings = TRUE, prevalenceType = "point")
   expect_true(all(colnames(gt2$`_data`) == c(
-    'Database name', 'Outcome cohort name', 'Estimate name', 'Start date', 'End date', 'Denominator age group',
+    'Database name', 'Outcome cohort name', 'Estimate name', 'Prevalence start date', 'Prevalence end date', 'Denominator age group',
     'Denominator sex', 'Denominator days prior observation', 'Denominator start date', 'Denominator end date',
     'Denominator target cohort name', '[header]Denominator cohort name\n[header_level]Denominator cohort 1'
   )))
@@ -88,8 +88,14 @@ test_that("test tables", {
   tableInc <- tableIncidence(inc, outcomeName = FALSE, outcomeSettings = FALSE, type = "flextable")
   expect_true("flextable" %in% class(tableInc))
   expect_true(all(colnames(tableInc$body$dataset) == c(
-    'Database name', 'Estimate name', 'Start date', 'End date',
+    'Database name', 'Estimate name', 'Incidence start date', 'Incidence end date',
     'Denominator cohort name\nDenominator cohort 1\nMy strata\nOverall',
     'Denominator cohort name\nDenominator cohort 1\nMy strata\nFirst'
   )))
+
+
+  # no split strata
+  expect_no_error(tableIncidence(inc, outcomeName = FALSE,
+                 outcomeSettings = TRUE, type = "flextable"))
+
 })
