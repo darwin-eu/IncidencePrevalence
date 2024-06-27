@@ -38,7 +38,7 @@ Imports:
     dplyr (>= 1.1.0),
     glue (>= 1.5.0),
     ggplot2 (>= 3.4.0),
-    omopgenerics (>= 0.1.2), 
+    omopgenerics (>= 0.1.2),
     scales (>= 1.1.0),
     lubridate (>= 1.0.0),
     magrittr (>= 2.0.0),
@@ -48,7 +48,8 @@ Imports:
     stringr (>= 1.5.0),
     tibble,
     tidyr (>= 1.2.0),
-    tidyselect (>= 1.2.0)
+    tidyselect (>= 1.2.0),
+    visOmopResults
 Suggests: 
     knitr,
     rmarkdown,

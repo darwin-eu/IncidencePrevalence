@@ -45,6 +45,8 @@
 #' participants from the analysis will be returned allowing for further
 #' analysis. Note, if using permanent tables and returnParticipants is TRUE,
 #' one table per analysis will be kept in the cdm write schema.
+#' @param summarisedResult If TRUE, result will be returned as in the
+#' summarised_result format
 #'
 #' @return Point prevalence estimates
 #' @export
@@ -73,14 +75,15 @@ estimatePointPrevalence <- function(cdm,
                                     strata = list(),
                                     includeOverallStrata = TRUE,
                                     minCellCount = 5,
-                                    returnParticipants = FALSE) {
+                                    returnParticipants = FALSE,
+                                    summarisedResult = FALSE) {
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(
     all(tolower(interval) %in%
-      c(
-        "weeks", "months",
-        "quarters", "years"
-      )),
+          c(
+            "weeks", "months",
+            "quarters", "years"
+          )),
     add = errorMessage
   )
   checkmate::reportAssertions(collection = errorMessage)
@@ -99,7 +102,8 @@ estimatePointPrevalence <- function(cdm,
     strata = strata,
     includeOverallStrata = includeOverallStrata,
     minCellCount = minCellCount,
-    returnParticipants = returnParticipants
+    returnParticipants = returnParticipants,
+    summarisedResult = summarisedResult
   )
 }
 
@@ -141,6 +145,8 @@ estimatePointPrevalence <- function(cdm,
 #' participants from the analysis will be returned allowing for further
 #' analysis. Note, if using permanent tables and returnParticipants is TRUE,
 #' one table per analysis will be kept in the cdm write schema.
+#' @param summarisedResult If TRUE, result will be returned as in the
+#' summarised_result format
 #'
 #' @return  Period prevalence estimates
 #' @export
@@ -170,7 +176,8 @@ estimatePeriodPrevalence <- function(cdm,
                                      strata = list(),
                                      includeOverallStrata = TRUE,
                                      minCellCount = 5,
-                                     returnParticipants = FALSE) {
+                                     returnParticipants = FALSE,
+                                     summarisedResult = FALSE) {
   estimatePrevalence(
     cdm = cdm,
     denominatorTable = denominatorTable,
@@ -185,7 +192,8 @@ estimatePeriodPrevalence <- function(cdm,
     strata = strata,
     includeOverallStrata = includeOverallStrata,
     minCellCount = minCellCount,
-    returnParticipants = returnParticipants
+    returnParticipants = returnParticipants,
+    summarisedResult = summarisedResult
   )
 }
 
@@ -202,7 +210,8 @@ estimatePrevalence <- function(cdm,
                                strata = list(),
                                includeOverallStrata = TRUE,
                                minCellCount = 5,
-                               returnParticipants = FALSE) {
+                               returnParticipants = FALSE,
+                               summarisedResult = FALSE) {
   startCollect <- Sys.time()
 
   # help to avoid formatting errors
@@ -348,7 +357,7 @@ estimatePrevalence <- function(cdm,
   # analysis settings
   analysisSettings <- prsList[names(prsList) == "analysis_settings"]
   analysisSettings <- dplyr::bind_rows(analysisSettings,
-    .id = NULL
+                                       .id = NULL
   )
 
   analysisSettings <- analysisSettings %>%
@@ -372,7 +381,7 @@ estimatePrevalence <- function(cdm,
       omopgenerics::attrition(cdm[[denominatorTable]]) %>%
         dplyr::rename("denominator_cohort_id" = "cohort_definition_id") %>%
         dplyr::filter(.data$denominator_cohort_id ==
-          studySpecs[[i]]$denominatorCohortId) %>%
+                        studySpecs[[i]]$denominatorCohortId) %>%
         dplyr::mutate(analysis_id = studySpecs[[i]]$analysis_id) %>%
         dplyr::mutate(dplyr::across(dplyr::where(is.numeric), as.integer)),
       prsList[names(prsList) == "attrition"][[i]] %>%
@@ -408,7 +417,7 @@ estimatePrevalence <- function(cdm,
   # prevalence estimates
   prs <- prsList[names(prsList) == "pr"]
   prs <- dplyr::bind_rows(prs,
-    .id = NULL
+                          .id = NULL
   )
 
   # get confidence intervals
@@ -425,25 +434,23 @@ estimatePrevalence <- function(cdm,
       dplyr::relocate("prevalence_95CI_lower", .after = "prevalence") %>%
       dplyr::relocate("prevalence_95CI_upper", .after = "prevalence_95CI_lower")
 
-    # obscure counts
-    prs <- obscureCounts(prs,
-      minCellCount = minCellCount,
-      substitute = NA
-    )
+    if (!summarisedResult) {
+      # obscure counts
+      prs <- obscureCounts(prs,
+                           minCellCount = minCellCount,
+                           substitute = NA
+      )
+    }
   }
 
   # attrition summary
   attrition <- prsList[names(prsList) == "attrition"]
   # to tibble
-  attrition <- dplyr::bind_rows(attrition,
-    .id = NULL
-  ) %>%
+  attrition <- dplyr::bind_rows(attrition,.id = NULL) %>%
     dplyr::select(-"denominator_cohort_id") %>%
     dplyr::relocate("analysis_id")
   # obscure counts
-  attrition <- obscureAttrition(attrition,
-                       minCellCount = minCellCount
-  )
+  attrition <- obscureAttrition(attrition, minCellCount = minCellCount)
 
   analysisSettings <- analysisSettings %>%
     dplyr::left_join(outcomeRef, by = "outcome_cohort_id") %>%
@@ -453,22 +460,99 @@ estimatePrevalence <- function(cdm,
                     .after = "analysis_min_cell_count") %>%
     dplyr::mutate(cdm_name = attr(cdm, "cdm_name"))
 
-  # add settings to estimates and attrition
-  if (nrow(prs) >= 1) {
-    prs <- prs %>%
+
+  if (!summarisedResult) {
+    # add settings to estimates and attrition
+    if (nrow(prs) >= 1) {
+      prs <- prs %>%
+        dplyr::left_join(analysisSettings, by = "analysis_id")
+    }
+    attrition <- attrition %>%
       dplyr::left_join(analysisSettings, by = "analysis_id")
-  }
-  attrition <- attrition %>%
-    dplyr::left_join(analysisSettings, by = "analysis_id")
 
-  # return results as an IncidencePrevalenceResult class
-  attr(prs, "settings") <- analysisSettings
-  attr(prs, "attrition") <- attrition
-  if (returnParticipants == TRUE) {
-    attr(prs, "participants") <- cdm[[nm]]
+    # return results as an IncidencePrevalenceResult class
+    attr(prs, "settings") <- analysisSettings
+    attr(prs, "attrition") <- attrition
+    if (returnParticipants == TRUE) {
+      attr(prs, "participants") <- cdm[[nm]]
+    }
+
+    class(prs) <- c("IncidencePrevalenceResult", "PrevalenceResult", class(prs))
+
+  } else {
+    # summarised result
+    ## settings
+    analysisSettings <- analysisSettings |>
+      dplyr::mutate(
+        result_id = as.integer(.data$analysis_id),
+        result_type = paste0(.env$type, "_prevalence"),
+        package_name = "IncidencePrevalence",
+        package_version = as.character(utils::packageVersion("IncidencePrevalence"))
+      ) |>
+      dplyr::select(!dplyr::ends_with("_cohort_id|definition_id")) |>
+      dplyr::select(c(
+        "result_id", "result_type", "package_name", "package_version",
+        "analysis_type", "analysis_interval",
+        "analysis_complete_database_intervals", "analysis_full_contribution",
+        dplyr::starts_with("denominator_"), dplyr::starts_with("outcome_"),
+      ))
+    ## result
+    prs <- prs |>
+      dplyr::distinct() |>
+      dplyr::mutate("analysis_id" = as.integer(.data$analysis_id)) |>
+      dplyr::rename(
+        "result_id" = "analysis_id",
+        "start_date" = "prevalence_start_date",
+        "end_date" = "prevalence_end_date",
+        "outcome_count" = "n_cases",
+        "denominator_count" = "n_population"
+      ) |>
+      dplyr::left_join(
+        analysisSettings |>
+          dplyr::select(c(
+            "result_id", "denominator_cohort_name", "outcome_cohort_name"
+          )),
+        by = "result_id"
+      ) |>
+      visOmopResults::uniteGroup("denominator_cohort_name") |>
+      visOmopResults::uniteAdditional(c("start_date", "end_date")) |>
+      visOmopResults::uniteNameLevel(
+        cols = "outcome_cohort_name",
+        name = "variable_name",
+        level = "variable_level"
+      ) |>
+      tidyr::pivot_longer(
+        cols = c("denominator_count", "outcome_count", "prevalence",
+                 "prevalence_95CI_lower", "prevalence_95CI_upper"),
+        names_to = "estimate_name",
+        values_to = "estimate_value"
+      ) |>
+      dplyr::mutate(
+        "estimate_value" = as.character(.data$estimate_value),
+        "estimate_type" = dplyr::if_else(
+          grepl("count", .data$estimate_name), "integer", "numeric"
+        ),
+        "cdm_name" = attr(cdm, "cdm_name"),
+        "strata_name" = dplyr::if_else(.data$strata_name == "Overall", "overall", gsub(" and ", " &&& ", .data$strata_name)),
+        "strata_level" = dplyr::if_else(.data$strata_level == "Overall", "overall", gsub(" and ", " &&& ", .data$strata_level))
+      )
+
+    prs <- omopgenerics::newSummarisedResult(prs, settings = analysisSettings) |>
+      omopgenerics::suppress(minCellCount = minCellCount)
+
+    ## class PrevalenceResult
+    class(prs) <- c("PrevalenceResult", "IncidencePrevalenceResult", class(prs))
+    ## attrition
+    attr(prs, "attrition") <- attrition |>
+      dplyr::mutate("result_id" = as.integer(.data$analysis_id)) |>
+      dplyr::select(!"analysis_id") |>
+      dplyr::relocate("result_id")
+    ## participants
+    if (returnParticipants == TRUE) {
+      attr(prs, "participants") <- cdm[[nm]]
+    }
   }
 
-  class(prs) <- c("IncidencePrevalenceResult", "PrevalenceResult", class(prs))
 
   dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
   message(glue::glue(
