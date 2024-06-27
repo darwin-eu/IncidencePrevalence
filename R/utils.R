@@ -46,7 +46,8 @@ participants.IncidencePrevalenceResult <- function(result,
   lifecycle::deprecate_warn(
     when = "0.8.0",
     what = "IncidencePrevalence::participants()",
-    details = "participants will be removed in the next release"
+    details = "participants will be removed in the next release",
+    always = TRUE
   )
 
   checkmate::assertIntegerish(analysisId)
