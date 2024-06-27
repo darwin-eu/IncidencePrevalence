@@ -93,7 +93,7 @@ test_that("plot facets", {
   )
   plot_sr <- plotIncidence(inc, facet = "denominator_age_group")
 
-  expect_true(ggplot2::is.ggplot(plot))
+  expect_true(ggplot2::is.ggplot(plot_sr))
 
 
 
