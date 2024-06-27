@@ -2806,9 +2806,9 @@ test_that("mock db: check attrition", {
                            outcomeTable = "outcome",
                            interval = "years"
   )
-  expect_true(attrition(inc) %>%
+  expect_true(is.na(attrition(inc) %>%
                 dplyr::filter(reason == "Not Male") %>%
-                dplyr::pull("excluded_subjects") == "<5")
+                dplyr::pull("excluded_subjects")))
 
   CDMConnector::cdm_disconnect(cdm)
 })
