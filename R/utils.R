@@ -42,6 +42,13 @@ participants <- function(result, analysisId) {
 #' @export
 participants.IncidencePrevalenceResult <- function(result,
                                                    analysisId) {
+
+  lifecycle::deprecate_warn(
+    when = "0.8.0",
+    what = "IncidencePrevalence::participants()",
+    details = "participants will be removed in the next release"
+  )
+
   checkmate::assertIntegerish(analysisId)
 
   if (!is.null(attr(result, "participants"))) {
