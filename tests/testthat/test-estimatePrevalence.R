@@ -1087,9 +1087,9 @@ test_that("mock db: check attrition with complete database intervals", {
                               minCellCount = 5
   )
 
-  expect_true(attrition(prev2) %>%
+  expect_true(is.na(attrition(prev2) %>%
                 dplyr::filter(reason == "Not observed during the complete database interval") %>%
-                dplyr::pull("excluded_subjects") == "<5")
+                dplyr::pull("excluded_subjects")))
 
   CDMConnector::cdm_disconnect(cdm)
 })
