@@ -46,11 +46,12 @@ test_that("test tablePrevalence", {
     )))
 
   # estimate in header
-  fx2 <- tablePeriodPrevalence(
+  fx2 <- tablePrevalence(
     prev_period,
     header = c("strata", "estimate"),
     splitStrata = TRUE,
-    type = "flextable"
+    type = "flextable",
+    prevalenceType = "period"
   )
   expect_true(all(colnames(fx2$body$dataset) == c(
     'Database name', 'Denominator cohort name', 'Outcome cohort name', 'Start date', 'End date', 'Denominator (N)', 'Outcome (N)', 'Prevalence [95% CI]'
@@ -61,9 +62,9 @@ test_that("test tablePrevalence", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    summarisedResult = TRUE,
+    summarisedResult = TRUE
   )
-  gt2 <- tablePointPrevalence(prev_period, denominatorSettings = TRUE)
+  gt2 <- tablePrevalence(prev_period, denominatorSettings = TRUE, prevalenceType = "point")
   expect_true(all(colnames(gt2$`_data`) == c(
     'Database name', 'Outcome cohort name', 'Estimate name', 'Start date', 'End date', 'Denominator age group',
     'Denominator sex', 'Denominator days prior observation', 'Denominator start date', 'Denominator end date',
