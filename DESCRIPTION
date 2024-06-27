@@ -40,6 +40,7 @@ Imports:
     ggplot2 (>= 3.4.0),
     omopgenerics (>= 0.1.2),
     scales (>= 1.1.0),
+    lifecycle,
     lubridate (>= 1.0.0),
     magrittr (>= 2.0.0),
     PatientProfiles (>= 1.1.0),
