@@ -24,7 +24,9 @@
 #' or `estimatePeriodPrevalence()`.
 #'
 #' @param cdm A CDM reference object
-#' @param name Name of the cohort table to be created.
+#' @param name Name of the cohort table to be created. Note if a table already
+#' exists with this name in the database (give the prefix being used for the
+#' cdm reference) it will be overwritten.
 #' @param cohortDateRange Two dates. The first indicating the earliest cohort
 #' start date and the second indicating the latest possible cohort end date. If
 #' NULL or the first date is set as missing, the earliest observation_start_date

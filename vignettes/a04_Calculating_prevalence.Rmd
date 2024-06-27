@@ -19,13 +19,6 @@ knitr::opts_chunk$set(
 
 ```{r, message= FALSE, warning=FALSE, echo=FALSE}
 library(here)
-library(DBI)
-library(dbplyr)
-library(dplyr)
-library(tibble)
-library(tidyr)
-library(knitr)
-library(IncidencePrevalence)
 ```
 
 # Introduction
@@ -49,19 +42,21 @@ In addition, it is typically not recommended to include exclusion requirements w
 # Using estimatePointPrevalence() and estimatePeriodPrevalence()
 `estimatePointPrevalence()` and `estimatePeriodPrevalence()` are the functions we use to estimate prevalence. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `mockIncidencePrevalenceRef()` function from whom we´ll create a denominator population without adding any restrictions other than a study period.
 
-```{r setup}
+```{r, message=FALSE, warning=FALSE}
 library(IncidencePrevalence)
 library(dplyr)
 library(tidyr)
 
 cdm <- mockIncidencePrevalenceRef(
   sampleSize = 20000,
+  earliestObservationStartDate = as.Date("1960-01-01"), 
+  minOutcomeDays = 365,
   outPre = 0.3
 )
 
 cdm <- generateDenominatorCohortSet(
   cdm = cdm, name = "denominator",
-  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2012-01-01")),
+  cohortDateRange = c(as.Date("1990-01-01"), as.Date("2009-12-31")),
   ageGroup = list(c(0, 150)),
   sex = "Both",
   daysPriorObservation = 0
@@ -136,7 +131,7 @@ prev <- estimatePeriodPrevalence(
 prev %>%
   glimpse()
 
-plotPrevalence(prev, ylim = c(0.1, 0.3))
+plotPrevalence(prev)
 ```
 
 
@@ -171,9 +166,7 @@ prev <- estimatePeriodPrevalence(
 prev %>%
   glimpse()
 
-plotPrevalence(prev,
-  ylim = c(0, 0.07)
-)
+plotPrevalence(prev)
 ```
 
 ## Stratified analyses
@@ -182,7 +175,7 @@ If we specified multiple denominator populations results will be returned for ea
 ```{r}
 cdm <- generateDenominatorCohortSet(
   cdm = cdm, name = "denominator_age_sex",
-  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2012-01-01")),
+  cohortDateRange = c(as.Date("1990-01-01"), as.Date("2009-12-31")),
   ageGroup = list(c(0, 39),
                   c(41, 65),
                   c(66, 150)),
@@ -221,9 +214,8 @@ We can also stratify on multiple variables at the same time.
 
 ```{r}
 cdm$denominator <- cdm$denominator %>% 
-  mutate(group_1 = if_else(as.numeric(subject_id)  < 1500, "first", "second"))  %>% 
-  mutate(group_2 = if_else(cohort_start_date  < as.Date("2010-01-01"), 
-                           "pre", "post"))
+  mutate(group_1 = if_else(as.numeric(subject_id)  < 1500, "first", "second"),
+         group_2 = if_else(as.numeric(subject_id)  < 1000, "one", "two"))
 
 prev <- estimatePeriodPrevalence(
   cdm = cdm,
@@ -263,6 +255,7 @@ attrition(prev)
 ```
 
 In addition, if we set returnParticipants as TRUE as above, we can identify the individuals who contributed to the prevalence rate analysis by using `participants(). For example, we can identify those people contributing to analysis 1 by running
+
 ```{r, message= FALSE, warning=FALSE}
 participants(prev, analysisId = 1) %>%
   glimpse()

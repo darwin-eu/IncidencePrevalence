@@ -3208,3 +3208,91 @@ test_that("mock db: incidence using strata vars", {
 
   CDMConnector::cdm_disconnect(cdm)
 })
+
+test_that("mock db: multiple outcome cohort id", {
+
+  personTable <- tibble::tibble(
+    person_id = c("1", "2"),
+    gender_concept_id = "8507",
+    year_of_birth = 2000,
+    month_of_birth = 01,
+    day_of_birth = 01
+  )
+  observationPeriodTable <- tibble::tibble(
+    observation_period_id = c("1", "2"),
+    person_id = c("1", "2"),
+    observation_period_start_date = c(
+      as.Date("2005-01-15"),
+      as.Date("2005-01-15")
+    ),
+    observation_period_end_date = c(
+      as.Date("2007-05-01"),
+      as.Date("2011-06-15")
+    )
+  )
+  outcomeTable <- tibble::tibble(
+    cohort_definition_id = c(1,1,2),
+    subject_id = c("1", "2", "2"),
+    cohort_start_date = c(
+      as.Date("2006-02-05"),
+      as.Date("2006-02-05"),
+      as.Date("2010-02-05")
+    ),
+    cohort_end_date = c(
+      as.Date("2006-02-05"),
+      as.Date("2006-02-05"),
+      as.Date("2010-02-05")
+    )
+  )
+
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    outcomeTable = outcomeTable
+  )
+
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm, name = "denominator"
+  )
+
+  inc_all_outcome <- estimateIncidence(cdm,
+                                       denominatorTable = "denominator",
+                                       outcomeTable = "outcome",
+                                       outcomeCohortId = c(1,2),
+                                       interval = "overall",
+                                       minCellCount = 0
+  )
+  inc_all_outcome_1 <- estimateIncidence(cdm,
+                                         denominatorTable = "denominator",
+                                         outcomeTable = "outcome",
+                                         outcomeCohortId = 1,
+                                         interval = "overall",
+                                         minCellCount = 0
+  )
+  inc_all_outcome_2 <- estimateIncidence(cdm,
+                                         denominatorTable = "denominator",
+                                         outcomeTable = "outcome",
+                                         outcomeCohortId = 2,
+                                         interval = "overall",
+                                         minCellCount = 0
+  )
+
+  expect_equal(
+  inc_all_outcome %>%
+    dplyr::filter(outcome_cohort_id == 1) %>%
+    dplyr::pull("incidence_100000_pys"),
+  inc_all_outcome_1 %>%
+    dplyr::pull("incidence_100000_pys")
+  )
+
+  expect_equal(
+    inc_all_outcome %>%
+      dplyr::filter(outcome_cohort_id == 2) %>%
+      dplyr::pull("incidence_100000_pys"),
+    inc_all_outcome_2 %>%
+      dplyr::pull("incidence_100000_pys")
+  )
+
+  CDMConnector::cdm_disconnect(cdm)
+
+})

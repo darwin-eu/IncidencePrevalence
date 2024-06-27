@@ -41,12 +41,12 @@
 #' @param outcomeWashout The number of days used for a 'washout' period
 #' between the end of one outcome and an individual starting to contribute
 #' time at risk. If Inf, no time can be contributed after an event has
-#' occurred (whether during the study period or if occurring beforehand).
+#' occurred.
 #' @param repeatedEvents TRUE/ FALSE. If TRUE, an individual will be able to
 #' contribute multiple events during the study period (time while they are
 #' present in an outcome cohort and any subsequent washout will be
 #' excluded). If FALSE, an individual will only contribute time up to their
-#' first event during the study period.
+#' first event.
 #' @param strata Variables added to the denominator cohort table for which to
 #' stratify estimates.
 #' @param includeOverallStrata Whether to include an overall result as well as

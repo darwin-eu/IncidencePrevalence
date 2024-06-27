@@ -17,7 +17,9 @@ generateDenominatorCohortSet(
 \arguments{
 \item{cdm}{A CDM reference object}
 
-\item{name}{Name of the cohort table to be created.}
+\item{name}{Name of the cohort table to be created. Note if a table already
+exists with this name in the database (give the prefix being used for the
+cdm reference) it will be overwritten.}
 
 \item{cohortDateRange}{Two dates. The first indicating the earliest cohort
 start date and the second indicating the latest possible cohort end date. If
