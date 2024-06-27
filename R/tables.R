@@ -187,12 +187,11 @@ defaultTableIncidencePrevalence <- function(.options) {
   return(defaults)
 }
 
-#' Additional arguments for the functions tablePointPrevalence,
-#' tablePeriodPrevalence, and tableIncidence.
+#' Additional arguments for the functions tablePrevalence.
 #'
 #' @description
-#' It provides a list of allowed inputs for .option argument in the table
-#' functions of the package IncidencePrevalence, and their given default values.
+#' It provides a list of allowed inputs for .option argument in tablePrevalence,
+#' and their given default values.
 #'
 #'
 #' @return The default .options named list.
@@ -201,7 +200,7 @@ defaultTableIncidencePrevalence <- function(.options) {
 #'
 #' @examples
 #' {
-#' optionsTableIncidencePrevalence()
+#' optionsTablePrevalence()
 #' }
 #'
 optionsTablePrevalence <- function() {

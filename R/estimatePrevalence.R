@@ -469,15 +469,7 @@ estimatePrevalence <- function(cdm,
     }
     attrition <- attrition %>%
       dplyr::left_join(analysisSettings, by = "analysis_id")
-
-    # return results as an IncidencePrevalenceResult class
     attr(prs, "settings") <- analysisSettings
-    attr(prs, "attrition") <- attrition
-    if (returnParticipants == TRUE) {
-      attr(prs, "participants") <- cdm[[nm]]
-    }
-
-    class(prs) <- c("IncidencePrevalenceResult", "PrevalenceResult", class(prs))
 
   } else {
     # summarised result
@@ -544,19 +536,20 @@ estimatePrevalence <- function(cdm,
     prs <- omopgenerics::newSummarisedResult(prs, settings = analysisSettings) |>
       omopgenerics::suppress(minCellCount = minCellCount)
 
-    ## class PrevalenceResult
-    class(prs) <- c("PrevalenceResult", "IncidencePrevalenceResult", class(prs))
     ## attrition
-    attr(prs, "attrition") <- attrition |>
+    attrition <- attrition |>
       dplyr::mutate("result_id" = as.integer(.data$analysis_id)) |>
       dplyr::select(!"analysis_id") |>
       dplyr::relocate("result_id")
-    ## participants
-    if (returnParticipants == TRUE) {
-      attr(prs, "participants") <- cdm[[nm]]
-    }
+
   }
 
+  # return results as an IncidencePrevalenceResult class
+  attr(prs, "attrition") <- attrition
+  if (returnParticipants == TRUE) {
+    attr(prs, "participants") <- cdm[[nm]]
+  }
+  class(prs) <- c("IncidencePrevalenceResult", "PrevalenceResult", class(prs))
 
   dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
   message(glue::glue(
