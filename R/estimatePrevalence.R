@@ -489,15 +489,7 @@ estimatePrevalence <- function(cdm,
     }
     attrition <- attrition %>%
       dplyr::left_join(analysisSettings, by = "analysis_id")
-
-    # return results as an IncidencePrevalenceResult class
     attr(prs, "settings") <- analysisSettings
-    attr(prs, "attrition") <- attrition
-    if (returnParticipants == TRUE) {
-      attr(prs, "participants") <- cdm[[nm]]
-    }
-
-    class(prs) <- c("IncidencePrevalenceResult", "PrevalenceResult", class(prs))
 
   } else {
     # summarised result
@@ -509,7 +501,7 @@ estimatePrevalence <- function(cdm,
         package_name = "IncidencePrevalence",
         package_version = as.character(utils::packageVersion("IncidencePrevalence"))
       ) |>
-      dplyr::select(!dplyr::ends_with("_cohort_id|definition_id")) |>
+      dplyr::select(!c(dplyr::ends_with("_cohort_id"), dplyr::ends_with("_cohort_definition_id"))) |>
       dplyr::select(c(
         "result_id", "result_type", "package_name", "package_version",
         "analysis_type", "analysis_interval",
@@ -517,6 +509,10 @@ estimatePrevalence <- function(cdm,
         dplyr::starts_with("denominator_"), dplyr::starts_with("outcome_"),
       ))
     ## result
+    if (!"strata_name" %in% colnames(prs)) {
+      prs <- prs |>
+        visOmopResults::uniteStrata()
+    }
     prs <- prs |>
       dplyr::distinct() |>
       dplyr::mutate("analysis_id" = as.integer(.data$analysis_id)) |>
@@ -560,19 +556,20 @@ estimatePrevalence <- function(cdm,
     prs <- omopgenerics::newSummarisedResult(prs, settings = analysisSettings) |>
       omopgenerics::suppress(minCellCount = minCellCount)
 
-    ## class PrevalenceResult
-    class(prs) <- c("PrevalenceResult", "IncidencePrevalenceResult", class(prs))
     ## attrition
-    attr(prs, "attrition") <- attrition |>
+    attrition <- attrition |>
       dplyr::mutate("result_id" = as.integer(.data$analysis_id)) |>
       dplyr::select(!"analysis_id") |>
       dplyr::relocate("result_id")
-    ## participants
-    if (returnParticipants == TRUE) {
-      attr(prs, "participants") <- cdm[[nm]]
-    }
+
   }
 
+  # return results as an IncidencePrevalenceResult class
+  attr(prs, "attrition") <- attrition
+  if (returnParticipants == TRUE) {
+    attr(prs, "participants") <- cdm[[nm]]
+  }
+  class(prs) <- c("IncidencePrevalenceResult", "PrevalenceResult", class(prs))
 
   dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
   message(glue::glue(

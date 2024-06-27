@@ -20,6 +20,9 @@ reference:
 - subtitle: Plot results
 - contents:
   - matches("plotIncidence|plotPrevalence")
+- subtitle: Tabulate results
+- contents:
+  - matches("tablePrevalence|optionsTablePrevalence|tableIncidence|optionsTableIncidence")
 - subtitle: Mock data
 - contents:
   - matches("mockIncidencePrevalenceRef")

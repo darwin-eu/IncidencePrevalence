@@ -372,7 +372,9 @@ estimateIncidence <- function(cdm,
       ))
 
     # obscure counts
-    irs <- obscureCounts(irs, minCellCount = minCellCount, substitute = NA)
+    if (!summarisedResult) {
+      irs <- obscureCounts(irs, minCellCount = minCellCount, substitute = NA)
+    }
   }
 
   # person_table summary
@@ -410,20 +412,90 @@ estimateIncidence <- function(cdm,
     dplyr::relocate("outcome_cohort_name", .after = "outcome_cohort_id") %>%
     dplyr::mutate(cdm_name = CDMConnector::cdm_name(cdm = cdm))
 
-  # add settings to estimates and attrition
-  if (nrow(irs) >= 1) {
-    irs <- irs %>%
+  if (!summarisedResult) {
+    # add settings to estimates and attrition
+    if (nrow(irs) >= 1) {
+      irs <- irs %>%
+        dplyr::left_join(analysisSettings, by = "analysis_id")
+    }
+    attrition <- attrition %>%
       dplyr::left_join(analysisSettings, by = "analysis_id")
+    attr(irs, "settings") <- analysisSettings
+  } else {
+    ## settings
+    analysisSettings <- analysisSettings |>
+      dplyr::mutate(
+        result_id = as.integer(.data$analysis_id),
+        result_type = "incidence",
+        package_name = "IncidencePrevalence",
+        package_version = as.character(utils::packageVersion("IncidencePrevalence"))
+      ) |>
+      dplyr::select(!c(dplyr::ends_with("_cohort_id"), dplyr::ends_with("_cohort_definition_id"))) |>
+      dplyr::select(c(
+        "result_id", "result_type", "package_name", "package_version",
+        "analysis_interval", "analysis_complete_database_intervals",
+        dplyr::starts_with("denominator_"), dplyr::starts_with("outcome_"),
+      ))
+    ## result
+    if (!"strata_name" %in% colnames(irs)) {
+      irs <- irs |>
+        visOmopResults::uniteStrata()
+    }
+    irs <- irs |>
+      dplyr::distinct() |>
+      dplyr::mutate("analysis_id" = as.integer(.data$analysis_id)) |>
+      dplyr::rename(
+        "result_id" = "analysis_id",
+        "start_date" = "incidence_start_date",
+        "end_date" = "incidence_end_date",
+        "outcome_count" = "n_events",
+        "denominator_count" = "n_persons"
+      ) |>
+      dplyr::left_join(
+        analysisSettings |>
+          dplyr::select(c(
+            "result_id", "denominator_cohort_name", "outcome_cohort_name"
+          )),
+        by = "result_id"
+      ) |>
+      visOmopResults::uniteGroup("denominator_cohort_name") |>
+      visOmopResults::uniteAdditional(c("start_date", "end_date")) |>
+      visOmopResults::uniteNameLevel(
+        cols = "outcome_cohort_name",
+        name = "variable_name",
+        level = "variable_level"
+      ) |>
+      tidyr::pivot_longer(
+        cols = c("denominator_count", "outcome_count", "person_days", "person_years",
+                 "incidence_100000_pys", "incidence_100000_pys_95CI_lower",
+                 "incidence_100000_pys_95CI_upper"),
+        names_to = "estimate_name",
+        values_to = "estimate_value"
+      ) |>
+      dplyr::mutate(
+        "estimate_value" = as.character(.data$estimate_value),
+        "estimate_type" = dplyr::if_else(
+          grepl("count", .data$estimate_name), "integer", "numeric"
+        ),
+        "cdm_name" = attr(cdm, "cdm_name"),
+        "strata_name" = dplyr::if_else(.data$strata_name == "Overall", "overall", gsub(" and ", " &&& ", .data$strata_name)),
+        "strata_level" = dplyr::if_else(.data$strata_level == "Overall", "overall", gsub(" and ", " &&& ", .data$strata_level))
+      )
+
+    irs <- omopgenerics::newSummarisedResult(irs, settings = analysisSettings) |>
+      omopgenerics::suppress(minCellCount = minCellCount)
+
+    attrition <- attrition |>
+      dplyr::mutate("result_id" = as.integer(.data$analysis_id)) |>
+      dplyr::select(!"analysis_id") |>
+      dplyr::relocate("result_id")
   }
-  attrition <- attrition %>%
-    dplyr::left_join(analysisSettings, by = "analysis_id")
+
+  # return results as an IncidencePrevalenceResult class
   attrition <- obscureAttrition(attrition,
                                 minCellCount = minCellCount
   )
-
-  # return results as an IncidencePrevalenceResult class
   attr(irs, "attrition") <- attrition
-  attr(irs, "settings") <- analysisSettings
   if (returnParticipants == TRUE) {
     attr(irs, "participants") <- cdm[[nm]]
   }
