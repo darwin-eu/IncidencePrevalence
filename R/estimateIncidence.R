@@ -90,6 +90,15 @@ estimateIncidence <- function(cdm,
                               includeOverallStrata = TRUE,
                               returnParticipants = FALSE,
                               summarisedResult = FALSE) {
+
+  if (isTRUE(returnParticipants)) {
+    lifecycle::deprecate_warn(
+      when = "0.8.0",
+      what = "IncidencePrevalence::estimateIncidence(returnParticipants)",
+      details = "The returnParticipants argument will be removed in the next release"
+    )
+  }
+
   startCollect <- Sys.time()
 
   tablePrefix <- paste0(

@@ -77,6 +77,17 @@ estimatePointPrevalence <- function(cdm,
                                     minCellCount = 5,
                                     returnParticipants = FALSE,
                                     summarisedResult = FALSE) {
+
+
+  if (isTRUE(returnParticipants)) {
+    lifecycle::deprecate_warn(
+      when = "0.8.0",
+      what = "IncidencePrevalence::estimatePointPrevalence(returnParticipants)",
+      details = "The returnParticipants argument will be removed in the next release"
+    )
+  }
+
+
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(
     all(tolower(interval) %in%
@@ -178,6 +189,15 @@ estimatePeriodPrevalence <- function(cdm,
                                      minCellCount = 5,
                                      returnParticipants = FALSE,
                                      summarisedResult = FALSE) {
+
+  if (isTRUE(returnParticipants)) {
+    lifecycle::deprecate_warn(
+      when = "0.8.0",
+      what = "IncidencePrevalence::estimatePeriodPrevalence(returnParticipants)",
+      details = "The returnParticipants argument will be removed in the next release"
+    )
+  }
+
   estimatePrevalence(
     cdm = cdm,
     denominatorTable = denominatorTable,
