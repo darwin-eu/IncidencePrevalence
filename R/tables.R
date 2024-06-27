@@ -36,7 +36,7 @@
 #' will be displayed.
 #' @param analysisSettings If TRUE database names will be displayed.
 #' @param groupColumn Column to use as group labels.
-#' #' @param type Type of desired formatted table, possibilities: "gt",
+#' @param type Type of desired formatted table, possibilities: "gt",
 #' "flextable", "tibble".
 #' @param .options Named list with additional formatting options.
 #' IncidencePrevalence::optionsTablePrevalence() shows allowed
@@ -127,7 +127,7 @@ tablePrevalence <- function(
 #' will be displayed.
 #' @param analysisSettings If TRUE database names will be displayed.
 #' @param groupColumn Column to use as group labels.
-#' #' @param type Type of desired formatted table, possibilities: "gt",
+#' @param type Type of desired formatted table, possibilities: "gt",
 #' "flextable", "tibble".
 #' @param .options Named list with additional formatting options.
 #' IncidencePrevalence::optionsTableIncidence() shows allowed
@@ -161,9 +161,10 @@ tableIncidence <- function(
     result,
     formatEstimateName = c(
       "Denominator (N)" = "<denominator_count>",
-      "Person-years" = "person_years",
+      "Person-years" = "<person_years>",
       "Outcome (N)" = "<outcome_count>",
-      "Incidence 100 person-years [95% CI]" = "<incidence_100000_pys> (<incidence_100000_pys_95CI_lower> - <incidence_100000_pys_95CI_upper>)"
+      "Incidence 100 person-years [95% CI]" =
+        "<incidence_100000_pys> (<incidence_100000_pys_95CI_lower> - <incidence_100000_pys_95CI_upper>)"
     ),
     header = c("group", "strata"),
     splitStrata = TRUE,

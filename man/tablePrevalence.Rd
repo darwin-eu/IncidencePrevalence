@@ -52,8 +52,9 @@ will be displayed.}
 
 \item{analysisSettings}{If TRUE database names will be displayed.}
 
-\item{groupColumn}{Column to use as group labels.
-#' @param type Type of desired formatted table, possibilities: "gt",
+\item{groupColumn}{Column to use as group labels.}
+
+\item{type}{Type of desired formatted table, possibilities: "gt",
 "flextable", "tibble".}
 
 \item{.options}{Named list with additional formatting options.

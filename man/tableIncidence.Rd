@@ -7,7 +7,7 @@
 tableIncidence(
   result,
   formatEstimateName = c(`Denominator (N)` = "<denominator_count>", `Person-years` =
-    "person_years", `Outcome (N)` = "<outcome_count>",
+    "<person_years>", `Outcome (N)` = "<outcome_count>",
     `Incidence 100 person-years [95\% CI]` =
     "<incidence_100000_pys> (<incidence_100000_pys_95CI_lower> - <incidence_100000_pys_95CI_upper>)"),
   header = c("group", "strata"),
@@ -50,8 +50,9 @@ will be displayed.}
 
 \item{analysisSettings}{If TRUE database names will be displayed.}
 
-\item{groupColumn}{Column to use as group labels.
-#' @param type Type of desired formatted table, possibilities: "gt",
+\item{groupColumn}{Column to use as group labels.}
+
+\item{type}{Type of desired formatted table, possibilities: "gt",
 "flextable", "tibble".}
 
 \item{.options}{Named list with additional formatting options.
