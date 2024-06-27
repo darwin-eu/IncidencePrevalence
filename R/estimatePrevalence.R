@@ -498,6 +498,7 @@ estimatePrevalence <- function(cdm,
       ))
     ## result
     prs <- prs |>
+      dplyr::distinct() |>
       dplyr::mutate("analysis_id" = as.integer(.data$analysis_id)) |>
       dplyr::rename(
         "result_id" = "analysis_id",
@@ -515,7 +516,6 @@ estimatePrevalence <- function(cdm,
       ) |>
       visOmopResults::uniteGroup("denominator_cohort_name") |>
       visOmopResults::uniteAdditional(c("start_date", "end_date")) |>
-      visOmopResults::uniteStrata() |>
       visOmopResults::uniteNameLevel(
         cols = "outcome_cohort_name",
         name = "variable_name",
@@ -532,14 +532,16 @@ estimatePrevalence <- function(cdm,
         "estimate_type" = dplyr::if_else(
           grepl("count", .data$estimate_name), "integer", "numeric"
         ),
-        "cdm_name" = attr(cdm, "cdm_name")
+        "cdm_name" = attr(cdm, "cdm_name"),
+        "strata_name" = dplyr::if_else(.data$strata_name == "Overall", "overall", gsub(" and ", " &&& ", .data$strata_name)),
+        "strata_level" = dplyr::if_else(.data$strata_level == "Overall", "overall", gsub(" and ", " &&& ", .data$strata_level))
       )
 
     prs <- omopgenerics::newSummarisedResult(prs, settings = analysisSettings) |>
       omopgenerics::suppress(minCellCount = minCellCount)
 
     ## class PrevalenceResult
-    class(prs) <- c("PrevalenceResult", class(prs))
+    class(prs) <- c("PrevalenceResult", "IncidencePrevalenceResult", class(prs))
     ## attrition
     attr(prs, "attrition") <- attrition |>
       dplyr::mutate("result_id" = as.integer(.data$analysis_id)) |>
