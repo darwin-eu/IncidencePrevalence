@@ -10,13 +10,13 @@ tablePrevalence(
   formatEstimateName = c(`Denominator (N)` = "<denominator_count>", `Outcome (N)` =
     "<outcome_count>", `Prevalence [95\% CI]` =
     "<prevalence> (<prevalence_95CI_lower> - <prevalence_95CI_upper>)"),
-  header = c("group", "strata"),
+  header = c("variable", "estimate"),
   splitStrata = TRUE,
   cdmName = TRUE,
   outcomeName = TRUE,
   outcomeSettings = FALSE,
   denominatorName = TRUE,
-  denominatorSettings = FALSE,
+  denominatorSettings = TRUE,
   analysisSettings = FALSE,
   groupColumn = NULL,
   type = "gt",

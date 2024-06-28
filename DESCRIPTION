@@ -72,3 +72,5 @@ VignetteBuilder: knitr
 Language: en-US
 License: Apache License (>= 2)
 URL: https://darwin-eu.github.io/IncidencePrevalence/
+Remotes:
+    darwin-eu-dev/omopgenerics

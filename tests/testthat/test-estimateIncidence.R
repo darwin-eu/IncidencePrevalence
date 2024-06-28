@@ -3326,20 +3326,17 @@ test_that("test summarised result working", {
     outcomeTable = "outcome",
     interval = "months",
     strata = list(c("my_strata")),
-    summarisedResult = TRUE
+    summarisedResult = TRUE,
+    minCellCount = 0
   )
   expect_true("summarised_result" %in% class(inc))
-  expect_no_error(inc_tidy <- visOmopResults::tidy(inc, addSettings = FALSE))
-  expect_true(all(c("my_strata") %in% colnames(inc_tidy)))
-  expect_true(all(c("overall", "first") %in%
-                    unique(inc_tidy %>%
-                             dplyr::pull("my_strata"))))
   inc2 <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "months",
-    strata = list(c("my_strata"))
+    strata = list(c("my_strata")),
+    minCellCount = 0
   )
   expect_equal(
     attrition(inc2) |>
@@ -3347,9 +3344,24 @@ test_that("test summarised result working", {
       dplyr::select(result_id, number_records, number_subjects, reason_id, reason, excluded_records, excluded_subjects),
     attrition(inc)
   )
-  expect_true(nrow(inc_tidy) == nrow(inc2))
 
-  # TODO: check suppress
+  inc_tidy <- inc |> visOmopResults::tidy()
+  inc_sup <- inc |> omopgenerics::suppress() |> visOmopResults::tidy()
+  expect_no_error(inc_tidy <- visOmopResults::tidy(inc, addSettings = FALSE))
+  expect_true(nrow(inc_tidy) == nrow(inc2))
+  expect_true(all(c("my_strata") %in% colnames(inc_tidy)))
+  expect_true(all(c("overall", "first") %in%
+                    unique(inc_tidy %>%
+                             dplyr::pull("my_strata"))))
+  # suppress
+  sup <- inc_tidy |> dplyr::filter(denominator_count < 5 & denominator_count > 0) |>
+    dplyr::select(!c("denominator_count", "outcome_count", "incidence_100000_pys", "incidence_100000_pys_95CI_lower",
+                     "incidence_100000_pys_95CI_upper", "person_days", "person_years"))
+
+  expect_true(all(is.na(inc_sup |> dplyr::inner_join(sup) |> dplyr::pull("denominator_count"))))
+  expect_true(all(is.na(inc_sup |> dplyr::inner_join(sup) |> dplyr::pull("person_days"))))
+  expect_true(all(is.na(inc_sup |> dplyr::inner_join(sup) |> dplyr::pull("incidence_100000_pys"))))
+  expect_false(any(is.na(inc_sup |> dplyr::inner_join(sup) |> dplyr::pull("outcome_count"))))
 
   CDMConnector::cdm_disconnect(cdm)
 

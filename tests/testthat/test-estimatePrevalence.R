@@ -1087,9 +1087,9 @@ test_that("mock db: check attrition with complete database intervals", {
                               minCellCount = 5
   )
 
-  expect_true(is.na(attrition(prev2) %>%
+  expect_true(attrition(prev2) %>%
                 dplyr::filter(reason == "Not observed during the complete database interval") %>%
-                dplyr::pull("excluded_subjects")))
+                dplyr::pull("excluded_subjects") == "<5")
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -1471,11 +1471,12 @@ test_that("summarise result works", {
     interval = "years",
     strata = list(c("my_strata")),
     summarisedResult = TRUE,
-    minCellCount = 0,
-    returnParticipants = TRUE
+    minCellCount = 0
   )
 
   expect_true("summarised_result" %in% class(prev_sr))
+  # suppress
+  prev_sup <- prev_sr |> omopgenerics::suppress(minCellCount = 2) |> visOmopResults::tidy()
   expect_no_error(prev_tidy <- visOmopResults::tidy(prev_sr, addSettings = FALSE))
   expect_true(all(c("my_strata") %in% colnames(prev_tidy)))
   expect_true(all(c("overall", "first") %in%
@@ -1492,25 +1493,29 @@ test_that("summarise result works", {
   )
   expect_true(unique(settings(prev_sr)$result_type) == "point_prevalence")
 
+  sup <- prev_tidy |> dplyr::filter(outcome_count < 2 & outcome_count > 0) |>
+    dplyr::select(!c("denominator_count", "outcome_count", "prevalence", "prevalence_95CI_lower", "prevalence_95CI_upper"))
+
+  expect_true(all(is.na(prev_sup |> dplyr::inner_join(sup) |> dplyr::pull("outcome_count"))))
+  expect_true(all(is.na(prev_sup |> dplyr::inner_join(sup) |> dplyr::pull("prevalence"))))
+  expect_true(all(is.na(prev_sup |> dplyr::inner_join(sup) |> dplyr::pull("prevalence_95CI_upper"))))
+  expect_false(any(is.na(prev_sup |> dplyr::inner_join(sup) |> dplyr::pull("denominator_count"))))
+
   prev <- estimatePrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "years",
     strata = list(c("my_strata")),
-    minCellCount = 0,
-    returnParticipants = TRUE
+    minCellCount = 0
   )
   expect_equal(
     attrition(prev_sr),
     attrition(prev) |>
       dplyr::mutate(result_id = as.integer(analysis_id)) |>
       dplyr::select(result_id, number_records, number_subjects, reason_id, reason, excluded_records, excluded_subjects))
-
-  expect_equal(participants(prev_sr, 1) |> dplyr::collect(), participants(prev, 1) |> dplyr::collect())
   expect_true(nrow(prev_tidy) == nrow(prev))
 
-  # TODO check suppress
   prev_sr <- estimatePeriodPrevalence(
     cdm = cdm,
     denominatorTable = "denominator",
