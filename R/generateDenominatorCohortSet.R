@@ -728,7 +728,7 @@ unionCohorts <- function(cdm,
       # drop intermediate tables
       CDMConnector::dropTable(
         cdm = cdm,
-        name = tidyselect::starts_with(paste0(intermediateTable, "_b"))
+        name = dplyr::starts_with(paste0(intermediateTable, "_b"))
       )
   }
 

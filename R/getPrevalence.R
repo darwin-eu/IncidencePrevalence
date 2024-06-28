@@ -207,7 +207,7 @@ getPrevalence <- function(cdm,
 
       CDMConnector::dropTable(
         cdm = cdm,
-        name = tidyselect::starts_with(paste0(tablePrefix, "_prev_working_"))
+        name = dplyr::starts_with(paste0(tablePrefix, "_prev_working_"))
       )
 
     }
