@@ -237,14 +237,14 @@ getPlotData <- function(estimates, facetVars, colourVars) {
   if (!is.null(facetVars)) {
     plotData <- plotData %>%
       tidyr::unite("facet_var",
-        c(tidyselect::all_of(.env$facetVars)),
+        c(dplyr::all_of(.env$facetVars)),
         remove = FALSE, sep = "; "
       )
   }
   if (!is.null(colourVars)) {
     plotData <- plotData %>%
       tidyr::unite("colour_vars",
-        c(tidyselect::all_of(.env$colourVars)),
+        c(dplyr::all_of(.env$colourVars)),
         remove = FALSE, sep = "; "
       )
   }

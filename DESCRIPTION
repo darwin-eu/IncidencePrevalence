@@ -49,7 +49,6 @@ Imports:
     stringr (>= 1.5.0),
     tibble,
     tidyr (>= 1.2.0),
-    tidyselect (>= 1.2.0),
     visOmopResults
 Suggests: 
     knitr,
@@ -63,7 +62,6 @@ Suggests:
     tictoc,
     testthat (>= 0.3.1),
     spelling,
-    PaRe,
     gt,
     flextable
 Config/testthat/edition: 3

@@ -419,7 +419,7 @@ getDenominatorCohorts <- function(cdm,
   # remove intermediate tables
   CDMConnector::dropTable(
     cdm = cdm,
-    name = tidyselect::starts_with(paste0(intermediateTable, "_"))
+    name = dplyr::starts_with(paste0(intermediateTable, "_"))
   )
 
   # return list with population and attrition

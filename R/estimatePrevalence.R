@@ -385,7 +385,7 @@ estimatePrevalence <- function(cdm,
       omopgenerics::settings(cdm[[denominatorTable]]) %>%
         dplyr::rename("cohort_id" = "cohort_definition_id") %>%
         dplyr::rename_with(
-          .cols = tidyselect::everything(),
+          .cols = dplyr::everything(),
           function(x) {
             paste0("denominator_", x)
           }
@@ -431,7 +431,7 @@ estimatePrevalence <- function(cdm,
 
   CDMConnector::dropTable(
     cdm = cdm,
-    name = tidyselect::starts_with(paste0(tablePrefix, "_analysis_"))
+    name = dplyr::starts_with(paste0(tablePrefix, "_analysis_"))
   )
 
   # prevalence estimates
