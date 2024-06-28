@@ -229,8 +229,8 @@ getPlotData <- function(estimates, facetVars, colourVars) {
     visOmopResults::splitAdditional() |>
     visOmopResults::addSettings() |>
     dplyr::select(!estimate_type) |>
-    tidyr::pivot_wider(names_from = estimate_name,
-                       values_from = estimate_value)
+    tidyr::pivot_wider(names_from = .data$estimate_name,
+                       values_from = .data$estimate_value)
   }
 
 

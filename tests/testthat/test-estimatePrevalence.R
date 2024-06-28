@@ -1523,7 +1523,7 @@ test_that("summarise result works", {
   expect_true(
     all(colnames(prev_tidy) == c(
       'result_id', 'cdm_name', 'denominator_cohort_name', 'variable_name', 'variable_level',
-      'start_date', 'end_date', 'denominator_count', 'outcome_count', 'prevalence',
+      'prevalence_start_date', 'prevalence_end_date', 'denominator_count', 'outcome_count', 'prevalence',
       'prevalence_95CI_lower', 'prevalence_95CI_upper'
     ))
   )
