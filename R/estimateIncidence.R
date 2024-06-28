@@ -446,8 +446,6 @@ estimateIncidence <- function(cdm,
       dplyr::mutate("analysis_id" = as.integer(.data$analysis_id)) |>
       dplyr::rename(
         "result_id" = "analysis_id",
-        "start_date" = "incidence_start_date",
-        "end_date" = "incidence_end_date",
         "outcome_count" = "n_events",
         "denominator_count" = "n_persons"
       ) |>
@@ -459,7 +457,7 @@ estimateIncidence <- function(cdm,
         by = "result_id"
       ) |>
       visOmopResults::uniteGroup("denominator_cohort_name") |>
-      visOmopResults::uniteAdditional(c("start_date", "end_date")) |>
+      visOmopResults::uniteAdditional(c("incidence_start_date", "incidence_end_date")) |>
       visOmopResults::uniteNameLevel(
         cols = "outcome_cohort_name",
         name = "variable_name",

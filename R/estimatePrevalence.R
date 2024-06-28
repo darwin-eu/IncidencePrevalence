@@ -518,8 +518,6 @@ estimatePrevalence <- function(cdm,
       dplyr::mutate("analysis_id" = as.integer(.data$analysis_id)) |>
       dplyr::rename(
         "result_id" = "analysis_id",
-        "start_date" = "prevalence_start_date",
-        "end_date" = "prevalence_end_date",
         "outcome_count" = "n_cases",
         "denominator_count" = "n_population"
       ) |>
@@ -531,7 +529,7 @@ estimatePrevalence <- function(cdm,
         by = "result_id"
       ) |>
       visOmopResults::uniteGroup("denominator_cohort_name") |>
-      visOmopResults::uniteAdditional(c("start_date", "end_date")) |>
+      visOmopResults::uniteAdditional(c("prevalence_start_date", "prevalence_end_date")) |>
       visOmopResults::uniteNameLevel(
         cols = "outcome_cohort_name",
         name = "variable_name",

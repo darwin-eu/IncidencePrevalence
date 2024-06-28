@@ -115,15 +115,26 @@ plotEstimates <- function(result,
                           options) {
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(inherits(result, "IncidencePrevalenceResult"))
-  checkmate::assertTRUE(all(c(x, y) %in% colnames(result)))
+  # checkmate::assertTRUE(all(c(x, y) %in% colnames(result)))
   checkmate::assertList(options, add = errorMessage)
   checkmate::reportAssertions(collection = errorMessage)
+
+
+  hideConfidenceInterval <- "hideConfidenceInterval" %in% names(options) &&
+    options[["hideConfidenceInterval"]]
+  yLower <- ifelse(hideConfidenceInterval, y, paste0(y, "_95CI_lower"))
+  yUpper <- ifelse(hideConfidenceInterval, y, paste0(y, "_95CI_upper"))
+
 
   plot_data <- getPlotData(
     estimates = result,
     facetVars = facet,
     colourVars = colour
-  )
+  ) |>
+    dplyr::mutate(!!y := as.numeric(!!rlang::sym(y)),
+                  !!yLower := as.numeric(!!rlang::sym(yLower)),
+                  !!yUpper := as.numeric(!!rlang::sym(yUpper))) %>%
+    dplyr::mutate(across(contains("date"), as.Date))
 
   if (is.null(colour)) {
     plot <- plot_data %>%
@@ -151,10 +162,6 @@ plotEstimates <- function(result,
       )
   }
 
-  hideConfidenceInterval <- "hideConfidenceInterval" %in% names(options) &&
-    options[["hideConfidenceInterval"]]
-  yLower <- ifelse(hideConfidenceInterval, y, paste0(y, "_95CI_lower"))
-  yUpper <- ifelse(hideConfidenceInterval, y, paste0(y, "_95CI_upper"))
 
   plot <- plot +
     ggplot2::geom_point(size = 2.5) +
@@ -216,6 +223,17 @@ plotEstimates <- function(result,
 
 getPlotData <- function(estimates, facetVars, colourVars) {
   plotData <- estimates
+
+  if("summarised_result" %in% class(estimates)){
+    plotData <- plotData |>
+    visOmopResults::splitAdditional() |>
+    visOmopResults::addSettings() |>
+    dplyr::select(!estimate_type) |>
+    tidyr::pivot_wider(names_from = .data$estimate_name,
+                       values_from = .data$estimate_value)
+  }
+
+
   if (!is.null(facetVars)) {
     plotData <- plotData %>%
       tidyr::unite("facet_var",

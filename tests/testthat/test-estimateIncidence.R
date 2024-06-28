@@ -69,25 +69,18 @@ test_that("mock db: check output format", {
   my_settings <- settings(inc)
   expect_true(nrow(my_settings) > 0)
 
-  # do not return participants as default
-  expect_true(is.null(participants(inc, 1)))
-  CDMConnector::cdm_disconnect(cdm)
 
-  cdm <- mockIncidencePrevalenceRef()
-  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
+
   inc <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "months",
-    returnParticipants = TRUE
+    summarisedResult = TRUE
   )
-  expect_true(tibble::is_tibble(participants(inc, 1) %>%
-                                  dplyr::collect()))
-  expect_true(participants(inc, 1) %>%
-                dplyr::collect() %>%
-                dplyr::select("subject_id") %>%
-                dplyr::pull() == 1)
+  expect_true("summarised_result" %in% class(inc))
+  expect_equal(colnames(inc),
+               omopgenerics::resultColumns())
 
   CDMConnector::cdm_disconnect(cdm)
 })

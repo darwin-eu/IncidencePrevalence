@@ -256,10 +256,18 @@ tableInternal <- function(
         omopgenerics::settings(result) |>
           dplyr::select(dplyr::all_of(settingsToSelect)),
         by = "result_id"
-      ) |>
-      visOmopResults::uniteAdditional(
-        cols = c("start_date", "end_date", settingsToSelect[!settingsToSelect %in% "result_id"])
       )
+    if("incidence_start_date" %in% colnames(result)){
+      result <- result |>
+        visOmopResults::uniteAdditional(
+          cols = c("incidence_start_date", "incidence_end_date", settingsToSelect[!settingsToSelect %in% "result_id"])
+        )
+    } else {
+      result <- result |>
+        visOmopResults::uniteAdditional(
+          cols = c("prevalence_start_date", "prevalence_end_date", settingsToSelect[!settingsToSelect %in% "result_id"])
+        )
+    }
   }
 
   ## cdm name
