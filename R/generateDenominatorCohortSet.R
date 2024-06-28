@@ -750,10 +750,11 @@ updateCohort <- function(table, x, name, cdm) {
         temporary = FALSE
       )
   } else {
-    table <- CDMConnector::appendPermanent(
-      x = x,
-      name = name
-    )
+    table <- dplyr::union_all(table, x) %>%
+      dplyr::compute(
+        name = name,
+        temporary = FALSE
+      )
   }
   return(table)
 }
