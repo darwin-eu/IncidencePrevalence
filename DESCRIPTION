@@ -37,9 +37,7 @@ Imports:
     dbplyr (>= 2.5.0),
     dplyr (>= 1.1.0),
     glue (>= 1.5.0),
-    ggplot2 (>= 3.4.0),
     omopgenerics (>= 0.1.2),
-    scales (>= 1.1.0),
     lifecycle,
     lubridate (>= 1.0.0),
     magrittr (>= 2.0.0),
@@ -47,7 +45,6 @@ Imports:
     purrr (>= 0.3.5),
     rlang (>= 1.0.0),
     stringr (>= 1.5.0),
-    tibble,
     tidyr (>= 1.2.0),
     visOmopResults
 Suggests: 
@@ -63,7 +60,9 @@ Suggests:
     testthat (>= 0.3.1),
     spelling,
     gt,
-    flextable
+    flextable,
+    ggplot2 (>= 3.4.0),
+    scales (>= 1.1.0)
 Config/testthat/edition: 3
 Config/testthat/parallel: true
 VignetteBuilder: knitr

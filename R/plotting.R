@@ -113,6 +113,10 @@ plotEstimates <- function(result,
                           colour,
                           colour_name,
                           options) {
+
+  rlang::check_installed("ggplot2", reason = "for plot functions")
+  rlang::check_installed("scales", reason = "for plot functions")
+
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(inherits(result, "IncidencePrevalenceResult"))
   # checkmate::assertTRUE(all(c(x, y) %in% colnames(result)))

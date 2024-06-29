@@ -86,20 +86,20 @@ test_that("mock db: check output format", {
 })
 
 test_that("mock db: checks on working example", {
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2000-01-01"),
     observation_period_end_date = as.Date("2012-06-01")
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
@@ -150,20 +150,20 @@ test_that("mock db: checks on working example", {
 
 test_that("mock db: check working example 2", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-01"),
     observation_period_end_date = as.Date("2012-06-01")
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
@@ -245,20 +245,20 @@ test_that("mock db: check working example 2", {
 
 test_that("mock db: check study periods", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-15"),
     observation_period_end_date = as.Date("2010-12-15")
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
@@ -316,14 +316,14 @@ test_that("mock db: check study periods", {
 
 test_that("mock db: check overall", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
@@ -335,7 +335,7 @@ test_that("mock db: check overall", {
       as.Date("2011-06-15")
     )
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = c("1", "2", "2"),
     cohort_start_date = c(
@@ -403,14 +403,14 @@ test_that("mock db: check overall", {
 
 test_that("mock db: check person days", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
     year_of_birth = c(2000, 1999),
     month_of_birth = c(07, 07),
     day_of_birth = c(01, 01)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
@@ -422,7 +422,7 @@ test_that("mock db: check person days", {
       as.Date("2022-10-05")
     )
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(as.Date("2021-06-27")),
@@ -497,20 +497,20 @@ test_that("mock db: check periods follow calendar dates", {
   skip_on_cran()
   # check that even if startDate as during a period
   # periods still follow calendar dates
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-01"),
     observation_period_end_date = as.Date("2012-12-31")
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
@@ -577,20 +577,20 @@ test_that("mock db: check periods follow calendar dates", {
 
 test_that("mock db: check washout windows", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-01"),
     observation_period_end_date = as.Date("2012-12-31")
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
@@ -682,20 +682,20 @@ test_that("mock db: check washout windows", {
 
 
   # never satisfy criteria in study period
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2009-01-01"),
     observation_period_end_date = as.Date("2012-12-31")
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
@@ -731,14 +731,14 @@ test_that("mock db: check washout windows", {
 
 test_that("mock db: check events overlapping with start of a period", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
     year_of_birth = c(2000, 1999),
     month_of_birth = c(07, 07),
     day_of_birth = c(01, 01)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
@@ -750,7 +750,7 @@ test_that("mock db: check events overlapping with start of a period", {
       as.Date("2022-12-31")
     )
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(as.Date("2020-06-27")),
@@ -783,14 +783,14 @@ test_that("mock db: check events overlapping with start of a period", {
   CDMConnector::cdm_disconnect(cdm)
 
   # another example
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
     year_of_birth = c(2000, 1999),
     month_of_birth = c(07, 07),
     day_of_birth = c(01, 01)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
@@ -802,7 +802,7 @@ test_that("mock db: check events overlapping with start of a period", {
       as.Date("2022-12-31")
     )
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = c(1, 1),
     subject_id = c("1", "1"),
     cohort_start_date = c(as.Date("2020-06-27"), as.Date("2020-07-30")),
@@ -836,14 +836,14 @@ test_that("mock db: check events overlapping with start of a period", {
 
 test_that("mock db: compare results from months and years", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = rep("8507", 2),
     year_of_birth = rep(2000, 2),
     month_of_birth = rep(01, 2),
     day_of_birth = rep(01, 2)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
@@ -855,7 +855,7 @@ test_that("mock db: compare results from months and years", {
       as.Date("2012-01-01")
     )
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
@@ -981,20 +981,20 @@ test_that("mock db: compare results from months and years", {
 
 test_that("mock db: check entry and event on same day", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-28"),
     observation_period_end_date = as.Date("2012-12-31")
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
@@ -1042,14 +1042,14 @@ test_that("mock db: check entry and event on same day", {
 
 test_that("mock db: cohort start overlaps with the outcome", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
     year_of_birth = c(1995, 1995),
     month_of_birth = c(07, 07),
     day_of_birth = c(01, 01)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
@@ -1061,7 +1061,7 @@ test_that("mock db: cohort start overlaps with the outcome", {
       as.Date("2021-12-31")
     )
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = c("1"),
     cohort_start_date = c(as.Date("2019-05-09")),
@@ -1098,14 +1098,14 @@ test_that("mock db: cohort start overlaps with the outcome", {
 test_that("mock db: check outcome in previous obeservation period", {
   skip_on_cran()
   # 1) with outcome starting and ending before observation period start
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
     year_of_birth = c(1995, 1995),
     month_of_birth = c(07, 07),
     day_of_birth = c(01, 01)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2" ,"3"),
     person_id = c("1", "1", "2"),
     observation_period_start_date = c(
@@ -1119,7 +1119,7 @@ test_that("mock db: check outcome in previous obeservation period", {
       as.Date("2020-12-31")
     )
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = c(1, 1),
     subject_id = c("1", "1"),
     cohort_start_date = as.Date(c("2000-01-01", "2018-01-01")),
@@ -1181,14 +1181,14 @@ test_that("mock db: check outcome in previous obeservation period", {
 test_that("mock db: check minimum counts", {
   skip_on_cran()
   # 20 people
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = as.character(c(1:20)),
     gender_concept_id = rep("8507", 20),
     year_of_birth = rep(2000, 20),
     month_of_birth = rep(01, 20),
     day_of_birth = rep(01, 20)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = as.character(c(1:20)),
     person_id = as.character(c(1:20)),
     observation_period_start_date = rep(as.Date("2000-01-01"), 20),
@@ -1197,7 +1197,7 @@ test_that("mock db: check minimum counts", {
   outcomeTable <-
     dplyr::bind_rows(
       # 17 in first period
-      tibble::tibble(
+      dplyr::tibble(
         cohort_definition_id = rep("1", 17),
         subject_id = as.character(c(1:17)),
         cohort_start_date = rep(
@@ -1208,7 +1208,7 @@ test_that("mock db: check minimum counts", {
         )
       ),
       # three in second
-      tibble::tibble(
+      dplyr::tibble(
         cohort_definition_id = rep("1", 3),
         subject_id = as.character(c(18:20)),
         cohort_start_date = rep(
@@ -1281,14 +1281,14 @@ test_that("mock db: check minimum counts", {
 test_that("mock db: multiple overlapping outcomes", {
   skip_on_cran()
   # two
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
     year_of_birth = c(1995, 1995),
     month_of_birth = c(07, 07),
     day_of_birth = c(01, 01)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
@@ -1300,7 +1300,7 @@ test_that("mock db: multiple overlapping outcomes", {
       as.Date("2021-12-31")
     )
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = c(1, 1),
     subject_id = c("1", "1"),
     cohort_start_date = c(as.Date("2020-04-29"), as.Date("2020-11-10")),
@@ -1328,14 +1328,14 @@ test_that("mock db: multiple overlapping outcomes", {
   CDMConnector::cdm_disconnect(cdm)
 
   # three
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
     year_of_birth = c(1995, 1995),
     month_of_birth = c(07, 07),
     day_of_birth = c(01, 01)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
@@ -1347,7 +1347,7 @@ test_that("mock db: multiple overlapping outcomes", {
       as.Date("2021-12-31")
     )
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = c(1, 1, 1),
     subject_id = c("1", "1", "1"),
     cohort_start_date = c(
@@ -1386,14 +1386,14 @@ test_that("mock db: multiple overlapping outcomes", {
 
 test_that("mock db: cohort before period start ending after period", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
     year_of_birth = c(1990, 1990),
     month_of_birth = c(01, 01),
     day_of_birth = c(01, 01)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
@@ -1405,7 +1405,7 @@ test_that("mock db: cohort before period start ending after period", {
       as.Date("2010-01-01")
     )
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = c(1, 1),
     subject_id = c("1", "2"),
     cohort_start_date = c(
@@ -1463,14 +1463,14 @@ test_that("mock db: cohort before period start ending after period", {
 
 test_that("mock db: check full period requirement - year", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
     year_of_birth = c(1995, 1995),
     month_of_birth = c(07, 07),
     day_of_birth = c(01, 01)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
@@ -1482,7 +1482,7 @@ test_that("mock db: check full period requirement - year", {
       as.Date("2021-06-06")
     )
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = c("1"),
     cohort_start_date = c(as.Date("2020-05-28")),
@@ -1515,14 +1515,14 @@ test_that("mock db: check full period requirement - year", {
 
   # edge case first day to last of the year
   # still expect this to work
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
     year_of_birth = c(1995, 1995),
     month_of_birth = c(07, 07),
     day_of_birth = c(01, 01)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
@@ -1534,7 +1534,7 @@ test_that("mock db: check full period requirement - year", {
       as.Date("2020-12-31")
     )
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = c("1"),
     cohort_start_date = c(as.Date("2020-05-29")),
@@ -1569,14 +1569,14 @@ test_that("mock db: check full period requirement - year", {
 test_that("mock db: check full period requirement - month", {
   skip_on_cran()
   # expected to work
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
     year_of_birth = c(1995, 1995),
     month_of_birth = c(07, 07),
     day_of_birth = c(01, 01)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
@@ -1588,7 +1588,7 @@ test_that("mock db: check full period requirement - month", {
       as.Date("2020-06-06")
     )
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = c("1"),
     cohort_start_date = c(as.Date("2020-04-28")),
@@ -1620,14 +1620,14 @@ test_that("mock db: check full period requirement - month", {
 
   # edge case first day to last of the month
   # still expect this to work
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
     year_of_birth = c(1995, 1995),
     month_of_birth = c(07, 07),
     day_of_birth = c(01, 01)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
@@ -1639,7 +1639,7 @@ test_that("mock db: check full period requirement - month", {
       as.Date("2020-01-31")
     )
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = c("1"),
     cohort_start_date = c(as.Date("2020-04-28")),
@@ -1674,14 +1674,14 @@ test_that("mock db: check full period requirement - month", {
 
 test_that("mock db: check completeDatabaseIntervals", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
     year_of_birth = c(1995, 1995),
     month_of_birth = c(07, 07),
     day_of_birth = c(01, 01)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
@@ -1693,7 +1693,7 @@ test_that("mock db: check completeDatabaseIntervals", {
       as.Date("2021-06-06")
     )
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = c("1"),
     cohort_start_date = c(as.Date("2020-04-28")),
@@ -1780,14 +1780,14 @@ test_that("mock db: check completeDatabaseIntervals", {
 
 test_that("mock db: check insufficient study days", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
     year_of_birth = c(1995, 1995),
     month_of_birth = c(07, 07),
     day_of_birth = c(01, 01)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
@@ -1799,7 +1799,7 @@ test_that("mock db: check insufficient study days", {
       as.Date("2019-06-06")
     )
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = c("1"),
     cohort_start_date = c(as.Date("2019-06-01")),
@@ -1836,7 +1836,7 @@ test_that("mock db: check insufficient study days", {
 
 test_that("mock db: check with and without study start and end date", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2", "3", "4", "5", "6"),
     gender_concept_id = "8507",
     year_of_birth = 2000,
@@ -1844,7 +1844,7 @@ test_that("mock db: check with and without study start and end date", {
     day_of_birth = 01
   )
   # one person leaving before 2010
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2", "3", "4", "5", "6"),
     person_id = c("1", "2", "3", "4", "5", "6"),
     observation_period_start_date = c(
@@ -1859,45 +1859,45 @@ test_that("mock db: check with and without study start and end date", {
   )
   outcomeTable <- dplyr::bind_rows(
     # 1 event before obs start ending after obs end
-    tibble::tibble(
+    dplyr::tibble(
       cohort_definition_id = 1,
       subject_id = "1",
       cohort_start_date = c(as.Date("2007-01-01")),
       cohort_end_date = c(as.Date("2022-12-31"))
     ),
     # 2 multiple events
-    tibble::tibble(
+    dplyr::tibble(
       cohort_definition_id = 1,
       subject_id = "2",
       cohort_start_date = c(as.Date("2008-06-01")),
       cohort_end_date = c(as.Date("2008-10-01"))
     ),
-    tibble::tibble(
+    dplyr::tibble(
       cohort_definition_id = 1,
       subject_id = "2",
       cohort_start_date = c(as.Date("2008-11-01")),
       cohort_end_date = c(as.Date("2010-10-14"))
     ),
-    tibble::tibble(
+    dplyr::tibble(
       cohort_definition_id = 1,
       subject_id = "2",
       cohort_start_date = c(as.Date("2010-12-01")),
       cohort_end_date = c(as.Date("2011-06-18"))
     ),
-    tibble::tibble(
+    dplyr::tibble(
       cohort_definition_id = 1,
       subject_id = "2",
       cohort_start_date = c(as.Date("2011-06-19")),
       cohort_end_date = c(as.Date("2012-12-31"))
     ),
     # 3 multiple events into the period
-    tibble::tibble(
+    dplyr::tibble(
       cohort_definition_id = 1,
       subject_id = "3",
       cohort_start_date = c(as.Date("2009-06-01")),
       cohort_end_date = c(as.Date("2010-02-01"))
     ),
-    tibble::tibble(
+    dplyr::tibble(
       cohort_definition_id = 1,
       subject_id = "3",
       cohort_start_date = c(as.Date("2010-06-01")),
@@ -2265,20 +2265,20 @@ test_that("mock db: check study start and end date 1000", {
 
 test_that("expected errors with mock", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-01"),
     observation_period_end_date = as.Date("2012-06-01")
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
@@ -2344,7 +2344,7 @@ test_that("expected errors with mock", {
 test_that("mock db: multiple observation periods", {
   skip_on_cran()
   # create data for hypothetical people to test
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8507"),
     year_of_birth = c(1998, 1976),
@@ -2352,7 +2352,7 @@ test_that("mock db: multiple observation periods", {
     day_of_birth = c(12, 01)
   )
 
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2", "3"),
     person_id = c("1", "1", "2"),
     observation_period_start_date = c(
@@ -2367,7 +2367,7 @@ test_that("mock db: multiple observation periods", {
     )
   )
 
-  conditionX <- tibble::tibble(
+  conditionX <- dplyr::tibble(
     cohort_definition_id = c(1, 1),
     subject_id = c("1", "2"),
     cohort_start_date = c(
@@ -2380,7 +2380,7 @@ test_that("mock db: multiple observation periods", {
     )
   )
 
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = c(1, 1, 1, 1),
     subject_id = c("1", "1", "2", "2"),
     cohort_start_date = c(
@@ -2427,7 +2427,7 @@ test_that("mock db: multiple observation periods", {
 
   # Change the inclusion so that both patients have valid observation periods. Now 1 should have two, and 2 one.
   # Should capture the final part of the first observation period, and the initial part of the second for person 1
-  conditionX <- tibble::tibble(
+  conditionX <- dplyr::tibble(
     cohort_definition_id = c(1, 1, 1),
     subject_id = c("1", "1", "2"),
     cohort_start_date = c(
@@ -2468,7 +2468,7 @@ test_that("mock db: multiple observation periods", {
   CDMConnector::cdm_disconnect(cdm)
 
   # try event not counted for outcome but counted for washout as denominator (before observ period)
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = c(1, 1, 1, 1, 1),
     subject_id = c("1", "1", "1", "2", "2"),
     cohort_start_date = c(
@@ -2512,7 +2512,7 @@ test_that("mock db: multiple observation periods", {
   CDMConnector::cdm_disconnect(cdm)
 
   # multiple events in one of the observation periods of person 1
-  conditionX <- tibble::tibble(
+  conditionX <- dplyr::tibble(
     cohort_definition_id = c(1, 1, 1),
     subject_id = c("1", "1", "2"),
     cohort_start_date = c(
@@ -2579,7 +2579,7 @@ test_that("mock db: multiple observation periods", {
 
   # The first event of person 1 will not be included in the observation period
   # but should also influence the second event with the washout
-  conditionX <- tibble::tibble(
+  conditionX <- dplyr::tibble(
     cohort_definition_id = c(1, 1, 1),
     subject_id = c("1", "1", "2"),
     cohort_start_date = c(
@@ -2629,7 +2629,7 @@ test_that("mock db: multiple observation periods", {
 
   # three observation periods for 1 person and a
   # couple of consecutive events lost to washout
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2", "3", "4"),
     person_id = c("1", "1", "1", "2"),
     observation_period_start_date = c(
@@ -2646,7 +2646,7 @@ test_that("mock db: multiple observation periods", {
     )
   )
 
-  conditionX <- tibble::tibble(
+  conditionX <- dplyr::tibble(
     cohort_definition_id = c(1, 1, 1, 1),
     subject_id = c("1", "1", "1", "2"),
     cohort_start_date = c(
@@ -2663,7 +2663,7 @@ test_that("mock db: multiple observation periods", {
     )
   )
 
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = c(1, 1, 1, 1, 1, 1, 1),
     subject_id = c("1", "1", "1", "1", "1", "1", "2"),
     cohort_start_date = c(
@@ -2807,14 +2807,14 @@ test_that("mock db: check attrition", {
 
 test_that("mock db: check attrition with complete database intervals", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
@@ -2826,7 +2826,7 @@ test_that("mock db: check attrition with complete database intervals", {
       as.Date("2000-07-01")
     )
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = c(
@@ -3203,14 +3203,14 @@ test_that("mock db: incidence using strata vars", {
 
 test_that("mock db: multiple outcome cohort id", {
 
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(
@@ -3222,7 +3222,7 @@ test_that("mock db: multiple outcome cohort id", {
       as.Date("2011-06-15")
     )
   )
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = c(1,1,2),
     subject_id = c("1", "2", "2"),
     cohort_start_date = c(

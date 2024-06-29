@@ -11,7 +11,7 @@ test_that("full benchmark", {
   )
 
   timings <- benchmarkIncidencePrevalence(cdm)
-  expect_true(tibble::is_tibble(timings))
+  expect_true(is.data.frame(timings))
   expect_true("summarised_result" %in%  class(timings))
   expect_equal(colnames(timings),
               colnames(omopgenerics::emptySummarisedResult()))

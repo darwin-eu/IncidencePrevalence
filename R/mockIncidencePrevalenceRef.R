@@ -84,13 +84,13 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
 
   errorMessage <- checkmate::makeAssertCollection()
   if(!is.null(personTable)){
-    checkmate::assert_true(tibble::is_tibble(personTable))
+    checkmate::assert_true(is.data.frame(personTable))
   }
   if(!is.null(observationPeriodTable)){
-    checkmate::assert_true(tibble::is_tibble(observationPeriodTable))
+    checkmate::assert_true(is.data.frame(observationPeriodTable))
   }
   if(!is.null(outcomeTable)){
-    checkmate::assert_true(tibble::is_tibble(outcomeTable))
+    checkmate::assert_true(is.data.frame(outcomeTable))
   }
   checkmate::assert_int(sampleSize, lower = 1)
   checkmate::assert_int(seed, lower = 1)

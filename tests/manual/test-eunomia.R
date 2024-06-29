@@ -9,8 +9,8 @@ test_that("eunomia test - some empty cohorts", {
   )
 
   # outcome cohorts
-  celecoxib_codes <- tibble::tibble("concept_id" = c(1118084))
-  diclofenac_codes <- tibble::tibble("concept_id" = c(1124300))
+  celecoxib_codes <- dplyr::tibble("concept_id" = c(1118084))
+  diclofenac_codes <- dplyr::tibble("concept_id" = c(1124300))
 
   # celecoxib
   cdm$celecoxib <- cdm$drug_era %>%

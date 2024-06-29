@@ -1,4 +1,7 @@
 test_that("basic incidence plot", {
+  skip_if_not_installed("ggplot2")
+  skip_if_not_installed("scales")
+
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
@@ -34,6 +37,8 @@ test_that("basic incidence plot", {
 })
 
 test_that("basic prevalence plot", {
+  skip_if_not_installed("ggplot2")
+  skip_if_not_installed("scales")
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
@@ -71,6 +76,8 @@ test_that("basic prevalence plot", {
 })
 
 test_that("plot facets", {
+  skip_if_not_installed("ggplot2")
+  skip_if_not_installed("scales")
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm,name = "denominator",
@@ -125,6 +132,8 @@ test_that("plot facets", {
 })
 
 test_that("plot colour", {
+  skip_if_not_installed("ggplot2")
+  skip_if_not_installed("scales")
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm,name = "denominator",
@@ -175,7 +184,8 @@ test_that("plot colour", {
 })
 
 test_that("plot options", {
-
+  skip_if_not_installed("ggplot2")
+  skip_if_not_installed("scales")
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm,
@@ -220,6 +230,8 @@ test_that("plot options", {
 # original result format
 
 test_that("basic incidence plot", {
+  skip_if_not_installed("ggplot2")
+  skip_if_not_installed("scales")
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
@@ -253,6 +265,8 @@ test_that("basic incidence plot", {
   })
 
 test_that("basic prevalence plot", {
+  skip_if_not_installed("ggplot2")
+  skip_if_not_installed("scales")
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
@@ -289,6 +303,8 @@ test_that("basic prevalence plot", {
 })
 
 test_that("plot facets", {
+  skip_if_not_installed("ggplot2")
+  skip_if_not_installed("scales")
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm,name = "denominator",
@@ -333,6 +349,8 @@ test_that("plot facets", {
 })
 
 test_that("plot colour", {
+  skip_if_not_installed("ggplot2")
+  skip_if_not_installed("scales")
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm,name = "denominator",
@@ -381,7 +399,8 @@ test_that("plot colour", {
 })
 
 test_that("plot options", {
-
+  skip_if_not_installed("ggplot2")
+  skip_if_not_installed("scales")
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm,

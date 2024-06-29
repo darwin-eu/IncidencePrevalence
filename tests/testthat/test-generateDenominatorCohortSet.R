@@ -42,7 +42,7 @@ test_that("mock db: check output format", {
   ) %in%
     names(omopgenerics::attrition(cdm$denominator))))
 
-  expect_true(tibble::is_tibble(omopgenerics::attrition(cdm$denominator)))
+  expect_true(is.data.frame(omopgenerics::attrition(cdm$denominator)))
   expect_true(omopgenerics::cohortCount(cdm$denominator)$number_records == 1)
   expect_true(omopgenerics::cohortCount(cdm$denominator) %>%
     dplyr::filter(cohort_definition_id == 1) %>%
@@ -52,14 +52,14 @@ test_that("mock db: check output format", {
 })
 
 test_that("mock db: checks on working example", {
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-01"),
@@ -105,7 +105,7 @@ test_that("mock db: checks on working example", {
 
   # using cohort target
   # add stratifying cohort
-  targetCohortTable <- tibble::tibble(
+  targetCohortTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = c("1"),
     cohort_start_date = as.Date("2010-03-15"),
@@ -137,14 +137,14 @@ test_that("mock db: checks on working example", {
 test_that("mock db: check example we expect to work", {
   skip_on_cran()
   # one person, one observation periods
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 06,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-01"),
@@ -184,14 +184,14 @@ test_that("mock db: check example we expect to work", {
 test_that("mock db: check another example we expect to work", {
   skip_on_cran()
   # 5 person, 1 observation periods
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2", "3", "4", "5"),
     gender_concept_id = c("8507", "8532", "8507", "8532", "8532"),
     year_of_birth = c(1995, 1993, 1994, 1996, NA),
     month_of_birth = c(07, NA, 06, 05, 04),
     day_of_birth = c(25, NA, 01, 02, 03)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2", "3", "4", "5"),
     person_id = c("1", "2", "3", "4", "5"),
     observation_period_start_date = rep(as.Date("2000-01-01"), 5),
@@ -324,20 +324,20 @@ test_that("mock db: mock example 1000", {
 test_that("mock db: subset denominator by cohort", {
   skip_on_cran()
   # one person, one observation periods
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2", "3"),
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 06,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2", "3"),
     person_id = c("1", "2", "3"),
     observation_period_start_date = as.Date("2010-01-01"),
     observation_period_end_date = as.Date("2015-06-01")
   )
-  targetCohortTable <- tibble::tibble(
+  targetCohortTable <- dplyr::tibble(
     cohort_definition_id = c(1, 1, 2),
     subject_id = c("1", "2", "2"),
     cohort_start_date = as.Date(c("2012-06-06", "2012-06-06", "2012-09-01")),
@@ -433,7 +433,7 @@ test_that("mock db: subset denominator by cohort", {
                      dplyr::collect())
   CDMConnector::cdm_disconnect(cdm)
 
-  targetCohortTable <- tibble::tibble(
+  targetCohortTable <- dplyr::tibble(
     cohort_definition_id = c(1, 1, 2, 3,4,5,6,7,8,9,10,11,12),
     subject_id = c("1","2", "2", "1", "1", "1", "1", "1", "1", "1", "1", "1", "1"),
     cohort_start_date = as.Date(c("2012-06-06", "2012-06-06", "2012-09-01", "2012-09-01",
@@ -457,7 +457,7 @@ test_that("mock db: subset denominator by cohort", {
 
 
   # stratifying cohort multiple events per person
-  targetCohortTable <- tibble::tibble(
+  targetCohortTable <- dplyr::tibble(
     cohort_definition_id = "1",
     subject_id = c("1", "2", "2"),
     cohort_start_date = c(
@@ -512,14 +512,14 @@ test_that("mock db: subset denominator by cohort", {
 
   # multiple observation periods and multiple outcomes for a person
   # one person, one observation periods
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 06,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2", "3"),
     person_id = c("1"),
     observation_period_start_date = c(
@@ -534,7 +534,7 @@ test_that("mock db: subset denominator by cohort", {
     )
   )
   # add stratifying cohort
-  targetCohortTable <- tibble::tibble(
+  targetCohortTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = c("1", "1", "1"),
     cohort_start_date = c(
@@ -580,14 +580,14 @@ test_that("mock db: subset denominator by cohort", {
 
 test_that("mock db: one male, one female", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
     year_of_birth = rep(2000, 2),
     month_of_birth = rep(01, 2),
     day_of_birth = rep(01, 2)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = rep(as.Date("2010-01-01"), 2),
@@ -628,14 +628,14 @@ test_that("mock db: one male, one female", {
 test_that("mock db: check example with restriction on sex", {
 
   # two male, one female
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2", "3"),
     gender_concept_id = c("8507", "8507", "8532"),
     year_of_birth = rep(2000, 3),
     month_of_birth = rep(06, 3),
     day_of_birth = rep(01, 3)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2", "3"),
     person_id = c("1", "2", "3"),
     observation_period_start_date = rep(as.Date("2010-01-01"), 3),
@@ -665,14 +665,14 @@ test_that("mock db: check example with restriction on sex", {
   CDMConnector::cdm_disconnect(cdm)
 
   # one male only
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 06,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-01"),
@@ -707,14 +707,14 @@ test_that("mock db: check example with restriction on sex", {
 test_that("mock db: check example with restriction on age", {
 
   # three people, born in 2000, 2005, and 2010
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2", "3"),
     gender_concept_id = rep("8507", 3),
     year_of_birth = c(2000, 2005, 2010),
     month_of_birth = rep(06, 3),
     day_of_birth = rep(01, 3)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2", "3"),
     person_id = c("1", "2", "3"),
     observation_period_start_date = rep(as.Date("2010-01-01"), 3),
@@ -752,14 +752,14 @@ test_that("mock db: check example with restriction on age", {
   CDMConnector::cdm_disconnect(cdm)
 
   # one person, born in 2000
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 06,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-01"),
@@ -802,14 +802,14 @@ test_that("mock db: check age edge cases", {
 
   # same min and max
   # one person, born in 2000
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 06,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-01"),
@@ -841,14 +841,14 @@ test_that("mock db: check age edge cases", {
 
 test_that("mock db check age target entry and exit", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2008-01-01"),
@@ -893,20 +893,20 @@ test_that("mock db check age target entry and exit", {
 
 test_that("mock db check target prior observation requirement", {
   skip_on_cran()
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-07-01"),
     observation_period_end_date = as.Date("2018-06-01")
   )
-  targetCohortTable <- tibble::tibble( # same as obs period
+  targetCohortTable <- dplyr::tibble( # same as obs period
     cohort_definition_id = 1,
     subject_id = "1",
     cohort_start_date = as.Date("2012-01-01"),
@@ -979,21 +979,21 @@ test_that("mock db: targetRequirementsAtEntry", {
   skip_on_cran()
 
   ## Prior observation
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1","2"),
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 01,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1","2"),
     person_id =  c("1","2"),
     observation_period_start_date = c(as.Date("2012-01-01"),
                                       as.Date("2013-01-04")),
     observation_period_end_date = as.Date("2018-06-01")
   )
-  targetCohortTable <- tibble::tibble(
+  targetCohortTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = c("1", "2"),
     cohort_start_date = c(as.Date("2012-01-05"),
@@ -1040,20 +1040,20 @@ test_that("mock db: targetRequirementsAtEntry", {
 
 
   ## Age
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 02,
     day_of_birth = 02
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2005-01-01"),
     observation_period_end_date = as.Date("2018-06-01")
   )
-  targetCohortTable <- tibble::tibble(
+  targetCohortTable <- dplyr::tibble(
     cohort_definition_id = 1,
     subject_id = c("1"),
     cohort_start_date = as.Date("2010-01-01"),
@@ -1101,14 +1101,14 @@ test_that("mock db: targetRequirementsAtEntry", {
 test_that("mock db: check example with multiple observation periods", {
   skip_on_cran()
   # one person, two observation periods
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 06,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = rep("1", 2),
     observation_period_start_date = c(
@@ -1165,14 +1165,14 @@ test_that("mock db: check example with multiple observation periods", {
 test_that("mock db: check imputation of date of birth", {
   skip_on_cran()
   # one person with all info, one missing month, one missing day, and one both
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2", "3", "4"),
     gender_concept_id = rep("8507", 4),
     year_of_birth = rep(2000, 4),
     month_of_birth = c(03, NA, 03, NA),
     day_of_birth = c(03, 03, NA, NA)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2", "3", "4"),
     person_id = c("1", "2", "3", "4"),
     observation_period_start_date = rep(as.Date("2010-01-01"), 4),
@@ -1218,14 +1218,14 @@ test_that("mock db: check imputation of date of birth", {
 test_that("mock db: check edge cases (zero results expected)", {
   skip_on_cran()
   # one person, one observation periods
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 06,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = "1",
     person_id = "1",
     observation_period_start_date = as.Date("2010-01-01"),
@@ -1337,7 +1337,7 @@ test_that("mock db: check expected errors", {
   ))
 
   # target table doesn´t conform
-  targetCohortTable <- tibble::tibble(
+  targetCohortTable <- dplyr::tibble(
     cohort_id = "1",
     id = c("1", "2"),
     start_date = as.Date("2012-06-06"),
@@ -1352,14 +1352,14 @@ test_that("mock db: check expected errors", {
 test_that("mock db: check attrition table logic", {
   skip_on_cran()
   # 7 person, 1 observation periods
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2", "3", "4", "5", "6", "7"),
     gender_concept_id = c("8507", "8532", "8507", "8532", "8532", "8507", NA),
     year_of_birth = c(1995, 1993, 1994, 1996, 1998, NA, 1993),
     month_of_birth = c(07, 02, 06, 05, 04, 10, 01),
     day_of_birth = c(25, 14, 01, 02, 03, 10, 12)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2", "3", "4", "5", "6", "7"),
     person_id = c("1", "2", "3", "4", "5", "6", "7"),
     observation_period_start_date = c(
@@ -1435,14 +1435,14 @@ test_that("mock db: check attrition table logic", {
   CDMConnector::cdm_disconnect(cdm)
 
   # multiple observation periods per person
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = "1",
     gender_concept_id = "8507",
     year_of_birth = 2000,
     month_of_birth = 06,
     day_of_birth = 01
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2", "3"),
     person_id = c("1"),
     observation_period_start_date = c(
@@ -1473,14 +1473,14 @@ test_that("mock db: check attrition table logic", {
 test_that("mock db: check attrition with multiple cohorts", {
   skip_on_cran()
 
-  personTable <- tibble::tibble(
+  personTable <- dplyr::tibble(
     person_id = c("1", "2"),
     gender_concept_id = c("8507", "8532"),
     year_of_birth = rep(2000, 2),
     month_of_birth = rep(01, 2),
     day_of_birth = rep(01, 2)
   )
-  observationPeriodTable <- tibble::tibble(
+  observationPeriodTable <- dplyr::tibble(
     observation_period_id = c("1", "2"),
     person_id = c("1", "2"),
     observation_period_start_date = c(as.Date("2000-01-01"), as.Date("2010-01-01")),
@@ -1610,9 +1610,9 @@ test_that("mock db: check tables were cleaned up", {
     cdm_schema = "main",
     write_schema = "main", cdm_name = "mock"
   )
-  expect_true(tibble::is_tibble(omopgenerics::settings(cdmReconn$my_denominator)))
-  expect_true(tibble::is_tibble(omopgenerics::cohortCount(cdmReconn$my_denominator)))
-  expect_true(tibble::is_tibble(omopgenerics::attrition(cdmReconn$my_denominator)))
+  expect_true(is.data.frame(omopgenerics::settings(cdmReconn$my_denominator)))
+  expect_true(is.data.frame(omopgenerics::cohortCount(cdmReconn$my_denominator)))
+  expect_true(is.data.frame(omopgenerics::attrition(cdmReconn$my_denominator)))
 
   expect_equal(start_cohort_set,
                omopgenerics::settings(cdmReconn$my_denominator))
