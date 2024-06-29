@@ -90,17 +90,17 @@ getPrevalence <- function(cdm,
 
   if (nrow(studyDays) == 0) {
     # if no study days we´ll return an empty tibble
-    pr <- tibble::tibble()
+    pr <- dplyr::tibble()
 
     attrition <- recordAttrition(
-      table = tibble::tibble(subject_id = integer()),
+      table = dplyr::tibble(subject_id = integer()),
       id = "subject_id",
       reasonId = 12,
       reason = "Not observed during the complete database interval",
       existingAttrition = attrition
     )
     attrition <- recordAttrition(
-      table = tibble::tibble(subject_id = integer()),
+      table = dplyr::tibble(subject_id = integer()),
       id = "subject_id",
       reasonId = 13,
       reason = "Do not satisfy full contribution requirement for any time interval",

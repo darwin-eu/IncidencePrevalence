@@ -373,7 +373,7 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
       )
     )
 
-    cohortCount <- tibble::tibble(
+    cohortCount <- dplyr::tibble(
       cohort_definition_id = popSpecs$cohort_definition_id,
       number_records = as.integer(0),
       number_subjects = as.integer(0)

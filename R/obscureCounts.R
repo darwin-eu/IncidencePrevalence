@@ -19,7 +19,7 @@ obscureCounts <- function(x,
                           substitute = NA) {
   ## check for standard types of user error
   errorMessage <- checkmate::makeAssertCollection()
-  checkmate::assert_true(tibble::is_tibble(x),
+  checkmate::assert_true(is.data.frame(x),
     add = errorMessage
   )
   checkmate::assertTRUE(
