@@ -74,18 +74,23 @@ tablePrevalence <- function(
       "Outcome (N)" = "<outcome_count>",
       "Prevalence [95% CI]" = "<prevalence> (<prevalence_95CI_lower> - <prevalence_95CI_upper>)"
     ),
-    header = c("group", "strata"),
+    header = c("variable", "estimate"),
     splitStrata = TRUE,
     cdmName = TRUE,
     outcomeName = TRUE,
     outcomeSettings = FALSE,
     denominatorName = TRUE,
-    denominatorSettings = FALSE,
+    denominatorSettings = TRUE,
     analysisSettings = FALSE,
     groupColumn = NULL,
     type = "gt",
     .options = list()
 ) {
+
+  # check input
+  if (!inherits(result, "summarised_result")) {
+    cli::cli_abort(c("x" = "Table functionality only works with results in a summarised_result format.", "i" = "These can be obtained with the argument `summarisedResult` in estimatePeriodPrevalence() and estimatePointPrevalence()."))
+  }
 
   tableInternal(
     result = result,
@@ -167,18 +172,23 @@ tableIncidence <- function(
         "<incidence_100000_pys> (<incidence_100000_pys_95CI_lower> -
       <incidence_100000_pys_95CI_upper>)"
     ),
-    header = c("group", "strata"),
+    header = c("variable", "estimate"),
     splitStrata = TRUE,
     cdmName = TRUE,
     outcomeName = TRUE,
     outcomeSettings = FALSE,
     denominatorName = TRUE,
-    denominatorSettings = FALSE,
+    denominatorSettings = TRUE,
     analysisSettings = FALSE,
     groupColumn = NULL,
     type = "gt",
     .options = list()
 ) {
+
+  # check input
+  if (!inherits(result, "summarised_result")) {
+    cli::cli_abort(c("x" = "Table functionality only works with results in a summarised_result format.", "i" = "These can be obtained with the argument `summarisedResult` in estimateIncidence()."))
+  }
 
   tableInternal(
     result = result,
@@ -220,9 +230,11 @@ tableInternal <- function(
     resultType = "incidence",
     .options = list()
 ) {
-  # check input
   result <- omopgenerics::newSummarisedResult(result) |>
     visOmopResults::filterSettings(.data$result_type == resultType)
+  if (nrow(result) == 0) {
+    cli::cli_abort("No results of the type {resultType} were found in the summarised result provided.")
+  }
   checkmate::assertList(.options)
   checkmate::assertLogical(
     c(splitStrata, cdmName, outcomeName, outcomeSettings, denominatorName,
@@ -273,9 +285,9 @@ tableInternal <- function(
   ## cdm name
   if (cdmName) {
     renameColumns <- c("Database name" = "cdm_name")
-    excludeColumns <- c("result_id", "estimate_type", "variable_name")
+    excludeColumns <- c("result_id", "estimate_type")
   } else {
-    excludeColumns <- c("result_id", "estimate_type", "variable_name", "cdm_name")
+    excludeColumns <- c("result_id", "estimate_type", "cdm_name")
   }
   ## outcome name
   if (outcomeName) {
@@ -293,6 +305,9 @@ tableInternal <- function(
       cli::cli_inform("Omiting group from header as `denominatorName = FALSE`")
       header <- header[!header %in% "group"]
     }
+  }
+  if (!"variable" %in% header) {
+    excludeColumns <- c(excludeColumns, "variable_name")
   }
 
   ## split
