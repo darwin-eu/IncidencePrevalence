@@ -81,6 +81,7 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
                                        maxOutcomeDays = 10,
                                        maxOutcomes = 1) {
   rlang::check_installed("duckdb")
+  rlang::check_installed("DBI")
 
   errorMessage <- checkmate::makeAssertCollection()
   if(!is.null(personTable)){
