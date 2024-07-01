@@ -160,8 +160,7 @@ tablePrevalence <- function(
 #'
 #' @return A table with a formatted version of incidence results.
 #'
-#' @export
-#'
+#' @noRd
 tableIncidence <- function(
     result,
     formatEstimateName = c(
