@@ -16,8 +16,7 @@ estimatePeriodPrevalence(
   strata = list(),
   includeOverallStrata = TRUE,
   minCellCount = 5,
-  returnParticipants = FALSE,
-  summarisedResult = FALSE
+  returnParticipants = FALSE
 )
 }
 \arguments{
@@ -67,9 +66,6 @@ lower than this will be obscured. If NULL all results will be reported.}
 participants from the analysis will be returned allowing for further
 analysis. Note, if using permanent tables and returnParticipants is TRUE,
 one table per analysis will be kept in the cdm write schema.}
-
-\item{summarisedResult}{If TRUE, result will be returned as in the
-summarised_result format}
 }
 \value{
 Period prevalence estimates

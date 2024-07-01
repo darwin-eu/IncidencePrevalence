@@ -1,6 +1,6 @@
 Package: IncidencePrevalence
 Title: Estimate Incidence and Prevalence using the OMOP Common Data Model
-Version: 0.7.3.9000
+Version: 0.7.4
 Authors@R: c(
     person("Edward", "Burn", email = "edward.burn@ndorms.ox.ac.uk", 
     role = c("aut", "cre"), 
@@ -69,5 +69,3 @@ VignetteBuilder: knitr
 Language: en-US
 License: Apache License (>= 2)
 URL: https://darwin-eu.github.io/IncidencePrevalence/
-Remotes:
-    darwin-eu-dev/omopgenerics

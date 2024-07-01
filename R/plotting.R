@@ -138,7 +138,7 @@ plotEstimates <- function(result,
     dplyr::mutate(!!y := as.numeric(!!rlang::sym(y)),
                   !!yLower := as.numeric(!!rlang::sym(yLower)),
                   !!yUpper := as.numeric(!!rlang::sym(yUpper))) %>%
-    dplyr::mutate(across(contains("date"), as.Date))
+    dplyr::mutate(dplyr::across(dplyr::contains("date"), as.Date))
 
   if (is.null(colour)) {
     plot <- plot_data %>%
@@ -232,7 +232,7 @@ getPlotData <- function(estimates, facetVars, colourVars) {
     plotData <- plotData |>
     visOmopResults::splitAdditional() |>
     visOmopResults::addSettings() |>
-    dplyr::select(!estimate_type) |>
+    dplyr::select(!"estimate_type") |>
     tidyr::pivot_wider(names_from = .data$estimate_name,
                        values_from = .data$estimate_value)
   }

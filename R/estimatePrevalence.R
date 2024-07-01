@@ -45,8 +45,6 @@
 #' participants from the analysis will be returned allowing for further
 #' analysis. Note, if using permanent tables and returnParticipants is TRUE,
 #' one table per analysis will be kept in the cdm write schema.
-#' @param summarisedResult If TRUE, result will be returned as in the
-#' summarised_result format
 #'
 #' @return Point prevalence estimates
 #' @export
@@ -75,8 +73,7 @@ estimatePointPrevalence <- function(cdm,
                                     strata = list(),
                                     includeOverallStrata = TRUE,
                                     minCellCount = 5,
-                                    returnParticipants = FALSE,
-                                    summarisedResult = FALSE) {
+                                    returnParticipants = FALSE) {
 
 
   if (isTRUE(returnParticipants)) {
@@ -113,8 +110,7 @@ estimatePointPrevalence <- function(cdm,
     strata = strata,
     includeOverallStrata = includeOverallStrata,
     minCellCount = minCellCount,
-    returnParticipants = returnParticipants,
-    summarisedResult = summarisedResult
+    returnParticipants = returnParticipants
   )
 }
 
@@ -156,8 +152,6 @@ estimatePointPrevalence <- function(cdm,
 #' participants from the analysis will be returned allowing for further
 #' analysis. Note, if using permanent tables and returnParticipants is TRUE,
 #' one table per analysis will be kept in the cdm write schema.
-#' @param summarisedResult If TRUE, result will be returned as in the
-#' summarised_result format
 #'
 #' @return  Period prevalence estimates
 #' @export
@@ -187,8 +181,7 @@ estimatePeriodPrevalence <- function(cdm,
                                      strata = list(),
                                      includeOverallStrata = TRUE,
                                      minCellCount = 5,
-                                     returnParticipants = FALSE,
-                                     summarisedResult = FALSE) {
+                                     returnParticipants = FALSE) {
 
   if (isTRUE(returnParticipants)) {
     lifecycle::deprecate_warn(
@@ -212,8 +205,7 @@ estimatePeriodPrevalence <- function(cdm,
     strata = strata,
     includeOverallStrata = includeOverallStrata,
     minCellCount = minCellCount,
-    returnParticipants = returnParticipants,
-    summarisedResult = summarisedResult
+    returnParticipants = returnParticipants
   )
 }
 
@@ -230,8 +222,10 @@ estimatePrevalence <- function(cdm,
                                strata = list(),
                                includeOverallStrata = TRUE,
                                minCellCount = 5,
-                               returnParticipants = FALSE,
-                               summarisedResult = FALSE) {
+                               returnParticipants = FALSE) {
+
+  summarisedResult <- FALSE
+
   startCollect <- Sys.time()
 
   # help to avoid formatting errors
@@ -279,7 +273,7 @@ estimatePrevalence <- function(cdm,
                   "outcome_cohort_name" = "cohort_name")
 
   if(nrow(outcomeRef) == 0){
-    cli::cli_abort(c("Specified outcome IDs not found in the cohort set of
+    cli::cli_abort(message = c("Specified outcome IDs not found in the cohort set of
                     {paste0('cdm$', outcomeTable)}",
                      "i" = "Run CDMConnector::cohort_set({paste0('cdm$', outcomeTable)})
                    to check which IDs exist"))
@@ -501,13 +495,14 @@ estimatePrevalence <- function(cdm,
         package_name = "IncidencePrevalence",
         package_version = as.character(utils::packageVersion("IncidencePrevalence"))
       ) |>
-      dplyr::select(!c(dplyr::ends_with("_cohort_id"), dplyr::ends_with("_cohort_definition_id"))) |>
+      dplyr::select(!dplyr::ends_with("_cohort_id")) |>
+      dplyr::select(!dplyr::ends_with("_cohort_definition_id")) |>
       dplyr::select(c(
         "result_id", "result_type", "package_name", "package_version",
         "analysis_type", "analysis_interval",
-        "analysis_complete_database_intervals", "analysis_full_contribution",
-        dplyr::starts_with("denominator_"), dplyr::starts_with("outcome_"),
-      ))
+        "analysis_complete_database_intervals", "analysis_full_contribution"),
+        dplyr::starts_with("denominator_"), dplyr::starts_with("outcome_")
+      )
     ## result
     if (!"strata_name" %in% colnames(prs)) {
       prs <- prs |>
@@ -529,7 +524,7 @@ estimatePrevalence <- function(cdm,
         by = "result_id"
       ) |>
       visOmopResults::uniteGroup("denominator_cohort_name") |>
-      visOmopResults::uniteAdditional(c("prevalence_start_date", "prevalence_end_date")) |>
+      visOmopResults::uniteAdditional(cols = c("prevalence_start_date", "prevalence_end_date")) |>
       visOmopResults::uniteNameLevel(
         cols = "outcome_cohort_name",
         name = "variable_name",

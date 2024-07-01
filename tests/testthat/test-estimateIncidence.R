@@ -71,16 +71,16 @@ test_that("mock db: check output format", {
 
 
 
-  inc <- estimateIncidence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    summarisedResult = TRUE
-  )
-  expect_true("summarised_result" %in% class(inc))
-  expect_equal(colnames(inc),
-               omopgenerics::resultColumns())
+  # inc <- estimateIncidence(
+  #   cdm = cdm,
+  #   denominatorTable = "denominator",
+  #   outcomeTable = "outcome",
+  #   interval = "months",
+  #   summarisedResult = TRUE
+  # )
+  # expect_true("summarised_result" %in% class(inc))
+  # expect_equal(colnames(inc),
+  #              omopgenerics::resultColumns())
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -3290,79 +3290,79 @@ test_that("mock db: multiple outcome cohort id", {
 })
 
 test_that("test summarised result working", {
-
-  cdm <- mockIncidencePrevalenceRef()
-
-  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
-
-  inc <- estimateIncidence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    summarisedResult = TRUE
-  )
-
-  expect_true("summarised_result" %in% class(inc))
-  expect_no_error(visOmopResults::tidy(inc))
-  expect_true(
-    all(colnames(settings(inc)) %in% c(
-      'result_id', 'result_type', 'package_name', 'package_version', 'analysis_interval',
-      'analysis_complete_database_intervals', 'denominator_cohort_name', 'denominator_age_group',
-      'denominator_sex', 'denominator_days_prior_observation', 'denominator_start_date',
-      'denominator_end_date', 'denominator_target_cohort_name', 'outcome_cohort_name', "min_cell_count"
-    ))
-  )
-  expect_true(unique(settings(inc)$result_type) == "incidence")
-
-  # strata
-  cdm$denominator <- cdm$denominator %>%
-    dplyr::mutate(my_strata = dplyr::if_else(year(cohort_start_date) < 1995,
-                                             "first", "second")) %>%
-    dplyr::compute()
-  inc <- estimateIncidence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    strata = list(c("my_strata")),
-    summarisedResult = TRUE,
-    minCellCount = 0
-  )
-  expect_true("summarised_result" %in% class(inc))
-  inc2 <- estimateIncidence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "months",
-    strata = list(c("my_strata")),
-    minCellCount = 0
-  )
-  expect_equal(
-    attrition(inc2) |>
-      dplyr::mutate(result_id = as.integer(analysis_id)) |>
-      dplyr::select(result_id, number_records, number_subjects, reason_id, reason, excluded_records, excluded_subjects),
-    attrition(inc)
-  )
-
-  inc_tidy <- inc |> visOmopResults::tidy()
-  inc_sup <- inc |> omopgenerics::suppress() |> visOmopResults::tidy()
-  expect_no_error(inc_tidy <- visOmopResults::tidy(inc, addSettings = FALSE))
-  expect_true(nrow(inc_tidy) == nrow(inc2))
-  expect_true(all(c("my_strata") %in% colnames(inc_tidy)))
-  expect_true(all(c("overall", "first") %in%
-                    unique(inc_tidy %>%
-                             dplyr::pull("my_strata"))))
-  # suppress
-  sup <- inc_tidy |> dplyr::filter(denominator_count < 5 & denominator_count > 0) |>
-    dplyr::select(!c("denominator_count", "outcome_count", "incidence_100000_pys", "incidence_100000_pys_95CI_lower",
-                     "incidence_100000_pys_95CI_upper", "person_days", "person_years"))
-
-  expect_true(all(is.na(inc_sup |> dplyr::inner_join(sup) |> dplyr::pull("denominator_count"))))
-  expect_true(all(is.na(inc_sup |> dplyr::inner_join(sup) |> dplyr::pull("person_days"))))
-  expect_true(all(is.na(inc_sup |> dplyr::inner_join(sup) |> dplyr::pull("incidence_100000_pys"))))
-  expect_false(any(is.na(inc_sup |> dplyr::inner_join(sup) |> dplyr::pull("outcome_count"))))
-
-  CDMConnector::cdm_disconnect(cdm)
-
+#
+#   cdm <- mockIncidencePrevalenceRef()
+#
+#   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
+#
+#   inc <- estimateIncidence(
+#     cdm = cdm,
+#     denominatorTable = "denominator",
+#     outcomeTable = "outcome",
+#     interval = "months",
+#     summarisedResult = TRUE
+#   )
+#
+#   expect_true("summarised_result" %in% class(inc))
+#   expect_no_error(visOmopResults::tidy(inc))
+#   expect_true(
+#     all(colnames(settings(inc)) %in% c(
+#       'result_id', 'result_type', 'package_name', 'package_version', 'analysis_interval',
+#       'analysis_complete_database_intervals', 'denominator_cohort_name', 'denominator_age_group',
+#       'denominator_sex', 'denominator_days_prior_observation', 'denominator_start_date',
+#       'denominator_end_date', 'denominator_target_cohort_name', 'outcome_cohort_name', "min_cell_count"
+#     ))
+#   )
+#   expect_true(unique(settings(inc)$result_type) == "incidence")
+#
+#   # strata
+#   cdm$denominator <- cdm$denominator %>%
+#     dplyr::mutate(my_strata = dplyr::if_else(year(cohort_start_date) < 1995,
+#                                              "first", "second")) %>%
+#     dplyr::compute()
+#   inc <- estimateIncidence(
+#     cdm = cdm,
+#     denominatorTable = "denominator",
+#     outcomeTable = "outcome",
+#     interval = "months",
+#     strata = list(c("my_strata")),
+#     summarisedResult = TRUE,
+#     minCellCount = 0
+#   )
+#   expect_true("summarised_result" %in% class(inc))
+#   inc2 <- estimateIncidence(
+#     cdm = cdm,
+#     denominatorTable = "denominator",
+#     outcomeTable = "outcome",
+#     interval = "months",
+#     strata = list(c("my_strata")),
+#     minCellCount = 0
+#   )
+#   expect_equal(
+#     attrition(inc2) |>
+#       dplyr::mutate(result_id = as.integer(analysis_id)) |>
+#       dplyr::select(result_id, number_records, number_subjects, reason_id, reason, excluded_records, excluded_subjects),
+#     attrition(inc)
+#   )
+#
+#   inc_tidy <- inc |> visOmopResults::tidy()
+#   inc_sup <- inc |> omopgenerics::suppress() |> visOmopResults::tidy()
+#   expect_no_error(inc_tidy <- visOmopResults::tidy(inc, addSettings = FALSE))
+#   expect_true(nrow(inc_tidy) == nrow(inc2))
+#   expect_true(all(c("my_strata") %in% colnames(inc_tidy)))
+#   expect_true(all(c("overall", "first") %in%
+#                     unique(inc_tidy %>%
+#                              dplyr::pull("my_strata"))))
+#   # suppress
+#   sup <- inc_tidy |> dplyr::filter(denominator_count < 5 & denominator_count > 0) |>
+#     dplyr::select(!c("denominator_count", "outcome_count", "incidence_100000_pys", "incidence_100000_pys_95CI_lower",
+#                      "incidence_100000_pys_95CI_upper", "person_days", "person_years"))
+#
+#   expect_true(all(is.na(inc_sup |> dplyr::inner_join(sup) |> dplyr::pull("denominator_count"))))
+#   expect_true(all(is.na(inc_sup |> dplyr::inner_join(sup) |> dplyr::pull("person_days"))))
+#   expect_true(all(is.na(inc_sup |> dplyr::inner_join(sup) |> dplyr::pull("incidence_100000_pys"))))
+#   expect_false(any(is.na(inc_sup |> dplyr::inner_join(sup) |> dplyr::pull("outcome_count"))))
+#
+#   CDMConnector::cdm_disconnect(cdm)
+#
 })

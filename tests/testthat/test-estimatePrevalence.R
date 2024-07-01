@@ -1445,103 +1445,103 @@ test_that("mock db: prevalence using strata vars", {
 
 test_that("summarise result works", {
 
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000,
-                                    outPre = 0.7)
-
-  cdm <- generateDenominatorCohortSet(cdm = cdm,
-                                      name = "denominator")
-
-  prev_orig <- estimatePrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "years"
-  )
-
-  cdm$denominator <- cdm$denominator %>%
-    dplyr::mutate(my_strata = dplyr::if_else(year(cohort_start_date) < 1990,
-                                             "first", "second")) %>%
-    dplyr::compute()
-
-  prev_sr <- estimatePrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "years",
-    strata = list(c("my_strata")),
-    summarisedResult = TRUE,
-    minCellCount = 0
-  )
-
-  expect_true("summarised_result" %in% class(prev_sr))
-  # suppress
-  prev_sup <- prev_sr |> omopgenerics::suppress(minCellCount = 2) |> visOmopResults::tidy()
-  expect_no_error(prev_tidy <- visOmopResults::tidy(prev_sr, addSettings = FALSE))
-  expect_true(all(c("my_strata") %in% colnames(prev_tidy)))
-  expect_true(all(c("overall", "first") %in%
-                    unique(prev_tidy %>%
-                             dplyr::pull("my_strata"))))
-  expect_true(
-    all(colnames(settings(prev_sr)) == c(
-      'result_id', 'result_type', 'package_name', 'package_version', 'analysis_type',
-      'analysis_interval', 'analysis_complete_database_intervals', 'analysis_full_contribution',
-      'denominator_cohort_name', 'denominator_age_group', 'denominator_sex',
-      'denominator_days_prior_observation', 'denominator_start_date', 'denominator_end_date',
-      'denominator_target_cohort_name', 'outcome_cohort_name', 'min_cell_count'
-    ))
-  )
-  expect_true(unique(settings(prev_sr)$result_type) == "point_prevalence")
-
-  sup <- prev_tidy |> dplyr::filter(outcome_count < 2 & outcome_count > 0) |>
-    dplyr::select(!c("denominator_count", "outcome_count", "prevalence", "prevalence_95CI_lower", "prevalence_95CI_upper"))
-
-  expect_true(all(is.na(prev_sup |> dplyr::inner_join(sup) |> dplyr::pull("outcome_count"))))
-  expect_true(all(is.na(prev_sup |> dplyr::inner_join(sup) |> dplyr::pull("prevalence"))))
-  expect_true(all(is.na(prev_sup |> dplyr::inner_join(sup) |> dplyr::pull("prevalence_95CI_upper"))))
-  expect_false(any(is.na(prev_sup |> dplyr::inner_join(sup) |> dplyr::pull("denominator_count"))))
-
-  prev <- estimatePrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "years",
-    strata = list(c("my_strata")),
-    minCellCount = 0
-  )
-  expect_equal(
-    attrition(prev_sr),
-    attrition(prev) |>
-      dplyr::mutate(result_id = as.integer(analysis_id)) |>
-      dplyr::select(result_id, number_records, number_subjects, reason_id, reason, excluded_records, excluded_subjects))
-  expect_true(nrow(prev_tidy) == nrow(prev))
-
-  prev_sr <- estimatePeriodPrevalence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "years",
-    summarisedResult = TRUE
-  )
-  expect_true("summarised_result" %in% class(prev_sr))
-  expect_no_error(prev_tidy <- visOmopResults::tidy(prev_sr, addSettings = FALSE))
-  expect_true(
-    all(colnames(prev_tidy) == c(
-      'result_id', 'cdm_name', 'denominator_cohort_name', 'variable_name', 'variable_level',
-      'prevalence_start_date', 'prevalence_end_date', 'denominator_count', 'outcome_count', 'prevalence',
-      'prevalence_95CI_lower', 'prevalence_95CI_upper'
-    ))
-  )
-  expect_true(
-    all(colnames(settings(prev_sr)) == c(
-      'result_id', 'result_type', 'package_name', 'package_version', 'analysis_type',
-      'analysis_interval', 'analysis_complete_database_intervals', 'analysis_full_contribution',
-      'denominator_cohort_name', 'denominator_age_group', 'denominator_sex',
-      'denominator_days_prior_observation', 'denominator_start_date', 'denominator_end_date',
-      'denominator_target_cohort_name', 'outcome_cohort_name', 'min_cell_count'
-    ))
-  )
-  expect_true(unique(settings(prev_sr)$result_type) == "period_prevalence")
-
-  CDMConnector::cdm_disconnect(cdm)
+  # cdm <- mockIncidencePrevalenceRef(sampleSize = 1000,
+  #                                   outPre = 0.7)
+  #
+  # cdm <- generateDenominatorCohortSet(cdm = cdm,
+  #                                     name = "denominator")
+  #
+  # prev_orig <- estimatePrevalence(
+  #   cdm = cdm,
+  #   denominatorTable = "denominator",
+  #   outcomeTable = "outcome",
+  #   interval = "years"
+  # )
+  #
+  # cdm$denominator <- cdm$denominator %>%
+  #   dplyr::mutate(my_strata = dplyr::if_else(year(cohort_start_date) < 1990,
+  #                                            "first", "second")) %>%
+  #   dplyr::compute()
+  #
+  # prev_sr <- estimatePrevalence(
+  #   cdm = cdm,
+  #   denominatorTable = "denominator",
+  #   outcomeTable = "outcome",
+  #   interval = "years",
+  #   strata = list(c("my_strata")),
+  #   summarisedResult = TRUE,
+  #   minCellCount = 0
+  # )
+  #
+  # expect_true("summarised_result" %in% class(prev_sr))
+  # # suppress
+  # prev_sup <- prev_sr |> omopgenerics::suppress(minCellCount = 2) |> visOmopResults::tidy()
+  # expect_no_error(prev_tidy <- visOmopResults::tidy(prev_sr, addSettings = FALSE))
+  # expect_true(all(c("my_strata") %in% colnames(prev_tidy)))
+  # expect_true(all(c("overall", "first") %in%
+  #                   unique(prev_tidy %>%
+  #                            dplyr::pull("my_strata"))))
+  # expect_true(
+  #   all(colnames(settings(prev_sr)) == c(
+  #     'result_id', 'result_type', 'package_name', 'package_version', 'analysis_type',
+  #     'analysis_interval', 'analysis_complete_database_intervals', 'analysis_full_contribution',
+  #     'denominator_cohort_name', 'denominator_age_group', 'denominator_sex',
+  #     'denominator_days_prior_observation', 'denominator_start_date', 'denominator_end_date',
+  #     'denominator_target_cohort_name', 'outcome_cohort_name', 'min_cell_count'
+  #   ))
+  # )
+  # expect_true(unique(settings(prev_sr)$result_type) == "point_prevalence")
+  #
+  # sup <- prev_tidy |> dplyr::filter(outcome_count < 2 & outcome_count > 0) |>
+  #   dplyr::select(!c("denominator_count", "outcome_count", "prevalence", "prevalence_95CI_lower", "prevalence_95CI_upper"))
+  #
+  # expect_true(all(is.na(prev_sup |> dplyr::inner_join(sup) |> dplyr::pull("outcome_count"))))
+  # expect_true(all(is.na(prev_sup |> dplyr::inner_join(sup) |> dplyr::pull("prevalence"))))
+  # expect_true(all(is.na(prev_sup |> dplyr::inner_join(sup) |> dplyr::pull("prevalence_95CI_upper"))))
+  # expect_false(any(is.na(prev_sup |> dplyr::inner_join(sup) |> dplyr::pull("denominator_count"))))
+  #
+  # prev <- estimatePrevalence(
+  #   cdm = cdm,
+  #   denominatorTable = "denominator",
+  #   outcomeTable = "outcome",
+  #   interval = "years",
+  #   strata = list(c("my_strata")),
+  #   minCellCount = 0
+  # )
+  # expect_equal(
+  #   attrition(prev_sr),
+  #   attrition(prev) |>
+  #     dplyr::mutate(result_id = as.integer(analysis_id)) |>
+  #     dplyr::select(result_id, number_records, number_subjects, reason_id, reason, excluded_records, excluded_subjects))
+  # expect_true(nrow(prev_tidy) == nrow(prev))
+  #
+  # prev_sr <- estimatePeriodPrevalence(
+  #   cdm = cdm,
+  #   denominatorTable = "denominator",
+  #   outcomeTable = "outcome",
+  #   interval = "years",
+  #   summarisedResult = TRUE
+  # )
+  # expect_true("summarised_result" %in% class(prev_sr))
+  # expect_no_error(prev_tidy <- visOmopResults::tidy(prev_sr, addSettings = FALSE))
+  # expect_true(
+  #   all(colnames(prev_tidy) == c(
+  #     'result_id', 'cdm_name', 'denominator_cohort_name', 'variable_name', 'variable_level',
+  #     'prevalence_start_date', 'prevalence_end_date', 'denominator_count', 'outcome_count', 'prevalence',
+  #     'prevalence_95CI_lower', 'prevalence_95CI_upper'
+  #   ))
+  # )
+  # expect_true(
+  #   all(colnames(settings(prev_sr)) == c(
+  #     'result_id', 'result_type', 'package_name', 'package_version', 'analysis_type',
+  #     'analysis_interval', 'analysis_complete_database_intervals', 'analysis_full_contribution',
+  #     'denominator_cohort_name', 'denominator_age_group', 'denominator_sex',
+  #     'denominator_days_prior_observation', 'denominator_start_date', 'denominator_end_date',
+  #     'denominator_target_cohort_name', 'outcome_cohort_name', 'min_cell_count'
+  #   ))
+  # )
+  # expect_true(unique(settings(prev_sr)$result_type) == "period_prevalence")
+  #
+  # CDMConnector::cdm_disconnect(cdm)
 })
 
