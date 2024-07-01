@@ -45,8 +45,6 @@
 #' participants from the analysis will be returned allowing for further
 #' analysis. Note, if using permanent tables and returnParticipants is TRUE,
 #' one table per analysis will be kept in the cdm write schema.
-#' @param summarisedResult If TRUE, result will be returned as in the
-#' summarised_result format
 #'
 #' @return Point prevalence estimates
 #' @export
@@ -75,8 +73,7 @@ estimatePointPrevalence <- function(cdm,
                                     strata = list(),
                                     includeOverallStrata = TRUE,
                                     minCellCount = 5,
-                                    returnParticipants = FALSE,
-                                    summarisedResult = FALSE) {
+                                    returnParticipants = FALSE) {
 
 
   if (isTRUE(returnParticipants)) {
@@ -113,8 +110,7 @@ estimatePointPrevalence <- function(cdm,
     strata = strata,
     includeOverallStrata = includeOverallStrata,
     minCellCount = minCellCount,
-    returnParticipants = returnParticipants,
-    summarisedResult = summarisedResult
+    returnParticipants = returnParticipants
   )
 }
 
@@ -156,8 +152,6 @@ estimatePointPrevalence <- function(cdm,
 #' participants from the analysis will be returned allowing for further
 #' analysis. Note, if using permanent tables and returnParticipants is TRUE,
 #' one table per analysis will be kept in the cdm write schema.
-#' @param summarisedResult If TRUE, result will be returned as in the
-#' summarised_result format
 #'
 #' @return  Period prevalence estimates
 #' @export
@@ -212,8 +206,7 @@ estimatePeriodPrevalence <- function(cdm,
     strata = strata,
     includeOverallStrata = includeOverallStrata,
     minCellCount = minCellCount,
-    returnParticipants = returnParticipants,
-    summarisedResult = summarisedResult
+    returnParticipants = returnParticipants
   )
 }
 
@@ -230,8 +223,10 @@ estimatePrevalence <- function(cdm,
                                strata = list(),
                                includeOverallStrata = TRUE,
                                minCellCount = 5,
-                               returnParticipants = FALSE,
-                               summarisedResult = FALSE) {
+                               returnParticipants = FALSE) {
+
+  summarisedResult <- FALSE
+
   startCollect <- Sys.time()
 
   # help to avoid formatting errors

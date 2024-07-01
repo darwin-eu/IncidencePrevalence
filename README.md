@@ -26,7 +26,7 @@ consider citing this paper.
 You can install the latest version of IncidencePrevalence from CRAN:
 
 ``` r
-install.packages("CDMConnector")
+install.packages("IncidencePrevalence")
 ```
 
 Or from github:
@@ -116,15 +116,15 @@ cohortSet(cdm$denominator)
 #> 5                    5 denominator_cohor… 65 to 100 Fema…                    180
 #> 6                    6 denominator_cohor… 65 to 100 Both                     180
 #> # ℹ 4 more variables: start_date <date>, end_date <date>,
-#> #   target_cohort_definition_id <int>, target_cohort_name <lgl>
+#> #   target_cohort_definition_id <int>, target_cohort_name <chr>
 ```
 
 These cohorts will be in the typical OMOP CDM structure
 
 ``` r
 cdm$denominator
-#> # Source:   table<denominator> [?? x 4]
-#> # Database: DuckDB v0.9.2 [eburn@Windows 10 x64:R 4.2.1/:memory:]
+#> # Source:   table<main.denominator> [?? x 4]
+#> # Database: DuckDB v1.0.0 [eburn@Windows 10 x64:R 4.4.0/:memory:]
 #>    cohort_definition_id subject_id cohort_start_date cohort_end_date
 #>                   <int> <chr>      <date>            <date>         
 #>  1                    1 2          2008-01-01        2018-01-01     
@@ -149,8 +149,8 @@ outcome cohort.
 
 ``` r
 cdm$outcome
-#> # Source:   table<outcome> [?? x 4]
-#> # Database: DuckDB v0.9.2 [eburn@Windows 10 x64:R 4.2.1/:memory:]
+#> # Source:   table<main.outcome> [?? x 4]
+#> # Database: DuckDB v1.0.0 [eburn@Windows 10 x64:R 4.4.0/:memory:]
 #>    cohort_definition_id subject_id cohort_start_date cohort_end_date
 #>                   <int> <chr>      <date>            <date>         
 #>  1                    1 2          2018-04-27        2026-04-20     

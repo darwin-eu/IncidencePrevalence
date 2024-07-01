@@ -64,7 +64,7 @@
 #'
 #' @return A table with a formatted version of a prevalence result.
 #'
-#' @export
+#' @noRd
 #'
 tablePrevalence <- function(
     result,

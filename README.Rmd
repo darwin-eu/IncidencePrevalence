@@ -30,7 +30,7 @@ If you find the package useful in supporting your research study, please conside
 You can install the latest version of IncidencePrevalence from CRAN:
 
 ```{r, eval=FALSE}
-install.packages("CDMConnector")
+install.packages("IncidencePrevalence")
 ```
 
 Or from github:

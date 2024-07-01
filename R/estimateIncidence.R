@@ -57,8 +57,6 @@
 #' participants from the analysis will be returned allowing for further
 #' analysis. Note, if using permanent tables and returnParticipants is TRUE,
 #' one table per analysis will be kept in the cdm write schema.
-#' @param summarisedResult If TRUE, result will be returned as in the
-#' summarised_result format
 #'
 #' @return Incidence estimates
 #' @export
@@ -88,8 +86,9 @@ estimateIncidence <- function(cdm,
                               minCellCount = 5,
                               strata = list(),
                               includeOverallStrata = TRUE,
-                              returnParticipants = FALSE,
-                              summarisedResult = FALSE) {
+                              returnParticipants = FALSE) {
+
+  summarisedResult <- FALSE
 
   if (isTRUE(returnParticipants)) {
     lifecycle::deprecate_warn(
