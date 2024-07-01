@@ -16,8 +16,7 @@ estimatePeriodPrevalence(
   strata = list(),
   includeOverallStrata = TRUE,
   minCellCount = 5,
-  returnParticipants = FALSE,
-  summarisedResult = FALSE
+  returnParticipants = FALSE
 )
 }
 \arguments{

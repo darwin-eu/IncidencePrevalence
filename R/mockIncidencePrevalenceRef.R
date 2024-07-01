@@ -58,8 +58,10 @@
 #' @export
 #'
 #' @examples
+#' \donttest{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 100)
 #' cdm
+#' }
 #'
 mockIncidencePrevalenceRef <- function(personTable = NULL,
                                        observationPeriodTable = NULL,

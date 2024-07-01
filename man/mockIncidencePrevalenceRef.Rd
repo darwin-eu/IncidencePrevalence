@@ -90,7 +90,9 @@ Generate example subset of the OMOP CDM for
 estimating incidence and prevalence
 }
 \examples{
+\donttest{
 cdm <- mockIncidencePrevalenceRef(sampleSize = 100)
 cdm
+}
 
 }
