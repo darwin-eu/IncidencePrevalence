@@ -181,8 +181,7 @@ estimatePeriodPrevalence <- function(cdm,
                                      strata = list(),
                                      includeOverallStrata = TRUE,
                                      minCellCount = 5,
-                                     returnParticipants = FALSE,
-                                     summarisedResult = FALSE) {
+                                     returnParticipants = FALSE) {
 
   if (isTRUE(returnParticipants)) {
     lifecycle::deprecate_warn(
