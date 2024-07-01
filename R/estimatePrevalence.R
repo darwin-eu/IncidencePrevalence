@@ -500,9 +500,9 @@ estimatePrevalence <- function(cdm,
       dplyr::select(c(
         "result_id", "result_type", "package_name", "package_version",
         "analysis_type", "analysis_interval",
-        "analysis_complete_database_intervals", "analysis_full_contribution",
-        dplyr::starts_with("denominator_"), dplyr::starts_with("outcome_"),
-      ))
+        "analysis_complete_database_intervals", "analysis_full_contribution"),
+        dplyr::starts_with("denominator_"), dplyr::starts_with("outcome_")
+      )
     ## result
     if (!"strata_name" %in% colnames(prs)) {
       prs <- prs |>

@@ -433,9 +433,9 @@ estimateIncidence <- function(cdm,
       dplyr::select(!dplyr::ends_with("_cohort_definition_id")) |>
       dplyr::select(c(
         "result_id", "result_type", "package_name", "package_version",
-        "analysis_interval", "analysis_complete_database_intervals",
-        dplyr::starts_with("denominator_"), dplyr::starts_with("outcome_"),
-      ))
+        "analysis_interval", "analysis_complete_database_intervals"),
+        dplyr::starts_with("denominator_"), dplyr::starts_with("outcome_")
+      )
     ## result
     if (!"strata_name" %in% colnames(irs)) {
       irs <- irs |>
