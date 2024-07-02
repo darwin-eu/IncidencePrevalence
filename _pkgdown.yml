@@ -6,3 +6,29 @@ template:
 navbar:
   structure:
     right: [github]
+
+reference:
+- subtitle: Build denominator cohorts
+- contents:
+  - matches("generateDenominatorCohortSet|generateTargetDenominatorCohortSet")
+- subtitle: Estimate incidence rates
+- contents:
+  - matches("estimateIncidence")
+- subtitle: Estimate point and period prevalence
+- contents:
+  - matches("estimatePointPrevalence|estimatePeriodPrevalence")
+- subtitle: Plot results
+- contents:
+  - matches("plotIncidence|plotPrevalence")
+- subtitle: Tabulate results
+- contents:
+  - matches("tablePrevalence|optionsTablePrevalence|tableIncidence|optionsTableIncidence")
+- subtitle: Mock data
+- contents:
+  - matches("mockIncidencePrevalenceRef")
+- subtitle: Benchmark package
+- contents:
+  - matches("benchmarkIncidencePrevalence")
+- subtitle: Other utility functions
+- contents:
+  - matches("participants")

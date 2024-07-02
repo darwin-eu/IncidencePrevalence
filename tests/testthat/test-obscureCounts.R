@@ -1,5 +1,5 @@
 test_that("check for incidence", {
-  inc <- tibble::tibble(
+  inc <- dplyr::tibble(
     incidence_analysis_id = c("1", "2", "3"),
     n_persons = c(4, 6, 200),
     n_events = c(3, 3, 100),
@@ -38,7 +38,7 @@ test_that("check for incidence", {
 })
 
 test_that("check for prevalence", {
-  prev <- tibble::tibble(
+  prev <- dplyr::tibble(
     incidence_analysis_id = c("1", "2", "3"),
     n_population = c(4, 6, 100),
     n_cases = c(3, 4, 100),

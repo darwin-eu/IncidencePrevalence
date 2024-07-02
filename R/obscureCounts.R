@@ -19,7 +19,7 @@ obscureCounts <- function(x,
                           substitute = NA) {
   ## check for standard types of user error
   errorMessage <- checkmate::makeAssertCollection()
-  checkmate::assert_true(tibble::is_tibble(x),
+  checkmate::assert_true(is.data.frame(x),
     add = errorMessage
   )
   checkmate::assertTRUE(
@@ -79,19 +79,20 @@ obscureCounts <- function(x,
 
 
 obscureAttrition <- function(x,
-                            minCellCount = 5){
+                            minCellCount = 5,
+                            substitute = NA){
 x <- x %>%
     dplyr::mutate(number_records = dplyr::if_else(.data$number_records < .env$minCellCount &
                                                     .data$number_records > 0,
-                                                  "<5", as.character(.data$number_records)),
+                                                  substitute, as.character(.data$number_records)),
                   number_subjects = dplyr::if_else(.data$number_subjects < .env$minCellCount &
                                                      .data$number_subjects > 0,
-                                                   "<5", as.character(.data$number_subjects)),
+                                                   substitute, as.character(.data$number_subjects)),
                   excluded_records = dplyr::if_else(.data$excluded_records < .env$minCellCount &
                                                       .data$excluded_records > 0,
-                                                    "<5", as.character(.data$excluded_records)),
+                                                    substitute, as.character(.data$excluded_records)),
                   excluded_subjects = dplyr::if_else(.data$excluded_subjects < .env$minCellCount &
                                                        .data$excluded_subjects > 0,
-                                                     "<5", as.character(.data$excluded_subjects)))
+                                                     substitute, as.character(.data$excluded_subjects)))
 
   }

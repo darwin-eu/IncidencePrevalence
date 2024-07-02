@@ -58,8 +58,10 @@
 #' @export
 #'
 #' @examples
+#' \donttest{
 #' cdm <- mockIncidencePrevalenceRef(sampleSize = 100)
 #' cdm
+#' }
 #'
 mockIncidencePrevalenceRef <- function(personTable = NULL,
                                        observationPeriodTable = NULL,
@@ -81,16 +83,17 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
                                        maxOutcomeDays = 10,
                                        maxOutcomes = 1) {
   rlang::check_installed("duckdb")
+  rlang::check_installed("DBI")
 
   errorMessage <- checkmate::makeAssertCollection()
   if(!is.null(personTable)){
-    checkmate::assert_true(tibble::is_tibble(personTable))
+    checkmate::assert_true(is.data.frame(personTable))
   }
   if(!is.null(observationPeriodTable)){
-    checkmate::assert_true(tibble::is_tibble(observationPeriodTable))
+    checkmate::assert_true(is.data.frame(observationPeriodTable))
   }
   if(!is.null(outcomeTable)){
-    checkmate::assert_true(tibble::is_tibble(outcomeTable))
+    checkmate::assert_true(is.data.frame(outcomeTable))
   }
   checkmate::assert_int(sampleSize, lower = 1)
   checkmate::assert_int(seed, lower = 1)

@@ -1,4 +1,5 @@
 test_that("check working example with defaults", {
+  skip_on_cran()
   db <- mockIncidencePrevalenceRef(sampleSize = 10000, outPre = 0.5)
   cdmCheck <- inherits(db, "cdm_reference")
   expect_true(cdmCheck)
@@ -36,7 +37,7 @@ test_that("check working example with defaults", {
 
 test_that("check working example with outcome table", {
   skip_on_cran()
-  outcomeTable <- tibble::tibble(
+  outcomeTable <- dplyr::tibble(
     cohort_definition_id = "1",
     subject_id = "1",
     cohort_start_date = c(

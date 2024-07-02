@@ -113,17 +113,32 @@ plotEstimates <- function(result,
                           colour,
                           colour_name,
                           options) {
+
+  rlang::check_installed("ggplot2", reason = "for plot functions")
+  rlang::check_installed("scales", reason = "for plot functions")
+
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(inherits(result, "IncidencePrevalenceResult"))
-  checkmate::assertTRUE(all(c(x, y) %in% colnames(result)))
+  # checkmate::assertTRUE(all(c(x, y) %in% colnames(result)))
   checkmate::assertList(options, add = errorMessage)
   checkmate::reportAssertions(collection = errorMessage)
+
+
+  hideConfidenceInterval <- "hideConfidenceInterval" %in% names(options) &&
+    options[["hideConfidenceInterval"]]
+  yLower <- ifelse(hideConfidenceInterval, y, paste0(y, "_95CI_lower"))
+  yUpper <- ifelse(hideConfidenceInterval, y, paste0(y, "_95CI_upper"))
+
 
   plot_data <- getPlotData(
     estimates = result,
     facetVars = facet,
     colourVars = colour
-  )
+  ) |>
+    dplyr::mutate(!!y := as.numeric(!!rlang::sym(y)),
+                  !!yLower := as.numeric(!!rlang::sym(yLower)),
+                  !!yUpper := as.numeric(!!rlang::sym(yUpper))) %>%
+    dplyr::mutate(dplyr::across(dplyr::contains("date"), as.Date))
 
   if (is.null(colour)) {
     plot <- plot_data %>%
@@ -151,10 +166,6 @@ plotEstimates <- function(result,
       )
   }
 
-  hideConfidenceInterval <- "hideConfidenceInterval" %in% names(options) &&
-    options[["hideConfidenceInterval"]]
-  yLower <- ifelse(hideConfidenceInterval, y, paste0(y, "_95CI_lower"))
-  yUpper <- ifelse(hideConfidenceInterval, y, paste0(y, "_95CI_upper"))
 
   plot <- plot +
     ggplot2::geom_point(size = 2.5) +
@@ -216,17 +227,28 @@ plotEstimates <- function(result,
 
 getPlotData <- function(estimates, facetVars, colourVars) {
   plotData <- estimates
+
+  if("summarised_result" %in% class(estimates)){
+    plotData <- plotData |>
+    visOmopResults::splitAdditional() |>
+    visOmopResults::addSettings() |>
+    dplyr::select(!"estimate_type") |>
+    tidyr::pivot_wider(names_from = .data$estimate_name,
+                       values_from = .data$estimate_value)
+  }
+
+
   if (!is.null(facetVars)) {
     plotData <- plotData %>%
       tidyr::unite("facet_var",
-        c(tidyselect::all_of(.env$facetVars)),
+        c(dplyr::all_of(.env$facetVars)),
         remove = FALSE, sep = "; "
       )
   }
   if (!is.null(colourVars)) {
     plotData <- plotData %>%
       tidyr::unite("colour_vars",
-        c(tidyselect::all_of(.env$colourVars)),
+        c(dplyr::all_of(.env$colourVars)),
         remove = FALSE, sep = "; "
       )
   }

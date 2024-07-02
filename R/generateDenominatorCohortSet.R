@@ -24,7 +24,9 @@
 #' or `estimatePeriodPrevalence()`.
 #'
 #' @param cdm A CDM reference object
-#' @param name Name of the cohort table to be created.
+#' @param name Name of the cohort table to be created. Note if a table already
+#' exists with this name in the database (give the prefix being used for the
+#' cdm reference) it will be overwritten.
 #' @param cohortDateRange Two dates. The first indicating the earliest cohort
 #' start date and the second indicating the latest possible cohort end date. If
 #' NULL or the first date is set as missing, the earliest observation_start_date
@@ -214,7 +216,7 @@ fetchDenominatorCohortSet <- function(cdm,
 
   # get target cohort ids if not given
   if(!is.null(targetCohortTable) && is.null(targetCohortId)){
-    targetCohortId <- sort(CDMConnector::settings(cdm[[targetCohortTable]]) %>%
+    targetCohortId <- sort(omopgenerics::settings(cdm[[targetCohortTable]]) %>%
       dplyr::pull("cohort_definition_id"))
   }
 
@@ -371,7 +373,7 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
       )
     )
 
-    cohortCount <- tibble::tibble(
+    cohortCount <- dplyr::tibble(
       cohort_definition_id = popSpecs$cohort_definition_id,
       number_records = as.integer(0),
       number_subjects = as.integer(0)
@@ -515,7 +517,7 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
   # add target info to settings
   if (is.na(unique(popSpecs$targetCohortTable))) {
     targetCohortId <- NA
-    targetCohortName <- NA
+    targetCohortName <- "None"
   } else {
     targetCohortName <- attr(cdm[[unique(popSpecs$targetCohortTable)]], "cohort_set") %>%
       dplyr::filter(.data$cohort_definition_id == !!unique(popSpecs$targetCohortId)) %>%
@@ -621,7 +623,7 @@ unionCohorts <- function(cdm,
   for(i in seq_along(studyPops)){
     if(!is.null(attr(studyPops[[i]], "cohort_set"))){
       allCohortSet[[i]] <- CDMConnector::cohort_set(studyPops[[i]])
-      allCohortCount[[i]] <- CDMConnector::cohort_count(studyPops[[i]])
+      allCohortCount[[i]] <- omopgenerics::cohortCount(studyPops[[i]])
       allCohortAttrition[[i]] <- CDMConnector::cohort_attrition(studyPops[[i]])
     }
   }
@@ -726,7 +728,7 @@ unionCohorts <- function(cdm,
       # drop intermediate tables
       CDMConnector::dropTable(
         cdm = cdm,
-        name = tidyselect::starts_with(paste0(intermediateTable, "_b"))
+        name = dplyr::starts_with(paste0(intermediateTable, "_b"))
       )
   }
 
@@ -748,10 +750,11 @@ updateCohort <- function(table, x, name, cdm) {
         temporary = FALSE
       )
   } else {
-    table <- CDMConnector::appendPermanent(
-      x = x,
-      name = name
-    )
+    table <- dplyr::union_all(table, x) %>%
+      dplyr::compute(
+        name = name,
+        temporary = FALSE
+      )
   }
   return(table)
 }

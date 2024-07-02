@@ -36,7 +36,7 @@ getPrevalence <- function(cdm,
     dplyr::mutate(cohort_start_date = as.Date(.data$cohort_start_date),
                   cohort_end_date = as.Date(.data$cohort_end_date)) %>%
     dplyr::filter(.data$cohort_definition_id ==
-      .env$denominatorCohortId) %>%
+                    .env$denominatorCohortId) %>%
     dplyr::select(-"cohort_definition_id") %>%
     dplyr::left_join(
       cdm[[outcomeTable]] %>%
@@ -90,17 +90,17 @@ getPrevalence <- function(cdm,
 
   if (nrow(studyDays) == 0) {
     # if no study days we´ll return an empty tibble
-    pr <- tibble::tibble()
+    pr <- dplyr::tibble()
 
     attrition <- recordAttrition(
-      table = tibble::tibble(subject_id = integer()),
+      table = dplyr::tibble(subject_id = integer()),
       id = "subject_id",
       reasonId = 12,
       reason = "Not observed during the complete database interval",
       existingAttrition = attrition
     )
     attrition <- recordAttrition(
-      table = tibble::tibble(subject_id = integer()),
+      table = dplyr::tibble(subject_id = integer()),
       id = "subject_id",
       reasonId = 13,
       reason = "Do not satisfy full contribution requirement for any time interval",
@@ -145,8 +145,8 @@ getPrevalence <- function(cdm,
       studyPop <- studyPop %>%
         dplyr::mutate(
           has_full_contribution = dplyr::if_else(!!checkExpression,
-            1L,
-            0L
+                                                 1L,
+                                                 0L
           )
         ) %>%
         dplyr::filter(.data$has_full_contribution >= 1) %>%
@@ -207,7 +207,7 @@ getPrevalence <- function(cdm,
 
       CDMConnector::dropTable(
         cdm = cdm,
-        name = tidyselect::starts_with(paste0(tablePrefix, "_prev_working_"))
+        name = dplyr::starts_with(paste0(tablePrefix, "_prev_working_"))
       )
 
     }
@@ -242,15 +242,15 @@ getPrevalence <- function(cdm,
           # which could be start of the period or later
           cohort_start_date =
             dplyr::if_else(.data$cohort_start_date <= .env$workingStart,
-              .env$workingStart,
-              as.Date(.data$cohort_start_date)
+                           .env$workingStart,
+                           as.Date(.data$cohort_start_date)
             ),
           # individuals end date for this period
           # end of the period or earlier
           cohort_end_date =
             dplyr::if_else(.data$cohort_end_date >= .env$workingEnd,
-              .env$workingEnd,
-              as.Date(.data$cohort_end_date)
+                           .env$workingEnd,
+                           as.Date(.data$cohort_end_date)
             )
         )
 
@@ -266,25 +266,25 @@ getPrevalence <- function(cdm,
             ])
           )
 
-      pr[[paste0(i)]] <- dplyr::tibble(
+        pr[[paste0(i)]] <- dplyr::tibble(
           n_population = result$n_persons,
           n_cases = result$n_cases
         )
-    } else {
-      pr[[paste0(i)]] <- dplyr::tibble()
-    }
+      } else {
+        pr[[paste0(i)]] <- dplyr::tibble()
+      }
 
       if(length(strata)>=1){
-      pr[[paste0(i)]] <- pr[[paste0(i)]] %>%
-        dplyr::mutate(strata_name = "Overall",
-                      strata_level = "Overall")
-      for(j in seq_along(strata)){
-        pr[[paste0(i)]] <- dplyr::bind_rows(pr[[paste0(i)]],
-                                        getStratifiedPrevalenceResult(workingPop,
-                                                                workingStrata = strata[[j]]
-                                    ) %>%
-                                      dplyr::rename("n_population" = "n_persons"))
-      }}
+        pr[[paste0(i)]] <- pr[[paste0(i)]] %>%
+          dplyr::mutate(strata_name = "Overall",
+                        strata_level = "Overall")
+        for(j in seq_along(strata)){
+          pr[[paste0(i)]] <- dplyr::bind_rows(pr[[paste0(i)]],
+                                              getStratifiedPrevalenceResult(workingPop,
+                                                                            workingStrata = strata[[j]]
+                                              ) %>%
+                                                dplyr::rename("n_population" = "n_persons"))
+        }}
       pr[[paste0(i)]] <- dplyr::tibble(cbind(pr[[paste0(i)]], studyDays[i, ]))
 
     }
@@ -306,7 +306,7 @@ getPrevalence <- function(cdm,
   results[["attrition"]] <- attrition
   if (returnParticipants == TRUE) {
     if(nrow(pr) > 0){
-    results[["person_table"]] <- studyPopParticipants
+      results[["person_table"]] <- studyPopParticipants
     }
   }
 
@@ -315,18 +315,18 @@ getPrevalence <- function(cdm,
 
 getStratifiedPrevalenceResult <- function(workingPop, workingStrata){
 
-    # include ongoing in current time of interest
-    result <- workingPop %>%
-      dplyr::group_by(dplyr::pick(.env$workingStrata)) %>%
-      dplyr::summarise(
-        n_persons = dplyr::n_distinct(.data$subject_id),
-        n_cases = dplyr::n_distinct(.data$subject_id[
-          !is.na(.data$outcome_start_date) &
-            .data$outcome_start_date <= .data$cohort_end_date &
-            .data$outcome_end_date >= .data$cohort_start_date
-        ])
-      ) %>%
-      dplyr::ungroup()
+  # include ongoing in current time of interest
+  result <- workingPop %>%
+    dplyr::group_by(dplyr::pick(.env$workingStrata)) %>%
+    dplyr::summarise(
+      n_persons = dplyr::n_distinct(.data$subject_id),
+      n_cases = dplyr::n_distinct(.data$subject_id[
+        !is.na(.data$outcome_start_date) &
+          .data$outcome_start_date <= .data$cohort_end_date &
+          .data$outcome_end_date >= .data$cohort_start_date
+      ])
+    ) %>%
+    dplyr::ungroup()
 
 
   result <- result %>%
