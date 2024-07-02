@@ -230,6 +230,7 @@ test_that("plot options", {
 # original result format
 
 test_that("basic incidence plot", {
+  skip_on_cran()
   skip_if_not_installed("ggplot2")
   skip_if_not_installed("scales")
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
@@ -265,6 +266,7 @@ test_that("basic incidence plot", {
   })
 
 test_that("basic prevalence plot", {
+  skip_on_cran()
   skip_if_not_installed("ggplot2")
   skip_if_not_installed("scales")
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
@@ -303,6 +305,7 @@ test_that("basic prevalence plot", {
 })
 
 test_that("plot facets", {
+  skip_on_cran()
   skip_if_not_installed("ggplot2")
   skip_if_not_installed("scales")
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
@@ -349,6 +352,7 @@ test_that("plot facets", {
 })
 
 test_that("plot colour", {
+  skip_on_cran()
   skip_if_not_installed("ggplot2")
   skip_if_not_installed("scales")
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
@@ -399,6 +403,7 @@ test_that("plot colour", {
 })
 
 test_that("plot options", {
+  skip_on_cran()
   skip_if_not_installed("ggplot2")
   skip_if_not_installed("scales")
   cdm <- mockIncidencePrevalenceRef(sampleSize = 10000)
