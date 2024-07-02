@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.4</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -108,19 +108,11 @@ specified in the <code>plotPrevalence</code> function.</p>
 <span><span class="co">#&gt; Getting incidence for analysis 2 of 2</span></span>
 <span><span class="co">#&gt; Overall time taken: 0 mins and 1 secs</span></span></code></pre></div>
 <div class="section level3">
-<h3 id="default-plot">Default plot<a class="anchor" aria-label="anchor" href="#default-plot"></a>
-</h3>
-<p>This is the default incidence plot.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a06_Plotting_options_files/figure-html/defplot-1.png" width="672"></p>
-</div>
-<div class="section level3">
 <h3 id="faceted-plot">Faceted plot<a class="anchor" aria-label="anchor" href="#faceted-plot"></a>
 </h3>
 <p>This is the default incidence plot where the plot has been faceted by
 sex.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span>, facet <span class="op">=</span> <span class="st">"denominator_sex"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="a06_Plotting_options_files/figure-html/facetplot-1.png" width="672"></p>
 </div>
@@ -128,7 +120,7 @@ sex.</p>
 <h3 id="faceted-plot---with-lines">Faceted plot - with lines<a class="anchor" aria-label="anchor" href="#faceted-plot---with-lines"></a>
 </h3>
 <p>This is the previous plot where the dots are connected.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span>, facet <span class="op">=</span> <span class="st">"denominator_sex"</span>, ribbon <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></code></pre></div>
 <p><img src="a06_Plotting_options_files/figure-html/linesplot-1.png" width="672"></p>
 </div>
@@ -137,7 +129,7 @@ sex.</p>
 </h3>
 <p>This is the previous plot where the dots are connected but no
 confidence interval is shown.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span>, facet <span class="op">=</span> <span class="st">"denominator_sex"</span>, ribbon <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>              options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">'hideConfidenceInterval'</span> <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="a06_Plotting_options_files/figure-html/noconfplot-1.png" width="672"></p>
@@ -150,29 +142,12 @@ scales<a class="anchor" aria-label="anchor" href="#faceted-plot---with-lines-no-
 other. The <code>facetNcols</code> variable defines the number of
 columns of the subplots. In addition we set <code>facetScales</code> as
 “free” so that the axis can vary by facet.</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span>, facet <span class="op">=</span> <span class="st">"denominator_sex"</span>, ribbon <span class="op">=</span> <span class="cn">TRUE</span>, </span>
 <span>              options <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="st">'hideConfidenceInterval'</span> <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>                             <span class="st">'facetNcols'</span> <span class="op">=</span> <span class="fl">1</span>, </span>
 <span>                             <span class="st">'facetScales'</span> <span class="op">=</span> <span class="st">"free"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <p><img src="a06_Plotting_options_files/figure-html/stackedplot-1.png" width="672"></p>
-<p>As we’ve used permanent tables for this example, we can drop these
-after running our analysis.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/list_tables.html" class="external-link">listTables</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">cdm</span>, <span class="st">"cdm_source"</span><span class="op">)</span>, <span class="st">"dbcon"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [1] "denominator"           "denominator_attrition" "denominator_codelist" </span></span>
-<span><span class="co">#&gt;  [4] "denominator_set"       "observation_period"    "outcome"              </span></span>
-<span><span class="co">#&gt;  [7] "outcome_attrition"     "outcome_codelist"      "outcome_set"          </span></span>
-<span><span class="co">#&gt; [10] "person"                "target"                "target_attrition"     </span></span>
-<span><span class="co">#&gt; [13] "target_codelist"       "target_set"</span></span></code></pre></div>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu-dev.github.io/omopgenerics/reference/dropTable.html" class="external-link">dropTable</a></span><span class="op">(</span>cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"denominator"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu-dev.github.io/omopgenerics/reference/dropTable.html" class="external-link">dropTable</a></span><span class="op">(</span>cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="fu"><a href="https://tidyselect.r-lib.org/reference/starts_with.html" class="external-link">starts_with</a></span><span class="op">(</span><span class="st">"inc_participants_"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/list_tables.html" class="external-link">listTables</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">cdm</span>, <span class="st">"cdm_source"</span><span class="op">)</span>, <span class="st">"dbcon"</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;  [1] "observation_period" "outcome"            "outcome_attrition" </span></span>
-<span><span class="co">#&gt;  [4] "outcome_codelist"   "outcome_set"        "person"            </span></span>
-<span><span class="co">#&gt;  [7] "target"             "target_attrition"   "target_codelist"   </span></span>
-<span><span class="co">#&gt; [10] "target_set"</span></span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc"><h2>On this page</h2>

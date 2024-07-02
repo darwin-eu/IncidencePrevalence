@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.4</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -132,34 +132,33 @@ than a study period.</p>
 <span></span>
 <span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mockIncidencePrevalenceRef.html">mockIncidencePrevalenceRef</a></span><span class="op">(</span></span>
 <span>  sampleSize <span class="op">=</span> <span class="fl">20000</span>,</span>
+<span>  earliestObservationStartDate <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"1960-01-01"</span><span class="op">)</span>, </span>
+<span>  minOutcomeDays <span class="op">=</span> <span class="fl">365</span>,</span>
 <span>  outPre <span class="op">=</span> <span class="fl">0.3</span></span>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="st">"denominator"</span>,</span>
-<span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2008-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2012-01-01"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"1990-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2009-12-31"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  ageGroup <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  sex <span class="op">=</span> <span class="st">"Both"</span>,</span>
 <span>  daysPriorObservation <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Creating denominator cohorts</span></span>
-<span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Cohorts created in 0 min and 3 sec</span></span></code></pre></div>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span></span>
+<span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: ??</span></span>
 <span><span class="co">#&gt; Columns: 4</span></span>
-<span><span class="co">#&gt; Database: DuckDB v1.0.0 [unknown@Linux 6.5.0-1021-azure:R 4.4.1/:memory:]</span></span>
+<span><span class="co">#&gt; Database: DuckDB v1.0.0 [unknown@Linux 6.5.0-1022-azure:R 4.4.1/:memory:]</span></span>
 <span><span class="co">#&gt; $ cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…</span></span>
-<span><span class="co">#&gt; $ subject_id           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "2", "3", "6", "8", "10", "11", "12", "13", …</span></span>
-<span><span class="co">#&gt; $ cohort_start_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-01-01, 2008-01-01, …</span></span>
-<span><span class="co">#&gt; $ cohort_end_date      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-01-01, 2011-08-09, …</span></span></code></pre></div>
+<span><span class="co">#&gt; $ subject_id           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "2", "5", "6", "7", "8", "10", "11", "12", "…</span></span>
+<span><span class="co">#&gt; $ cohort_start_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-01-01, 1990-04-15, 1990-01-01, 1990-01-01, …</span></span>
+<span><span class="co">#&gt; $ cohort_end_date      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-02-23, 1997-04-01, 2007-05-03, 1994-08-25, …</span></span></code></pre></div>
 <div class="section level3">
 <h3 id="using-estimatepointprevalence">Using estimatePointPrevalence()<a class="anchor" aria-label="anchor" href="#using-estimatepointprevalence"></a>
 </h3>
 <p>Let´s first calculate point prevalence on a yearly basis.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimatePointPrevalence.html">estimatePointPrevalence</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span>
@@ -170,43 +169,43 @@ than a study period.</p>
 <span></span>
 <span><span class="va">prev</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Rows: 5</span></span>
+<span><span class="co">#&gt; Rows: 20</span></span>
 <span><span class="co">#&gt; Columns: 29</span></span>
-<span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1", "1"</span></span>
-<span><span class="co">#&gt; $ prevalence_start_date                   <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2009-01-01, 2010-0…</span></span>
-<span><span class="co">#&gt; $ prevalence_end_date                     <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2009-01-01, 2010-…</span></span>
-<span><span class="co">#&gt; $ n_cases                                 <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 0, 0, 0, 1</span></span>
-<span><span class="co">#&gt; $ n_population                            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 13910, 13672, 13446, 13194, 1…</span></span>
-<span><span class="co">#&gt; $ prevalence                              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 7.189073e-05, 0.000000e+00, 0.…</span></span>
-<span><span class="co">#&gt; $ prevalence_95CI_lower                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1.269059e-05, 0.000000e+00, 2.…</span></span>
-<span><span class="co">#&gt; $ prevalence_95CI_upper                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.0004071402, 0.0002808938, 0.…</span></span>
+<span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1", "1", "1", …</span></span>
+<span><span class="co">#&gt; $ prevalence_start_date                   <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-01-01, 1991-01-01, 1992-…</span></span>
+<span><span class="co">#&gt; $ prevalence_end_date                     <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-01-01, 1991-01-01, 1992-…</span></span>
+<span><span class="co">#&gt; $ n_cases                                 <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 110, 102, 106, 88, 89, 110, 10…</span></span>
+<span><span class="co">#&gt; $ n_population                            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 16152, 16255, 16339, 16409, 16…</span></span>
+<span><span class="co">#&gt; $ prevalence                              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.006810302, 0.006274992, 0.00…</span></span>
+<span><span class="co">#&gt; $ prevalence_95CI_lower                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.005653975, 0.005172263, 0.00…</span></span>
+<span><span class="co">#&gt; $ prevalence_95CI_upper                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.008201166, 0.007611025, 0.00…</span></span>
 <span><span class="co">#&gt; $ population_obscured                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
 <span><span class="co">#&gt; $ cases_obscured                          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
 <span><span class="co">#&gt; $ result_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
-<span><span class="co">#&gt; $ outcome_cohort_id                       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1</span></span>
+<span><span class="co">#&gt; $ outcome_cohort_id                       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …</span></span>
 <span><span class="co">#&gt; $ outcome_cohort_name                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "cohort_1", "cohort_1", "cohor…</span></span>
 <span><span class="co">#&gt; $ analysis_type                           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "point", "point", "point", "po…</span></span>
 <span><span class="co">#&gt; $ analysis_interval                       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "years", "years", "years", "ye…</span></span>
 <span><span class="co">#&gt; $ analysis_complete_database_intervals    <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE, FA…</span></span>
 <span><span class="co">#&gt; $ analysis_time_point                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "start", "start", "start", "st…</span></span>
 <span><span class="co">#&gt; $ analysis_full_contribution              <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE, FA…</span></span>
-<span><span class="co">#&gt; $ analysis_min_cell_count                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0</span></span>
-<span><span class="co">#&gt; $ denominator_cohort_id                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1</span></span>
+<span><span class="co">#&gt; $ analysis_min_cell_count                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …</span></span>
+<span><span class="co">#&gt; $ denominator_cohort_id                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …</span></span>
 <span><span class="co">#&gt; $ denominator_cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "denominator_cohort_1", "denom…</span></span>
 <span><span class="co">#&gt; $ denominator_age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0 to 150", "0 to 150", "0 to …</span></span>
 <span><span class="co">#&gt; $ denominator_sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Both", "Both", "Both", "Both"…</span></span>
-<span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0</span></span>
-<span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-0…</span></span>
-<span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-0…</span></span>
-<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> NA, NA, NA, NA, NA</span></span>
-<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA</span></span>
+<span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …</span></span>
+<span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-01-01, 1990-01-01, 1990-…</span></span>
+<span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2009-12-31, 2009-12-31, 2009-…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "None", "None", "None", "None"…</span></span>
 <span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "mock", "mock", "mock", "mock"…</span></span></code></pre></div>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="../reference/plotPrevalence.html">plotPrevalence</a></span><span class="op">(</span><span class="va">prev</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-5-1.png" width="672"></p>
+<p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-6-1.png" width="672"></p>
 <p>We can also calculate point prevalence by calendar month.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimatePointPrevalence.html">estimatePointPrevalence</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span>
@@ -217,16 +216,16 @@ than a study period.</p>
 <span></span>
 <span><span class="va">prev</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Rows: 49</span></span>
+<span><span class="co">#&gt; Rows: 240</span></span>
 <span><span class="co">#&gt; Columns: 29</span></span>
 <span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1", "1", "1", …</span></span>
-<span><span class="co">#&gt; $ prevalence_start_date                   <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-02-01, 2008-…</span></span>
-<span><span class="co">#&gt; $ prevalence_end_date                     <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-02-01, 2008-…</span></span>
-<span><span class="co">#&gt; $ n_cases                                 <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 0, 0, 2, 0, 0, 1, 0, 0, …</span></span>
-<span><span class="co">#&gt; $ n_population                            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 13910, 13887, 13868, 13854, 13…</span></span>
-<span><span class="co">#&gt; $ prevalence                              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 7.189073e-05, 7.200979e-05, 0.…</span></span>
-<span><span class="co">#&gt; $ prevalence_95CI_lower                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1.269059e-05, 1.271161e-05, 0.…</span></span>
-<span><span class="co">#&gt; $ prevalence_95CI_upper                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.0004071402, 0.0004078143, 0.…</span></span>
+<span><span class="co">#&gt; $ prevalence_start_date                   <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-01-01, 1990-02-01, 1990-…</span></span>
+<span><span class="co">#&gt; $ prevalence_end_date                     <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-01-01, 1990-02-01, 1990-…</span></span>
+<span><span class="co">#&gt; $ n_cases                                 <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 110, 106, 110, 108, 107, 112, …</span></span>
+<span><span class="co">#&gt; $ n_population                            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 16152, 16161, 16173, 16183, 16…</span></span>
+<span><span class="co">#&gt; $ prevalence                              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.006810302, 0.006559000, 0.00…</span></span>
+<span><span class="co">#&gt; $ prevalence_95CI_lower                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.005653975, 0.005426372, 0.00…</span></span>
+<span><span class="co">#&gt; $ prevalence_95CI_upper                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.008201166, 0.007926153, 0.00…</span></span>
 <span><span class="co">#&gt; $ population_obscured                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
 <span><span class="co">#&gt; $ cases_obscured                          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
 <span><span class="co">#&gt; $ result_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
@@ -243,20 +242,20 @@ than a study period.</p>
 <span><span class="co">#&gt; $ denominator_age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0 to 150", "0 to 150", "0 to …</span></span>
 <span><span class="co">#&gt; $ denominator_sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Both", "Both", "Both", "Both"…</span></span>
 <span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …</span></span>
-<span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-…</span></span>
-<span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-…</span></span>
+<span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-01-01, 1990-01-01, 1990-…</span></span>
+<span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2009-12-31, 2009-12-31, 2009-…</span></span>
 <span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
-<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "None", "None", "None", "None"…</span></span>
 <span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "mock", "mock", "mock", "mock"…</span></span></code></pre></div>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="../reference/plotPrevalence.html">plotPrevalence</a></span><span class="op">(</span><span class="va">prev</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-6-1.png" width="672"></p>
+<p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-7-1.png" width="672"></p>
 <p>By using the estimatePointPrevalence() function, we can further
 specify where to compute point prevalence in each time interval (start,
 middle, end). By default, this parameter is set to start. But we can use
 middle instead like so:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimatePointPrevalence.html">estimatePointPrevalence</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span>
@@ -268,48 +267,48 @@ middle instead like so:</p>
 <span></span>
 <span><span class="va">prev</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Rows: 4</span></span>
+<span><span class="co">#&gt; Rows: 20</span></span>
 <span><span class="co">#&gt; Columns: 29</span></span>
-<span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1"</span></span>
-<span><span class="co">#&gt; $ prevalence_start_date                   <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-07-01, 2009-07-01, 2010-0…</span></span>
-<span><span class="co">#&gt; $ prevalence_end_date                     <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-07-01, 2009-07-01, 2010-…</span></span>
-<span><span class="co">#&gt; $ n_cases                                 <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 0, 0, 1, 0</span></span>
-<span><span class="co">#&gt; $ n_population                            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 13798, 13562, 13324, 13081</span></span>
-<span><span class="co">#&gt; $ prevalence                              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.000000e+00, 0.000000e+00, 7…</span></span>
-<span><span class="co">#&gt; $ prevalence_95CI_lower                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> -2.710505e-20, 0.000000e+00, 1…</span></span>
-<span><span class="co">#&gt; $ prevalence_95CI_upper                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.0002783294, 0.0002831714, 0.…</span></span>
+<span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1", "1", "1", …</span></span>
+<span><span class="co">#&gt; $ prevalence_start_date                   <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-07-01, 1991-07-01, 1992-…</span></span>
+<span><span class="co">#&gt; $ prevalence_end_date                     <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-07-01, 1991-07-01, 1992-…</span></span>
+<span><span class="co">#&gt; $ n_cases                                 <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 111, 110, 90, 83, 112, 115, 10…</span></span>
+<span><span class="co">#&gt; $ n_population                            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 16217, 16297, 16385, 16437, 16…</span></span>
+<span><span class="co">#&gt; $ prevalence                              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.006844669, 0.006749709, 0.00…</span></span>
+<span><span class="co">#&gt; $ prevalence_95CI_lower                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.005687287, 0.005603643, 0.00…</span></span>
+<span><span class="co">#&gt; $ prevalence_95CI_upper                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.008235632, 0.008128252, 0.00…</span></span>
 <span><span class="co">#&gt; $ population_obscured                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
 <span><span class="co">#&gt; $ cases_obscured                          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
 <span><span class="co">#&gt; $ result_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
-<span><span class="co">#&gt; $ outcome_cohort_id                       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1</span></span>
+<span><span class="co">#&gt; $ outcome_cohort_id                       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …</span></span>
 <span><span class="co">#&gt; $ outcome_cohort_name                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "cohort_1", "cohort_1", "cohor…</span></span>
 <span><span class="co">#&gt; $ analysis_type                           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "point", "point", "point", "po…</span></span>
 <span><span class="co">#&gt; $ analysis_interval                       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "years", "years", "years", "ye…</span></span>
-<span><span class="co">#&gt; $ analysis_complete_database_intervals    <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE</span></span>
+<span><span class="co">#&gt; $ analysis_complete_database_intervals    <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE, FA…</span></span>
 <span><span class="co">#&gt; $ analysis_time_point                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "middle", "middle", "middle", …</span></span>
-<span><span class="co">#&gt; $ analysis_full_contribution              <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE</span></span>
-<span><span class="co">#&gt; $ analysis_min_cell_count                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0</span></span>
-<span><span class="co">#&gt; $ denominator_cohort_id                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1</span></span>
+<span><span class="co">#&gt; $ analysis_full_contribution              <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE, FA…</span></span>
+<span><span class="co">#&gt; $ analysis_min_cell_count                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …</span></span>
+<span><span class="co">#&gt; $ denominator_cohort_id                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …</span></span>
 <span><span class="co">#&gt; $ denominator_cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "denominator_cohort_1", "denom…</span></span>
 <span><span class="co">#&gt; $ denominator_age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0 to 150", "0 to 150", "0 to …</span></span>
-<span><span class="co">#&gt; $ denominator_sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Both", "Both", "Both", "Both"</span></span>
-<span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0</span></span>
-<span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-0…</span></span>
-<span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-0…</span></span>
-<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> NA, NA, NA, NA</span></span>
-<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
-<span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "mock", "mock", "mock", "mock"</span></span></code></pre></div>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt; $ denominator_sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Both", "Both", "Both", "Both"…</span></span>
+<span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …</span></span>
+<span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-01-01, 1990-01-01, 1990-…</span></span>
+<span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2009-12-31, 2009-12-31, 2009-…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "None", "None", "None", "None"…</span></span>
+<span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "mock", "mock", "mock", "mock"…</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="../reference/plotPrevalence.html">plotPrevalence</a></span><span class="op">(</span><span class="va">prev</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-7-1.png" width="672"></p>
+<p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-8-1.png" width="672"></p>
 </div>
 <div class="section level3">
 <h3 id="using-estimateperiodprevalence">Using estimatePeriodPrevalence()<a class="anchor" aria-label="anchor" href="#using-estimateperiodprevalence"></a>
 </h3>
 <p>To calculate period prevalence by year (i.e. each period is a
 calendar year)</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimatePeriodPrevalence.html">estimatePeriodPrevalence</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span>
@@ -320,44 +319,44 @@ calendar year)</p>
 <span></span>
 <span><span class="va">prev</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Rows: 4</span></span>
+<span><span class="co">#&gt; Rows: 20</span></span>
 <span><span class="co">#&gt; Columns: 29</span></span>
-<span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1"</span></span>
-<span><span class="co">#&gt; $ prevalence_start_date                   <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2009-01-01, 2010-0…</span></span>
-<span><span class="co">#&gt; $ prevalence_end_date                     <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-12-31, 2009-12-31, 2010-…</span></span>
-<span><span class="co">#&gt; $ n_cases                                 <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 62, 77, 76, 72</span></span>
-<span><span class="co">#&gt; $ n_population                            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 13910, 13672, 13446, 13194</span></span>
-<span><span class="co">#&gt; $ prevalence                              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.004457225, 0.005631949, 0.0…</span></span>
-<span><span class="co">#&gt; $ prevalence_95CI_lower                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.003478770, 0.004508929, 0.00…</span></span>
-<span><span class="co">#&gt; $ prevalence_95CI_upper                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.005709307, 0.007032698, 0.00…</span></span>
+<span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1", "1", "1", …</span></span>
+<span><span class="co">#&gt; $ prevalence_start_date                   <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-01-01, 1991-01-01, 1992-…</span></span>
+<span><span class="co">#&gt; $ prevalence_end_date                     <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-12-31, 1991-12-31, 1992-…</span></span>
+<span><span class="co">#&gt; $ n_cases                                 <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 216, 212, 200, 181, 203, 221, …</span></span>
+<span><span class="co">#&gt; $ n_population                            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 16386, 16482, 16556, 16627, 16…</span></span>
+<span><span class="co">#&gt; $ prevalence                              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.013181985, 0.012862517, 0.01…</span></span>
+<span><span class="co">#&gt; $ prevalence_95CI_lower                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.011546259, 0.011252223, 0.01…</span></span>
+<span><span class="co">#&gt; $ prevalence_95CI_upper                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.015045911, 0.014699832, 0.01…</span></span>
 <span><span class="co">#&gt; $ population_obscured                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
 <span><span class="co">#&gt; $ cases_obscured                          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
 <span><span class="co">#&gt; $ result_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
-<span><span class="co">#&gt; $ outcome_cohort_id                       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1</span></span>
+<span><span class="co">#&gt; $ outcome_cohort_id                       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …</span></span>
 <span><span class="co">#&gt; $ outcome_cohort_name                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "cohort_1", "cohort_1", "cohor…</span></span>
 <span><span class="co">#&gt; $ analysis_type                           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "period", "period", "period", …</span></span>
 <span><span class="co">#&gt; $ analysis_interval                       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "years", "years", "years", "ye…</span></span>
-<span><span class="co">#&gt; $ analysis_complete_database_intervals    <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> TRUE, TRUE, TRUE, TRUE</span></span>
+<span><span class="co">#&gt; $ analysis_complete_database_intervals    <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> TRUE, TRUE, TRUE, TRUE, TRUE, …</span></span>
 <span><span class="co">#&gt; $ analysis_time_point                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "start", "start", "start", "st…</span></span>
-<span><span class="co">#&gt; $ analysis_full_contribution              <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE</span></span>
-<span><span class="co">#&gt; $ analysis_min_cell_count                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0</span></span>
-<span><span class="co">#&gt; $ denominator_cohort_id                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1</span></span>
+<span><span class="co">#&gt; $ analysis_full_contribution              <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> FALSE, FALSE, FALSE, FALSE, FA…</span></span>
+<span><span class="co">#&gt; $ analysis_min_cell_count                 <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …</span></span>
+<span><span class="co">#&gt; $ denominator_cohort_id                   <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …</span></span>
 <span><span class="co">#&gt; $ denominator_cohort_name                 <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "denominator_cohort_1", "denom…</span></span>
 <span><span class="co">#&gt; $ denominator_age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0 to 150", "0 to 150", "0 to …</span></span>
-<span><span class="co">#&gt; $ denominator_sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Both", "Both", "Both", "Both"</span></span>
-<span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0</span></span>
-<span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-0…</span></span>
-<span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-0…</span></span>
-<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> NA, NA, NA, NA</span></span>
-<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA</span></span>
-<span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "mock", "mock", "mock", "mock"</span></span></code></pre></div>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt; $ denominator_sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Both", "Both", "Both", "Both"…</span></span>
+<span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …</span></span>
+<span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-01-01, 1990-01-01, 1990-…</span></span>
+<span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2009-12-31, 2009-12-31, 2009-…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "None", "None", "None", "None"…</span></span>
+<span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "mock", "mock", "mock", "mock"…</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="../reference/plotPrevalence.html">plotPrevalence</a></span><span class="op">(</span><span class="va">prev</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.1</span>, <span class="fl">0.3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-8-1.png" width="672"></p>
+<span><span class="fu"><a href="../reference/plotPrevalence.html">plotPrevalence</a></span><span class="op">(</span><span class="va">prev</span><span class="op">)</span></span></code></pre></div>
+<p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-9-1.png" width="672"></p>
 <p>To calculate period prevalence by month (i.e. each period is a
 calendar month)</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimatePeriodPrevalence.html">estimatePeriodPrevalence</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span>
@@ -368,16 +367,16 @@ calendar month)</p>
 <span></span>
 <span><span class="va">prev</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Rows: 48</span></span>
+<span><span class="co">#&gt; Rows: 240</span></span>
 <span><span class="co">#&gt; Columns: 29</span></span>
 <span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1", "1", "1", …</span></span>
-<span><span class="co">#&gt; $ prevalence_start_date                   <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-02-01, 2008-…</span></span>
-<span><span class="co">#&gt; $ prevalence_end_date                     <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-31, 2008-02-29, 2008-…</span></span>
-<span><span class="co">#&gt; $ n_cases                                 <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 6, 6, 5, 7, 5, 2, 5, 3, 8, 5, …</span></span>
-<span><span class="co">#&gt; $ n_population                            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 13910, 13887, 13868, 13854, 13…</span></span>
-<span><span class="co">#&gt; $ prevalence                              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.0004313444, 0.0004320588, 0.…</span></span>
-<span><span class="co">#&gt; $ prevalence_95CI_lower                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1.977035e-04, 1.980310e-04, 1.…</span></span>
-<span><span class="co">#&gt; $ prevalence_95CI_upper                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.0009408360, 0.0009423937, 0.…</span></span>
+<span><span class="co">#&gt; $ prevalence_start_date                   <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-01-01, 1990-02-01, 1990-…</span></span>
+<span><span class="co">#&gt; $ prevalence_end_date                     <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-01-31, 1990-02-28, 1990-…</span></span>
+<span><span class="co">#&gt; $ n_cases                                 <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 117, 116, 116, 118, 117, 118, …</span></span>
+<span><span class="co">#&gt; $ n_population                            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 16175, 16183, 16193, 16208, 16…</span></span>
+<span><span class="co">#&gt; $ prevalence                              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.007233385, 0.007168016, 0.00…</span></span>
+<span><span class="co">#&gt; $ prevalence_95CI_lower                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.006039378, 0.005980138, 0.00…</span></span>
+<span><span class="co">#&gt; $ prevalence_95CI_upper                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.008661394, 0.008589811, 0.00…</span></span>
 <span><span class="co">#&gt; $ population_obscured                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
 <span><span class="co">#&gt; $ cases_obscured                          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
 <span><span class="co">#&gt; $ result_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
@@ -394,22 +393,22 @@ calendar month)</p>
 <span><span class="co">#&gt; $ denominator_age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0 to 150", "0 to 150", "0 to …</span></span>
 <span><span class="co">#&gt; $ denominator_sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Both", "Both", "Both", "Both"…</span></span>
 <span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …</span></span>
-<span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-…</span></span>
-<span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-…</span></span>
+<span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-01-01, 1990-01-01, 1990-…</span></span>
+<span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2009-12-31, 2009-12-31, 2009-…</span></span>
 <span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
-<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "None", "None", "None", "None"…</span></span>
 <span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "mock", "mock", "mock", "mock"…</span></span></code></pre></div>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="../reference/plotPrevalence.html">plotPrevalence</a></span><span class="op">(</span><span class="va">prev</span>, ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="cn">NA</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-9-1.png" width="672"></p>
+<p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-10-1.png" width="672"></p>
 <p>When using the estimatePeriodPrevalence() function, we can set the
 fullContribution parameter to decide whether individuals are required to
 be present in the database throughout the interval of interest in order
 to be included (fullContribution=TRUE). If not, individuals will only be
 required to be present for one day of the interval to contribute
 (fullContribution=FALSE), which would be specified like so:</p>
-<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimatePeriodPrevalence.html">estimatePeriodPrevalence</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span>
@@ -421,16 +420,16 @@ required to be present for one day of the interval to contribute
 <span></span>
 <span><span class="va">prev</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Rows: 48</span></span>
+<span><span class="co">#&gt; Rows: 240</span></span>
 <span><span class="co">#&gt; Columns: 29</span></span>
 <span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1", "1", "1", …</span></span>
-<span><span class="co">#&gt; $ prevalence_start_date                   <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-02-01, 2008-…</span></span>
-<span><span class="co">#&gt; $ prevalence_end_date                     <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-31, 2008-02-29, 2008-…</span></span>
-<span><span class="co">#&gt; $ n_cases                                 <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 6, 6, 5, 7, 5, 2, 5, 3, 8, 5, …</span></span>
-<span><span class="co">#&gt; $ n_population                            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 13910, 13887, 13868, 13854, 13…</span></span>
-<span><span class="co">#&gt; $ prevalence                              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.0004313444, 0.0004320588, 0.…</span></span>
-<span><span class="co">#&gt; $ prevalence_95CI_lower                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1.977035e-04, 1.980310e-04, 1.…</span></span>
-<span><span class="co">#&gt; $ prevalence_95CI_upper                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.0009408360, 0.0009423937, 0.…</span></span>
+<span><span class="co">#&gt; $ prevalence_start_date                   <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-01-01, 1990-02-01, 1990-…</span></span>
+<span><span class="co">#&gt; $ prevalence_end_date                     <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-01-31, 1990-02-28, 1990-…</span></span>
+<span><span class="co">#&gt; $ n_cases                                 <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 117, 116, 116, 118, 117, 118, …</span></span>
+<span><span class="co">#&gt; $ n_population                            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 16175, 16183, 16193, 16208, 16…</span></span>
+<span><span class="co">#&gt; $ prevalence                              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.007233385, 0.007168016, 0.00…</span></span>
+<span><span class="co">#&gt; $ prevalence_95CI_lower                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.006039378, 0.005980138, 0.00…</span></span>
+<span><span class="co">#&gt; $ prevalence_95CI_upper                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.008661394, 0.008589811, 0.00…</span></span>
 <span><span class="co">#&gt; $ population_obscured                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
 <span><span class="co">#&gt; $ cases_obscured                          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
 <span><span class="co">#&gt; $ result_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
@@ -447,17 +446,15 @@ required to be present for one day of the interval to contribute
 <span><span class="co">#&gt; $ denominator_age_group                   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0 to 150", "0 to 150", "0 to …</span></span>
 <span><span class="co">#&gt; $ denominator_sex                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Both", "Both", "Both", "Both"…</span></span>
 <span><span class="co">#&gt; $ denominator_days_prior_observation      <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, …</span></span>
-<span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-…</span></span>
-<span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-…</span></span>
+<span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-01-01, 1990-01-01, 1990-…</span></span>
+<span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2009-12-31, 2009-12-31, 2009-…</span></span>
 <span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
-<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "None", "None", "None", "None"…</span></span>
 <span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "mock", "mock", "mock", "mock"…</span></span></code></pre></div>
-<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
-<span><span class="fu"><a href="../reference/plotPrevalence.html">plotPrevalence</a></span><span class="op">(</span><span class="va">prev</span>,</span>
-<span>  ylim <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">0.07</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-10-1.png" width="672"></p>
+<span><span class="fu"><a href="../reference/plotPrevalence.html">plotPrevalence</a></span><span class="op">(</span><span class="va">prev</span><span class="op">)</span></span></code></pre></div>
+<p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-11-1.png" width="672"></p>
 </div>
 <div class="section level3">
 <h3 id="stratified-analyses">Stratified analyses<a class="anchor" aria-label="anchor" href="#stratified-analyses"></a>
@@ -466,10 +463,10 @@ required to be present for one day of the interval to contribute
 returned for each. Here for example we define three age groups for
 denominator populations and get three sets of estimates back when
 estimating prevalence.</p>
-<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="st">"denominator_age_sex"</span>,</span>
-<span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2008-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2012-01-01"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"1990-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2009-12-31"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  ageGroup <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">39</span><span class="op">)</span>,</span>
 <span>                  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">41</span>, <span class="fl">65</span><span class="op">)</span>,</span>
 <span>                  <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">66</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -478,7 +475,7 @@ estimating prevalence.</p>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Creating denominator cohorts</span></span>
 <span><span class="co">#&gt; <span style="color: #00BB00;">✔</span> Cohorts created in 0 min and 5 sec</span></span></code></pre></div>
-<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimatePeriodPrevalence.html">estimatePeriodPrevalence</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  denominatorTable <span class="op">=</span> <span class="st">"denominator_age_sex"</span>,</span>
@@ -488,11 +485,11 @@ estimating prevalence.</p>
 <span><span class="co">#&gt; Getting prevalence for analysis 1 of 3</span></span>
 <span><span class="co">#&gt; Getting prevalence for analysis 2 of 3</span></span>
 <span><span class="co">#&gt; Getting prevalence for analysis 3 of 3</span></span>
-<span><span class="co">#&gt; Time taken: 0 mins and 0 secs</span></span></code></pre></div>
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt; Time taken: 0 mins and 1 secs</span></span></code></pre></div>
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="../reference/plotPrevalence.html">plotPrevalence</a></span><span class="op">(</span><span class="va">prev</span>, facet <span class="op">=</span> <span class="st">"denominator_age_group"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-11-1.png" width="672"></p>
+<p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-12-1.png" width="672"></p>
 <p>While we specify time-varying stratifications when defining our
 denominator populations, if we have time-invariant stratifications we
 can include these at the the estimation stage. To do this we first need
@@ -500,7 +497,7 @@ to add a new column to our denominator cohort with our stratification
 variable. Here we´ll add an example stratification just to show the
 idea. Note, as well as getting stratified results we´ll also get overall
 results.</p>
-<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op">&lt;-</span> <span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>group <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html" class="external-link">if_else</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">subject_id</span><span class="op">)</span>  <span class="op">&lt;</span> <span class="fl">500</span>, <span class="st">"first"</span>, <span class="st">"second"</span><span class="op">)</span><span class="op">)</span> </span>
 <span></span>
@@ -513,17 +510,16 @@ results.</p>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Getting prevalence for analysis 1 of 1</span></span>
 <span><span class="co">#&gt; Time taken: 0 mins and 0 secs</span></span></code></pre></div>
-<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="../reference/plotPrevalence.html">plotPrevalence</a></span><span class="op">(</span><span class="va">prev</span>, </span>
 <span>               facet <span class="op">=</span> <span class="st">"strata_level"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-12-1.png" width="672"></p>
+<p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-13-1.png" width="672"></p>
 <p>We can also stratify on multiple variables at the same time.</p>
-<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op">&lt;-</span> <span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>group_1 <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html" class="external-link">if_else</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">subject_id</span><span class="op">)</span>  <span class="op">&lt;</span> <span class="fl">1500</span>, <span class="st">"first"</span>, <span class="st">"second"</span><span class="op">)</span><span class="op">)</span>  <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
-<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>group_2 <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html" class="external-link">if_else</a></span><span class="op">(</span><span class="va">cohort_start_date</span>  <span class="op">&lt;</span> <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2010-01-01"</span><span class="op">)</span>, </span>
-<span>                           <span class="st">"pre"</span>, <span class="st">"post"</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>group_1 <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html" class="external-link">if_else</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">subject_id</span><span class="op">)</span>  <span class="op">&lt;</span> <span class="fl">1500</span>, <span class="st">"first"</span>, <span class="st">"second"</span><span class="op">)</span>,</span>
+<span>         group_2 <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html" class="external-link">if_else</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">subject_id</span><span class="op">)</span>  <span class="op">&lt;</span> <span class="fl">1000</span>, <span class="st">"one"</span>, <span class="st">"two"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">prev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimatePeriodPrevalence.html">estimatePeriodPrevalence</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
@@ -535,12 +531,12 @@ results.</p>
 <span>  minCellCount <span class="op">=</span> <span class="fl">0</span></span>
 <span><span class="op">)</span></span>
 <span><span class="co">#&gt; Getting prevalence for analysis 1 of 1</span></span>
-<span><span class="co">#&gt; Time taken: 0 mins and 0 secs</span></span></code></pre></div>
-<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<span><span class="co">#&gt; Time taken: 0 mins and 1 secs</span></span></code></pre></div>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="fu"><a href="../reference/plotPrevalence.html">plotPrevalence</a></span><span class="op">(</span><span class="va">prev</span>, </span>
 <span>               facet <span class="op">=</span> <span class="st">"strata_level"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-13-1.png" width="672"></p>
+<p><img src="a04_Calculating_prevalence_files/figure-html/unnamed-chunk-14-1.png" width="672"></p>
 </div>
 <div class="section level3">
 <h3 id="other-parameters">Other parameters<a class="anchor" aria-label="anchor" href="#other-parameters"></a>
@@ -577,7 +573,7 @@ for each combination of the parameters set, respectively. Similar to the
 output obtained by <code><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet()</a></code>, the
 table generated will also include attributes, including tibbles with
 information on settings and attrition.</p>
-<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimatePeriodPrevalence.html">estimatePeriodPrevalence</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span>
@@ -595,12 +591,12 @@ information on settings and attrition.</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span> 1           20000          20000                   2 Missin… 0               </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span> 1           20000          20000                   3 Missin… 0               </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span> 1           20000          20000                   4 Cannot… 0               </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 1           13910          13910                   5 No obs… 6090            </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 1           13910          13910                   6 Doesn'… 0               </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 1           13910          13910                   7 Prior … 0               </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 1           13910          13910                  10 No obs… 0               </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 1           13910          13910                  11 Starti… <span style="color: #BB0000;">NA</span>              </span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 1           13910          13910                  12 Not ob… 0               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span> 1           18490          18490                   5 No obs… 1510            </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span> 1           18490          18490                   6 Doesn'… 0               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span> 1           18490          18490                   7 Prior … 0               </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span> 1           18389          18389                  10 No obs… 101             </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span> 1           18389          18389                  11 Starti… <span style="color: #BB0000;">NA</span>              </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span> 1           18389          18389                  12 Not ob… 0               </span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 12 more rows</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 19 more variables: excluded_subjects &lt;chr&gt;, outcome_cohort_id &lt;int&gt;,</span></span></span>
 <span><span class="co">#&gt; <span style="color: #949494;">#   outcome_cohort_name &lt;chr&gt;, analysis_type &lt;chr&gt;, analysis_interval &lt;chr&gt;,</span></span></span>
@@ -612,20 +608,20 @@ information on settings and attrition.</p>
 identify the individuals who contributed to the prevalence rate analysis
 by using `participants(). For example, we can identify those people
 contributing to analysis 1 by running</p>
-<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="../reference/participants.html">participants</a></span><span class="op">(</span><span class="va">prev</span>, analysisId <span class="op">=</span> <span class="fl">1</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: ??</span></span>
 <span><span class="co">#&gt; Columns: 4</span></span>
-<span><span class="co">#&gt; Database: DuckDB v1.0.0 [unknown@Linux 6.5.0-1021-azure:R 4.4.1/:memory:]</span></span>
-<span><span class="co">#&gt; $ subject_id         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "8", "12", "19", "39", "45", "55", "65", "71", "101…</span></span>
-<span><span class="co">#&gt; $ cohort_start_date  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-01-01, 2008-01-01, 20…</span></span>
-<span><span class="co">#&gt; $ cohort_end_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-01-01, 2012-01-01, 20…</span></span>
-<span><span class="co">#&gt; $ outcome_start_date <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1995-01-27, 1986-10-25, 2028-02-15, 1991-02-20, 20…</span></span></code></pre></div>
+<span><span class="co">#&gt; Database: DuckDB v1.0.0 [unknown@Linux 6.5.0-1022-azure:R 4.4.1/:memory:]</span></span>
+<span><span class="co">#&gt; $ subject_id         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "7", "8", "11", "13", "17", "20", "23", "29", "32",…</span></span>
+<span><span class="co">#&gt; $ cohort_start_date  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1990-01-01, 1990-01-01, 1990-01-01, 1990-01-01, 19…</span></span>
+<span><span class="co">#&gt; $ cohort_end_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2009-12-31, 2009-12-31, 2006-02-19, 2007-04-08, 20…</span></span>
+<span><span class="co">#&gt; $ outcome_start_date <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2033-03-05, 1999-06-01, 1978-03-30, 1964-11-29, 19…</span></span></code></pre></div>
 <p>As we´ve used permanent tables for this example, we can drop these
 after running our analysis (note, the table created will start with
 write_prefix specified when creating the cdm reference).</p>
-<div class="sourceCode" id="cb24"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># drop tables created when instantiating denominator cohorts</span></span>
 <span><span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu-dev.github.io/omopgenerics/reference/dropTable.html" class="external-link">dropTable</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>

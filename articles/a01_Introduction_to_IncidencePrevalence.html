@@ -26,7 +26,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.3</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.7.4</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -103,37 +103,27 @@ are provided in later vignettes.</p>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://ggplot2.tidyverse.org" class="external-link">ggplot2</a></span><span class="op">)</span></span></code></pre></div>
 <p>The IncidencePrevalence package works with data mapped to the OMOP
 CDM and we will first need to connect to a database, after which we can
-use the CDMConnector package to represent our mapped data as a single R
-object. This could like something like:</p>
+use the CDMConnector package to represent our mapped data as a cdm
+reference. For this example though we´ll use a synthetic cdm reference
+containing 50,000 hypothetical patients which we create using the
+<code><a href="../reference/mockIncidencePrevalenceRef.html">mockIncidencePrevalenceRef()</a></code> function.</p>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">con</span> <span class="op">&lt;-</span> <span class="fu">DBI</span><span class="fu">::</span><span class="fu"><a href="https://dbi.r-dbi.org/reference/dbConnect.html" class="external-link">dbConnect</a></span><span class="op">(</span><span class="fu">RPostgres</span><span class="fu">::</span><span class="fu"><a href="https://rpostgres.r-dbi.org/reference/Postgres.html" class="external-link">Postgres</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  dbname <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_DBNAME"</span><span class="op">)</span>,</span>
-<span>  host <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_HOST"</span><span class="op">)</span>,</span>
-<span>  user <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_USER"</span><span class="op">)</span>,</span>
-<span>  password <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_PASSWORD"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span>
-<span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu">CDMConnector</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/cdm_from_con.html" class="external-link">cdm_from_con</a></span><span class="op">(</span><span class="va">con</span>,</span>
-<span>  cdm_schema <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_CDM_SCHEMA"</span><span class="op">)</span>,</span>
-<span>  write_schema <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Sys.getenv.html" class="external-link">Sys.getenv</a></span><span class="op">(</span><span class="st">"CDM5_POSTGRESQL_WRITE_SCHEMA"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p>For this example though we´ll generate 50,000 hypothetical patients
-using the <code><a href="../reference/mockIncidencePrevalenceRef.html">mockIncidencePrevalenceRef()</a></code> function.</p>
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/mockIncidencePrevalenceRef.html">mockIncidencePrevalenceRef</a></span><span class="op">(</span></span>
-<span>  sampleSize <span class="op">=</span> <span class="fl">5000</span>,</span>
+<span>  sampleSize <span class="op">=</span> <span class="fl">50000</span>,</span>
 <span>  outPre <span class="op">=</span> <span class="fl">0.2</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <p>This example data already includes an outcome cohort.</p>
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cdm</span><span class="op">$</span><span class="va">outcome</span></span></code></pre></div>
-<p>Once we have a connection to the database set-up, we can use the
+<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cdm</span><span class="op">$</span><span class="va">outcome</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span> </span>
+<span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<p>Once we have a cdm reference, we can use the
 <code><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet()</a></code> to identify a denominator
 cohort to use later when calculating incidence and prevalence. In this
 case we identify three denominator cohorts one with males, one with
 females, and one with both males and females included. For each of these
 cohorts only those aged between 18 and 65 from 2008 to 2012, and who had
 365 days of prior history available are included.</p>
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  name <span class="op">=</span> <span class="st">"denominator"</span>,</span>
@@ -144,24 +134,19 @@ cohorts only those aged between 18 and 65 from 2008 to 2012, and who had
 <span><span class="op">)</span></span></code></pre></div>
 <p>We can see that each of our denominator cohorts is in the format of
 an OMOP CDM cohort:</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: ??</span></span>
 <span><span class="co">#&gt; Columns: 4</span></span>
-<span><span class="co">#&gt; Database: DuckDB v1.0.0 [unknown@Linux 6.5.0-1021-azure:R 4.4.1/:memory:]</span></span>
+<span><span class="co">#&gt; Database: DuckDB v1.0.0 [unknown@Linux 6.5.0-1022-azure:R 4.4.1/:memory:]</span></span>
 <span><span class="co">#&gt; $ cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…</span></span>
-<span><span class="co">#&gt; $ subject_id           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "4", "9", "10", "14", "17", "25", "26", "29", "30…</span></span>
+<span><span class="co">#&gt; $ subject_id           <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "2", "13", "17", "26", "29", "35", "46", "57", "5…</span></span>
 <span><span class="co">#&gt; $ cohort_start_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-01-01, 2008-01-01, …</span></span>
-<span><span class="co">#&gt; $ cohort_end_date      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-01-01, 2012-01-01, …</span></span></code></pre></div>
+<span><span class="co">#&gt; $ cohort_end_date      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-01-01, 2009-06-25, …</span></span></code></pre></div>
 <p>We can also see the settings associated with each cohort:</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a href="https://darwin-eu.github.io/CDMConnector/reference/cohortSet.html" class="external-link">cohortSet</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
-<span><span class="co">#&gt; Warning: `cohortSet()` was deprecated in CDMConnector 1.3.</span></span>
-<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Please use `settings()` instead.</span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">This warning is displayed once every 8 hours.</span></span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">Call `lifecycle::last_lifecycle_warnings()` to see where this warning was</span></span></span>
-<span><span class="co">#&gt; <span style="color: #555555;">generated.</span></span></span>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu"><a href="https://darwin-eu-dev.github.io/omopgenerics/reference/settings.html" class="external-link">settings</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 9</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id cohort_name        age_group sex   days_prior_observation</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>              <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>                  <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
@@ -169,22 +154,22 @@ an OMOP CDM cohort:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    2 denominator_cohor… 18 to 65  Fema…                    365</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    3 denominator_cohor… 18 to 65  Both                     365</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># ℹ 4 more variables: start_date &lt;date&gt;, end_date &lt;date&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   target_cohort_definition_id &lt;int&gt;, target_cohort_name &lt;lgl&gt;</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;">#   target_cohort_definition_id &lt;int&gt;, target_cohort_name &lt;chr&gt;</span></span></span></code></pre></div>
 <p>And we can also see the count for each cohort</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://darwin-eu-dev.github.io/omopgenerics/reference/cohortCount.html" class="external-link">cohortCount</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 3 × 3</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id number_records number_subjects</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span>           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span></span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1           <span style="text-decoration: underline;">1</span>099            <span style="text-decoration: underline;">1</span>099</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    2           <span style="text-decoration: underline;">1</span>120            <span style="text-decoration: underline;">1</span>120</span></span>
-<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    3           <span style="text-decoration: underline;">2</span>219            <span style="text-decoration: underline;">2</span>219</span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1          <span style="text-decoration: underline;">11</span>026           <span style="text-decoration: underline;">11</span>026</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    2          <span style="text-decoration: underline;">11</span>010           <span style="text-decoration: underline;">11</span>010</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    3          <span style="text-decoration: underline;">22</span>036           <span style="text-decoration: underline;">22</span>036</span></span></code></pre></div>
 <p>Now that we have our denominator cohorts, and using the outcome
 cohort that was also generated by the
 <code><a href="../reference/mockIncidencePrevalenceRef.html">mockIncidencePrevalenceRef()</a></code> function, we can estimate
 prevalence for each using the <code><a href="../reference/estimatePointPrevalence.html">estimatePointPrevalence()</a></code>
 function. Here we calculate point prevalence on a yearly basis.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">prev</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimatePeriodPrevalence.html">estimatePeriodPrevalence</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span>
@@ -200,11 +185,11 @@ function. Here we calculate point prevalence on a yearly basis.</p>
 <span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1", "1", "1", …</span></span>
 <span><span class="co">#&gt; $ prevalence_start_date                   <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-04-01, 2008-…</span></span>
 <span><span class="co">#&gt; $ prevalence_end_date                     <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-03-31, 2008-06-30, 2008-…</span></span>
-<span><span class="co">#&gt; $ n_cases                                 <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 0, 0, 0, 0, 0, 1, 2, 0, 0, 0, …</span></span>
-<span><span class="co">#&gt; $ n_population                            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1018, 1023, 1022, 1022, 1024, …</span></span>
-<span><span class="co">#&gt; $ prevalence                              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.0000000000, 0.0000000000, 0.…</span></span>
-<span><span class="co">#&gt; $ prevalence_95CI_lower                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.000000e+00, -2.168404e-19, 0…</span></span>
-<span><span class="co">#&gt; $ prevalence_95CI_upper                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.003759349, 0.003741044, 0.00…</span></span>
+<span><span class="co">#&gt; $ n_cases                                 <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 8, 9, 12, 13, 12, 9, 11, 9, 12…</span></span>
+<span><span class="co">#&gt; $ n_population                            <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 10239, 10259, 10272, 10286, 10…</span></span>
+<span><span class="co">#&gt; $ prevalence                              <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.0007813263, 0.0008772785, 0.…</span></span>
+<span><span class="co">#&gt; $ prevalence_95CI_lower                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.0003959688, 0.0004616194, 0.…</span></span>
+<span><span class="co">#&gt; $ prevalence_95CI_upper                   <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.0015411361, 0.0016665884, 0.…</span></span>
 <span><span class="co">#&gt; $ population_obscured                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
 <span><span class="co">#&gt; $ cases_obscured                          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
 <span><span class="co">#&gt; $ result_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
@@ -224,13 +209,13 @@ function. Here we calculate point prevalence on a yearly basis.</p>
 <span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-…</span></span>
 <span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-…</span></span>
 <span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
-<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "None", "None", "None", "None"…</span></span>
 <span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "mock", "mock", "mock", "mock"…</span></span></code></pre></div>
-<p><img src="a01_Introduction_to_IncidencePrevalence_files/figure-html/unnamed-chunk-11-1.png" width="672"></p>
+<p><img src="a01_Introduction_to_IncidencePrevalence_files/figure-html/unnamed-chunk-10-1.png" width="672"></p>
 <p>Similarly we can use the <code><a href="../reference/estimateIncidence.html">estimateIncidence()</a></code> function to
 estimate incidence rates. Here we annual incidence rates, with 180 days
 used for outcome washout windows.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">inc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimateIncidence.html">estimateIncidence</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span>
@@ -244,17 +229,17 @@ used for outcome washout windows.</p>
 <span><span class="co">#&gt; Rows: 12</span></span>
 <span><span class="co">#&gt; Columns: 29</span></span>
 <span><span class="co">#&gt; $ analysis_id                             <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1", "1", "1", "1", "2", "2", …</span></span>
-<span><span class="co">#&gt; $ n_persons                               <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1033, 1041, 1024, 1006, 1059, …</span></span>
-<span><span class="co">#&gt; $ person_days                             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 371667, 368717, 362576, 357039…</span></span>
-<span><span class="co">#&gt; $ n_events                                <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 0, NA, NA, NA, 0, NA, NA, NA, …</span></span>
+<span><span class="co">#&gt; $ n_persons                               <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 10413, 10412, 10186, 9997, 103…</span></span>
+<span><span class="co">#&gt; $ person_days                             <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 3731507, 3688811, 3602696, 353…</span></span>
+<span><span class="co">#&gt; $ n_events                                <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 37, 38, 30, 25, 24, 28, 23, 35…</span></span>
 <span><span class="co">#&gt; $ incidence_start_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2009-01-01, 2010-…</span></span>
 <span><span class="co">#&gt; $ incidence_end_date                      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-12-31, 2009-12-31, 2010-…</span></span>
-<span><span class="co">#&gt; $ person_years                            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 1017.5688, 1009.4921, 992.6790…</span></span>
-<span><span class="co">#&gt; $ incidence_100000_pys                    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.0000, NA, NA, NA, 0.0000, NA…</span></span>
-<span><span class="co">#&gt; $ incidence_100000_pys_95CI_lower         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 0.00000, NA, NA, NA, 0.00000, …</span></span>
-<span><span class="co">#&gt; $ incidence_100000_pys_95CI_upper         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 362.5189, NA, NA, NA, 354.0540…</span></span>
+<span><span class="co">#&gt; $ person_years                            <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 10216.309, 10099.414, 9863.644…</span></span>
+<span><span class="co">#&gt; $ incidence_100000_pys                    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 362.1660, 376.2595, 304.1472, …</span></span>
+<span><span class="co">#&gt; $ incidence_100000_pys_95CI_lower         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 254.9983, 266.2636, 205.2069, …</span></span>
+<span><span class="co">#&gt; $ incidence_100000_pys_95CI_upper         <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> 499.1981, 516.4455, 434.1891, …</span></span>
 <span><span class="co">#&gt; $ cohort_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
-<span><span class="co">#&gt; $ result_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "TRUE", "TRUE", "TRUE…</span></span>
+<span><span class="co">#&gt; $ result_obscured                         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "FALSE", "FALSE", "FALSE", "FA…</span></span>
 <span><span class="co">#&gt; $ outcome_cohort_id                       <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, …</span></span>
 <span><span class="co">#&gt; $ outcome_cohort_name                     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "cohort_1", "cohort_1", "cohor…</span></span>
 <span><span class="co">#&gt; $ analysis_outcome_washout                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "180", "180", "180", "180", "1…</span></span>
@@ -270,9 +255,9 @@ used for outcome washout windows.</p>
 <span><span class="co">#&gt; $ denominator_start_date                  <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2008-01-01, 2008-01-01, 2008-…</span></span>
 <span><span class="co">#&gt; $ denominator_end_date                    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 2012-01-01, 2012-01-01, 2012-…</span></span>
 <span><span class="co">#&gt; $ denominator_target_cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
-<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;lgl&gt;</span> NA, NA, NA, NA, NA, NA, NA, NA…</span></span>
+<span><span class="co">#&gt; $ denominator_target_cohort_name          <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "None", "None", "None", "None"…</span></span>
 <span><span class="co">#&gt; $ cdm_name                                <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "mock", "mock", "mock", "mock"…</span></span></code></pre></div>
-<p><img src="a01_Introduction_to_IncidencePrevalence_files/figure-html/unnamed-chunk-13-1.png" width="672"></p>
+<p><img src="a01_Introduction_to_IncidencePrevalence_files/figure-html/unnamed-chunk-12-1.png" width="672"></p>
   </main>
 </div>
 

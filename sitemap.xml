@@ -46,12 +46,6 @@
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/benchmarkIncidencePrevalence.html</loc>
   </url>
   <url>
-    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/bindIncidenceEstimates.html</loc>
-  </url>
-  <url>
-    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/bindPrevalenceEstimates.html</loc>
-  </url>
-  <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/estimateIncidence.html</loc>
   </url>
   <url>
@@ -61,25 +55,22 @@
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/estimatePointPrevalence.html</loc>
   </url>
   <url>
-    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/exportIncidencePrevalenceResults.html</loc>
-  </url>
-  <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/generateDenominatorCohortSet.html</loc>
   </url>
   <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/generateTargetDenominatorCohortSet.html</loc>
   </url>
   <url>
-    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/incidenceAttrition.html</loc>
-  </url>
-  <url>
-    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/incidenceSet.html</loc>
-  </url>
-  <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/index.html</loc>
   </url>
   <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/mockIncidencePrevalenceRef.html</loc>
+  </url>
+  <url>
+    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/optionsTableIncidence.html</loc>
+  </url>
+  <url>
+    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/optionsTablePrevalence.html</loc>
   </url>
   <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/participants.html</loc>
@@ -92,12 +83,6 @@
   </url>
   <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/plotPrevalence.html</loc>
-  </url>
-  <url>
-    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/prevalenceAttrition.html</loc>
-  </url>
-  <url>
-    <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/prevalenceSet.html</loc>
   </url>
   <url>
     <loc>https://darwin-eu.github.io/IncidencePrevalence/reference/reexports.html</loc>
