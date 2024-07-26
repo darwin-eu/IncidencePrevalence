@@ -15,8 +15,7 @@ estimatePeriodPrevalence(
   fullContribution = FALSE,
   strata = list(),
   includeOverallStrata = TRUE,
-  minCellCount = 5,
-  returnParticipants = FALSE
+  minCellCount = 5
 )
 }
 \arguments{
@@ -61,11 +60,6 @@ strata specific results (when strata has been specified).}
 
 \item{minCellCount}{Minimum number of events to report- results
 lower than this will be obscured. If NULL all results will be reported.}
-
-\item{returnParticipants}{Either TRUE or FALSE. If TRUE references to
-participants from the analysis will be returned allowing for further
-analysis. Note, if using permanent tables and returnParticipants is TRUE,
-one table per analysis will be kept in the cdm write schema.}
 }
 \value{
 Period prevalence estimates

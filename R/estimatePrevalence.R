@@ -41,10 +41,6 @@
 #' strata specific results (when strata has been specified).
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
-#' @param returnParticipants Either TRUE or FALSE. If TRUE references to
-#' participants from the analysis will be returned allowing for further
-#' analysis. Note, if using permanent tables and returnParticipants is TRUE,
-#' one table per analysis will be kept in the cdm write schema.
 #'
 #' @return Point prevalence estimates
 #' @export
@@ -72,18 +68,7 @@ estimatePointPrevalence <- function(cdm,
                                     timePoint = "start",
                                     strata = list(),
                                     includeOverallStrata = TRUE,
-                                    minCellCount = 5,
-                                    returnParticipants = FALSE) {
-
-
-  if (isTRUE(returnParticipants)) {
-    lifecycle::deprecate_warn(
-      when = "0.8.0",
-      what = "IncidencePrevalence::estimatePointPrevalence(returnParticipants)",
-      details = "The returnParticipants argument will be removed in the next release"
-    )
-  }
-
+                                    minCellCount = 5) {
 
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assertTRUE(
@@ -109,8 +94,7 @@ estimatePointPrevalence <- function(cdm,
     timePoint = timePoint,
     strata = strata,
     includeOverallStrata = includeOverallStrata,
-    minCellCount = minCellCount,
-    returnParticipants = returnParticipants
+    minCellCount = minCellCount
   )
 }
 
@@ -148,10 +132,6 @@ estimatePointPrevalence <- function(cdm,
 #' strata specific results (when strata has been specified).
 #' @param minCellCount Minimum number of events to report- results
 #' lower than this will be obscured. If NULL all results will be reported.
-#' @param returnParticipants Either TRUE or FALSE. If TRUE references to
-#' participants from the analysis will be returned allowing for further
-#' analysis. Note, if using permanent tables and returnParticipants is TRUE,
-#' one table per analysis will be kept in the cdm write schema.
 #'
 #' @return  Period prevalence estimates
 #' @export
@@ -180,16 +160,7 @@ estimatePeriodPrevalence <- function(cdm,
                                      fullContribution = FALSE,
                                      strata = list(),
                                      includeOverallStrata = TRUE,
-                                     minCellCount = 5,
-                                     returnParticipants = FALSE) {
-
-  if (isTRUE(returnParticipants)) {
-    lifecycle::deprecate_warn(
-      when = "0.8.0",
-      what = "IncidencePrevalence::estimatePeriodPrevalence(returnParticipants)",
-      details = "The returnParticipants argument will be removed in the next release"
-    )
-  }
+                                     minCellCount = 5) {
 
   estimatePrevalence(
     cdm = cdm,
@@ -204,8 +175,7 @@ estimatePeriodPrevalence <- function(cdm,
     timePoint = "start",
     strata = strata,
     includeOverallStrata = includeOverallStrata,
-    minCellCount = minCellCount,
-    returnParticipants = returnParticipants
+    minCellCount = minCellCount
   )
 }
 
@@ -221,8 +191,7 @@ estimatePrevalence <- function(cdm,
                                timePoint = "start",
                                strata = list(),
                                includeOverallStrata = TRUE,
-                               minCellCount = 5,
-                               returnParticipants = FALSE) {
+                               minCellCount = 5) {
 
   summarisedResult <- FALSE
 
@@ -245,8 +214,7 @@ estimatePrevalence <- function(cdm,
     type,
     interval, completeDatabaseIntervals,
     fullContribution, timePoint,
-    minCellCount,
-    returnParticipants
+    minCellCount
   )
 
   # if not given, use all denominator and outcome cohorts
@@ -322,7 +290,6 @@ estimatePrevalence <- function(cdm,
       timePoint = x$timePoint,
       fullContribution = x$fullContribution,
       tablePrefix = tablePrefix,
-      returnParticipants = returnParticipants,
       analysisId = x$analysis_id,
       strata = strata,
       includeOverallStrata = includeOverallStrata
@@ -356,12 +323,6 @@ estimatePrevalence <- function(cdm,
     result[["pr"]] <- workingPrevPr
     result[["analysis_settings"]] <- workingPrevAnalysisSettings
     result[["attrition"]] <- workingPrevAttrition
-    if (returnParticipants == TRUE) {
-      result[[paste0(
-        "study_population_analyis_",
-        x$analysis_id
-      )]] <- workingPrev[["person_table"]]
-    }
 
     return(result)
   })
@@ -401,26 +362,6 @@ estimatePrevalence <- function(cdm,
       prsList[names(prsList) == "attrition"][[i]] %>%
         dplyr::mutate(dplyr::across(dplyr::where(is.numeric), as.integer))
     )
-  }
-
-  # participants
-  if (returnParticipants == TRUE) {
-    participantTables <- prsList[grepl("study_population_analyis_", names(prsList))]
-
-    # make sure to not overwrite any existing participant table (from
-    # previous function calls)
-    p <- 1 + length(stringr::str_subset(
-      CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
-                               schema = attr(attr(cdm, "cdm_source"), "write_Schema")
-      ),
-      paste0(type, "_prev_participants_")
-    ))
-
-    nm <- paste0(type, "_prev_participants_", p)
-    cdm[[nm]] <- purrr::reduce(
-      participantTables, dplyr::full_join, by = "subject_id"
-    ) %>%
-      dplyr::compute(name = nm, temporary = FALSE, overwrite = TRUE)
   }
 
   CDMConnector::dropTable(
@@ -559,9 +500,6 @@ estimatePrevalence <- function(cdm,
 
   # return results as an IncidencePrevalenceResult class
   attr(prs, "attrition") <- attrition
-  if (returnParticipants == TRUE) {
-    attr(prs, "participants") <- cdm[[nm]]
-  }
   class(prs) <- c("IncidencePrevalenceResult", "PrevalenceResult", class(prs))
 
   dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))

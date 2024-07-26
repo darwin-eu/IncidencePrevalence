@@ -53,10 +53,6 @@
 #' strata specific results (when strata has been specified).
 #' @param minCellCount The minimum number of events to reported, below which
 #' results will be obscured. If 0, all results will be reported.
-#' @param returnParticipants Either TRUE or FALSE. If TRUE references to
-#' participants from the analysis will be returned allowing for further
-#' analysis. Note, if using permanent tables and returnParticipants is TRUE,
-#' one table per analysis will be kept in the cdm write schema.
 #'
 #' @return Incidence estimates
 #' @export
@@ -85,18 +81,9 @@ estimateIncidence <- function(cdm,
                               repeatedEvents = FALSE,
                               minCellCount = 5,
                               strata = list(),
-                              includeOverallStrata = TRUE,
-                              returnParticipants = FALSE) {
+                              includeOverallStrata = TRUE) {
 
   summarisedResult <- FALSE
-
-  if (isTRUE(returnParticipants)) {
-    lifecycle::deprecate_warn(
-      when = "0.8.0",
-      what = "IncidencePrevalence::estimateIncidence(returnParticipants)",
-      details = "The returnParticipants argument will be removed in the next release"
-    )
-  }
 
   startCollect <- Sys.time()
 
@@ -112,8 +99,7 @@ estimateIncidence <- function(cdm,
   checkInputEstimateIncidence(
     cdm, denominatorTable, outcomeTable, denominatorCohortId,
     outcomeCohortId, interval, completeDatabaseIntervals,
-    outcomeWashout, repeatedEvents, minCellCount,
-    returnParticipants
+    outcomeWashout, repeatedEvents, minCellCount
   )
 
   checkStrata(strata, cdm[[denominatorTable]])
@@ -274,7 +260,6 @@ estimateIncidence <- function(cdm,
       outcomeWashout = x$outcome_washout,
       repeatedEvents = x$repeated_events,
       tablePrefix = tablePrefix,
-      returnParticipants = returnParticipants,
       analysisId = x$analysis_id,
       strata = strata,
       includeOverallStrata = includeOverallStrata
@@ -302,12 +287,7 @@ estimateIncidence <- function(cdm,
     result[["ir"]] <- workingIncIr
     result[["analysis_settings"]] <- workingIncAnalysisSettings
     result[["attrition"]] <- workingIncAttrition
-    if (returnParticipants == TRUE) {
-      result[[paste0(
-        "study_population_analyis_",
-        x$analysis_id
-      )]] <- workingInc[["person_table"]]
-    }
+
 
     return(result)
   })
@@ -374,26 +354,6 @@ estimateIncidence <- function(cdm,
     if (!summarisedResult) {
       irs <- obscureCounts(irs, minCellCount = minCellCount, substitute = NA)
     }
-  }
-
-  # person_table summary
-  if (returnParticipants == TRUE) {
-    participantTables <- irsList[grepl("study_population_analyis_", names(irsList))]
-
-    # make sure to not overwrite any existing participant table (from
-    # previous function calls)
-    p <- 1 + length(stringr::str_subset(
-      CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
-        schema = attr(attr(cdm, "cdm_source"), "write_Schema")
-      ),
-      "inc_participants_"
-    ))
-
-    nm <- paste0("inc_participants_", p)
-    cdm[[nm]] <- purrr::reduce(
-      participantTables, dplyr::full_join, by = "subject_id"
-    ) %>%
-      dplyr::compute(name = nm, temporary = FALSE, overwrite = TRUE)
   }
 
   CDMConnector::dropTable(
@@ -494,9 +454,6 @@ estimateIncidence <- function(cdm,
                                 minCellCount = minCellCount
   )
   attr(irs, "attrition") <- attrition
-  if (returnParticipants == TRUE) {
-    attr(irs, "participants") <- cdm[[nm]]
-  }
   class(irs) <- c("IncidencePrevalenceResult", "IncidenceResult", class(irs))
 
   dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
