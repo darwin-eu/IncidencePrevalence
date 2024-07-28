@@ -4,16 +4,10 @@
 \alias{benchmarkIncidencePrevalence}
 \title{Run benchmark of incidence and prevalence analyses}
 \usage{
-benchmarkIncidencePrevalence(
-  cdm,
-  returnParticipants = FALSE,
-  analysisType = "all"
-)
+benchmarkIncidencePrevalence(cdm, analysisType = "all")
 }
 \arguments{
 \item{cdm}{A CDM reference object}
-
-\item{returnParticipants}{Whether to return participants}
 
 \item{analysisType}{A string of the following: "all", "only incidence",
 "only prevalence"}
