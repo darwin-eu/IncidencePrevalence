@@ -212,13 +212,11 @@ benchmarkIncidencePrevalence <- function(cdm,
                   estimate_value = as.character(.data$time_taken_mins),
                   additional_name = paste0("dbms &&& person_n &&& ",
                                           "min_observation_start &&& ",
-                                          "max_observation_end &&& ",
-                                          "with_participants"),
+                                          "max_observation_end"),
                   additional_level = paste0(.data$dbms, " &&& ",
                                             .data$person_n, " &&& ",
                                             .data$min_observation_start, " &&& ",
-                                            .data$max_observation_end, " &&& ",
-                                            .data$with_participants)
+                                            .data$max_observation_end)
                   ) %>%
     dplyr::select(dplyr::all_of(
       colnames(omopgenerics::emptySummarisedResult()))) %>%
