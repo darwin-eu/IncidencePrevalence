@@ -38,8 +38,8 @@ test_that("check working example with defaults", {
 test_that("check working example with outcome table", {
   skip_on_cran()
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = "1",
-    subject_id = "1",
+    cohort_definition_id = 1,
+    subject_id = 1,
     cohort_start_date = c(
       as.Date("2010-02-05")
     ),
