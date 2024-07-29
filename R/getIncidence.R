@@ -24,7 +24,6 @@ getIncidence <- function(cdm,
                          outcomeWashout,
                          repeatedEvents,
                          tablePrefix,
-                         returnParticipants,
                          analysisId,
                          strata,
                          includeOverallStrata) {
@@ -343,39 +342,6 @@ getIncidence <- function(cdm,
   results[["ir"]] <- ir
   results[["analysis_settings"]] <- analysisSettings
   results[["attrition"]] <- attrition
-
-  if (returnParticipants == TRUE) {
-    # keep a table permanent one for the given analysis
-    # so that we can refer back to it (e.g when using participants() function)
-
-
-    studyPopDb <- studyPopDb %>%
-      dplyr::select(!"outcome_prev_end_date") %>%
-      dplyr::rename(
-        !!paste0(
-          "cohort_start_date",
-          "_analysis_",
-          analysisId
-        ) := "cohort_start_date",
-        !!paste0(
-          "cohort_end_date",
-          "_analysis_",
-          analysisId
-        ) := "cohort_end_date",
-        !!paste0(
-          "outcome_start_date",
-          "_analysis_",
-          analysisId
-        ) := "outcome_start_date"
-      ) %>%
-      dplyr::compute(
-        name = paste0(tablePrefix, "_analysis_", analysisId),
-        temporary = FALSE,
-        overwrite = TRUE
-      )
-    # keep a record of the table name
-    results[["person_table"]] <- studyPopDb
-  }
 
   return(results)
 }

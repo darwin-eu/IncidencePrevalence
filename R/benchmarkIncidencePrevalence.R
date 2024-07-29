@@ -19,7 +19,6 @@
 #' @param cdm A CDM reference object
 #' @param analysisType A string of the following: "all", "only incidence",
 #' "only prevalence"
-#' @param returnParticipants Whether to return participants
 #'
 #' @return a tibble with time taken for different analyses
 #' @export
@@ -38,7 +37,6 @@
 #' timings <- benchmarkIncidencePrevalence(cdm)
 #' }
 benchmarkIncidencePrevalence <- function(cdm,
-                                         returnParticipants = FALSE,
                                          analysisType = "all") {
   errorMessage <- checkmate::makeAssertCollection()
   cdmCheck <- inherits(cdm, "cdm_reference")
@@ -116,7 +114,6 @@ benchmarkIncidencePrevalence <- function(cdm,
     tictoc::tic()
     pointPrev <- estimatePointPrevalence(
       cdm = cdm,
-      returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "years"
@@ -133,7 +130,6 @@ benchmarkIncidencePrevalence <- function(cdm,
     tictoc::tic()
     period_prev <- estimatePeriodPrevalence(
       cdm = cdm,
-      returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "years",
@@ -153,7 +149,6 @@ benchmarkIncidencePrevalence <- function(cdm,
     tictoc::tic()
     incTypicalYears <- estimateIncidence(
       cdm = cdm,
-      returnParticipants = returnParticipants,
       denominatorTable = "denominator_typical",
       outcomeTable = "bench_outcome",
       interval = "years"
@@ -192,24 +187,11 @@ benchmarkIncidencePrevalence <- function(cdm,
       ) %>%
       dplyr::pull())
 
-  if (isFALSE(returnParticipants)) {
-    timings <- timings %>%
-      dplyr::mutate(with_participants = "No")
-  } else {
-    timings <- timings %>%
-      dplyr::mutate(with_participants = "Yes")
-  }
 
   CDMConnector::dropTable(cdm = cdm,
                           name = dplyr::contains("denominator_typical"))
   CDMConnector::dropTable(cdm = cdm,
                           name = dplyr::contains("bench_outcome"))
-  CDMConnector::dropTable(cdm = cdm,
-                          name = dplyr::contains("point_prev_participants"))
-  CDMConnector::dropTable(cdm = cdm,
-                          name = dplyr::contains("period_prev_participants"))
-  CDMConnector::dropTable(cdm = cdm,
-                          name = dplyr::contains("inc_participants"))
 
   # as a summarised result
   timings <- timings %>%
@@ -230,13 +212,11 @@ benchmarkIncidencePrevalence <- function(cdm,
                   estimate_value = as.character(.data$time_taken_mins),
                   additional_name = paste0("dbms &&& person_n &&& ",
                                           "min_observation_start &&& ",
-                                          "max_observation_end &&& ",
-                                          "with_participants"),
+                                          "max_observation_end"),
                   additional_level = paste0(.data$dbms, " &&& ",
                                             .data$person_n, " &&& ",
                                             .data$min_observation_start, " &&& ",
-                                            .data$max_observation_end, " &&& ",
-                                            .data$with_participants)
+                                            .data$max_observation_end)
                   ) %>%
     dplyr::select(dplyr::all_of(
       colnames(omopgenerics::emptySummarisedResult()))) %>%

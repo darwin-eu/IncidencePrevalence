@@ -188,8 +188,8 @@ getDenominatorCohorts <- function(cdm,
                                                 {{ upperAgeLimit }},
                                                 interval = "year"
       ),
-      start_date = !!CDMConnector::asDate(.env$startDateChar),
-      end_date = !!CDMConnector::asDate(.env$endDateChar),
+      start_date = as.Date(.env$startDateChar),
+      end_date = as.Date(.env$endDateChar),
     ) %>%
     dplyr::filter(
       # drop people too old even at study start

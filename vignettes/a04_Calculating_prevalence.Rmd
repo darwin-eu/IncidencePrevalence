@@ -248,33 +248,8 @@ prev <- estimatePeriodPrevalence(
   outcomeTable = "outcome",
   interval = "Years",
   fullContribution = c(TRUE, FALSE),
-  minCellCount = 0,
-  returnParticipants = TRUE
+  minCellCount = 0
 )
 attrition(prev)
 ```
 
-In addition, if we set returnParticipants as TRUE as above, we can identify the individuals who contributed to the prevalence rate analysis by using `participants(). For example, we can identify those people contributing to analysis 1 by running
-
-```{r, message= FALSE, warning=FALSE}
-participants(prev, analysisId = 1) %>%
-  glimpse()
-```
-
-As we´ve used permanent tables for this example, we can drop these after running our analysis (note, the table created will start with write_prefix specified
-when creating the cdm reference).
-
-```{r, message= FALSE, warning=FALSE}
-# drop tables created when instantiating denominator cohorts
-CDMConnector::dropTable(
-  cdm = cdm,
-  name = dplyr::starts_with("denominator")
-)
-# drop table with study participants when returnParticipants = TRUE
-CDMConnector::dropTable(
-  cdm = cdm,
-  name = "period_prev_participants_1"
-)
-CDMConnector::cdm_disconnect(cdm)
-
-```

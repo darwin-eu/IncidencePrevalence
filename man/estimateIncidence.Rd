@@ -16,8 +16,7 @@ estimateIncidence(
   repeatedEvents = FALSE,
   minCellCount = 5,
   strata = list(),
-  includeOverallStrata = TRUE,
-  returnParticipants = FALSE
+  includeOverallStrata = TRUE
 )
 }
 \arguments{
@@ -68,11 +67,6 @@ stratify estimates.}
 
 \item{includeOverallStrata}{Whether to include an overall result as well as
 strata specific results (when strata has been specified).}
-
-\item{returnParticipants}{Either TRUE or FALSE. If TRUE references to
-participants from the analysis will be returned allowing for further
-analysis. Note, if using permanent tables and returnParticipants is TRUE,
-one table per analysis will be kept in the cdm write schema.}
 }
 \value{
 Incidence estimates

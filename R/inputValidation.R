@@ -113,8 +113,7 @@ checkInputEstimateIncidence <- function(cdm,
                                         completeDatabaseIntervals,
                                         outcomeWashout,
                                         repeatedEvents,
-                                        minCellCount,
-                                        returnParticipants) {
+                                        minCellCount) {
   cdmCheck(cdm)
 
   errorMessage <- checkmate::makeAssertCollection()
@@ -179,9 +178,6 @@ checkInputEstimateIncidence <- function(cdm,
     add = errorMessage
   )
   checkmate::assert_number(minCellCount)
-  checkmate::assert_logical(returnParticipants,
-    add = errorMessage
-  )
   return(checkmate::reportAssertions(collection = errorMessage))
 }
 
@@ -214,8 +210,7 @@ checkInputEstimatePrevalence <- function(cdm,
                                          completeDatabaseIntervals,
                                          fullContribution,
                                          timePoint,
-                                         minCellCount,
-                                         returnParticipants) {
+                                         minCellCount) {
   cdmCheck(cdm)
 
   errorMessage <- checkmate::makeAssertCollection()
@@ -278,9 +273,6 @@ checkInputEstimatePrevalence <- function(cdm,
     add = errorMessage
   )
   checkmate::assert_logical(completeDatabaseIntervals,
-    add = errorMessage
-  )
-  checkmate::assert_logical(returnParticipants,
     add = errorMessage
   )
   return(checkmate::reportAssertions(collection = errorMessage))

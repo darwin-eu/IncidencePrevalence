@@ -252,23 +252,7 @@ inc <- estimateIncidence(
   outcomeTable = "outcome",
   interval = c("Years"),
   outcomeWashout = c(0, 180),
-  repeatedEvents = TRUE,
-  returnParticipants = TRUE
+  repeatedEvents = TRUE
 )
 attrition(inc)
-```
-
-As with incidence, if we set returnParticipants as TRUE, we can identify the individuals who contributed to the analysis by using `participants(). For example, we can identify those people contributing to analysis 1 by running
-```{r, message= FALSE, warning=FALSE}
-participants(inc, analysisId = 1) %>%
-  glimpse()
-```
-
-As we;ve used permanent tables for this example, we can drop these after running our analysis.
-
-```{r, message= FALSE, warning=FALSE}
-CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"))
-CDMConnector::dropTable(cdm = cdm, name = starts_with("denominator"))
-CDMConnector::dropTable(cdm = cdm, name = starts_with("inc_participants_"))
-CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"))
 ```
