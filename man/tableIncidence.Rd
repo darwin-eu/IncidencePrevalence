@@ -34,8 +34,7 @@ cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
 inc <- estimateIncidence(
   cdm = cdm,
   denominatorTable = "denominator",
-  outcomeTable = "outcome",
-  summarisedResult = TRUE
+  outcomeTable = "outcome"
 )
 
 tableIncidence(inc)

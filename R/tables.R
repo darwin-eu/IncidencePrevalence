@@ -37,8 +37,7 @@
 #' prev <- estimatePointPrevalence(
 #'   cdm = cdm,
 #'   denominatorTable = "denominator",
-#'   outcomeTable = "outcome",
-#'   summarisedResult = TRUE
+#'   outcomeTable = "outcome"
 #' )
 #'
 #' tablePrevalence(prev)
@@ -114,8 +113,7 @@ tablePrevalence <- function(
 #' inc <- estimateIncidence(
 #'   cdm = cdm,
 #'   denominatorTable = "denominator",
-#'   outcomeTable = "outcome",
-#'   summarisedResult = TRUE
+#'   outcomeTable = "outcome"
 #' )
 #'
 #' tableIncidence(inc)
