@@ -2,44 +2,20 @@
 % Please edit documentation in R/tables.R
 \name{tableIncidence}
 \alias{tableIncidence}
-\title{Format a point_prevalence object into a visual table.}
+\title{Table of incidence results}
 \usage{
 tableIncidence(result, type = "gt", .options = list())
 }
 \arguments{
-\item{result}{A summarised_result object with results from
-estimateIncidence().}
+\item{result}{Incidence results}
 
-\item{type}{Type of desired formatted table, possibilities: "gt",
-"flextable", "tibble".}
+\item{type}{Type of table. Can be "gt", "flextable", or "tibble".}
 
-\item{.options}{Named list with additional formatting options.
-IncidencePrevalence::optionsTableIncidence() shows allowed
-arguments and their default values.}
+\item{.options}{Table options to apply}
 }
 \value{
-A table with a formatted version of incidence results.
+Table of results
 }
 \description{
-Format a point_prevalence object into a visual table.
-}
-\examples{
-\donttest{
-library(IncidencePrevalence)
-
-cdm <- mockIncidencePrevalenceRef()
-
-cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
-
-inc <- estimateIncidence(
-  cdm = cdm,
-  denominatorTable = "denominator",
-  outcomeTable = "outcome"
-)
-
-tableIncidence(inc)
-
-CDMConnector::cdmDisconnect(cdm = cdm)
-}
-
+Table of incidence results
 }

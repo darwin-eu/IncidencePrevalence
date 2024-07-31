@@ -2,44 +2,20 @@
 % Please edit documentation in R/tables.R
 \name{tablePrevalence}
 \alias{tablePrevalence}
-\title{Format a point_prevalence object into a visual table.}
+\title{Table of prevalence results}
 \usage{
 tablePrevalence(result, type = "gt", .options = list())
 }
 \arguments{
-\item{result}{A summarised_result object with results from
-estimatePointPrevalence() or estimatePeriodPrevalence().}
+\item{result}{Prevalence results}
 
-\item{type}{Type of desired formatted table, possibilities: "gt",
-"flextable", "tibble".}
+\item{type}{Type of table. Can be "gt", "flextable", or "tibble".}
 
-\item{.options}{Named list with additional formatting options.
-IncidencePrevalence::optionsTablePrevalence() shows allowed
-arguments and their default values.}
+\item{.options}{Table options to apply}
 }
 \value{
-A table with a formatted version of a prevalence result.
+Table of prevalence results
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
-}
-\examples{
-\donttest{
-library(IncidencePrevalence)
-
-cdm <- mockIncidencePrevalenceRef()
-
-cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
-
-prev <- estimatePointPrevalence(
-  cdm = cdm,
-  denominatorTable = "denominator",
-  outcomeTable = "outcome"
-)
-
-tablePrevalence(prev)
-
-CDMConnector::cdmDisconnect(cdm = cdm)
-}
-
+Table of prevalence results
 }

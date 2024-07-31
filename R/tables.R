@@ -14,39 +14,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#' Format a point_prevalence object into a visual table.
+
+
+#' Table of prevalence results
 #'
-#' `r lifecycle::badge("experimental")`
+#' @param result Prevalence results
+#' @param type Type of table. Can be "gt", "flextable", or "tibble".
+#' @param .options Table options to apply
 #'
-#' @param result A summarised_result object with results from
-#' estimatePointPrevalence() or estimatePeriodPrevalence().
-#' @param type Type of desired formatted table, possibilities: "gt",
-#' "flextable", "tibble".
-#' @param .options Named list with additional formatting options.
-#' IncidencePrevalence::optionsTablePrevalence() shows allowed
-#' arguments and their default values.
+#' @return Table of prevalence results
+#' @export
 #'
 #' @examples
-#' \donttest{
-#' library(IncidencePrevalence)
-#'
-#' cdm <- mockIncidencePrevalenceRef()
-#'
-#' cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
-#'
-#' prev <- estimatePointPrevalence(
-#'   cdm = cdm,
-#'   denominatorTable = "denominator",
-#'   outcomeTable = "outcome"
-#' )
-#'
-#' tablePrevalence(prev)
-#'
-#' CDMConnector::cdmDisconnect(cdm = cdm)
-#' }
-#'
-#' @return A table with a formatted version of a prevalence result.
-#'
 tablePrevalence <- function(
     result,
     type = "gt",
@@ -92,36 +71,15 @@ tablePrevalence <- function(
 
 }
 
-#' Format a point_prevalence object into a visual table.
+
+#' Table of incidence results
 #'
-#' @param result A summarised_result object with results from
-#' estimateIncidence().
-#' @param type Type of desired formatted table, possibilities: "gt",
-#' "flextable", "tibble".
-#' @param .options Named list with additional formatting options.
-#' IncidencePrevalence::optionsTableIncidence() shows allowed
-#' arguments and their default values.
+#' @param result Incidence results
+#' @param type Type of table. Can be "gt", "flextable", or "tibble".
+#' @param .options Table options to apply
 #'
-#' @examples
-#' \donttest{
-#' library(IncidencePrevalence)
-#'
-#' cdm <- mockIncidencePrevalenceRef()
-#'
-#' cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
-#'
-#' inc <- estimateIncidence(
-#'   cdm = cdm,
-#'   denominatorTable = "denominator",
-#'   outcomeTable = "outcome"
-#' )
-#'
-#' tableIncidence(inc)
-#'
-#' CDMConnector::cdmDisconnect(cdm = cdm)
-#' }
-#'
-#' @return A table with a formatted version of incidence results.
+#' @return Table of results
+#' @export
 #'
 tableIncidence <- function(
     result,
