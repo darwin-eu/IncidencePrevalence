@@ -16,33 +16,6 @@ estimatePointPrevalence() or estimatePeriodPrevalence().}
 \item{.options}{Named list with additional formatting options.
 IncidencePrevalence::optionsTablePrevalence() shows allowed
 arguments and their default values.}
-
-\item{prevalenceType}{Type of prevalence estimates: "point" or "period".}
-
-\item{formatEstimateName}{Named list of estimate name's to join, sorted by
-computation order. Indicate estimate_name's between <...>.}
-
-\item{header}{A vector containing which elements should go into the header
-in order. Allowed are: \code{cdm_name}, \code{group}, \code{strata}, \code{additional},
-\code{variable}, \code{estimate}, \code{settings}.}
-
-\item{splitStrata}{If TRUE strata columns will be splitted.}
-
-\item{cdmName}{If TRUE database names will be displayed.}
-
-\item{outcomeName}{If TRUE outcome cohort names will be displayed.}
-
-\item{outcomeSettings}{If TRUE settings related to the outcome cohorts will
-be displayed.}
-
-\item{denominatorName}{If TRUE denominator cohort names will be displayed.}
-
-\item{denominatorSettings}{If TRUE settings related to the denominator cohorts
-will be displayed.}
-
-\item{analysisSettings}{If TRUE database names will be displayed.}
-
-\item{groupColumn}{Column to use as group labels.}
 }
 \value{
 A table with a formatted version of a prevalence result.
@@ -65,7 +38,7 @@ prev <- estimatePointPrevalence(
   summarisedResult = TRUE
 )
 
-tablePrevalence(prev, prevalenceType = "point")
+tablePrevalence(prev)
 
 CDMConnector::cdmDisconnect(cdm = cdm)
 }

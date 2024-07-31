@@ -20,22 +20,6 @@
 #'
 #' @param result A summarised_result object with results from
 #' estimatePointPrevalence() or estimatePeriodPrevalence().
-#' @param prevalenceType Type of prevalence estimates: "point" or "period".
-#' @param formatEstimateName Named list of estimate name's to join, sorted by
-#' computation order. Indicate estimate_name's between <...>.
-#' @param header A vector containing which elements should go into the header
-#' in order. Allowed are: `cdm_name`, `group`, `strata`, `additional`,
-#' `variable`, `estimate`, `settings`.
-#' @param splitStrata If TRUE strata columns will be splitted.
-#' @param cdmName If TRUE database names will be displayed.
-#' @param outcomeName If TRUE outcome cohort names will be displayed.
-#' @param outcomeSettings If TRUE settings related to the outcome cohorts will
-#' be displayed.
-#' @param denominatorName If TRUE denominator cohort names will be displayed.
-#' @param denominatorSettings If TRUE settings related to the denominator cohorts
-#' will be displayed.
-#' @param analysisSettings If TRUE database names will be displayed.
-#' @param groupColumn Column to use as group labels.
 #' @param type Type of desired formatted table, possibilities: "gt",
 #' "flextable", "tibble".
 #' @param .options Named list with additional formatting options.
@@ -57,7 +41,7 @@
 #'   summarisedResult = TRUE
 #' )
 #'
-#' tablePrevalence(prev, prevalenceType = "point")
+#' tablePrevalence(prev)
 #'
 #' CDMConnector::cdmDisconnect(cdm = cdm)
 #' }
