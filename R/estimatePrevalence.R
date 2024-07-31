@@ -193,7 +193,7 @@ estimatePrevalence <- function(cdm,
                                includeOverallStrata = TRUE,
                                minCellCount = 5) {
 
-  summarisedResult <- FALSE
+  summarisedResult <- TRUE
 
   startCollect <- Sys.time()
 
@@ -449,6 +449,10 @@ estimatePrevalence <- function(cdm,
       prs <- prs |>
         visOmopResults::uniteStrata()
     }
+
+    if(nrow(prs) == 0){
+      prs <- omopgenerics::emptySummarisedResult()
+    } else {
     prs <- prs |>
       dplyr::distinct() |>
       dplyr::mutate("analysis_id" = as.integer(.data$analysis_id)) |>
@@ -486,6 +490,7 @@ estimatePrevalence <- function(cdm,
         "strata_name" = dplyr::if_else(.data$strata_name == "Overall", "overall", gsub(" and ", " &&& ", .data$strata_name)),
         "strata_level" = dplyr::if_else(.data$strata_level == "Overall", "overall", gsub(" and ", " &&& ", .data$strata_level))
       )
+    }
 
     prs <- omopgenerics::newSummarisedResult(prs, settings = analysisSettings) |>
       omopgenerics::suppress(minCellCount = minCellCount)

@@ -83,7 +83,7 @@ estimateIncidence <- function(cdm,
                               strata = list(),
                               includeOverallStrata = TRUE) {
 
-  summarisedResult <- FALSE
+  summarisedResult <- TRUE
 
   startCollect <- Sys.time()
 
@@ -401,6 +401,9 @@ estimateIncidence <- function(cdm,
       irs <- irs |>
         visOmopResults::uniteStrata()
     }
+    if(nrow(irs) == 0){
+      irs <- omopgenerics::emptySummarisedResult()
+    } else {
     irs <- irs |>
       dplyr::distinct() |>
       dplyr::mutate("analysis_id" = as.integer(.data$analysis_id)) |>
@@ -439,6 +442,7 @@ estimateIncidence <- function(cdm,
         "strata_name" = dplyr::if_else(.data$strata_name == "Overall", "overall", gsub(" and ", " &&& ", .data$strata_name)),
         "strata_level" = dplyr::if_else(.data$strata_level == "Overall", "overall", gsub(" and ", " &&& ", .data$strata_level))
       )
+    }
 
     irs <- omopgenerics::newSummarisedResult(irs, settings = analysisSettings) |>
       omopgenerics::suppress(minCellCount = minCellCount)
