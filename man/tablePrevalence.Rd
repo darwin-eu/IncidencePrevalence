@@ -4,28 +4,18 @@
 \alias{tablePrevalence}
 \title{Format a point_prevalence object into a visual table.}
 \usage{
-tablePrevalence(
-  result,
-  prevalenceType,
-  formatEstimateName = c(`Denominator (N)` = "<denominator_count>", `Outcome (N)` =
-    "<outcome_count>", `Prevalence [95\% CI]` =
-    "<prevalence> (<prevalence_95CI_lower> - <prevalence_95CI_upper>)"),
-  header = c("variable", "estimate"),
-  splitStrata = TRUE,
-  cdmName = TRUE,
-  outcomeName = TRUE,
-  outcomeSettings = FALSE,
-  denominatorName = TRUE,
-  denominatorSettings = TRUE,
-  analysisSettings = FALSE,
-  groupColumn = NULL,
-  type = "gt",
-  .options = list()
-)
+tablePrevalence(result, type = "gt", .options = list())
 }
 \arguments{
 \item{result}{A summarised_result object with results from
 estimatePointPrevalence() or estimatePeriodPrevalence().}
+
+\item{type}{Type of desired formatted table, possibilities: "gt",
+"flextable", "tibble".}
+
+\item{.options}{Named list with additional formatting options.
+IncidencePrevalence::optionsTablePrevalence() shows allowed
+arguments and their default values.}
 
 \item{prevalenceType}{Type of prevalence estimates: "point" or "period".}
 
@@ -53,13 +43,6 @@ will be displayed.}
 \item{analysisSettings}{If TRUE database names will be displayed.}
 
 \item{groupColumn}{Column to use as group labels.}
-
-\item{type}{Type of desired formatted table, possibilities: "gt",
-"flextable", "tibble".}
-
-\item{.options}{Named list with additional formatting options.
-IncidencePrevalence::optionsTablePrevalence() shows allowed
-arguments and their default values.}
 }
 \value{
 A table with a formatted version of a prevalence result.

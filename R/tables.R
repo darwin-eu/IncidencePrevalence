@@ -66,21 +66,6 @@
 #'
 tablePrevalence <- function(
     result,
-    prevalenceType,
-    formatEstimateName = c(
-      "Denominator (N)" = "<denominator_count>",
-      "Outcome (N)" = "<outcome_count>",
-      "Prevalence [95% CI]" = "<prevalence> (<prevalence_95CI_lower> - <prevalence_95CI_upper>)"
-    ),
-    header = c("variable", "estimate"),
-    splitStrata = TRUE,
-    cdmName = TRUE,
-    outcomeName = TRUE,
-    outcomeSettings = FALSE,
-    denominatorName = TRUE,
-    denominatorSettings = TRUE,
-    analysisSettings = FALSE,
-    groupColumn = NULL,
     type = "gt",
     .options = list()
 ) {
@@ -89,6 +74,21 @@ tablePrevalence <- function(
   if (!inherits(result, "summarised_result")) {
     cli::cli_abort(c("x" = "Table functionality only works with results in a summarised_result format.", "i" = "These can be obtained with the argument `summarisedResult` in estimatePeriodPrevalence() and estimatePointPrevalence()."))
   }
+
+  formatEstimateName <- c(
+    "Denominator (N)" = "<denominator_count>",
+    "Outcome (N)" = "<outcome_count>",
+    "Prevalence [95% CI]" = "<prevalence> (<prevalence_95CI_lower> - <prevalence_95CI_upper>)"
+  )
+  header <- c("variable", "estimate")
+  splitStrata <- TRUE
+  cdmName <- TRUE
+  outcomeName <- TRUE
+  outcomeSettings <- FALSE
+  denominatorName <- TRUE
+  denominatorSettings <- TRUE
+  analysisSettings <- FALSE
+  groupColumn <- NULL
 
   tableInternal(
     result = result,
@@ -103,7 +103,7 @@ tablePrevalence <- function(
     analysisSettings = analysisSettings,
     groupColumn = groupColumn,
     type = type,
-    resultType = paste0(prevalenceType, "_prevalence"),
+    resultType = c("point_prevalence", "period_prevalence"),
     .options = .options
   )
 
@@ -111,25 +111,8 @@ tablePrevalence <- function(
 
 #' Format a point_prevalence object into a visual table.
 #'
-#' `r lifecycle::badge("experimental")`
-#'
 #' @param result A summarised_result object with results from
 #' estimateIncidence().
-#' @param formatEstimateName Named list of estimate name's to join, sorted by
-#' computation order. Indicate estimate_name's between <...>.
-#' @param header A vector containing which elements should go into the header
-#' in order. Allowed are: `cdm_name`, `group`, `strata`, `additional`,
-#' `variable`, `estimate`, `settings`.
-#' @param splitStrata If TRUE strata columns will be splitted.
-#' @param cdmName If TRUE database names will be displayed.
-#' @param outcomeName If TRUE outcome cohort names will be displayed.
-#' @param outcomeSettings If TRUE settings related to the outcome cohorts will
-#' be displayed.
-#' @param denominatorName If TRUE denominator cohort names will be displayed.
-#' @param denominatorSettings If TRUE settings related to the denominator cohorts
-#' will be displayed.
-#' @param analysisSettings If TRUE database names will be displayed.
-#' @param groupColumn Column to use as group labels.
 #' @param type Type of desired formatted table, possibilities: "gt",
 #' "flextable", "tibble".
 #' @param .options Named list with additional formatting options.
@@ -160,23 +143,6 @@ tablePrevalence <- function(
 #'
 tableIncidence <- function(
     result,
-    formatEstimateName = c(
-      "Denominator (N)" = "<denominator_count>",
-      "Person-years" = "<person_years>",
-      "Outcome (N)" = "<outcome_count>",
-      "Incidence 100 person-years [95% CI]" =
-        "<incidence_100000_pys> (<incidence_100000_pys_95CI_lower> -
-      <incidence_100000_pys_95CI_upper>)"
-    ),
-    header = c("variable", "estimate"),
-    splitStrata = TRUE,
-    cdmName = TRUE,
-    outcomeName = TRUE,
-    outcomeSettings = FALSE,
-    denominatorName = TRUE,
-    denominatorSettings = TRUE,
-    analysisSettings = FALSE,
-    groupColumn = NULL,
     type = "gt",
     .options = list()
 ) {
@@ -186,9 +152,26 @@ tableIncidence <- function(
     cli::cli_abort(c("x" = "Table functionality only works with results in a summarised_result format.", "i" = "These can be obtained with the argument `summarisedResult` in estimateIncidence()."))
   }
 
+  header <- c("variable", "estimate")
+  splitStrata <- TRUE
+  cdmName <- TRUE
+  outcomeName <- TRUE
+  outcomeSettings <- FALSE
+  denominatorName <- TRUE
+  denominatorSettings <- TRUE
+  analysisSettings <- FALSE
+  groupColumn <- NULL
+
   tableInternal(
     result = result,
-    formatEstimateName = formatEstimateName,
+    formatEstimateName = c(
+      "Denominator (N)" = "<denominator_count>",
+      "Person-years" = "<person_years>",
+      "Outcome (N)" = "<outcome_count>",
+      "Incidence 100 person-years [95% CI]" =
+        "<incidence_100000_pys> (<incidence_100000_pys_95CI_lower> -
+      <incidence_100000_pys_95CI_upper>)"
+    ),
     header = header,
     splitStrata = splitStrata,
     cdmName = cdmName,
@@ -227,7 +210,7 @@ tableInternal <- function(
     .options = list()
 ) {
   result <- omopgenerics::newSummarisedResult(result) |>
-    visOmopResults::filterSettings(.data$result_type == resultType)
+    visOmopResults::filterSettings(.data$result_type %in% resultType)
   if (nrow(result) == 0) {
     cli::cli_abort("No results of the type {resultType} were found in the summarised result provided.")
   }
@@ -329,7 +312,7 @@ defaultTableIncidencePrevalence <- function(.options, type) {
 
   defaults <- visOmopResults::optionsVisOmopTable()
 
-  if (type == "incidence") {
+  if ("incidence" %in% type) {
     defaults$keepNotFormatted = FALSE
   }
 

@@ -37,7 +37,6 @@ Imports:
     dplyr (>= 1.1.0),
     glue (>= 1.5.0),
     omopgenerics (>= 0.1.2),
-    lifecycle,
     lubridate (>= 1.0.0),
     magrittr (>= 2.0.0),
     PatientProfiles (>= 1.1.0),

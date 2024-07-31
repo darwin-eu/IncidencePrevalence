@@ -4,53 +4,11 @@
 \alias{tableIncidence}
 \title{Format a point_prevalence object into a visual table.}
 \usage{
-tableIncidence(
-  result,
-  formatEstimateName = c(`Denominator (N)` = "<denominator_count>", `Person-years` =
-    "<person_years>", `Outcome (N)` = "<outcome_count>",
-    `Incidence 100 person-years [95\% CI]` =
-    "<incidence_100000_pys> (<incidence_100000_pys_95CI_lower> -\\n      <incidence_100000_pys_95CI_upper>)"),
-  header = c("variable", "estimate"),
-  splitStrata = TRUE,
-  cdmName = TRUE,
-  outcomeName = TRUE,
-  outcomeSettings = FALSE,
-  denominatorName = TRUE,
-  denominatorSettings = TRUE,
-  analysisSettings = FALSE,
-  groupColumn = NULL,
-  type = "gt",
-  .options = list()
-)
+tableIncidence(result, type = "gt", .options = list())
 }
 \arguments{
 \item{result}{A summarised_result object with results from
 estimateIncidence().}
-
-\item{formatEstimateName}{Named list of estimate name's to join, sorted by
-computation order. Indicate estimate_name's between <...>.}
-
-\item{header}{A vector containing which elements should go into the header
-in order. Allowed are: \code{cdm_name}, \code{group}, \code{strata}, \code{additional},
-\code{variable}, \code{estimate}, \code{settings}.}
-
-\item{splitStrata}{If TRUE strata columns will be splitted.}
-
-\item{cdmName}{If TRUE database names will be displayed.}
-
-\item{outcomeName}{If TRUE outcome cohort names will be displayed.}
-
-\item{outcomeSettings}{If TRUE settings related to the outcome cohorts will
-be displayed.}
-
-\item{denominatorName}{If TRUE denominator cohort names will be displayed.}
-
-\item{denominatorSettings}{If TRUE settings related to the denominator cohorts
-will be displayed.}
-
-\item{analysisSettings}{If TRUE database names will be displayed.}
-
-\item{groupColumn}{Column to use as group labels.}
 
 \item{type}{Type of desired formatted table, possibilities: "gt",
 "flextable", "tibble".}
@@ -63,7 +21,7 @@ arguments and their default values.}
 A table with a formatted version of incidence results.
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
+Format a point_prevalence object into a visual table.
 }
 \examples{
 \donttest{
