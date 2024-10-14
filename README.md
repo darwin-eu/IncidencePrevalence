@@ -1,5 +1,5 @@
 
-# IncidencePrevalence <img src="man/figures/hexsticker.png" align="right" height="139"/>
+# IncidencePrevalence <a href="https://darwin-eu.github.io/IncidencePrevalence/"><img src="man/figures/logo.png" align="right" height="138" alt="IncidencePrevalence website" /></a>
 
 [![CRANstatus](https://www.r-pkg.org/badges/version/IncidencePrevalence)](https://CRAN.R-project.org/package=IncidencePrevalence)
 [![codecov.io](https://codecov.io/github/darwin-eu/IncidencePrevalence/coverage.svg?branch=main)](https://app.codecov.io/github/darwin-eu/IncidencePrevalence?branch=main)
@@ -124,19 +124,19 @@ These cohorts will be in the typical OMOP CDM structure
 ``` r
 cdm$denominator
 #> # Source:   table<main.denominator> [?? x 4]
-#> # Database: DuckDB v1.0.0 [eburn@Windows 10 x64:R 4.4.0/:memory:]
+#> # Database: DuckDB v1.0.0 [root@Darwin 23.4.0:R 4.4.1/:memory:]
 #>    cohort_definition_id subject_id cohort_start_date cohort_end_date
-#>                   <int> <chr>      <date>            <date>         
-#>  1                    1 2          2008-01-01        2018-01-01     
-#>  2                    1 3          2008-01-01        2018-01-01     
-#>  3                    1 4          2008-01-01        2010-05-26     
-#>  4                    1 9          2008-01-01        2018-01-01     
-#>  5                    1 10         2008-01-01        2014-04-23     
-#>  6                    1 17         2008-01-01        2018-01-01     
-#>  7                    1 19         2008-01-01        2009-10-20     
-#>  8                    1 25         2008-01-01        2018-01-01     
-#>  9                    1 26         2008-01-01        2018-01-01     
-#> 10                    1 31         2008-01-01        2012-07-22     
+#>                   <int>      <int> <date>            <date>         
+#>  1                    1          2 2008-01-01        2018-01-01     
+#>  2                    1          3 2008-01-01        2018-01-01     
+#>  3                    1          4 2008-01-01        2010-05-26     
+#>  4                    1          9 2008-01-01        2018-01-01     
+#>  5                    1         10 2008-01-01        2014-04-23     
+#>  6                    1         17 2008-01-01        2018-01-01     
+#>  7                    1         19 2008-01-01        2009-10-20     
+#>  8                    1         25 2008-01-01        2018-01-01     
+#>  9                    1         28 2008-01-01        2018-01-01     
+#> 10                    1         30 2008-01-01        2018-01-01     
 #> # ℹ more rows
 ```
 
@@ -150,19 +150,19 @@ outcome cohort.
 ``` r
 cdm$outcome
 #> # Source:   table<main.outcome> [?? x 4]
-#> # Database: DuckDB v1.0.0 [eburn@Windows 10 x64:R 4.4.0/:memory:]
+#> # Database: DuckDB v1.0.0 [root@Darwin 23.4.0:R 4.4.1/:memory:]
 #>    cohort_definition_id subject_id cohort_start_date cohort_end_date
-#>                   <int> <chr>      <date>            <date>         
-#>  1                    1 2          2018-04-27        2026-04-20     
-#>  2                    1 3          1999-08-30        2007-08-23     
-#>  3                    1 10         2027-12-25        2035-12-18     
-#>  4                    1 13         1985-12-10        1993-12-03     
-#>  5                    1 15         1977-06-17        1980-04-14     
-#>  6                    1 16         1970-09-08        1978-09-01     
-#>  7                    1 17         1984-03-20        1992-03-13     
-#>  8                    1 21         2022-10-21        2030-10-14     
-#>  9                    1 27         2046-06-18        2048-02-11     
-#> 10                    1 29         1988-04-30        1996-04-23     
+#>                   <int>      <int> <date>            <date>         
+#>  1                    1          2 2018-04-27        2026-04-20     
+#>  2                    1          3 1999-08-30        2007-08-23     
+#>  3                    1         10 2027-12-25        2035-12-18     
+#>  4                    1         13 1985-12-10        1993-12-03     
+#>  5                    1         15 1977-06-17        1980-04-14     
+#>  6                    1         16 1970-09-08        1978-09-01     
+#>  7                    1         17 1984-03-20        1992-03-13     
+#>  8                    1         21 2022-10-21        2030-10-14     
+#>  9                    1         27 2046-06-18        2048-02-11     
+#> 10                    1         29 1988-04-30        1996-04-23     
 #> # ℹ more rows
 ```
 

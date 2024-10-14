@@ -35,6 +35,22 @@ plotIncidence <- function(result,
                           colour = NULL,
                           colour_name = NULL,
                           options = list()) {
+
+  if (nrow(result) == 0) {
+    cli::cli_warn("Empty result object")
+    return(emptyPlot())
+  }
+
+  result <- omopgenerics::validateResultArgument(result) |>
+    visOmopResults::filterSettings(
+      .data$result_type == "incidence"
+    )
+
+  if (nrow(result) == 0) {
+    cli::cli_warn("No incidence results available to plot")
+    return(emptyPlot())
+  }
+
   plotEstimates(
     result = result,
     x = x,
@@ -85,6 +101,22 @@ plotPrevalence <- function(result,
                            colour = NULL,
                            colour_name = NULL,
                            options = list()) {
+
+  if (nrow(result) == 0) {
+    cli::cli_warn("Empty result object")
+    return(emptyPlot())
+  }
+
+  result <- omopgenerics::validateResultArgument(result) |>
+    visOmopResults::filterSettings(
+      .data$result_type == "prevalence"
+    )
+
+  if (nrow(result) == 0) {
+    cli::cli_warn("No incidence results available to plot")
+    return(emptyPlot())
+  }
+
   plotEstimates(
     result = result,
     x = x,
@@ -118,8 +150,6 @@ plotEstimates <- function(result,
   rlang::check_installed("scales", reason = "for plot functions")
 
   errorMessage <- checkmate::makeAssertCollection()
-  checkmate::assertTRUE(inherits(result, "IncidencePrevalenceResult"))
-  # checkmate::assertTRUE(all(c(x, y) %in% colnames(result)))
   checkmate::assertList(options, add = errorMessage)
   checkmate::reportAssertions(collection = errorMessage)
 
@@ -228,7 +258,7 @@ plotEstimates <- function(result,
 getPlotData <- function(estimates, facetVars, colourVars) {
   plotData <- estimates
 
-  if("summarised_result" %in% class(estimates)){
+  if(inherits(estimates, "summarised_result")){
     plotData <- plotData |>
     visOmopResults::splitAdditional() |>
     visOmopResults::addSettings() |>
@@ -282,7 +312,17 @@ addRibbon <- function(plot, yLower, yUpper) {
         ymin = !!rlang::sym(yLower),
         ymax = !!rlang::sym(yUpper)
       ),
-      alpha = .3, color = NA, show.legend = FALSE
+      alpha = 0.3, color = NA, show.legend = FALSE
     ) +
     ggplot2::geom_line(linewidth = 0.25)
+}
+
+emptyPlot <- function(title = "No result to plot",
+                      subtitle = "") {
+  ggplot2::ggplot() +
+    ggplot2::theme_void() +
+    ggplot2::labs(
+      title = title,
+      subtitle = subtitle
+    )
 }

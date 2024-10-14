@@ -31,17 +31,16 @@ recordAttrition <- function(table,
       c("data.frame", "tbl")))
   }
   checkmate::reportAssertions(collection = errorMessage)
-
   attrition <- dplyr::tibble(
-    number_records = table %>%
+    number_records = as.integer(table %>%
       dplyr::tally() %>%
-      dplyr::pull(),
-    number_subjects = table %>%
+      dplyr::pull()),
+    number_subjects = as.integer(table %>%
       dplyr::select(.env$id) %>%
       dplyr::distinct() %>%
       dplyr::tally() %>%
-      dplyr::pull(),
-    reason_id = .env$reasonId,
+      dplyr::pull()),
+    reason_id = as.integer(.env$reasonId),
     reason = .env$reason
   )
 
@@ -49,16 +48,16 @@ recordAttrition <- function(table,
     attrition <- dplyr::bind_rows(existingAttrition, attrition) %>%
       dplyr::mutate(
         excluded_records =
-          dplyr::lag(.data$number_records) - .data$number_records
+          as.integer(dplyr::lag(.data$number_records) - .data$number_records)
       ) %>%
       dplyr::mutate(
         excluded_subjects =
-          dplyr::lag(.data$number_subjects) - .data$number_subjects
+          as.integer(dplyr::lag(.data$number_subjects) - .data$number_subjects)
       )
   } else {
     attrition <- attrition %>%
-      dplyr::mutate(excluded_records = NA) %>%
-      dplyr::mutate(excluded_subjects = NA)
+      dplyr::mutate(excluded_records = NA_integer_) %>%
+      dplyr::mutate(excluded_subjects = NA_integer_)
   }
 
   return(attrition)

@@ -35,9 +35,6 @@ test_that("full benchmark", {
   expect_error(benchmarkIncidencePrevalence(cdm,
                                             analysisType = "not an option"
   ))
-  expect_error(benchmarkIncidencePrevalence(cdm,
-                                            returnParticipants = 1
-  ))
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -70,17 +67,7 @@ test_that("check tables cleaned up", {
     minDaysToObservationEnd = 364,
     maxDaysToObservationEnd = 364
   )
-  # with return participants
-  start_tables <- CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
-                                           schema = attr(attr(cdm, "cdm_source"), "write_schema"))
 
-  timings <- benchmarkIncidencePrevalence(cdm,
-                                          returnParticipants = TRUE)
-
-  end_tables <- CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
-                                         schema = attr(attr(cdm, "cdm_source"), "write_schema"))
-
-  expect_equal(sort(start_tables), sort(end_tables))
   CDMConnector::cdm_disconnect(cdm)
 
 

@@ -232,6 +232,7 @@ cdm <- mockIncidencePrevalenceRef(sampleSize = 500,
                                   earliestObservationStartDate = as.Date("2000-01-01"),
                                   latestObservationStartDate =  as.Date("2005-01-01"),
                                   minDaysToObservationEnd = 10000, 
+                                  maxDaysToObservationEnd = NULL,
                                   earliestDateOfBirth = as.Date("1960-01-01"), 
                                   latestDateOfBirth = as.Date("1980-01-01"))
 

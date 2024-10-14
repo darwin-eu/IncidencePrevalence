@@ -10,6 +10,7 @@ generateTargetDenominatorCohortSet(
   targetCohortTable,
   targetCohortId = NULL,
   cohortDateRange = as.Date(c(NA, NA)),
+  timeAtRisk = c(0, Inf),
   ageGroup = list(c(0, 150)),
   sex = "Both",
   daysPriorObservation = 0,
@@ -35,6 +36,15 @@ NULL or the first date is set as missing, the earliest observation_start_date
 in the observation_period table will be used for the former. If  NULL or the
 second date is set as missing, the latest observation_end_date in the
 observation_period table will be used for the latter.}
+
+\item{timeAtRisk}{Lower and upper bound for the time at risk window to apply
+relative to the target cohort entry. A value of list(c(0, 30), c(31, 60))
+would, for example, create one set of denominator cohorts with time up to
+the 30 days following target cohort entry and another set with time from
+31 days following entry to 60 days. If time at risk start is after target
+cohort exit and/ or observation period end then no time will be contributed.
+If time at risk end is after cohort exit and/ or observation period, then
+only time up to these will be contributed.}
 
 \item{ageGroup}{A list of age groups for which cohorts will be generated. A
 value of \code{list(c(0,17), c(18,30))} would, for example, lead to the creation

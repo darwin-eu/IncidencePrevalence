@@ -239,42 +239,17 @@ Given that we can set `estimatePointPrevalence()` and `estimatePeriorPrevalence(
 
 The user can also set the minimum number of events to be reported, below which results will be obscured. By default, results with <5 occurrences are blinded, but if minCellCount=0, all results will be reported. 95 % confidence intervals are calculated using the Wilson Score method. In addition, we can set verbose=TRUE to report progress as code is running. By default, no progress is reported (verbose=FALSE). 
 
-## Output
-`estimatePointPrevalence()` and `estimatePeriorPrevalence()` will generate a table with point and period prevalence rates for each of the time intervals studied and for each combination of the parameters set, respectively. Similar to the output obtained by `generateDenominatorCohortSet()`, the table generated will also include attributes, including tibbles with information on settings and attrition.
+## Attrition
+`estimatePointPrevalence()` and `estimatePeriorPrevalence()` will generate a table with point and period prevalence rates for each of the time intervals studied and for each combination of the parameters set, respectively. We can also view attrition associated with performing the analysis.
 ```{r, message= FALSE, warning=FALSE}
 prev <- estimatePeriodPrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "Years",
-  fullContribution = c(TRUE, FALSE),
-  minCellCount = 0,
-  returnParticipants = TRUE
+  fullContribution = TRUE,
+  minCellCount = 0
 )
-attrition(prev)
+tablePrevalenceAttrition(prev)
 ```
 
-In addition, if we set returnParticipants as TRUE as above, we can identify the individuals who contributed to the prevalence rate analysis by using `participants(). For example, we can identify those people contributing to analysis 1 by running
-
-```{r, message= FALSE, warning=FALSE}
-participants(prev, analysisId = 1) %>%
-  glimpse()
-```
-
-As we´ve used permanent tables for this example, we can drop these after running our analysis (note, the table created will start with write_prefix specified
-when creating the cdm reference).
-
-```{r, message= FALSE, warning=FALSE}
-# drop tables created when instantiating denominator cohorts
-CDMConnector::dropTable(
-  cdm = cdm,
-  name = dplyr::starts_with("denominator")
-)
-# drop table with study participants when returnParticipants = TRUE
-CDMConnector::dropTable(
-  cdm = cdm,
-  name = "period_prev_participants_1"
-)
-CDMConnector::cdm_disconnect(cdm)
-
-```

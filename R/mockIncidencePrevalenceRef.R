@@ -75,10 +75,10 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
                                        intercept = NULL,
                                        earliestDateOfBirth = NULL,
                                        latestDateOfBirth = NULL,
-                                       earliestObservationStartDate = NULL,
-                                       latestObservationStartDate = NULL,
-                                       minDaysToObservationEnd = NULL,
-                                       maxDaysToObservationEnd = NULL,
+                                       earliestObservationStartDate = as.Date("1900-01-01"),
+                                       latestObservationStartDate = as.Date("2010-01-01"),
+                                       minDaysToObservationEnd = 1,
+                                       maxDaysToObservationEnd = 4380,
                                        minOutcomeDays = 1,
                                        maxOutcomeDays = 10,
                                        maxOutcomes = 1) {
@@ -129,16 +129,16 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
 
   if (is.null(personTable) || is.null(observationPeriodTable)) {
     # person table mock ids
-    id <- as.character(seq(1:sampleSize))
+    id <- as.integer(seq(1:sampleSize))
 
     # person table mock values
     values <- seq(1:sampleSize)
 
     # person gender
-    genderId <- sample(c("8507", "8532"),
+    genderId <- as.integer(sample(c(8507, 8532),
       sampleSize,
       replace = TRUE
-    )
+    ))
 
     # Define earliest possible date of birth for person table
     if (is.null(earliestDateOfBirth)) {
@@ -159,9 +159,9 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
       replace = TRUE
     )
     # year, month, day
-    dobYear <- as.numeric(format(dateOfBirth, "%Y"))
-    dobMonth <- as.numeric(format(dateOfBirth, "%m"))
-    dobDay <- as.numeric(format(dateOfBirth, "%d"))
+    dobYear <- as.integer(format(dateOfBirth, "%Y"))
+    dobMonth <- as.integer(format(dateOfBirth, "%m"))
+    dobDay <- as.integer(format(dateOfBirth, "%d"))
 
     # observation_period table
     # create a list of observational_period_id
@@ -220,12 +220,12 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
         location_id = id,
         provider_id = id,
         care_site_id = id,
-        person_source_value = values,
-        gender_source_value = values,
+        person_source_value = as.character(values),
+        gender_source_value = as.character(values),
         gender_source_concept_id = id,
-        race_source_value = values,
+        race_source_value = as.character(values),
         race_source_concept_id = id,
-        ethnicity_source_value = values,
+        ethnicity_source_value = as.character(values),
         ethnicity_source_concept_id = id
       )
     }
@@ -245,15 +245,15 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
     if (is.null(ageBeta) || is.null(genderBeta) || is.null(intercept)) {
       # outcome table
       # note, only one outcome cohort
-      subjectId <- sample(personTable$person_id,
+      subjectId <- as.integer(sample(personTable$person_id,
         round(nrow(personTable) * outPre, digits = 0),
         replace = FALSE
-      )
+      ))
 
       outcomeTable <- observationPeriodTable %>%
         dplyr::rename("subject_id" = "person_id") %>%
         dplyr::filter(.data$subject_id %in% .env$subjectId) %>%
-        dplyr::mutate(obs_days = as.numeric(difftime(
+        dplyr::mutate(obs_days = as.integer(difftime(
           .data$observation_period_end_date,
           .data$observation_period_start_date,
           units = "days"
@@ -274,7 +274,7 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
           "cohort_start_date",
           "cohort_end_date"
         ) %>%
-        dplyr::mutate(cohort_definition_id = c("1")) %>%
+        dplyr::mutate(cohort_definition_id = c(1L)) %>%
         dplyr::relocate("cohort_definition_id")
     } else { # outcome table
       # calculate outcome
@@ -319,7 +319,7 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
       outcomeTable <- observationPeriodTable %>%
         dplyr::rename("subject_id" = "person_id") %>%
         dplyr::filter(.data$subject_id %in% .env$subjectId) %>%
-        dplyr::mutate(obs_days = as.numeric(difftime(
+        dplyr::mutate(obs_days = as.integer(difftime(
           .data$observation_period_end_date,
           .data$observation_period_start_date,
           units = "days"
@@ -434,10 +434,10 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
 
   cdm_df <- omopgenerics::cdmFromTables(tables = list(
     "person" = personTable %>%
-      dplyr::mutate(race_concept_id = NA,
-                    ethnicity_concept_id = NA),
+      dplyr::mutate(race_concept_id = as.integer(NA),
+                    ethnicity_concept_id = as.integer(NA)),
     "observation_period" = observationPeriodTable %>%
-      dplyr::mutate(period_type_concept_id = NA)),
+      dplyr::mutate(period_type_concept_id = as.integer(NA))),
     cohortTables = list(
       "target" = targetCohortTable %>%
         dplyr::mutate(cohort_definition_id = as.integer(.data$cohort_definition_id)),

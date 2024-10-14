@@ -19,6 +19,8 @@
 getDenominatorCohorts <- function(cdm,
                                   startDate,
                                   endDate,
+                                  timeAtRiskStart,
+                                  timeAtRiskEnd,
                                   minAge,
                                   maxAge,
                                   daysPriorObservation,
@@ -44,6 +46,37 @@ getDenominatorCohorts <- function(cdm,
   if (!is.na(targetCohortTable)) {
     targetDb <- cdm[[targetCohortTable]] %>%
       dplyr::filter(.data$cohort_definition_id == .env$targetCohortId)
+
+    ## Update entry and exit based on specified time at risk (if supplied)
+    if(timeAtRiskEnd != Inf || timeAtRiskStart != 0){
+      if(timeAtRiskEnd != Inf){
+        # update exit to time based on risk end
+        # set observation end to whatever came first of tar end or obs end
+        targetDb <- targetDb %>%
+          dplyr::mutate(tar_end_date =
+                          !!CDMConnector::dateadd("cohort_start_date",
+                                                  timeAtRiskEnd,
+                                                  interval = "day")) %>%
+          dplyr::mutate(
+            cohort_end_date =
+              dplyr::if_else(.data$cohort_end_date >=
+                               .data$tar_end_date,
+                             .data$tar_end_date,
+                             .data$cohort_end_date
+              )
+          )
+      }
+      if(timeAtRiskStart != 0){
+        # update entry to time based on risk start
+        targetDb <- targetDb %>%
+          dplyr::mutate(cohort_start_date  =
+                          !!CDMConnector::dateadd("cohort_start_date",
+                                                  timeAtRiskStart,
+                                                  interval = "day")) |>
+          dplyr::filter(.data$cohort_start_date <=
+                          .data$cohort_end_date)
+      }
+    }
 
     # drop anyone not in the target cohort
     personDb <- personDb %>%
@@ -87,7 +120,7 @@ getDenominatorCohorts <- function(cdm,
       )
 
     # to deal with potential multiple observation periods
-    # make sure outcome started during joined observation period
+    # make sure cohort started during joined observation period
     # if not, drop
     observationPeriodDb <- observationPeriodDb %>%
       dplyr::filter(.data$observation_period_start_date <=
@@ -110,6 +143,12 @@ getDenominatorCohorts <- function(cdm,
     personDb <- personDb %>%
       dplyr::compute(
         name = paste0(intermediateTable,"_working_obs_period"),
+        temporary = FALSE
+      )
+
+    observationPeriodDb <- observationPeriodDb %>%
+      dplyr::compute(
+        name = paste0(intermediateTable,"_i_0"),
         temporary = FALSE
       )
   }
@@ -188,8 +227,8 @@ getDenominatorCohorts <- function(cdm,
                                                 {{ upperAgeLimit }},
                                                 interval = "year"
       ),
-      start_date = !!CDMConnector::asDate(.env$startDateChar),
-      end_date = !!CDMConnector::asDate(.env$endDateChar),
+      start_date = as.Date(.env$startDateChar),
+      end_date = as.Date(.env$endDateChar),
     ) %>%
     dplyr::filter(
       # drop people too old even at study start

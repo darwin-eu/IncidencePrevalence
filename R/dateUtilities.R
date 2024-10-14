@@ -17,7 +17,7 @@ addDaysQuery <- function(cdm,
     }
 
   if(type == "year"){
-    if(omopgenerics::cdmSourceType(cdm) == "spark"){
+    if(omopgenerics::sourceType(cdm) == "spark"){
       # https://github.com/darwin-eu-dev/IncidencePrevalence/issues/395
       number_days_to_years <- as.integer(number*365)
       q <- glue::glue("clock::add_days({variable}, {(number_days_to_years)}L)")
@@ -49,7 +49,7 @@ minusDaysQuery <- function(cdm,
       q <- glue::glue("clock::add_days({variable} , {(number)}L)")
     }
   if(type == "year"){
-    if(omopgenerics::cdmSourceType(cdm) == "spark"){
+    if(omopgenerics::sourceType(cdm) == "spark"){
       # https://github.com/darwin-eu-dev/IncidencePrevalence/issues/395
       number_days_to_years <- as.integer(number*365)
       q <- glue::glue("clock::add_days({variable}, {(number_days_to_years)}L)")

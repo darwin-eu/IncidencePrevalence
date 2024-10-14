@@ -1,6 +1,7 @@
 checkInputGenerateDCS <- function(cdm,
                                   name,
                                   cohortDateRange,
+                                  timeAtRisk,
                                   ageGroup,
                                   sex,
                                   daysPriorObservation,
@@ -9,7 +10,6 @@ checkInputGenerateDCS <- function(cdm,
                                   targetCohortId,
                                   call = parent.frame()) {
   cdmCheck(cdm)
-
 
   if(stringr::str_detect(name, "^[a-z0-9_]+$", negate = TRUE)){
     cli::cli_abort(c("name must be given in snake case",
@@ -22,6 +22,34 @@ checkInputGenerateDCS <- function(cdm,
   errorMessage <- checkmate::makeAssertCollection()
   checkmate::assertCharacter(name, len = 1)
   checkmate::assertDate(cohortDateRange, len = 2)
+  checkmate::assert_list(timeAtRisk,
+                         add = errorMessage
+  )
+  for (i in seq_along(timeAtRisk)) {
+    checkmate::assertTRUE(length(timeAtRisk[[i]]) == 2)
+    checkmate::assert_numeric(timeAtRisk[[i]][1],
+                              add = errorMessage
+    )
+    checkmate::assert_numeric(timeAtRisk[[i]][2],
+                              add = errorMessage
+    )
+    tarCheck <- timeAtRisk[[i]][1] <=
+      timeAtRisk[[i]][2]
+    checkmate::assertTRUE(tarCheck,
+                          add = errorMessage
+    )
+    if (!isTRUE(tarCheck)) {
+      errorMessage$push(
+        "- upper age value must be equal or higher than lower age value"
+      )
+    }
+    checkmate::assertTRUE(timeAtRisk[[i]][1] >= 0,
+                          add = errorMessage
+    )
+    checkmate::assertTRUE(timeAtRisk[[i]][2] >= 0,
+                          add = errorMessage
+    )
+  }
   checkmate::assert_list(ageGroup,
     add = errorMessage
   )
@@ -113,8 +141,7 @@ checkInputEstimateIncidence <- function(cdm,
                                         completeDatabaseIntervals,
                                         outcomeWashout,
                                         repeatedEvents,
-                                        minCellCount,
-                                        returnParticipants) {
+                                        minCellCount) {
   cdmCheck(cdm)
 
   errorMessage <- checkmate::makeAssertCollection()
@@ -179,9 +206,6 @@ checkInputEstimateIncidence <- function(cdm,
     add = errorMessage
   )
   checkmate::assert_number(minCellCount)
-  checkmate::assert_logical(returnParticipants,
-    add = errorMessage
-  )
   return(checkmate::reportAssertions(collection = errorMessage))
 }
 
@@ -214,8 +238,7 @@ checkInputEstimatePrevalence <- function(cdm,
                                          completeDatabaseIntervals,
                                          fullContribution,
                                          timePoint,
-                                         minCellCount,
-                                         returnParticipants) {
+                                         minCellCount) {
   cdmCheck(cdm)
 
   errorMessage <- checkmate::makeAssertCollection()
@@ -278,9 +301,6 @@ checkInputEstimatePrevalence <- function(cdm,
     add = errorMessage
   )
   checkmate::assert_logical(completeDatabaseIntervals,
-    add = errorMessage
-  )
-  checkmate::assert_logical(returnParticipants,
     add = errorMessage
   )
   return(checkmate::reportAssertions(collection = errorMessage))

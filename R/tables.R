@@ -14,155 +14,122 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-#' Format a point_prevalence object into a visual table.
+
+
+#' Table of prevalence results
 #'
-#' `r lifecycle::badge("experimental")`
+#' @param result Prevalence results
+#' @param type Type of table. Can be "gt", "flextable", or "tibble"
+#' @param header A vector specifying the elements to include in the header. The
+#' order of elements matters, with the first being the topmost header.
+#' The header vector can contain one of the following variables: "cdm_name",
+#' "denominator_cohort_name", "outcome_cohort_name", "prevalence_start_date",
+#' "prevalence_end_date", "estimate_name", variables in the `strata_name` column,
+#' and any of the settings columns specified in `settingsColumns` argument.
+#' The header can also include other names to use as overall header labels
+#' @param groupColumn Variables to use as group labels. Allowed columns are the
+#' same as in `header`
+#' @param settingsColumns Variables from the settings atribute to dispaly in
+#' the table
+#' @param hide  Table columns to exclude, options are the ones described in
+#' `header`
+#' @param .options Table options to apply
 #'
-#' @param result A summarised_result object with results from
-#' estimatePointPrevalence() or estimatePeriodPrevalence().
-#' @param prevalenceType Type of prevalence estimates: "point" or "period".
-#' @param formatEstimateName Named list of estimate name's to join, sorted by
-#' computation order. Indicate estimate_name's between <...>.
-#' @param header A vector containing which elements should go into the header
-#' in order. Allowed are: `cdm_name`, `group`, `strata`, `additional`,
-#' `variable`, `estimate`, `settings`.
-#' @param splitStrata If TRUE strata columns will be splitted.
-#' @param cdmName If TRUE database names will be displayed.
-#' @param outcomeName If TRUE outcome cohort names will be displayed.
-#' @param outcomeSettings If TRUE settings related to the outcome cohorts will
-#' be displayed.
-#' @param denominatorName If TRUE denominator cohort names will be displayed.
-#' @param denominatorSettings If TRUE settings related to the denominator cohorts
-#' will be displayed.
-#' @param analysisSettings If TRUE database names will be displayed.
-#' @param groupColumn Column to use as group labels.
-#' @param type Type of desired formatted table, possibilities: "gt",
-#' "flextable", "tibble".
-#' @param .options Named list with additional formatting options.
-#' IncidencePrevalence::optionsTablePrevalence() shows allowed
-#' arguments and their default values.
+#' @return Table of prevalence results
+#' @export
 #'
 #' @examples
 #' \donttest{
-#' library(IncidencePrevalence)
-#'
-#' cdm <- mockIncidencePrevalenceRef()
-#'
-#' cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
-#'
+#' cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
+#' cdm <- generateDenominatorCohortSet(
+#'   cdm = cdm, name = "denominator",
+#'   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
+#' )
 #' prev <- estimatePointPrevalence(
 #'   cdm = cdm,
 #'   denominatorTable = "denominator",
 #'   outcomeTable = "outcome",
-#'   summarisedResult = TRUE
+#'   interval = "months"
 #' )
-#'
-#' tablePrevalence(prev, prevalenceType = "point")
-#'
-#' CDMConnector::cdmDisconnect(cdm = cdm)
+#' tablePrevalence(prev)
 #' }
-#'
-#' @return A table with a formatted version of a prevalence result.
-#'
-#' @noRd
-#'
-tablePrevalence <- function(
-    result,
-    prevalenceType,
-    formatEstimateName = c(
-      "Denominator (N)" = "<denominator_count>",
-      "Outcome (N)" = "<outcome_count>",
-      "Prevalence [95% CI]" = "<prevalence> (<prevalence_95CI_lower> - <prevalence_95CI_upper>)"
-    ),
-    header = c("variable", "estimate"),
-    splitStrata = TRUE,
-    cdmName = TRUE,
-    outcomeName = TRUE,
-    outcomeSettings = FALSE,
-    denominatorName = TRUE,
-    denominatorSettings = TRUE,
-    analysisSettings = FALSE,
-    groupColumn = NULL,
-    type = "gt",
-    .options = list()
+tablePrevalence <- function(result,
+                            type = "gt",
+                            header = c("estimate_name"),
+                            groupColumn = character(),
+                            settingsColumns = colnames(settings(result)),
+                            hide = character(),
+                            .options = list()
 ) {
 
-  # check input
-  if (!inherits(result, "summarised_result")) {
-    cli::cli_abort(c("x" = "Table functionality only works with results in a summarised_result format.", "i" = "These can be obtained with the argument `summarisedResult` in estimatePeriodPrevalence() and estimatePointPrevalence()."))
-  }
+  formatEstimateName <- c(
+    "Denominator (N)" = "<denominator_count>",
+    "Outcome (N)" = "<outcome_count>",
+    "Prevalence [95% CI]" = "<prevalence> (<prevalence_95CI_lower> - <prevalence_95CI_upper>)"
+  )
 
   tableInternal(
     result = result,
     formatEstimateName = formatEstimateName,
     header = header,
-    splitStrata = splitStrata,
-    cdmName = cdmName,
-    outcomeName = outcomeName,
-    outcomeSettings = outcomeSettings,
-    denominatorName = denominatorName,
-    denominatorSettings = denominatorSettings,
-    analysisSettings = analysisSettings,
     groupColumn = groupColumn,
+    settingsColumns = settingsColumns,
     type = type,
-    resultType = paste0(prevalenceType, "_prevalence"),
+    hide = hide,
+    resultType = "prevalence",
     .options = .options
   )
 
 }
 
-#' Format a point_prevalence object into a visual table.
+
+#' Table of incidence results
 #'
-#' `r lifecycle::badge("experimental")`
+#' @param result Incidence results
+#' @param type Type of table. Can be "gt", "flextable", or "tibble"
+#' @param header A vector specifying the elements to include in the header. The
+#' order of elements matters, with the first being the topmost header.
+#' The header vector can contain one of the following variables: "cdm_name",
+#' "denominator_cohort_name", "outcome_cohort_name", "incidence_start_date",
+#' "incidence_end_date", "estimate_name", variables in the `strata_name` column,
+#' and any of the settings columns specified in `settingsColumns` argument.
+#' The header can also include other names to use as overall header labels
+#' @param groupColumn Variables to use as group labels. Allowed columns are the
+#' same as in `header`
+#' @param settingsColumns Variables from the settings atribute to dispaly in
+#' the table
+#' @param hide  Table columns to exclude, options are the ones described in
+#' `header`
+#' @param .options Table options to apply
 #'
-#' @param result A summarised_result object with results from
-#' estimateIncidence().
-#' @param formatEstimateName Named list of estimate name's to join, sorted by
-#' computation order. Indicate estimate_name's between <...>.
-#' @param header A vector containing which elements should go into the header
-#' in order. Allowed are: `cdm_name`, `group`, `strata`, `additional`,
-#' `variable`, `estimate`, `settings`.
-#' @param splitStrata If TRUE strata columns will be splitted.
-#' @param cdmName If TRUE database names will be displayed.
-#' @param outcomeName If TRUE outcome cohort names will be displayed.
-#' @param outcomeSettings If TRUE settings related to the outcome cohorts will
-#' be displayed.
-#' @param denominatorName If TRUE denominator cohort names will be displayed.
-#' @param denominatorSettings If TRUE settings related to the denominator cohorts
-#' will be displayed.
-#' @param analysisSettings If TRUE database names will be displayed.
-#' @param groupColumn Column to use as group labels.
-#' @param type Type of desired formatted table, possibilities: "gt",
-#' "flextable", "tibble".
-#' @param .options Named list with additional formatting options.
-#' IncidencePrevalence::optionsTableIncidence() shows allowed
-#' arguments and their default values.
+#' @return Table of results
+#' @export
 #'
 #' @examples
 #' \donttest{
-#' library(IncidencePrevalence)
-#'
-#' cdm <- mockIncidencePrevalenceRef()
-#'
-#' cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
-#'
+#' cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
+#' cdm <- generateDenominatorCohortSet(
+#'   cdm = cdm, name = "denominator",
+#'   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
+#' )
 #' inc <- estimateIncidence(
 #'   cdm = cdm,
 #'   denominatorTable = "denominator",
-#'   outcomeTable = "outcome",
-#'   summarisedResult = TRUE
+#'   outcomeTable = "outcome"
 #' )
-#'
 #' tableIncidence(inc)
-#'
-#' CDMConnector::cdmDisconnect(cdm = cdm)
 #' }
-#'
-#' @return A table with a formatted version of incidence results.
-#'
-#' @noRd
-tableIncidence <- function(
-    result,
+tableIncidence <- function(result,
+                           type = "gt",
+                           header = c("estimate_name"),
+                           groupColumn = character(),
+                           settingsColumns = colnames(settings(result)),
+                           hide = character(),
+                           .options = list()
+) {
+
+  tableInternal(
+    result = result,
     formatEstimateName = c(
       "Denominator (N)" = "<denominator_count>",
       "Person-years" = "<person_years>",
@@ -171,37 +138,11 @@ tableIncidence <- function(
         "<incidence_100000_pys> (<incidence_100000_pys_95CI_lower> -
       <incidence_100000_pys_95CI_upper>)"
     ),
-    header = c("variable", "estimate"),
-    splitStrata = TRUE,
-    cdmName = TRUE,
-    outcomeName = TRUE,
-    outcomeSettings = FALSE,
-    denominatorName = TRUE,
-    denominatorSettings = TRUE,
-    analysisSettings = FALSE,
-    groupColumn = NULL,
-    type = "gt",
-    .options = list()
-) {
-
-  # check input
-  if (!inherits(result, "summarised_result")) {
-    cli::cli_abort(c("x" = "Table functionality only works with results in a summarised_result format.", "i" = "These can be obtained with the argument `summarisedResult` in estimateIncidence()."))
-  }
-
-  tableInternal(
-    result = result,
-    formatEstimateName = formatEstimateName,
     header = header,
-    splitStrata = splitStrata,
-    cdmName = cdmName,
-    outcomeName = outcomeName,
-    outcomeSettings = outcomeSettings,
-    denominatorName = denominatorName,
-    denominatorSettings = denominatorSettings,
-    analysisSettings = analysisSettings,
     groupColumn = groupColumn,
     type = type,
+    hide = hide,
+    settingsColumns = settingsColumns,
     resultType = "incidence",
     .options = .options
   )
@@ -217,16 +158,11 @@ tableInternal <- function(
       "Incidence per 100,000 person-years [95% CI]" = "<incidence_100000_pys> (<incidence_100000_pys_95CI_lower> - <incidence_100000_pys_95CI_upper>)"
     ),
     header = c("group", "strata"),
-    splitStrata = TRUE,
-    cdmName = TRUE,
-    outcomeName = TRUE,
-    outcomeSettings = FALSE,
-    denominatorName = TRUE,
-    denominatorSettings = FALSE,
-    analysisSettings = FALSE,
-    groupColumn = NULL,
     type = "gt",
     resultType = "incidence",
+    groupColumn = character(),
+    settingsColumns = character(),
+    hide = character(),
     .options = list()
 ) {
   result <- omopgenerics::newSummarisedResult(result) |>
@@ -234,96 +170,34 @@ tableInternal <- function(
   if (nrow(result) == 0) {
     cli::cli_abort("No results of the type {resultType} were found in the summarised result provided.")
   }
-  checkmate::assertList(.options)
-  checkmate::assertLogical(
-    c(splitStrata, cdmName, outcomeName, outcomeSettings, denominatorName,
-      denominatorSettings, analysisSettings),
-    any.missing = FALSE
-  )
+  omopgenerics::assertList(.options)
+  omopgenerics::assertCharacter(header, null = TRUE)
+  omopgenerics::assertCharacter(resultType)
+  omopgenerics::assertCharacter(hide, null = TRUE)
+  omopgenerics::assertChoice(type, visOmopResults::tableType())
+  if (!is.list(groupColumn)) groupColumn <- list(groupColumn)
+  omopgenerics::assertList(groupColumn, null = TRUE, class = "character")
 
   # .options
   .options <- defaultTableIncidencePrevalence(.options, resultType)
 
-  # prepare visOmopTable input
-  ## settings
-  settingsToSelect <- colnames(omopgenerics::settings(result))
-  settingsToSelect <- settingsToSelect[!settingsToSelect %in% c(
-    "result_type", "package_name", "package_version", "denominator_cohort_name", "outcome_cohort_name", "min_cell_count"
-  )]
-  if (!outcomeSettings) {
-    settingsToSelect <- settingsToSelect[!grepl("outcome", settingsToSelect)]
-  }
-  if (!denominatorSettings) {
-    settingsToSelect <- settingsToSelect[!grepl("denominator", settingsToSelect)]
-  }
-  if (!analysisSettings) {
-    settingsToSelect <- settingsToSelect[!grepl("analysis", settingsToSelect)]
-  }
+  # fix for visOmopTable
+  hide <- c(hide, "variable_name")
+  header <- tableArgumentFix(header)
+  hide <- tableArgumentFix(hide)
+  groupColumn[[1]] <- tableArgumentFix(groupColumn[[1]])
+  settingsColumns <- settingsColumns[settingsColumns != "outcome_cohort_name"]
 
-  if (outcomeSettings | denominatorSettings | analysisSettings) {
-    result <- result |>
-      visOmopResults::splitAdditional() |>
-      dplyr::left_join(
-        omopgenerics::settings(result) |>
-          dplyr::select(dplyr::all_of(settingsToSelect)),
-        by = "result_id"
-      )
-    if("incidence_start_date" %in% colnames(result)){
-      result <- result |>
-        visOmopResults::uniteAdditional(
-          cols = c("incidence_start_date", "incidence_end_date", settingsToSelect[!settingsToSelect %in% "result_id"])
-        )
-    } else {
-      result <- result |>
-        visOmopResults::uniteAdditional(
-          cols = c("prevalence_start_date", "prevalence_end_date", settingsToSelect[!settingsToSelect %in% "result_id"])
-        )
-    }
-  }
-
-  ## cdm name
-  if (cdmName) {
-    renameColumns <- c("Database name" = "cdm_name")
-    excludeColumns <- c("result_id", "estimate_type")
-  } else {
-    excludeColumns <- c("result_id", "estimate_type", "cdm_name")
-  }
-  ## outcome name
-  if (outcomeName) {
-    renameColumns <- c(renameColumns, "Outcome cohort name" = "variable_level")
-  } else {
-    excludeColumns <- c(excludeColumns, "variable_level")
-  }
-  ## denominator name
-  if (denominatorName) {
-    split <- c("group", "additional")
-  } else {
-    excludeColumns <- c(excludeColumns, "group_name", "group_level")
-    split <- c("additional")
-    if ("group" %in% header) {
-      cli::cli_inform("Omiting group from header as `denominatorName = FALSE`")
-      header <- header[!header %in% "group"]
-    }
-  }
-  if (!"variable" %in% header) {
-    excludeColumns <- c(excludeColumns, "variable_name")
-  }
-
-  ## split
-  if (splitStrata) {
-    split <- c(split, "strata")
-  }
-
+  # visOmopTable
   visOmopResults::visOmopTable(
     result = result,
-    formatEstimateName = formatEstimateName,
+    estimateName = formatEstimateName,
     header = header,
-    split = split,
     groupColumn = groupColumn,
+    settingsColumns = settingsColumns,
     type = type,
-    renameColumns = renameColumns,
-    showMinCellCount = TRUE,
-    excludeColumns = excludeColumns,
+    rename = c("Database name" = "cdm_name", "Outcome cohort name" = "variable_level"),
+    hide = hide,
     .options = .options
   )
 }
@@ -332,7 +206,7 @@ defaultTableIncidencePrevalence <- function(.options, type) {
 
   defaults <- visOmopResults::optionsVisOmopTable()
 
-  if (type == "incidence") {
+  if ("incidence" %in% type) {
     defaults$keepNotFormatted = FALSE
   }
 
@@ -381,4 +255,148 @@ optionsTablePrevalence <- function() {
 #'
 optionsTableIncidence <- function() {
   defaultTableIncidencePrevalence(NULL, "incidence")
+}
+
+tableArgumentFix <- function(x) {
+  if (length(x) > 0) {
+    for (nme in x) {
+      if (nme == "outcome_cohort_name") x[x == nme] <- "variable_level"
+    }
+  }
+  return(x)
+}
+
+
+#' Table of incidence attrition results
+#'
+#' @param result A summarised_result object. Output of
+#' summariseCohortAttrition().
+#' @param type Type of table. Check supported types with
+#' `visOmopResults::tableType()`.
+#' @param header Columns to use as header. See options with
+#' `colnames(visOmopResults::splitAll(result))`. Variables in `settingsColumns`
+#' are also allowed
+#' @param groupColumn Variables to use as group labels. Allowed columns are the
+#' same as in `header`
+#' @param settingsColumns Variables from the settings atribute to dispaly in
+#' the table
+#' @param hide  Table columns to exclude, options are the ones described in
+#' `header`
+#'
+#' @return A visual table.
+#'
+#' @export
+#'
+#' @examples
+#'
+tableIncidenceAttrition <- function(result,
+                                    type = "gt",
+                                    header = "variable_name",
+                                    groupColumn = c("cdm_name", "variable_level"),
+                                    settingsColumns = colnames(settings(result)),
+                                    hide = "estimate_name") {
+  # initial checks
+  result <- omopgenerics::validateResultArgument(result)
+  omopgenerics::assertChoice(type, c("gt", "flextable", "tibble"))
+
+  # check settings
+  result <- result |>
+    visOmopResults::filterSettings(
+      .data$result_type == "incidence_attrition"
+    )
+
+  if (nrow(result) == 0) {
+    cli::cli_warn("`result` object does not contain any `result_type == 'incidence_attrition'` information.")
+    return(emptyResultTable(type))
+  }
+
+  result <- result |>
+    dplyr::mutate(variable_name = stringr::str_to_sentence(gsub("_", " ", .data$variable_name)))
+
+  # format table
+  tab <- visOmopResults::visOmopTable(
+    result = result,
+    estimateName = c("N" = "<count>"),
+    header = header,
+    groupColumn = groupColumn,
+    settingsColumns = settingsColumns,
+    type = type,
+    hide = hide
+  )
+
+  return(tab)
+}
+
+
+#' Table of prevalence attrition results
+#'
+#' @param result A summarised_result object. Output of
+#' summariseCohortAttrition().
+#' @param type Type of table. Check supported types with
+#' `visOmopResults::tableType()`.
+#' @param header Columns to use as header. See options with
+#' `colnames(visOmopResults::splitAll(result))`. Variables in `settingsColumns`
+#' are also allowed
+#' @param groupColumn Variables to use as group labels. Allowed columns are the
+#' same as in `header`
+#' @param settingsColumns Variables from the settings atribute to dispaly in
+#' the table
+#' @param hide  Table columns to exclude, options are the ones described in
+#' `header`
+#'
+#' @return A visual table.
+#'
+#' @export
+#'
+#' @examples
+#'
+tablePrevalenceAttrition <- function(result,
+                                     type = "gt",
+                                     header = "variable_name",
+                                     groupColumn = c("cdm_name", "variable_level"),
+                                     settingsColumns = colnames(settings(result)),
+                                     hide = "estimate_name") {
+  # initial checks
+  result <- omopgenerics::validateResultArgument(result)
+  omopgenerics::assertChoice(type, visOmopResults::tableType())
+
+  # check settings
+  result <- result |>
+    visOmopResults::filterSettings(
+      .data$result_type == "prevalence_attrition"
+    )
+
+  if (nrow(result) == 0) {
+    cli::cli_warn("`result` object does not contain any `result_type == 'incidence_attrition'` information.")
+    return(emptyResultTable(type))
+  }
+
+  result <- result |>
+    dplyr::mutate(variable_name = stringr::str_to_sentence(gsub("_", " ", .data$variable_name)))
+
+  # format table
+  tab <- visOmopResults::visOmopTable(
+    result = result,
+    estimateName = c("N" = "<count>"),
+    header = header,
+    groupColumn = groupColumn,
+    settingsColumns = settingsColumns,
+    type = type,
+    hide = hide
+  )
+
+  return(tab)
+}
+
+
+emptyResultTable <- function(type) {
+  x <- dplyr::tibble(`Table has no data` = character())
+  if (type == "gt") {
+    result <- gt::gt(x)
+  } else if (type == "flextable") {
+    result <- flextable::flextable(x)
+  } else {
+    result <- x
+  }
+  result
 }

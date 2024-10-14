@@ -107,6 +107,14 @@ generateDenominatorCohortSet <- function(cdm,
 #' in the observation_period table will be used for the former. If  NULL or the
 #' second date is set as missing, the latest observation_end_date in the
 #' observation_period table will be used for the latter.
+#' @param timeAtRisk Lower and upper bound for the time at risk window to apply
+#' relative to the target cohort entry. A value of list(c(0, 30), c(31, 60))
+#' would, for example, create one set of denominator cohorts with time up to
+#' the 30 days following target cohort entry and another set with time from
+#' 31 days following entry to 60 days. If time at risk start is after target
+#' cohort exit and/ or observation period end then no time will be contributed.
+#' If time at risk end is after cohort exit and/ or observation period, then
+#' only time up to these will be contributed.
 #' @param ageGroup A list of age groups for which cohorts will be generated. A
 #' value of `list(c(0,17), c(18,30))` would, for example, lead to the creation
 #' of cohorts for those aged from 0 to 17, and from 18 to 30. In this example
@@ -143,6 +151,7 @@ generateTargetDenominatorCohortSet <- function(cdm,
                                                targetCohortTable,
                                                targetCohortId = NULL,
                                                cohortDateRange = as.Date(c(NA, NA)),
+                                               timeAtRisk = c(0, Inf),
                                                ageGroup = list(c(0, 150)),
                                                sex = "Both",
                                                daysPriorObservation = 0,
@@ -152,6 +161,7 @@ generateTargetDenominatorCohortSet <- function(cdm,
     cdm = cdm,
     name = name,
     cohortDateRange = cohortDateRange,
+    timeAtRisk = timeAtRisk,
     ageGroup = ageGroup,
     sex = sex,
     daysPriorObservation = daysPriorObservation,
@@ -165,20 +175,26 @@ generateTargetDenominatorCohortSet <- function(cdm,
 
 
 fetchDenominatorCohortSet <- function(cdm,
-                                         name,
-                                         cohortDateRange = as.Date(c(NA, NA)),
-                                         ageGroup = list(c(0, 150)),
-                                         sex = "Both",
-                                         daysPriorObservation = 0,
-                                         requirementInteractions = TRUE,
-                                         targetCohortTable = NULL,
-                                         targetCohortId = NULL) {
+                                      name,
+                                      cohortDateRange = as.Date(c(NA, NA)),
+                                      timeAtRisk = c(0, Inf),
+                                      ageGroup = list(c(0, 150)),
+                                      sex = "Both",
+                                      daysPriorObservation = 0,
+                                      requirementInteractions = TRUE,
+                                      targetCohortTable = NULL,
+                                      targetCohortId = NULL) {
   startCollect <- Sys.time()
+
+  if(is.atomic(timeAtRisk)){
+    timeAtRisk <- list(timeAtRisk)
+  }
 
   checkInputGenerateDCS(
     cdm = cdm,
     name = name,
     cohortDateRange = cohortDateRange,
+    timeAtRisk = timeAtRisk,
     ageGroup = ageGroup,
     sex = sex,
     daysPriorObservation = daysPriorObservation,
@@ -187,7 +203,7 @@ fetchDenominatorCohortSet <- function(cdm,
     targetCohortId = targetCohortId
   )
 
-  if(any(is.na(cohortDateRange))){
+  if(anyNA(cohortDateRange)){
     cohortDateRange <- getCohortDateRange(cdm = cdm,
                                           cohortDateRange = cohortDateRange)
   }
@@ -198,9 +214,12 @@ fetchDenominatorCohortSet <- function(cdm,
                                              collapse = "")))
 
   # define cohorts to generate
+  timeAtRiskDf <- data.frame(do.call(rbind, timeAtRisk)) %>%
+    dplyr::mutate(time_at_risk = paste0(.data$X1, " to ", .data$X2)) |>
+    dplyr::rename("time_at_risk_start" = "X1",
+                  "time_at_risk_end" = "X2")
   ageGrDf <- data.frame(do.call(rbind, ageGroup)) %>%
     dplyr::mutate(age_group = paste0(.data$X1, ";", .data$X2))
-
   popSpecs <- buildPopSpecs(
     ageGrDf = ageGrDf,
     sex = sex,
@@ -213,99 +232,104 @@ fetchDenominatorCohortSet <- function(cdm,
       start_date = cohortDateRange[1],
       end_date = cohortDateRange[2]
     )
+  # add time at risk windows
+  popSpecs <- tidyr::expand_grid(popSpecs, timeAtRiskDf)
+
 
   # get target cohort ids if not given
   if(!is.null(targetCohortTable) && is.null(targetCohortId)){
     targetCohortId <- sort(omopgenerics::settings(cdm[[targetCohortTable]]) %>%
-      dplyr::pull("cohort_definition_id"))
+                             dplyr::pull("cohort_definition_id"))
   }
 
   if(is.null(targetCohortId)){
     denominatorSet<- popSpecs %>%
       dplyr::mutate(
-        targetCohortTable = as.character(NA), targetCohortId = as.numeric(NA)
+        targetCohortTable = NA_character_, targetCohortId = NA_real_
       )
   } else {
-  denominatorSet <- list()
-  for(i in seq_along(targetCohortId)){
-    denominatorSet[[i]] <- popSpecs %>%
-      dplyr::mutate(
-        targetCohortTable = targetCohortTable,
-        targetCohortId = targetCohortId[[i]]
-      )
-  }
+    denominatorSet <- list()
+    for(i in seq_along(targetCohortId)){
+      denominatorSet[[i]] <- popSpecs %>%
+        dplyr::mutate(
+          targetCohortTable = targetCohortTable,
+          targetCohortId = targetCohortId[[i]]
+        )
+    }
   }
   denominatorSet <- dplyr::bind_rows(denominatorSet) %>%
     dplyr::mutate(cohort_definition_id = dplyr::row_number())
 
-# get results for a single target or, if no target, full result
-  if(is.null(targetCohortId)){
+  # get results for a single target and time at risk
+  # or, if no target and single time at risk, full result
+  if(is.null(targetCohortId) && nrow(timeAtRiskDf) == 1){
     denominatorSet<-list(denominatorSet)
   } else {
+    denominatorSet <- denominatorSet |>
+      dplyr::mutate(f_levels = paste0(.data$targetCohortId, "_", .data$time_at_risk))
     denominatorSet <- split(denominatorSet,
-                            f = denominatorSet$targetCohortId,
+                            f = denominatorSet$f_levels,
                             drop = FALSE)
   }
-
   cohortRef <- NULL
   cohortSetRef <- NULL
   cohortCountRef <- NULL
   cohortAttritionRef <- NULL
-for(i in 1:length(denominatorSet)){
-  denom <-  fetchSingleTargetDenominatorCohortSet(cdm = cdm,
-                                                     name = name,
-                                                     intermediateTable = paste0(intermediateTable, i),
-                                                     popSpecs = denominatorSet[[i]])
-  cohortSetRef <- cohortSetRef %>%
-    dplyr::union_all(attr(denom, "cohort_set"))
-  cohortCountRef <- cohortCountRef %>%
-    dplyr::union_all(attr(denom, "cohort_count"))
-  cohortAttritionRef <- cohortAttritionRef %>%
-    dplyr::union_all(attr(denom, "cohort_attrition"))
-  if (sum(attr(denom, "cohort_count")$number_records) > 0) {
-    if (!"tbl" %in% class(denom)) {
-      denom <- Reduce(dplyr::union_all, denom)
+  for(i in seq_along(denominatorSet)){
+    denom <-  fetchSingleTargetDenominatorCohortSet(cdm = cdm,
+                                                    name = name,
+                                                    intermediateTable = paste0(intermediateTable, i),
+                                                    popSpecs = denominatorSet[[i]])
+    cohortSetRef <- cohortSetRef %>%
+      dplyr::union_all(attr(denom, "cohort_set"))
+    cohortCountRef <- cohortCountRef %>%
+      dplyr::union_all(attr(denom, "cohort_count"))
+    cohortAttritionRef <- cohortAttritionRef %>%
+      dplyr::union_all(attr(denom, "cohort_attrition"))
+    if (sum(attr(denom, "cohort_count")$number_records) > 0) {
+      if (!inherits(denom, "tbl")) {
+        denom <- Reduce(dplyr::union_all, denom)
+      }
+      cohortRef <- updateCohort(
+        table = cohortRef,
+        x = denom,
+        name = name,
+        cdm = cdm
+      )
     }
-    cohortRef <- updateCohort(
-      table = cohortRef,
-      x = denom,
-      name = name,
-      cdm = cdm
-    )
+    CDMConnector::dropTable(cdm = cdm, name = dplyr::starts_with(paste0(intermediateTable, i)))
   }
-  CDMConnector::dropTable(cdm = cdm, name = dplyr::starts_with(paste0(intermediateTable, i)))
-}
-
   if (is.null(cohortRef)) {
-   cdm <- omopgenerics::insertTable(cdm = cdm,
-                                            name = name,
-                                            table =  dplyr::tibble(
-                                              cohort_definition_id = as.integer(numeric()),
-                                              subject_id = as.integer(numeric()),
-                                              cohort_start_date = as.Date(as.character()),
-                                              cohort_end_date = as.Date(as.character())
-                                            ),
-                                            overwrite = TRUE)
+    cdm <- omopgenerics::insertTable(cdm = cdm,
+                                     name = name,
+                                     table =  dplyr::tibble(
+                                       cohort_definition_id = as.integer(numeric()),
+                                       subject_id = as.integer(numeric()),
+                                       cohort_start_date = as.Date(as.character()),
+                                       cohort_end_date = as.Date(as.character())
+                                     ),
+                                     overwrite = TRUE)
   } else {
     cdm[[name]] <- cohortRef
   }
 
   cdm[[name]] <- cdm[[name]] %>%
-      omopgenerics::newCohortTable(cohortSetRef = cohortSetRef,
-                                   cohortAttritionRef = cohortAttritionRef)
+    omopgenerics::newCohortTable(
+      cohortSetRef = cohortSetRef |>
+             dplyr::select(!dplyr::any_of(c("time_at_risk_start", "time_at_risk_end", "f_levels"))),
+      cohortAttritionRef = cohortAttritionRef
+    )
 
-  class(cdm[[name]]) <- c("denominator_cohort_set", class(cdm[[name]]))
+  # drop the intermediate tables
+  CDMConnector::dropTable(
+    cdm = cdm,
+    name = dplyr::starts_with(paste0(intermediateTable))
+  )
 
- # drop the intermediate tables
- CDMConnector::dropTable(
-   cdm = cdm,
-   name = dplyr::starts_with(paste0(intermediateTable))
- )
-
- dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
- cli::cli_alert_success(glue::glue(
-   "Cohorts created in {floor(dur/60)} min and {dur %% 60 %/% 1} sec"
- ))
+  dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
+  cli::cli_alert_success(glue::glue(
+    "Cohorts created in {floor(dur/60)} min and {dur %% 60 %/% 1} sec"
+  ))
 
   return(cdm)
 }
@@ -314,15 +338,15 @@ for(i in 1:length(denominatorSet)){
 
 # Generates denominator cohorts for a single target id or no target
 fetchSingleTargetDenominatorCohortSet <- function(cdm,
-                                         name,
-                                         intermediateTable,
-                                         popSpecs) {
+                                                  name,
+                                                  intermediateTable,
+                                                  popSpecs) {
 
 
   if(all(is.na(popSpecs$targetCohortId))){
     cli::cli_alert_info("Creating denominator cohorts")
   } else {
-    cli::cli_alert_info("Creating denominator cohorts: target cohort id {unique(popSpecs$targetCohortId)}")
+    cli::cli_alert_info("Creating denominator cohorts: target cohort id {unique(popSpecs$targetCohortId)}, time at risk {unique(popSpecs$time_at_risk)} days")
   }
 
   tablePrefix <- intermediateTable
@@ -333,6 +357,8 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
     cdm = cdm,
     startDate = unique(popSpecs$start_date),
     endDate = unique(popSpecs$end_date),
+    timeAtRiskStart = unique(popSpecs$time_at_risk_start),
+    timeAtRiskEnd = unique(popSpecs$time_at_risk_end),
     minAge = unique(popSpecs$min_age),
     maxAge = unique(popSpecs$max_age),
     daysPriorObservation = unique(popSpecs$days_prior_observation),
@@ -340,7 +366,6 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
     targetCohortId = unique(popSpecs$targetCohortId),
     intermediateTable = paste0(intermediateTable, "_gdc_")
   )
-
   denominatorPopulationNrows <- dpop$denominator_population %>%
     dplyr::count() %>%
     dplyr::pull()
@@ -375,8 +400,8 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
 
     cohortCount <- dplyr::tibble(
       cohort_definition_id = popSpecs$cohort_definition_id,
-      number_records = as.integer(0),
-      number_subjects = as.integer(0)
+      number_records = 0L,
+      number_subjects = 0L
     )
   } else {
     # first, if all cohorts are Male or Female get number that will be excluded
@@ -474,7 +499,6 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
 
       workingDpop <- workingDpop %>%
         dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date)
-
       dpop$attrition[[i]] <- recordAttrition(
         table = workingDpop,
         id = "subject_id",
@@ -542,7 +566,12 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
 
   cohortAttrition <- dplyr::bind_rows(dpop$attrition) %>%
     dplyr::as_tibble() %>%
-    dplyr::relocate("cohort_definition_id")
+    dplyr::relocate("cohort_definition_id") %>%
+    dplyr::mutate(
+      dplyr::across(dplyr::all_of(c(
+        "number_records", "number_subjects", "reason_id", "excluded_records",
+        "excluded_subjects")), ~as.integer(.x))
+    )
   attr(studyPops, "cohort_attrition") <- cohortAttrition
 
   return(studyPops)
@@ -553,10 +582,10 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
 getCohortDateRange <- function(cdm, cohortDateRange){
 
   obsStartEnd <- cdm[["observation_period"]] %>%
-            dplyr::summarise(
-              min_start = as.Date(min(.data$observation_period_start_date,na.rm = TRUE)),
-              max_end = as.Date(max(.data$observation_period_end_date, na.rm = TRUE))) %>%
-            dplyr::collect()
+    dplyr::summarise(
+      min_start = as.Date(min(.data$observation_period_start_date,na.rm = TRUE)),
+      max_end = as.Date(max(.data$observation_period_end_date, na.rm = TRUE))) %>%
+    dplyr::collect()
 
   if (is.na(cohortDateRange[1])) {
     cohortDateRange[1] <- obsStartEnd$min_start
@@ -602,8 +631,8 @@ buildPopSpecs <- function(ageGrDf,
 
   popSpecs <- popSpecs %>%
     tidyr::separate(.data$age_group,
-      c("min_age", "max_age"),
-      remove = FALSE
+                    c("min_age", "max_age"),
+                    remove = FALSE
     )
 
   return(popSpecs)
@@ -637,18 +666,18 @@ unionCohorts <- function(cdm,
     )
 
     if(length(allCohortSet)>0){
-    allCohortSetBatches <- split(
-      allCohortSet,
-      ceiling(seq_along(allCohortSet) / 10) # 10 in a batch
-    )
-    allCohortCountBatches <- split(
-      allCohortCount,
-      ceiling(seq_along(allCohortCount) / 10) # 10 in a batch
-    )
-    allCohortAttritionBatches <- split(
-      allCohortAttrition,
-      ceiling(seq_along(allCohortAttrition) / 10) # 10 in a batch
-    )
+      allCohortSetBatches <- split(
+        allCohortSet,
+        ceiling(seq_along(allCohortSet) / 10) # 10 in a batch
+      )
+      allCohortCountBatches <- split(
+        allCohortCount,
+        ceiling(seq_along(allCohortCount) / 10) # 10 in a batch
+      )
+      allCohortAttritionBatches <- split(
+        allCohortAttrition,
+        ceiling(seq_along(allCohortAttrition) / 10) # 10 in a batch
+      )
     }
 
     cli::cli_progress_bar(
@@ -663,73 +692,73 @@ unionCohorts <- function(cdm,
         studyPopsBatches[[i]]
       )
 
-        studyPopsBatches[[i]] <- studyPopsBatches[[i]] %>%
+      studyPopsBatches[[i]] <- studyPopsBatches[[i]] %>%
+        dplyr::compute(
+          name = paste0(
+            intermediateTable,
+            "_batch_", i
+          ),
+          temporary = FALSE
+        )
+
+      if(length(allCohortSet) > 0){
+        allCohortSetBatches[[i]] <- Reduce(dplyr::union_all,
+                                           allCohortSetBatches[[i]]) %>%
           dplyr::compute(
-            name = paste0(
-              intermediateTable,
-              "_batch_", i
-            ),
+            name = paste0(intermediateTable, "_cohort_set",
+                          "_batch_", i),
             temporary = FALSE
           )
-
-        if(length(allCohortSet) > 0){
-          allCohortSetBatches[[i]] <- Reduce(dplyr::union_all,
-                                             allCohortSetBatches[[i]]) %>%
-            dplyr::compute(
-              name = paste0(intermediateTable, "_cohort_set",
-                            "_batch_", i),
-              temporary = FALSE
-            )
-          allCohortCountBatches[[i]] <- Reduce(dplyr::union_all,
+        allCohortCountBatches[[i]] <- Reduce(dplyr::union_all,
                                              allCohortCountBatches[[i]]) %>%
-            dplyr::compute(
-              name = paste0(intermediateTable, "_cohort_count",
-                            "_batch_", i),
-              temporary = FALSE
-            )
-          allCohortAttritionBatches[[i]] <- Reduce(dplyr::union_all,
-                                               allCohortAttritionBatches[[i]]) %>%
-            dplyr::compute(
-              name = paste0(intermediateTable, "_cohort_attrition",
-                            "_batch_", i),
-              temporary = FALSE
-            )
-        }
+          dplyr::compute(
+            name = paste0(intermediateTable, "_cohort_count",
+                          "_batch_", i),
+            temporary = FALSE
+          )
+        allCohortAttritionBatches[[i]] <- Reduce(dplyr::union_all,
+                                                 allCohortAttritionBatches[[i]]) %>%
+          dplyr::compute(
+            name = paste0(intermediateTable, "_cohort_attrition",
+                          "_batch_", i),
+            temporary = FALSE
+          )
+      }
 
 
 
     }
     cli::cli_progress_done()
 
-     studyPops <- Reduce(dplyr::union_all, studyPopsBatches) %>%
+    studyPops <- Reduce(dplyr::union_all, studyPopsBatches) %>%
+      dplyr::compute(
+        name = intermediateTable,
+        temporary = FALSE
+      )
+    if(length(allCohortSet) > 0){
+      allCohortSet <- Reduce(dplyr::union_all, allCohortSetBatches) %>%
         dplyr::compute(
-          name = intermediateTable,
+          name = paste0(intermediateTable, "_cohort_set"),
           temporary = FALSE
         )
-     if(length(allCohortSet) > 0){
-     allCohortSet <- Reduce(dplyr::union_all, allCohortSetBatches) %>%
-       dplyr::compute(
-         name = paste0(intermediateTable, "_cohort_set"),
-         temporary = FALSE
-       )
-     allCohortCount <- Reduce(dplyr::union_all, allCohortCountBatches) %>%
-       dplyr::compute(
-         name = paste0(intermediateTable, "_cohort_count"),
-         temporary = FALSE
-       )
-     allCohortAttrition <- Reduce(dplyr::union_all, allCohortAttritionBatches) %>%
-       dplyr::compute(
-         name = paste0(intermediateTable, "_cohort_attrition"),
-         temporary = FALSE
-       )
-     }
+      allCohortCount <- Reduce(dplyr::union_all, allCohortCountBatches) %>%
+        dplyr::compute(
+          name = paste0(intermediateTable, "_cohort_count"),
+          temporary = FALSE
+        )
+      allCohortAttrition <- Reduce(dplyr::union_all, allCohortAttritionBatches) %>%
+        dplyr::compute(
+          name = paste0(intermediateTable, "_cohort_attrition"),
+          temporary = FALSE
+        )
+    }
 
 
-      # drop intermediate tables
-      CDMConnector::dropTable(
-        cdm = cdm,
-        name = dplyr::starts_with(paste0(intermediateTable, "_b"))
-      )
+    # drop intermediate tables
+    CDMConnector::dropTable(
+      cdm = cdm,
+      name = dplyr::starts_with(paste0(intermediateTable, "_b"))
+    )
   }
 
   if(length(allCohortSet)>0){

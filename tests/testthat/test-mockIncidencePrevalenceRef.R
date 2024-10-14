@@ -35,39 +35,6 @@ test_that("check working example with defaults", {
   CDMConnector::cdm_disconnect(db)
 })
 
-test_that("check working example with outcome table", {
-  skip_on_cran()
-  outcomeTable <- dplyr::tibble(
-    cohort_definition_id = "1",
-    subject_id = "1",
-    cohort_start_date = c(
-      as.Date("2010-02-05")
-    ),
-    cohort_end_date = c(
-      as.Date("2010-02-05")
-    )
-  )
-
-  db <- mockIncidencePrevalenceRef(outcomeTable = outcomeTable,
-                                   sampleSize = 100000)
-
-  expect_true(nrow(db$outcome %>%
-    dplyr::collect()) == 1)
-
-  outcomeDbNames <- c(
-    "cohort_definition_id", "subject_id",
-    "cohort_start_date", "cohort_end_date"
-  )
-  outcomeNamesCheck <- all(outcomeDbNames %in%
-    names(db$outcome %>%
-      utils::head(1) %>%
-      dplyr::collect() %>%
-      dplyr::rename_with(tolower)))
-  expect_true(outcomeNamesCheck)
-
-  CDMConnector::cdm_disconnect(db)
-})
-
 test_that("check working example sample size and outcome prevalence option", {
   skip_on_cran()
   db <- mockIncidencePrevalenceRef(sampleSize = 100,
@@ -155,7 +122,8 @@ test_that("multiple outcomes", {
     maxOutcomes = 1,
     earliestObservationStartDate = as.Date("2007-08-21"),
     latestObservationStartDate = as.Date("2007-08-21"),
-    minDaysToObservationEnd = 100000
+    minDaysToObservationEnd = 1000,
+    maxDaysToObservationEnd = 1000
   )
   db2 <-
     mockIncidencePrevalenceRef(
@@ -164,7 +132,8 @@ test_that("multiple outcomes", {
       maxOutcomes = 2,
       earliestObservationStartDate = as.Date("2007-08-21"),
       latestObservationStartDate = as.Date("2007-08-21"),
-      minDaysToObservationEnd = 100000
+      minDaysToObservationEnd = 10000,
+      maxDaysToObservationEnd = 10000
     )
   db3 <-
     mockIncidencePrevalenceRef(
@@ -173,7 +142,8 @@ test_that("multiple outcomes", {
       maxOutcomes = 3,
       earliestObservationStartDate = as.Date("2007-08-21"),
       latestObservationStartDate = as.Date("2007-08-21"),
-      minDaysToObservationEnd = 100000
+      minDaysToObservationEnd = 100000,
+      maxDaysToObservationEnd = 100000
     )
   db4 <-
     mockIncidencePrevalenceRef(
@@ -182,7 +152,8 @@ test_that("multiple outcomes", {
       maxOutcomes = 10,
       earliestObservationStartDate = as.Date("2007-08-21"),
       latestObservationStartDate = as.Date("2007-08-21"),
-      minDaysToObservationEnd = 100000
+      minDaysToObservationEnd = 100000,
+      maxDaysToObservationEnd = 100000
     )
 
   expect_true(nrow(db$outcome %>%

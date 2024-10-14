@@ -30,30 +30,6 @@ omopgenerics::settings
 #' @export
 omopgenerics::attrition
 
-#' @export
-settings.IncidenceResult <- function(x) {
-  settings <- attr(x, "settings")
-  return(settings)
-}
-
-#' @export
-settings.PrevalenceResult <- function(x) {
-  settings <- attr(x, "settings")
-  return(settings)
-}
-
-#' @export
-attrition.IncidenceResult <- function(x) {
-  attrition <- attr(x, "attrition")
-  return(attrition)
-}
-
-#' @export
-attrition.PrevalenceResult <- function(x) {
-  attrition <- attr(x, "attrition")
-  return(attrition)
-}
-
 #' @importFrom omopgenerics suppress
 #' @export
 omopgenerics::suppress
@@ -65,3 +41,7 @@ omopgenerics::bind
 #' @importFrom omopgenerics exportSummarisedResult
 #' @export
 omopgenerics::exportSummarisedResult
+
+#' @importFrom omopgenerics importSummarisedResult
+#' @export
+omopgenerics::importSummarisedResult

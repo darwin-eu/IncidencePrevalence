@@ -10,98 +10,38 @@ test_that("mock db: check output format", {
     interval = "months"
   )
 
-  # check estimates tibble
-  expect_true(all(c(
-    "analysis_id",
-    "n_persons",
-    "person_days",
-    "person_years",
-    "n_events",
-    "incidence_100000_pys",
-    "incidence_100000_pys_95CI_lower",
-    "incidence_100000_pys_95CI_upper",
-    "incidence_start_date",
-    "incidence_end_date",
-    "cohort_obscured",
-    "result_obscured",
-    "analysis_outcome_washout",
-    "analysis_repeated_events",
-    "analysis_interval",
-    "analysis_complete_database_intervals",
-    "analysis_min_cell_count",
-    "outcome_cohort_id",
-    "outcome_cohort_name",
-    "denominator_cohort_id",
-    "denominator_age_group",
-    "denominator_sex",
-    "denominator_days_prior_observation",
-    "denominator_start_date",
-    "denominator_end_date",
-    "denominator_target_cohort_definition_id",
-    "denominator_target_cohort_name",
-    "cdm_name"
-  ) %in%
-    names(inc)))
-
-  expect_true(all(c(
-    "analysis_id", "number_records", "number_subjects",
-    "reason_id", "reason",
-    "excluded_records", "excluded_subjects",
-    "analysis_outcome_washout",
-    "analysis_repeated_events",
-    "analysis_interval",
-    "analysis_complete_database_intervals",
-    "analysis_min_cell_count",
-    "outcome_cohort_id",
-    "outcome_cohort_name",
-    "denominator_cohort_id",
-    "denominator_age_group",
-    "denominator_sex",
-    "denominator_days_prior_observation",
-    "denominator_start_date",
-    "denominator_end_date",
-    "denominator_target_cohort_definition_id",
-    "denominator_target_cohort_name",
-    "cdm_name"
-  ) %in%
-    names(attrition(inc))))
-
   my_settings <- settings(inc)
-  expect_true(nrow(my_settings) > 0)
+  expect_gt(nrow(my_settings), 0)
 
-
-
-  # inc <- estimateIncidence(
-  #   cdm = cdm,
-  #   denominatorTable = "denominator",
-  #   outcomeTable = "outcome",
-  #   interval = "months",
-  #   summarisedResult = TRUE
-  # )
-  # expect_true("summarised_result" %in% class(inc))
-  # expect_equal(colnames(inc),
-  #              omopgenerics::resultColumns())
+  inc <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months"
+  )
+  expect_true(inherits(inc, "summarised_result"))
+  expect_identical(colnames(inc), omopgenerics::resultColumns())
 
   CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: checks on working example", {
   personTable <- dplyr::tibble(
-    person_id = "1",
-    gender_concept_id = "8507",
-    year_of_birth = 2000,
-    month_of_birth = 01,
-    day_of_birth = 01
+    person_id = 1L,
+    gender_concept_id = 8507L,
+    year_of_birth = 2000L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = "1",
-    person_id = "1",
+    observation_period_id = 1L,
+    person_id = 1L,
     observation_period_start_date = as.Date("2000-01-01"),
     observation_period_end_date = as.Date("2012-06-01")
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = "1",
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(
       as.Date("2008-02-05"),
       as.Date("2010-02-08"),
@@ -128,7 +68,7 @@ test_that("mock db: checks on working example", {
     outcomeTable = "outcome",
     interval = c("years", "overall")
   )
-  expect_true(nrow(inc) >= 1)
+  expect_gte(nrow(inc), 1)
 
   # reconnect
   cdmReconn <- CDMConnector::cdm_from_con(
@@ -142,8 +82,7 @@ test_that("mock db: checks on working example", {
     outcomeTable = "outcome",
     interval = c("years", "overall")
   )
-  expect_equal(inc, inc_recon)
-  expect_equal(attrition(inc), attrition(inc_recon))
+  expect_identical(inc, inc_recon)
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -151,21 +90,21 @@ test_that("mock db: checks on working example", {
 test_that("mock db: check working example 2", {
   skip_on_cran()
   personTable <- dplyr::tibble(
-    person_id = "1",
-    gender_concept_id = "8507",
-    year_of_birth = 2000,
-    month_of_birth = 01,
-    day_of_birth = 01
+    person_id = 1L,
+    gender_concept_id = 8507L,
+    year_of_birth = 2000L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = "1",
-    person_id = "1",
+    observation_period_id = 1L,
+    person_id = 1L,
     observation_period_start_date = as.Date("2010-01-01"),
     observation_period_end_date = as.Date("2012-06-01")
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = "1",
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(
       as.Date("2010-02-05"),
       as.Date("2010-02-08"),
@@ -194,7 +133,10 @@ test_that("mock db: check working example 2", {
                            minCellCount = 0,
                            completeDatabaseIntervals = FALSE
   )
-  expect_true(sum(inc$n_events) == 1)
+  expect_true(sum(as.numeric(inc |>
+    dplyr::filter(
+      estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value"))) == 1)
 
   inc <- estimateIncidence(cdm,
                            denominatorTable = "denominator",
@@ -204,7 +146,10 @@ test_that("mock db: check working example 2", {
                            minCellCount = 0,
                            completeDatabaseIntervals = FALSE
   )
-  expect_true(sum(inc$n_events) == 3)
+  expect_true(sum(as.numeric(inc |>
+                               dplyr::filter(
+                                 estimate_name == "outcome_count") |>
+                               dplyr::pull("estimate_value"))) == 3)
 
   inc <- estimateIncidence(cdm,
                            denominatorTable = "denominator",
@@ -214,7 +159,10 @@ test_that("mock db: check working example 2", {
                            minCellCount = 0,
                            completeDatabaseIntervals = FALSE
   )
-  expect_true(sum(inc$n_events) == 2)
+  expect_true(sum(as.numeric(inc |>
+                               dplyr::filter(
+                                 estimate_name == "outcome_count") |>
+                               dplyr::pull("estimate_value"))) == 2)
 
   # even if repeatedEvents = TRUE,
   # if outcomeWashout=NULL (all of history)
@@ -227,7 +175,10 @@ test_that("mock db: check working example 2", {
                            minCellCount = 0,
                            completeDatabaseIntervals = FALSE
   )
-  expect_true(sum(inc$n_events) == 1)
+  expect_true(sum(as.numeric(inc |>
+                               dplyr::filter(
+                                 estimate_name == "outcome_count") |>
+                               dplyr::pull("estimate_value"))) == 1)
 
   inc <- estimateIncidence(cdm,
                            denominatorTable = "denominator",
@@ -238,7 +189,10 @@ test_that("mock db: check working example 2", {
                            interval = "weeks",
                            completeDatabaseIntervals = FALSE
   )
-  expect_true(sum(inc$n_events) == 1)
+  expect_true(sum(as.numeric(inc |>
+                               dplyr::filter(
+                                 estimate_name == "outcome_count") |>
+                               dplyr::pull("estimate_value"))) == 1)
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -246,21 +200,21 @@ test_that("mock db: check working example 2", {
 test_that("mock db: check study periods", {
   skip_on_cran()
   personTable <- dplyr::tibble(
-    person_id = "1",
-    gender_concept_id = "8507",
-    year_of_birth = 2000,
-    month_of_birth = 01,
-    day_of_birth = 01
+    person_id = 1L,
+    gender_concept_id = 8507L,
+    year_of_birth = 2000L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = "1",
-    person_id = "1",
+    observation_period_id = 1L,
+    person_id = 1L,
     observation_period_start_date = as.Date("2010-01-15"),
     observation_period_end_date = as.Date("2010-12-15")
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = "1",
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(
       as.Date("2010-02-05"),
       as.Date("2010-02-08"),
@@ -294,8 +248,8 @@ test_that("mock db: check study periods", {
   # we expect 12 months of which the last in december
   # the last month should also be included
   # as the person goes up to the last day of the month
-  expect_true(nrow(inc) == 12)
-
+  expect_true(nrow(inc |>
+    dplyr::filter(estimate_name == "outcome_count")) == 12)
 
   inc <- estimateIncidence(cdm,
                            denominatorTable = "denominator",
@@ -309,7 +263,8 @@ test_that("mock db: check study periods", {
 
   # now with completeDatabaseIntervals is TRUE
   # we expect 10 months of which the last in november
-  expect_true(nrow(inc) == 10)
+  expect_true(nrow(inc |>
+                     dplyr::filter(estimate_name == "outcome_count")) == 10)
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -317,15 +272,15 @@ test_that("mock db: check study periods", {
 test_that("mock db: check overall", {
   skip_on_cran()
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = "8507",
-    year_of_birth = 2000,
-    month_of_birth = 01,
-    day_of_birth = 01
+    person_id = c(1L, 2L),
+    gender_concept_id = 8507L,
+    year_of_birth = 2000L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
     observation_period_start_date = c(
       as.Date("2005-01-15"),
       as.Date("2005-01-15")
@@ -336,8 +291,8 @@ test_that("mock db: check overall", {
     )
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = c("1", "2", "2"),
+    cohort_definition_id = 1L,
+    subject_id = c(1L, 2L, 2L),
     cohort_start_date = c(
       as.Date("2006-02-05"),
       as.Date("2006-02-05"),
@@ -375,12 +330,20 @@ test_that("mock db: check overall", {
   # one person had the event before the study period
   # (but washout was 0 so was included)
   # one person had the event during the study period
-  expect_true(nrow(inc) == 1)
-  expect_true(inc$n_persons == 2)
-  expect_true(inc$incidence_start_date ==
-                as.Date("2007-01-01"))
-  expect_true(inc$incidence_end_date ==
-                as.Date("2010-02-05")) # date of first event
+  expect_true(nrow(inc |>
+                     dplyr::filter(estimate_name == "outcome_count")) == 1)
+  expect_true(inc |>
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value") == "2")
+
+  expect_true(all(inc |>
+    visOmopResults::filterSettings(result_type == "incidence") |>
+    visOmopResults::splitAdditional() |>
+    dplyr::pull("incidence_start_date") == as.Date("2007-01-01")))
+  expect_true(all(inc |>
+                    visOmopResults::filterSettings(result_type == "incidence") |>
+                    visOmopResults::splitAdditional() |>
+                    dplyr::pull("incidence_end_date") == as.Date("2010-02-05"))) # date of first event
 
 
   inc <- estimateIncidence(cdm,
@@ -392,11 +355,17 @@ test_that("mock db: check overall", {
                            minCellCount = 0,
                            completeDatabaseIntervals = FALSE
   )
-  expect_true(nrow(inc) == 1)
-  expect_true(inc$incidence_start_date ==
-                as.Date("2007-01-01"))
-  expect_true(inc$incidence_end_date ==
-                as.Date("2011-06-15")) # date of end of obs
+  expect_true(nrow(inc |>
+                     visOmopResults::filterSettings(result_type == "incidence") |>
+                     dplyr::filter(estimate_name == "outcome_count")) == 1)
+  expect_true(all(inc |>
+                    visOmopResults::filterSettings(result_type == "incidence") |>
+                    visOmopResults::splitAdditional() |>
+                    dplyr::pull("incidence_start_date") == as.Date("2007-01-01")))
+  expect_true(all(inc |>
+                    visOmopResults::filterSettings(result_type == "incidence") |>
+                    visOmopResults::splitAdditional() |>
+                    dplyr::pull("incidence_end_date") == as.Date("2011-06-15"))) # date of end of obs
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -404,15 +373,15 @@ test_that("mock db: check overall", {
 test_that("mock db: check person days", {
   skip_on_cran()
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = c("8507", "8532"),
-    year_of_birth = c(2000, 1999),
-    month_of_birth = c(07, 07),
-    day_of_birth = c(01, 01)
+    person_id = c(1L, 2L),
+    gender_concept_id = c(8507L, 8532L),
+    year_of_birth = c(2000L, 1999L),
+    month_of_birth = c(07L, 07L),
+    day_of_birth = c(01L, 01L)
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
     observation_period_start_date = c(
       as.Date("2007-01-01"),
       as.Date("2007-01-01")
@@ -423,8 +392,8 @@ test_that("mock db: check person days", {
     )
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = "1",
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(as.Date("2021-06-27")),
     cohort_end_date = c(as.Date("2021-06-27"))
   )
@@ -452,27 +421,36 @@ test_that("mock db: check person days", {
   )
 
   # in 2019 we expect person 2 to contribute from 1st july to end of December
-  expect_true(inc$person_days[1] ==
-                as.numeric(difftime(
-                  as.Date("2019-12-31"),
-                  as.Date("2019-07-01")
-                )) + 1)
+  expect_true(inc |>
+  dplyr::filter(estimate_name == "person_days") |>
+  head(1) |>
+  dplyr::pull("estimate_value") ==
+  as.numeric(difftime(
+    as.Date("2019-12-31"),
+    as.Date("2019-07-01")
+  )) + 1)
 
   # in 2020 we expect person 2 to contribute all year
   # and person 1 from 1st January to end of December
-  expect_true(inc$person_days[2] ==
-                (as.numeric(difftime(
-                  as.Date("2020-12-31"),
-                  as.Date("2020-07-01")
-                )) + 1) +
-                (as.numeric(difftime(
-                  as.Date("2020-12-31"),
-                  as.Date("2020-01-01")
-                ) + 1)))
+  expect_true(inc |>
+                dplyr::filter(estimate_name == "person_days") |>
+                dplyr::filter(dplyr::row_number() == 2) |>
+                dplyr::pull("estimate_value") ==
+  (as.numeric(difftime(
+    as.Date("2020-12-31"),
+    as.Date("2020-07-01")
+  )) + 1) +
+    (as.numeric(difftime(
+      as.Date("2020-12-31"),
+      as.Date("2020-01-01")
+    ) + 1)))
 
   # in 2021 we expect person 2 to contribute all year
   # and person 1 from 1st January up to 27th june (date of their outcome)
-  expect_true(inc$person_days[3] ==
+  expect_true(inc |>
+                dplyr::filter(estimate_name == "person_days") |>
+                dplyr::filter(dplyr::row_number() == 3) |>
+                dplyr::pull("estimate_value") ==
                 (as.numeric(difftime(
                   as.Date("2021-12-31"),
                   as.Date("2021-01-01")
@@ -482,9 +460,13 @@ test_that("mock db: check person days", {
                   as.Date("2021-01-01")
                 ) + 1)))
 
+
   # in 2022 we expect person 2 to contribute all year
   # (person 1 is out- they have had an event)
-  expect_true(inc$person_days[4] ==
+  expect_true(inc |>
+                dplyr::filter(estimate_name == "person_days") |>
+                dplyr::filter(dplyr::row_number() == 4) |>
+                dplyr::pull("estimate_value") ==
                 (as.numeric(difftime(
                   as.Date("2021-10-05"),
                   as.Date("2021-01-01")
@@ -498,21 +480,21 @@ test_that("mock db: check periods follow calendar dates", {
   # check that even if startDate as during a period
   # periods still follow calendar dates
   personTable <- dplyr::tibble(
-    person_id = "1",
-    gender_concept_id = "8507",
-    year_of_birth = 2000,
-    month_of_birth = 01,
-    day_of_birth = 01
+    person_id = 1L,
+    gender_concept_id = 8507L,
+    year_of_birth = 2000L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = "1",
-    person_id = "1",
+    observation_period_id = 1L,
+    person_id = 1L,
     observation_period_start_date = as.Date("2010-01-01"),
     observation_period_end_date = as.Date("2012-12-31")
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = "1",
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(
       as.Date("2010-03-01"),
       as.Date("2011-01-31"),
@@ -548,9 +530,15 @@ test_that("mock db: check periods follow calendar dates", {
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(inc$n_events[1] == 1)
-  expect_true(inc$n_events[2] == 3)
 
+  expect_true(inc |>
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::filter(dplyr::row_number() == 1) |>
+    dplyr::pull("estimate_value") == "1")
+  expect_true(inc |>
+                dplyr::filter(estimate_name == "outcome_count") |>
+                dplyr::filter(dplyr::row_number() == 2) |>
+                dplyr::pull("estimate_value") == "3")
 
   # startDate during a month (with month as interval)
   cdm <- generateDenominatorCohortSet(
@@ -568,9 +556,18 @@ test_that("mock db: check periods follow calendar dates", {
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(inc$n_events[1] == 1)
-  expect_true(inc$n_events[2] == 1)
-  expect_true(inc$n_events[3] == 1)
+  expect_true(inc |>
+                dplyr::filter(estimate_name == "outcome_count") |>
+                dplyr::filter(dplyr::row_number() == 1) |>
+                dplyr::pull("estimate_value") == "1")
+  expect_true(inc |>
+                dplyr::filter(estimate_name == "outcome_count") |>
+                dplyr::filter(dplyr::row_number() == 2) |>
+                dplyr::pull("estimate_value") == "1")
+  expect_true(inc |>
+                dplyr::filter(estimate_name == "outcome_count") |>
+                dplyr::filter(dplyr::row_number() == 3) |>
+                dplyr::pull("estimate_value") == "1")
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -578,21 +575,21 @@ test_that("mock db: check periods follow calendar dates", {
 test_that("mock db: check washout windows", {
   skip_on_cran()
   personTable <- dplyr::tibble(
-    person_id = "1",
-    gender_concept_id = "8507",
-    year_of_birth = 2000,
-    month_of_birth = 01,
-    day_of_birth = 01
+    person_id = 1L,
+    gender_concept_id = 8507L,
+    year_of_birth = 2000L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = "1",
-    person_id = "1",
+    observation_period_id = 1L,
+    person_id = 1L,
     observation_period_start_date = as.Date("2010-01-01"),
     observation_period_end_date = as.Date("2012-12-31")
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = "1",
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(
       as.Date("2010-06-01"),
       # more than six months since the last event
@@ -627,18 +624,22 @@ test_that("mock db: check washout windows", {
                              minCellCount = 0
   )
   # expect all events if we have zero days washout
-  expect_true(sum(incW0$n_events) == 4)
+  expect_true(sum(as.numeric(incW0 |>
+                dplyr::filter(estimate_name == "outcome_count") |>
+                dplyr::pull("estimate_value"))) == 4)
 
   incW1 <- estimateIncidence(cdm,
                              denominatorTable = "denominator",
                              outcomeTable = "outcome",
                              repeatedEvents = TRUE,
-                             outcomeWashout = 1,
+                             outcomeWashout = 1L,
                              completeDatabaseIntervals = FALSE,
                              minCellCount = 0
   )
   # expect three events if we have one days washout
-  expect_true(sum(incW1$n_events) == 3)
+  expect_true(sum(as.numeric(incW1 |>
+                               dplyr::filter(estimate_name == "outcome_count") |>
+                               dplyr::pull("estimate_value"))) == 3)
 
   incW2 <- estimateIncidence(cdm,
                              denominatorTable = "denominator",
@@ -649,7 +650,9 @@ test_that("mock db: check washout windows", {
                              minCellCount = 0
   )
   # expect two events if we have two days washout
-  expect_true(sum(incW2$n_events) == 2)
+  expect_true(sum(as.numeric(incW2 |>
+                               dplyr::filter(estimate_name == "outcome_count") |>
+                               dplyr::pull("estimate_value"))) == 2)
 
   incW365 <- estimateIncidence(cdm,
                                denominatorTable = "denominator",
@@ -660,9 +663,11 @@ test_that("mock db: check washout windows", {
                                minCellCount = 0
   )
   # expect one event if we have 365 days washout
-  expect_true(sum(incW365$n_events) == 1)
+  expect_true(sum(as.numeric(incW365 |>
+                               dplyr::filter(estimate_name == "outcome_count") |>
+                               dplyr::pull("estimate_value"))) == 1)
 
-  incNull <- estimateIncidence(cdm,
+  incInf <- estimateIncidence(cdm,
                                denominatorTable = "denominator",
                                outcomeTable = "outcome",
                                repeatedEvents = TRUE,
@@ -671,33 +676,38 @@ test_that("mock db: check washout windows", {
                                minCellCount = 0
   )
   # expect one event if we have NULL (all history washout)
-  expect_true(sum(incNull$n_events) == 1)
+  expect_true(sum(as.numeric(incInf |>
+                               dplyr::filter(estimate_name == "outcome_count") |>
+                               dplyr::pull("estimate_value"))) == 1)
 
   # but, we will have move days when using the 365 day washout
   # as the person came back to contribute more time at risk
-  expect_true(sum(incNull$person_days) <
-                sum(incW365$person_days))
+  expect_lt(sum(as.numeric(incInf |>
+                   dplyr::filter(estimate_name == "person_days") |>
+                   dplyr::pull("estimate_value"))), sum(as.numeric(incW365 |>
+                   dplyr::filter(estimate_name == "person_days") |>
+                   dplyr::pull("estimate_value"))))
 
   CDMConnector::cdm_disconnect(cdm)
 
 
   # never satisfy criteria in study period
   personTable <- dplyr::tibble(
-    person_id = "1",
-    gender_concept_id = "8507",
-    year_of_birth = 2000,
-    month_of_birth = 01,
-    day_of_birth = 01
+    person_id = 1L,
+    gender_concept_id = 8507L,
+    year_of_birth = 2000L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = "1",
-    person_id = "1",
+    observation_period_id = 1L,
+    person_id = 1L,
     observation_period_start_date = as.Date("2009-01-01"),
     observation_period_end_date = as.Date("2012-12-31")
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = "1",
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(
       as.Date("2009-12-31")
     ),
@@ -724,7 +734,8 @@ test_that("mock db: check washout windows", {
                                completeDatabaseIntervals = FALSE,
                                minCellCount = 0
   )
-  expect_true(nrow(incW365) == 0)
+  expect_true(nrow(incW365 |>
+                   visOmopResults::filterSettings(result_type == "incidence")) == 0)
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -732,15 +743,15 @@ test_that("mock db: check washout windows", {
 test_that("mock db: check events overlapping with start of a period", {
   skip_on_cran()
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = c("8507", "8532"),
-    year_of_birth = c(2000, 1999),
-    month_of_birth = c(07, 07),
-    day_of_birth = c(01, 01)
+    person_id = c(1L, 2L),
+    gender_concept_id = c(8507L, 8532L),
+    year_of_birth = c(2000L, 1999L),
+    month_of_birth = c(07L, 07L),
+    day_of_birth = c(01L, 01L)
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
     observation_period_start_date = c(
       as.Date("2000-01-21"),
       as.Date("2007-01-01")
@@ -751,8 +762,8 @@ test_that("mock db: check events overlapping with start of a period", {
     )
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = "1",
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(as.Date("2020-06-27")),
     cohort_end_date = c(as.Date("2020-07-19"))
   )
@@ -779,20 +790,22 @@ test_that("mock db: check events overlapping with start of a period", {
     minCellCount = 0
   )
 
-  expect_true(all(inc$n_persons == 1))
+  expect_true(all(inc |>
+      dplyr::filter(estimate_name == "denominator_count") |>
+      dplyr::pull("estimate_value") == 1))
   CDMConnector::cdm_disconnect(cdm)
 
   # another example
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = c("8507", "8532"),
-    year_of_birth = c(2000, 1999),
-    month_of_birth = c(07, 07),
-    day_of_birth = c(01, 01)
+    person_id = c(1L, 2L),
+    gender_concept_id = c(8507L, 8532L),
+    year_of_birth = c(2000L, 1999L),
+    month_of_birth = c(07L, 07L),
+    day_of_birth = c(01L, 01L)
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
     observation_period_start_date = c(
       as.Date("2000-01-21"),
       as.Date("2007-01-01")
@@ -803,8 +816,8 @@ test_that("mock db: check events overlapping with start of a period", {
     )
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = c(1, 1),
-    subject_id = c("1", "1"),
+    cohort_definition_id = c(1L, 1L),
+    subject_id = c(1L, 1L),
     cohort_start_date = c(as.Date("2020-06-27"), as.Date("2020-07-30")),
     cohort_end_date = c(as.Date("2020-07-19"), as.Date("2020-08-20"))
   )
@@ -829,7 +842,9 @@ test_that("mock db: check events overlapping with start of a period", {
     interval = c("Years"),
     minCellCount = 0
   )
-  expect_true(all(inc2$n_persons == 1))
+  expect_true(all(inc2 |>
+                    dplyr::filter(estimate_name == "denominator_count") |>
+                    dplyr::pull("estimate_value") == 1))
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -837,15 +852,15 @@ test_that("mock db: check events overlapping with start of a period", {
 test_that("mock db: compare results from months and years", {
   skip_on_cran()
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = rep("8507", 2),
-    year_of_birth = rep(2000, 2),
-    month_of_birth = rep(01, 2),
-    day_of_birth = rep(01, 2)
+    person_id = c(1L, 2L),
+    gender_concept_id = rep(8507L, 2),
+    year_of_birth = rep(2000L, 2),
+    month_of_birth = rep(01L, 2),
+    day_of_birth = rep(01L, 2)
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
     observation_period_start_date = c(
       as.Date("2010-01-01"),
       as.Date("2010-01-01")
@@ -856,8 +871,8 @@ test_that("mock db: compare results from months and years", {
     )
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = "1",
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(
       as.Date("2011-07-01")
     ),
@@ -890,22 +905,34 @@ test_that("mock db: compare results from months and years", {
   )
 
   # consistent results for months and years
-  expect_true(sum(incMonths$n_events) ==
-                sum(incYears$n_events))
-  expect_equal(
-    sum(incMonths$person_days),
-    sum(incYears$person_days)
-  )
-  expect_equal(
-    sum(incMonths$person_years),
-    sum(incYears$person_years)
-  )
+  expect_true(sum(as.numeric(incMonths |>
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value")))  ==
+  sum(as.numeric(incYears |>
+                   dplyr::filter(estimate_name == "outcome_count") |>
+                   dplyr::pull("estimate_value"))))
+
+  expect_true(sum(as.numeric(incMonths |>
+                               dplyr::filter(estimate_name == "person_days") |>
+                               dplyr::pull("estimate_value")))  ==
+                sum(as.numeric(incYears |>
+                                 dplyr::filter(estimate_name == "person_days") |>
+                                 dplyr::pull("estimate_value"))))
+
+  expect_equal(sum(as.numeric(incMonths |>
+                               dplyr::filter(estimate_name == "person_years") |>
+                               dplyr::pull("estimate_value"))),
+                   sum(as.numeric(incYears |>
+                                 dplyr::filter(estimate_name == "person_years") |>
+                                 dplyr::pull("estimate_value"))))
+
   CDMConnector::cdm_disconnect(cdm)
 
 
   cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "denominator", cohortDateRange = c(as.Date("2010-01-01"), as.Date("2011-12-31"))
+    cdm = cdm, name = "denominator",
+    cohortDateRange = c(as.Date("2010-01-01"), as.Date("2011-12-31"))
   )
 
   incWeeks <- estimateIncidence(
@@ -942,61 +969,59 @@ test_that("mock db: compare results from months and years", {
   )
 
   # consistent results for months and years
-  expect_true(sum(incWeeks$n_events) ==
-                sum(incYears$n_events))
-  expect_true(sum(incQuarters$n_events) ==
-                sum(incYears$n_events))
-  expect_true(sum(incMonths$n_events) ==
-                sum(incYears$n_events))
+  expect_identical(sum(as.numeric(incWeeks |>
+                                dplyr::filter(estimate_name == "outcome_count") |>
+                                dplyr::pull("estimate_value"))), sum(as.numeric(incYears |>
+                                dplyr::filter(estimate_name == "outcome_count") |>
+                                dplyr::pull("estimate_value"))))
+  expect_identical(sum(as.numeric(incQuarters |>
+                                dplyr::filter(estimate_name == "outcome_count") |>
+                                dplyr::pull("estimate_value"))), sum(as.numeric(incYears |>
+                                dplyr::filter(estimate_name == "outcome_count") |>
+                                dplyr::pull("estimate_value"))))
+  expect_identical(sum(as.numeric(incMonths |>
+                                dplyr::filter(estimate_name == "outcome_count") |>
+                                dplyr::pull("estimate_value"))), sum(as.numeric(incYears |>
+                                dplyr::filter(estimate_name == "outcome_count") |>
+                                dplyr::pull("estimate_value"))))
 
-  expect_equal(
-    sum(incWeeks$person_days),
-    sum(incYears$person_days)
-  )
-  expect_equal(
-    sum(incQuarters$person_days),
-    sum(incYears$person_days)
-  )
-  expect_equal(
-    sum(incMonths$person_days),
-    sum(incYears$person_days)
-  )
+  expect_identical(sum(as.numeric(incWeeks |>
+                                dplyr::filter(estimate_name == "person_days") |>
+                                dplyr::pull("estimate_value"))), sum(as.numeric(incYears |>
+                                dplyr::filter(estimate_name == "person_days") |>
+                                dplyr::pull("estimate_value"))))
+  expect_identical(sum(as.numeric(incQuarters |>
+                                dplyr::filter(estimate_name == "person_days") |>
+                                dplyr::pull("estimate_value"))), sum(as.numeric(incYears |>
+                                dplyr::filter(estimate_name == "person_days") |>
+                                dplyr::pull("estimate_value"))))
+  expect_identical(sum(as.numeric(incMonths |>
+                                dplyr::filter(estimate_name == "person_days") |>
+                                dplyr::pull("estimate_value"))), sum(as.numeric(incYears |>
+                                dplyr::filter(estimate_name == "person_days") |>
+                                dplyr::pull("estimate_value"))))
 
-  expect_equal(
-    sum(incWeeks$person_years),
-    sum(incYears$person_years)
-  )
-  expect_equal(
-    sum(incQuarters$person_years),
-    sum(incYears$person_years)
-  )
-  expect_equal(
-    sum(incMonths$person_years),
-    sum(incYears$person_years)
-  )
-
-
-  CDMConnector::cdm_disconnect(cdm)
+    CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: check entry and event on same day", {
   skip_on_cran()
   personTable <- dplyr::tibble(
-    person_id = "1",
-    gender_concept_id = "8507",
-    year_of_birth = 2000,
-    month_of_birth = 01,
-    day_of_birth = 01
+    person_id = 1L,
+    gender_concept_id = 8507L,
+    year_of_birth = 2000L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = "1",
-    person_id = "1",
+    observation_period_id = 1L,
+    person_id = 1L,
     observation_period_start_date = as.Date("2010-01-28"),
     observation_period_end_date = as.Date("2012-12-31")
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = "1",
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(
       as.Date("2010-01-28")
     ),
@@ -1023,7 +1048,10 @@ test_that("mock db: check entry and event on same day", {
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(sum(incWithoutRep$n_events) == 1)
+
+  expect_true(sum(as.numeric(incWithoutRep |>
+                   dplyr::filter(estimate_name == "outcome_count") |>
+                   dplyr::pull("estimate_value"))) == "1")
 
   incWithRep <- estimateIncidence(
     cdm = cdm,
@@ -1035,7 +1063,9 @@ test_that("mock db: check entry and event on same day", {
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(sum(incWithRep$n_events) == 1)
+  expect_true(sum(as.numeric(incWithRep |>
+                               dplyr::filter(estimate_name == "outcome_count") |>
+                               dplyr::pull("estimate_value"))) == "1")
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -1043,15 +1073,15 @@ test_that("mock db: check entry and event on same day", {
 test_that("mock db: cohort start overlaps with the outcome", {
   skip_on_cran()
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = c("8507", "8532"),
-    year_of_birth = c(1995, 1995),
-    month_of_birth = c(07, 07),
-    day_of_birth = c(01, 01)
+    person_id = c(1L, 2L),
+    gender_concept_id = c(8507L, 8532L),
+    year_of_birth = c(1995L, 1995L),
+    month_of_birth = c(07L, 07L),
+    day_of_birth = c(01L, 01L)
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
     observation_period_start_date = c(
       as.Date("2019-05-09"),
       as.Date("2019-01-01")
@@ -1062,8 +1092,8 @@ test_that("mock db: cohort start overlaps with the outcome", {
     )
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = c("1"),
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(as.Date("2019-05-09")),
     cohort_end_date = c(as.Date("2022-05-19"))
   )
@@ -1089,8 +1119,9 @@ test_that("mock db: cohort start overlaps with the outcome", {
     interval = c("Years"),
     minCellCount = 0
   )
-
-  expect_true(all(inc$n_persons == c(1)))
+  expect_true(all(inc |>
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value") == "1"))
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -1099,15 +1130,15 @@ test_that("mock db: check outcome in previous obeservation period", {
   skip_on_cran()
   # 1) with outcome starting and ending before observation period start
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = c("8507", "8532"),
-    year_of_birth = c(1995, 1995),
-    month_of_birth = c(07, 07),
-    day_of_birth = c(01, 01)
+    person_id = c(1L, 2L),
+    gender_concept_id = c(8507L, 8532L),
+    year_of_birth = c(1995L, 1995L),
+    month_of_birth = c(07L, 07L),
+    day_of_birth = c(01L, 01L)
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2" ,"3"),
-    person_id = c("1", "1", "2"),
+    observation_period_id = c(1L, 2L ,3L),
+    person_id = c(1L, 1L, 2L),
     observation_period_start_date = c(
       as.Date("2000-01-01"),
       as.Date("2010-01-01"),
@@ -1120,8 +1151,8 @@ test_that("mock db: check outcome in previous obeservation period", {
     )
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = c(1, 1),
-    subject_id = c("1", "1"),
+    cohort_definition_id = c(1L, 1L),
+    subject_id = c(1L, 1L),
     cohort_start_date = as.Date(c("2000-01-01", "2018-01-01")),
     cohort_end_date = as.Date(c("2005-12-31", "2019-01-01"))
   )
@@ -1147,7 +1178,9 @@ test_that("mock db: check outcome in previous obeservation period", {
     interval = c("Years"),
     minCellCount = 0
   )
-  expect_true(all(incRep$n_persons == 2))
+  expect_true(all(incRep |>
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value") == "2"))
 
   # with inf wash out- should only have 1 person
   incNoRep <- estimateIncidence(
@@ -1159,7 +1192,9 @@ test_that("mock db: check outcome in previous obeservation period", {
     interval = c("Years"),
     minCellCount = 0
   )
-  expect_true(all(incNoRep$n_persons == 1))
+  expect_true(all(incNoRep |>
+                    dplyr::filter(estimate_name == "denominator_count") |>
+                    dplyr::pull("estimate_value") == "1"))
 
   # with 5 year wash out- should have 2 people at the start of the study period
   incNoRep2 <- estimateIncidence(
@@ -1171,8 +1206,10 @@ test_that("mock db: check outcome in previous obeservation period", {
     interval = c("Years"),
     minCellCount = 0
   )
-  expect_true(max(incNoRep2$n_persons) == 2)
 
+  expect_true(max(as.numeric(incNoRep2 |>
+                    dplyr::filter(estimate_name == "denominator_count") |>
+                    dplyr::pull("estimate_value"))) == 2)
 
   CDMConnector::cdm_disconnect(cdm)
 
@@ -1182,15 +1219,15 @@ test_that("mock db: check minimum counts", {
   skip_on_cran()
   # 20 people
   personTable <- dplyr::tibble(
-    person_id = as.character(c(1:20)),
-    gender_concept_id = rep("8507", 20),
-    year_of_birth = rep(2000, 20),
-    month_of_birth = rep(01, 20),
-    day_of_birth = rep(01, 20)
+    person_id = c(1:20),
+    gender_concept_id = rep(8507L, 20),
+    year_of_birth = rep(2000L, 20),
+    month_of_birth = rep(01L, 20),
+    day_of_birth = rep(01L, 20)
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = as.character(c(1:20)),
-    person_id = as.character(c(1:20)),
+    observation_period_id = c(1:20),
+    person_id = c(1:20),
     observation_period_start_date = rep(as.Date("2000-01-01"), 20),
     observation_period_end_date = rep(as.Date("2012-06-01"), 20)
   )
@@ -1198,8 +1235,8 @@ test_that("mock db: check minimum counts", {
     dplyr::bind_rows(
       # 17 in first period
       dplyr::tibble(
-        cohort_definition_id = rep("1", 17),
-        subject_id = as.character(c(1:17)),
+        cohort_definition_id = as.integer(rep(1, 17)),
+        subject_id = as.integer(c(1:17)),
         cohort_start_date = rep(
           as.Date("2000-01-02"), 17
         ),
@@ -1209,8 +1246,8 @@ test_that("mock db: check minimum counts", {
       ),
       # three in second
       dplyr::tibble(
-        cohort_definition_id = rep("1", 3),
-        subject_id = as.character(c(18:20)),
+        cohort_definition_id = as.integer(rep(1, 3)),
+        subject_id = as.integer(c(18:20)),
         cohort_start_date = rep(
           as.Date("2000-02-02"), 3
         ),
@@ -1236,20 +1273,56 @@ test_that("mock db: check minimum counts", {
     minCellCount = 0,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(inc$n_persons[1] == 20)
-  expect_true(inc$n_persons[2] == 3)
-  expect_true(!is.na(inc$person_days[1]))
-  expect_true(!is.na(inc$person_days[2]))
-  expect_true(!is.na(inc$person_years[1]))
-  expect_true(!is.na(inc$person_years[2]))
-  expect_true(inc$n_events[1] == 17)
-  expect_true(inc$n_events[2] == 3)
-  expect_true(!is.na(inc$incidence_100000_pys[1]))
-  expect_true(!is.na(inc$incidence_100000_pys[2]))
-  expect_true(!is.na(inc$incidence_100000_pys_95CI_lower[1]))
-  expect_true(!is.na(inc$incidence_100000_pys_95CI_lower[2]))
-  expect_true(!is.na(inc$incidence_100000_pys_95CI_upper[1]))
-  expect_true(!is.na(inc$incidence_100000_pys_95CI_upper[2]))
+
+
+  expect_identical(inc |>
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value"), c("20", "3"))
+  expect_identical(inc |>
+                 dplyr::filter(estimate_name == "outcome_count") |>
+                 dplyr::pull("estimate_value"), c("17", "3"))
+  expect_false(is.na(inc |>
+    dplyr::filter(estimate_name == "person_days") |>
+    dplyr::filter(dplyr::row_number() == 1) |>
+    dplyr::pull("estimate_value")))
+  expect_false(is.na(inc |>
+                       dplyr::filter(estimate_name == "person_days") |>
+                       dplyr::filter(dplyr::row_number() == 2) |>
+                       dplyr::pull("estimate_value")))
+  expect_false(is.na(inc |>
+                       dplyr::filter(estimate_name == "person_years") |>
+                       dplyr::filter(dplyr::row_number() == 1) |>
+                       dplyr::pull("estimate_value")))
+  expect_false(is.na(inc |>
+                       dplyr::filter(estimate_name == "person_years") |>
+                       dplyr::filter(dplyr::row_number() == 2) |>
+                       dplyr::pull("estimate_value")))
+
+  expect_false(is.na(inc |>
+                       dplyr::filter(estimate_name == "incidence_100000_pys") |>
+                       dplyr::filter(dplyr::row_number() == 1) |>
+                       dplyr::pull("estimate_value")))
+  expect_false(is.na(inc |>
+                       dplyr::filter(estimate_name == "incidence_100000_pys") |>
+                       dplyr::filter(dplyr::row_number() == 2) |>
+                       dplyr::pull("estimate_value")))
+  expect_false(is.na(inc |>
+                       dplyr::filter(estimate_name == "incidence_100000_pys_95CI_lower") |>
+                       dplyr::filter(dplyr::row_number() == 1) |>
+                       dplyr::pull("estimate_value")))
+  expect_false(is.na(inc |>
+                       dplyr::filter(estimate_name == "incidence_100000_pys_95CI_lower") |>
+                       dplyr::filter(dplyr::row_number() == 2) |>
+                       dplyr::pull("estimate_value")))
+  expect_false(is.na(inc |>
+                       dplyr::filter(estimate_name == "incidence_100000_pys_95CI_upper") |>
+                       dplyr::filter(dplyr::row_number() == 1) |>
+                       dplyr::pull("estimate_value")))
+  expect_false(is.na(inc |>
+                       dplyr::filter(estimate_name == "incidence_100000_pys_95CI_upper") |>
+                       dplyr::filter(dplyr::row_number() == 2) |>
+                       dplyr::pull("estimate_value")))
+
 
   inc <- estimateIncidence(
     cdm = cdm,
@@ -1260,37 +1333,76 @@ test_that("mock db: check minimum counts", {
     minCellCount = 5,
     completeDatabaseIntervals = FALSE
   )
-  expect_true(inc$n_persons[1] == 20)
-  expect_true(is.na(inc$n_persons[2]))
-  expect_true(!is.na(inc$person_days[1]))
-  expect_true(is.na(inc$person_days[2]))
-  expect_true(!is.na(inc$person_years[1]))
-  expect_true(is.na(inc$person_years[2]))
-  expect_true(inc$n_events[1] == 17)
-  expect_true(is.na(inc$n_events[2]))
-  expect_true(!is.na(inc$incidence_100000_pys[1]))
-  expect_true(is.na(inc$incidence_100000_pys[2]))
-  expect_true(!is.na(inc$incidence_100000_pys_95CI_lower[1]))
-  expect_true(is.na(inc$incidence_100000_pys_95CI_lower[2]))
-  expect_true(!is.na(inc$incidence_100000_pys_95CI_upper[1]))
-  expect_true(is.na(inc$incidence_100000_pys_95CI_upper[2]))
+  expect_identical(inc |>
+                 dplyr::filter(estimate_name == "denominator_count") |>
+                 dplyr::pull("estimate_value"), c("20", NA))
+  expect_identical(inc |>
+                 dplyr::filter(estimate_name == "outcome_count") |>
+                 dplyr::pull("estimate_value"), c("17", NA))
+  expect_false(is.na(inc |>
+                       dplyr::filter(estimate_name == "person_days") |>
+                       dplyr::filter(dplyr::row_number() == 1) |>
+                       dplyr::pull("estimate_value")))
+  expect_true(is.na(inc |>
+                       dplyr::filter(estimate_name == "person_days") |>
+                       dplyr::filter(dplyr::row_number() == 2) |>
+                       dplyr::pull("estimate_value")))
+  expect_false(is.na(inc |>
+                       dplyr::filter(estimate_name == "person_years") |>
+                       dplyr::filter(dplyr::row_number() == 1) |>
+                       dplyr::pull("estimate_value")))
+  expect_true(is.na(inc |>
+                       dplyr::filter(estimate_name == "person_years") |>
+                       dplyr::filter(dplyr::row_number() == 2) |>
+                       dplyr::pull("estimate_value")))
+
+  expect_false(is.na(inc |>
+                       dplyr::filter(estimate_name == "incidence_100000_pys") |>
+                       dplyr::filter(dplyr::row_number() == 1) |>
+                       dplyr::pull("estimate_value")))
+  expect_true(is.na(inc |>
+                       dplyr::filter(estimate_name == "incidence_100000_pys") |>
+                       dplyr::filter(dplyr::row_number() == 2) |>
+                       dplyr::pull("estimate_value")))
+  expect_false(is.na(inc |>
+                       dplyr::filter(estimate_name == "incidence_100000_pys_95CI_lower") |>
+                       dplyr::filter(dplyr::row_number() == 1) |>
+                       dplyr::pull("estimate_value")))
+  expect_true(is.na(inc |>
+                       dplyr::filter(estimate_name == "incidence_100000_pys_95CI_lower") |>
+                       dplyr::filter(dplyr::row_number() == 2) |>
+                       dplyr::pull("estimate_value")))
+  expect_false(is.na(inc |>
+                       dplyr::filter(estimate_name == "incidence_100000_pys_95CI_upper") |>
+                       dplyr::filter(dplyr::row_number() == 1) |>
+                       dplyr::pull("estimate_value")))
+  expect_true(is.na(inc |>
+                       dplyr::filter(estimate_name == "incidence_100000_pys_95CI_upper") |>
+                       dplyr::filter(dplyr::row_number() == 2) |>
+                       dplyr::pull("estimate_value")))
+
+
 
   CDMConnector::cdm_disconnect(cdm)
 })
 
 test_that("mock db: multiple overlapping outcomes", {
+
+  # technically overlapping outcomes are not allowed
+  # check this edge case, but validation might also not allow this
+
   skip_on_cran()
-  # two
+  # two people
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = c("8507", "8532"),
-    year_of_birth = c(1995, 1995),
-    month_of_birth = c(07, 07),
-    day_of_birth = c(01, 01)
+    person_id = c(1L, 2L),
+    gender_concept_id = c(8507L, 8532L),
+    year_of_birth = c(1995L, 1995L),
+    month_of_birth = c(07L, 07L),
+    day_of_birth = c(01L, 01L)
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
     observation_period_start_date = c(
       as.Date("2020-04-29"),
       as.Date("2019-01-01")
@@ -1300,9 +1412,10 @@ test_that("mock db: multiple overlapping outcomes", {
       as.Date("2021-12-31")
     )
   )
+  # two outcomes for person one
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = c(1, 1),
-    subject_id = c("1", "1"),
+    cohort_definition_id = c(1L, 1L),
+    subject_id = c(1L, 1L),
     cohort_start_date = c(as.Date("2020-04-29"), as.Date("2020-11-10")),
     cohort_end_date = c(as.Date("2020-05-17"), as.Date("2020-12-17"))
   )
@@ -1321,23 +1434,29 @@ test_that("mock db: multiple overlapping outcomes", {
     outcomeTable = "outcome",
     outcomeWashout = 180,
     repeatedEvents = TRUE,
-    interval = c("Years"),
+    interval = "overall",
     minCellCount = 0
   )
-  expect_true(all(inc$n_persons) == 1)
+
+  expect_true(inc |>
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value") == "2")
+  expect_true(inc |>
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value") == "1")
   CDMConnector::cdm_disconnect(cdm)
 
   # three
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = c("8507", "8532"),
-    year_of_birth = c(1995, 1995),
-    month_of_birth = c(07, 07),
-    day_of_birth = c(01, 01)
+    person_id = c(1L, 2L),
+    gender_concept_id = c(8507L, 8532L),
+    year_of_birth = c(1995L, 1995L),
+    month_of_birth = c(07L, 07L),
+    day_of_birth = c(01L, 01L)
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
     observation_period_start_date = c(
       as.Date("2020-04-29"),
       as.Date("2019-01-01")
@@ -1348,8 +1467,8 @@ test_that("mock db: multiple overlapping outcomes", {
     )
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = c(1, 1, 1),
-    subject_id = c("1", "1", "1"),
+    cohort_definition_id = c(1L, 1L, 1L),
+    subject_id = c(1L, 1L, 1L),
     cohort_start_date = c(
       as.Date("2020-04-29"),
       as.Date("2020-11-08"),
@@ -1376,10 +1495,15 @@ test_that("mock db: multiple overlapping outcomes", {
     outcomeTable = "outcome",
     outcomeWashout = 180,
     repeatedEvents = TRUE,
-    interval = c("Years"),
+    interval = "overall",
     minCellCount = 0
   )
-  expect_true(all(inc$n_persons) == 1)
+  expect_true(inc |>
+                dplyr::filter(estimate_name == "denominator_count") |>
+                dplyr::pull("estimate_value") == "2")
+  expect_true(inc |>
+                dplyr::filter(estimate_name == "outcome_count") |>
+                dplyr::pull("estimate_value") == "1")
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -1387,15 +1511,15 @@ test_that("mock db: multiple overlapping outcomes", {
 test_that("mock db: cohort before period start ending after period", {
   skip_on_cran()
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = c("8507", "8532"),
-    year_of_birth = c(1990, 1990),
-    month_of_birth = c(01, 01),
-    day_of_birth = c(01, 01)
+    person_id = c(1L, 2L),
+    gender_concept_id = c(8507L, 8532L),
+    year_of_birth = c(1990L, 1990L),
+    month_of_birth = c(01L, 01L),
+    day_of_birth = c(01L, 01L)
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
     observation_period_start_date = c(
       as.Date("2000-07-31"),
       as.Date("2000-07-31")
@@ -1406,8 +1530,8 @@ test_that("mock db: cohort before period start ending after period", {
     )
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = c(1, 1),
-    subject_id = c("1", "2"),
+    cohort_definition_id = c(1L, 1L),
+    subject_id = c(1L, 2L),
     cohort_start_date = c(
       as.Date("2000-08-02"),
       as.Date("2001-06-01")
@@ -1443,7 +1567,9 @@ test_that("mock db: cohort before period start ending after period", {
     completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
-  expect_true(all(inc$n_events == c(1)))
+  expect_true(all(inc |>
+                dplyr::filter(estimate_name == "outcome_count") |>
+                dplyr::pull("estimate_value") == "1"))
 
   # washout
   inc <- estimateIncidence(
@@ -1456,7 +1582,9 @@ test_that("mock db: cohort before period start ending after period", {
     completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
-  expect_true(all(inc$n_events == c(1)))
+  expect_true(all(inc |>
+                    dplyr::filter(estimate_name == "outcome_count") |>
+                    dplyr::pull("estimate_value") == "1"))
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -1464,15 +1592,15 @@ test_that("mock db: cohort before period start ending after period", {
 test_that("mock db: check full period requirement - year", {
   skip_on_cran()
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = c("8507", "8532"),
-    year_of_birth = c(1995, 1995),
-    month_of_birth = c(07, 07),
-    day_of_birth = c(01, 01)
+    person_id = c(1L, 2L),
+    gender_concept_id = c(8507L, 8532L),
+    year_of_birth = c(1995L, 1995L),
+    month_of_birth = c(07L, 07L),
+    day_of_birth = c(01L, 01L)
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
     observation_period_start_date = c(
       as.Date("2020-05-09"),
       as.Date("2020-03-01")
@@ -1483,8 +1611,8 @@ test_that("mock db: check full period requirement - year", {
     )
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = c("1"),
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(as.Date("2020-05-28")),
     cohort_end_date = c(as.Date("2020-05-29"))
   )
@@ -1510,21 +1638,22 @@ test_that("mock db: check full period requirement - year", {
     interval = c("Years"),
     minCellCount = 0
   )
-  expect_true(nrow(inc) == 0)
+  expect_true(nrow(inc |>
+                     visOmopResults::filterSettings(result_type == "incidence")) == 0)
   CDMConnector::cdm_disconnect(cdm)
 
   # edge case first day to last of the year
   # still expect this to work
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = c("8507", "8532"),
-    year_of_birth = c(1995, 1995),
-    month_of_birth = c(07, 07),
-    day_of_birth = c(01, 01)
+    person_id = c(1L, 2L),
+    gender_concept_id = c(8507L, 8532L),
+    year_of_birth = c(1995L, 1995L),
+    month_of_birth = c(07L, 07L),
+    day_of_birth = c(01L, 01L)
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
     observation_period_start_date = c(
       as.Date("2020-05-09"),
       as.Date("2020-01-01")
@@ -1535,8 +1664,8 @@ test_that("mock db: check full period requirement - year", {
     )
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = c("1"),
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(as.Date("2020-05-29")),
     cohort_end_date = c(as.Date("2020-05-29"))
   )
@@ -1561,7 +1690,11 @@ test_that("mock db: check full period requirement - year", {
     interval = c("Years"),
     minCellCount = 0
   )
-  expect_true(nrow(inc) == 1)
+
+  expect_true(nrow(inc |>
+                     visOmopResults::filterSettings(result_type == "incidence") |>
+                    dplyr::filter(estimate_name == "outcome_count")) ==
+                1)
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -1570,15 +1703,15 @@ test_that("mock db: check full period requirement - month", {
   skip_on_cran()
   # expected to work
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = c("8507", "8532"),
-    year_of_birth = c(1995, 1995),
-    month_of_birth = c(07, 07),
-    day_of_birth = c(01, 01)
+    person_id = c(1L, 2L),
+    gender_concept_id = c(8507L, 8532L),
+    year_of_birth = c(1995L, 1995L),
+    month_of_birth = c(07L, 07L),
+    day_of_birth = c(01L, 01L)
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
     observation_period_start_date = c(
       as.Date("2020-04-28"),
       as.Date("2020-01-01")
@@ -1589,8 +1722,8 @@ test_that("mock db: check full period requirement - month", {
     )
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = c("1"),
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(as.Date("2020-04-28")),
     cohort_end_date = c(as.Date("2020-05-19"))
   )
@@ -1615,21 +1748,21 @@ test_that("mock db: check full period requirement - month", {
     interval = c("Months"),
     minCellCount = 0
   )
-  expect_true(nrow(inc) >= 1)
+  expect_gte(nrow(inc), 1)
   CDMConnector::cdm_disconnect(cdm)
 
   # edge case first day to last of the month
   # still expect this to work
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = c("8507", "8532"),
-    year_of_birth = c(1995, 1995),
-    month_of_birth = c(07, 07),
-    day_of_birth = c(01, 01)
+    person_id = c(1L, 2L),
+    gender_concept_id = c(8507L, 8532L),
+    year_of_birth = c(1995L, 1995L),
+    month_of_birth = c(07L, 07L),
+    day_of_birth = c(01L, 01L)
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
     observation_period_start_date = c(
       as.Date("2020-04-28"),
       as.Date("2020-01-01")
@@ -1640,8 +1773,8 @@ test_that("mock db: check full period requirement - month", {
     )
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = c("1"),
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(as.Date("2020-04-28")),
     cohort_end_date = c(as.Date("2020-04-28"))
   )
@@ -1666,8 +1799,8 @@ test_that("mock db: check full period requirement - month", {
     interval = c("Months"),
     minCellCount = 0
   )
-  expect_true(inc$n_persons == 1)
-  expect_true(nrow(inc) >= 1)
+  expect_gte(nrow(inc |>
+                     visOmopResults::filterSettings(result_type == "incidence")), 1)
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -1675,15 +1808,15 @@ test_that("mock db: check full period requirement - month", {
 test_that("mock db: check completeDatabaseIntervals", {
   skip_on_cran()
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = c("8507", "8532"),
-    year_of_birth = c(1995, 1995),
-    month_of_birth = c(07, 07),
-    day_of_birth = c(01, 01)
+    person_id = c(1L, 2L),
+    gender_concept_id = c(8507L, 8532L),
+    year_of_birth = c(1995L, 1995L),
+    month_of_birth = c(07L, 07L),
+    day_of_birth = c(01L, 01L)
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
     observation_period_start_date = c(
       as.Date("2019-05-09"),
       as.Date("2019-02-02")
@@ -1694,8 +1827,8 @@ test_that("mock db: check completeDatabaseIntervals", {
     )
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = c("1"),
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(as.Date("2020-04-28")),
     cohort_end_date = c(as.Date("2020-05-19"))
   )
@@ -1724,9 +1857,20 @@ test_that("mock db: check completeDatabaseIntervals", {
     completeDatabaseIntervals = TRUE,
     minCellCount = 0
   )
-  expect_true(nrow(inc) == 2)
-  expect_true(lubridate::year(inc$incidence_start_date[1]) == "2020")
-  expect_true(lubridate::year(inc$incidence_start_date[2]) == "2021")
+
+  expect_true(nrow(inc |>
+    dplyr::filter(estimate_name == "outcome_count")) == 2)
+  expect_true(lubridate::year(inc |>
+    dplyr::filter(estimate_name == "outcome_count") |>
+    visOmopResults::splitAdditional() |>
+    dplyr::filter(dplyr::row_number() == 1) |>
+    dplyr::pull("incidence_start_date")) == "2020")
+  expect_true(lubridate::year(inc |>
+                                dplyr::filter(estimate_name == "outcome_count") |>
+                                visOmopResults::splitAdditional() |>
+                                dplyr::filter(dplyr::row_number() == 2) |>
+                                dplyr::pull("incidence_start_date")) == "2021")
+
   # repetitive events FALSE
   # - now we expect only to use 2020 (id 2 obs end is in 21)
   inc <- estimateIncidence(
@@ -1738,8 +1882,13 @@ test_that("mock db: check completeDatabaseIntervals", {
     completeDatabaseIntervals = TRUE,
     minCellCount = 0
   )
-  expect_true(nrow(inc) == 1)
-  expect_true(lubridate::year(inc$incidence_start_date[1]) == "2020")
+  expect_true(nrow(inc |>
+                     dplyr::filter(estimate_name == "outcome_count")) == 1)
+  expect_true(lubridate::year(inc |>
+                                dplyr::filter(estimate_name == "outcome_count") |>
+                                visOmopResults::splitAdditional() |>
+                                dplyr::filter(dplyr::row_number() == 1) |>
+                                dplyr::pull("incidence_start_date")) == "2020")
 
   # full periods required FALSE
   # repetitive events TRUE
@@ -1755,11 +1904,29 @@ test_that("mock db: check completeDatabaseIntervals", {
     completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
-  expect_true(nrow(inc) == 4)
-  expect_true(lubridate::year(inc$incidence_start_date[1]) == "2019")
-  expect_true(lubridate::year(inc$incidence_start_date[2]) == "2020")
-  expect_true(lubridate::year(inc$incidence_start_date[3]) == "2021")
-  expect_true(lubridate::year(inc$incidence_start_date[4]) == "2022")
+  expect_true(nrow(inc |>
+                     dplyr::filter(estimate_name == "outcome_count")) == 4)
+  expect_true(lubridate::year(inc |>
+                                dplyr::filter(estimate_name == "outcome_count") |>
+                                visOmopResults::splitAdditional() |>
+                                dplyr::filter(dplyr::row_number() == 1) |>
+                                dplyr::pull("incidence_start_date")) == "2019")
+  expect_true(lubridate::year(inc |>
+                                dplyr::filter(estimate_name == "outcome_count") |>
+                                visOmopResults::splitAdditional() |>
+                                dplyr::filter(dplyr::row_number() == 2) |>
+                                dplyr::pull("incidence_start_date")) == "2020")
+  expect_true(lubridate::year(inc |>
+                                dplyr::filter(estimate_name == "outcome_count") |>
+                                visOmopResults::splitAdditional() |>
+                                dplyr::filter(dplyr::row_number() == 3) |>
+                                dplyr::pull("incidence_start_date")) == "2021")
+  expect_true(lubridate::year(inc |>
+                                dplyr::filter(estimate_name == "outcome_count") |>
+                                visOmopResults::splitAdditional() |>
+                                dplyr::filter(dplyr::row_number() == 4) |>
+                                dplyr::pull("incidence_start_date")) == "2022")
+
   # repetitive events FALSE
   inc <- estimateIncidence(
     cdm = cdm,
@@ -1770,10 +1937,23 @@ test_that("mock db: check completeDatabaseIntervals", {
     completeDatabaseIntervals = FALSE,
     minCellCount = 0
   )
-  expect_true(nrow(inc) == 3)
-  expect_true(lubridate::year(inc$incidence_start_date[1]) == "2019")
-  expect_true(lubridate::year(inc$incidence_start_date[2]) == "2020")
-  expect_true(lubridate::year(inc$incidence_start_date[3]) == "2021")
+  expect_true(nrow(inc |>
+                     dplyr::filter(estimate_name == "outcome_count")) == 3)
+  expect_true(lubridate::year(inc |>
+                                dplyr::filter(estimate_name == "outcome_count") |>
+                                visOmopResults::splitAdditional() |>
+                                dplyr::filter(dplyr::row_number() == 1) |>
+                                dplyr::pull("incidence_start_date")) == "2019")
+  expect_true(lubridate::year(inc |>
+                                dplyr::filter(estimate_name == "outcome_count") |>
+                                visOmopResults::splitAdditional() |>
+                                dplyr::filter(dplyr::row_number() == 2) |>
+                                dplyr::pull("incidence_start_date")) == "2020")
+  expect_true(lubridate::year(inc |>
+                                dplyr::filter(estimate_name == "outcome_count") |>
+                                visOmopResults::splitAdditional() |>
+                                dplyr::filter(dplyr::row_number() == 3) |>
+                                dplyr::pull("incidence_start_date")) == "2021")
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -1781,15 +1961,15 @@ test_that("mock db: check completeDatabaseIntervals", {
 test_that("mock db: check insufficient study days", {
   skip_on_cran()
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = c("8507", "8532"),
-    year_of_birth = c(1995, 1995),
-    month_of_birth = c(07, 07),
-    day_of_birth = c(01, 01)
+    person_id = c(1L, 2L),
+    gender_concept_id = c(8507L, 8532L),
+    year_of_birth = c(1995L, 1995L),
+    month_of_birth = c(07L, 07L),
+    day_of_birth = c(01L, 01L)
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
     observation_period_start_date = c(
       as.Date("2019-05-09"),
       as.Date("2019-02-02")
@@ -1800,8 +1980,8 @@ test_that("mock db: check insufficient study days", {
     )
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = c("1"),
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(as.Date("2019-06-01")),
     cohort_end_date = c(as.Date("2019-06-01"))
   )
@@ -1829,7 +2009,8 @@ test_that("mock db: check insufficient study days", {
     minCellCount = 0
   )
 
-  expect_true(nrow(inc) == 0)
+  expect_true(nrow(inc |>
+                     visOmopResults::filterSettings(result_type == "incidence")) == 0)
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -1837,16 +2018,16 @@ test_that("mock db: check insufficient study days", {
 test_that("mock db: check with and without study start and end date", {
   skip_on_cran()
   personTable <- dplyr::tibble(
-    person_id = c("1", "2", "3", "4", "5", "6"),
-    gender_concept_id = "8507",
-    year_of_birth = 2000,
-    month_of_birth = 07,
-    day_of_birth = 01
+    person_id = c(1L, 2L, 3L, 4L, 5L, 6L),
+    gender_concept_id = 8507L,
+    year_of_birth = 2000L,
+    month_of_birth = 07L,
+    day_of_birth = 01L
   )
   # one person leaving before 2010
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2", "3", "4", "5", "6"),
-    person_id = c("1", "2", "3", "4", "5", "6"),
+    observation_period_id = c(1L, 2L, 3L, 4L, 5L, 6L),
+    person_id = c(1L, 2L, 3L, 4L, 5L, 6L),
     observation_period_start_date = c(
       rep(as.Date("2007-01-01"), 5),
       as.Date("2010-06-01")
@@ -1860,46 +2041,46 @@ test_that("mock db: check with and without study start and end date", {
   outcomeTable <- dplyr::bind_rows(
     # 1 event before obs start ending after obs end
     dplyr::tibble(
-      cohort_definition_id = 1,
-      subject_id = "1",
+      cohort_definition_id = 1L,
+      subject_id = 1L,
       cohort_start_date = c(as.Date("2007-01-01")),
       cohort_end_date = c(as.Date("2022-12-31"))
     ),
     # 2 multiple events
     dplyr::tibble(
-      cohort_definition_id = 1,
-      subject_id = "2",
+      cohort_definition_id = 1L,
+      subject_id = 2L,
       cohort_start_date = c(as.Date("2008-06-01")),
       cohort_end_date = c(as.Date("2008-10-01"))
     ),
     dplyr::tibble(
-      cohort_definition_id = 1,
-      subject_id = "2",
+      cohort_definition_id = 1L,
+      subject_id = 2L,
       cohort_start_date = c(as.Date("2008-11-01")),
       cohort_end_date = c(as.Date("2010-10-14"))
     ),
     dplyr::tibble(
-      cohort_definition_id = 1,
-      subject_id = "2",
+      cohort_definition_id = 1L,
+      subject_id = 2L,
       cohort_start_date = c(as.Date("2010-12-01")),
       cohort_end_date = c(as.Date("2011-06-18"))
     ),
     dplyr::tibble(
-      cohort_definition_id = 1,
-      subject_id = "2",
+      cohort_definition_id = 1L,
+      subject_id = 2L,
       cohort_start_date = c(as.Date("2011-06-19")),
       cohort_end_date = c(as.Date("2012-12-31"))
     ),
     # 3 multiple events into the period
     dplyr::tibble(
-      cohort_definition_id = 1,
-      subject_id = "3",
+      cohort_definition_id = 1L,
+      subject_id = 3L,
       cohort_start_date = c(as.Date("2009-06-01")),
       cohort_end_date = c(as.Date("2010-02-01"))
     ),
     dplyr::tibble(
-      cohort_definition_id = 1,
-      subject_id = "3",
+      cohort_definition_id = 1L,
+      subject_id = 3L,
       cohort_start_date = c(as.Date("2010-06-01")),
       cohort_end_date = c(as.Date("2022-12-31"))
     )
@@ -1941,30 +2122,35 @@ test_that("mock db: check with and without study start and end date", {
   )
 
   # given the settings above we would expect the same results for 2010
-  expect_true(inc1A %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_persons") %>%
-                dplyr::pull() ==
-                inc2A %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_persons") %>%
-                dplyr::pull())
-  expect_true(inc1A %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("person_days") %>%
-                dplyr::pull() ==
-                inc2A %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("person_days") %>%
-                dplyr::pull())
-  expect_true(inc1A %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_events") %>%
-                dplyr::pull() ==
-                inc2A %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_events") %>%
-                dplyr::pull())
+  expect_identical(inc1A |>
+    dplyr::filter(estimate_name == "denominator_count") |>
+    visOmopResults::splitAdditional() |>
+    dplyr::filter(lubridate::year(incidence_start_date) == 2010) |>
+    dplyr::pull("estimate_value"), inc2A |>
+    dplyr::filter(estimate_name == "denominator_count") |>
+    visOmopResults::splitAdditional() |>
+    dplyr::filter(lubridate::year(incidence_start_date) == 2010) |>
+    dplyr::pull("estimate_value"))
+
+  expect_identical(inc1A |>
+                 dplyr::filter(estimate_name == "person_days") |>
+                 visOmopResults::splitAdditional() |>
+                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) |>
+                 dplyr::pull("estimate_value"), inc2A |>
+                 dplyr::filter(estimate_name == "person_days") |>
+                 visOmopResults::splitAdditional() |>
+                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) |>
+                 dplyr::pull("estimate_value"))
+
+  expect_identical(inc1A |>
+                 dplyr::filter(estimate_name == "outcome_count") |>
+                 visOmopResults::splitAdditional() |>
+                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) |>
+                 dplyr::pull("estimate_value"), inc2A |>
+                 dplyr::filter(estimate_name == "outcome_count") |>
+                 visOmopResults::splitAdditional() |>
+                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) |>
+                 dplyr::pull("estimate_value"))
 
   # 365 washout, repetitive events
   inc1B <- estimateIncidence(cdm,
@@ -1986,31 +2172,35 @@ test_that("mock db: check with and without study start and end date", {
                              completeDatabaseIntervals = FALSE
   )
   # given the settings above we would expect the same results for 2010
-  expect_true(inc1B %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_persons") %>%
-                dplyr::pull() ==
-                inc2B %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_persons") %>%
-                dplyr::pull())
-  expect_true(inc1B %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("person_days") %>%
-                dplyr::pull() ==
-                inc2B %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("person_days") %>%
-                dplyr::pull())
+  expect_identical(inc1B |>
+                 dplyr::filter(estimate_name == "denominator_count") |>
+                 visOmopResults::splitAdditional() |>
+                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) |>
+                 dplyr::pull("estimate_value"), inc2B |>
+                 dplyr::filter(estimate_name == "denominator_count") |>
+                 visOmopResults::splitAdditional() |>
+                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) |>
+                 dplyr::pull("estimate_value"))
 
-  expect_true(inc1B %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_events") %>%
-                dplyr::pull() ==
-                inc2B %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_events") %>%
-                dplyr::pull())
+  expect_identical(inc1B |>
+                 dplyr::filter(estimate_name == "person_days") |>
+                 visOmopResults::splitAdditional() |>
+                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) |>
+                 dplyr::pull("estimate_value"), inc2B |>
+                 dplyr::filter(estimate_name == "person_days") |>
+                 visOmopResults::splitAdditional() |>
+                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) |>
+                 dplyr::pull("estimate_value"))
+
+  expect_identical(inc1B |>
+                 dplyr::filter(estimate_name == "outcome_count") |>
+                 visOmopResults::splitAdditional() |>
+                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) |>
+                 dplyr::pull("estimate_value"), inc2B |>
+                 dplyr::filter(estimate_name == "outcome_count") |>
+                 visOmopResults::splitAdditional() |>
+                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) |>
+                 dplyr::pull("estimate_value"))
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -2050,38 +2240,46 @@ test_that("mock db: check study start and end date 1000", {
                              completeDatabaseIntervals = FALSE
   )
 
-  expect_true(inc1A %>%
+
+
+
+
+  expect_true(inc1A  |>
+                visOmopResults::filterSettings(result_type == "incidence")%>%
+               visOmopResults::splitAdditional() |>
                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_persons") %>%
-                dplyr::pull() ==
-                inc2A %>%
+                dplyr::filter(estimate_name == "denominator_count") %>%
+                dplyr::pull("estimate_value") ==
+                inc2A  |>
+                visOmopResults::filterSettings(result_type == "incidence")%>%
+                visOmopResults::splitAdditional() |>
                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_persons") %>%
-                dplyr::pull())
-  expect_true(inc1A %>%
+                dplyr::filter(estimate_name == "denominator_count") %>%
+                dplyr::pull("estimate_value"))
+  expect_true(inc1A |>
+                visOmopResults::filterSettings(result_type == "incidence") %>%
+                visOmopResults::splitAdditional() |>
                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("person_days") %>%
-                dplyr::pull() ==
-                inc2A %>%
+                dplyr::filter(estimate_name == "person_days") %>%
+                dplyr::pull("estimate_value") ==
+                inc2A  |>
+                visOmopResults::filterSettings(result_type == "incidence")%>%
+                visOmopResults::splitAdditional() |>
                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("person_days") %>%
-                dplyr::pull())
-  expect_true(inc1A %>%
+                dplyr::filter(estimate_name == "person_days") %>%
+                dplyr::pull("estimate_value"))
+  expect_true(inc1A  |>
+                visOmopResults::filterSettings(result_type == "incidence")%>%
+                visOmopResults::splitAdditional() |>
                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_events") %>%
-                dplyr::pull() ==
-                inc2A %>%
+                dplyr::filter(estimate_name == "outcome_count") %>%
+                dplyr::pull("estimate_value") ==
+                inc2A  |>
+                visOmopResults::filterSettings(result_type == "incidence")%>%
+                visOmopResults::splitAdditional() |>
                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_events") %>%
-                dplyr::pull())
-  expect_true(inc1A %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("incidence_100000_pys") %>%
-                dplyr::pull() ==
-                inc2A %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("incidence_100000_pys") %>%
-                dplyr::pull())
+                dplyr::filter(estimate_name == "outcome_count") %>%
+                dplyr::pull("estimate_value"))
 
   # 365 washout, repetitive events
   inc1B <- estimateIncidence(cdm,
@@ -2103,39 +2301,18 @@ test_that("mock db: check study start and end date 1000", {
                              completeDatabaseIntervals = FALSE
   )
 
-  expect_true(inc1B %>%
+  expect_true(inc1B  |>
+                visOmopResults::filterSettings(result_type == "incidence")%>%
+                visOmopResults::splitAdditional() |>
                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_persons") %>%
-                dplyr::pull() ==
-                inc2B %>%
+                dplyr::filter(estimate_name == "incidence_100000_pys") %>%
+                dplyr::pull("estimate_value") ==
+                inc2B  |>
+                visOmopResults::filterSettings(result_type == "incidence")%>%
+                visOmopResults::splitAdditional() |>
                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_persons") %>%
-                dplyr::pull())
-  expect_true(inc1B %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("person_days") %>%
-                dplyr::pull() ==
-                inc2B %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("person_days") %>%
-                dplyr::pull())
-
-  expect_true(inc1B %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_events") %>%
-                dplyr::pull() ==
-                inc2B %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_events") %>%
-                dplyr::pull())
-  expect_true(inc1B %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("incidence_100000_pys") %>%
-                dplyr::pull() ==
-                inc1B %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("incidence_100000_pys") %>%
-                dplyr::pull())
+                dplyr::filter(estimate_name == "incidence_100000_pys") %>%
+                dplyr::pull("estimate_value"))
   CDMConnector::cdm_disconnect(cdm)
 
   # with multiple outcomes per person
@@ -2174,38 +2351,20 @@ test_that("mock db: check study start and end date 1000", {
                              completeDatabaseIntervals = FALSE
   )
 
-  expect_true(inc1A %>%
+
+  expect_true(inc1A |>
+                visOmopResults::filterSettings(result_type == "incidence") %>%
+                visOmopResults::splitAdditional() |>
                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_persons") %>%
-                dplyr::pull() ==
-                inc2A %>%
+                dplyr::filter(estimate_name == "incidence_100000_pys") %>%
+                dplyr::pull("estimate_value") ==
+                inc2A  |>
+                visOmopResults::filterSettings(result_type == "incidence")%>%
+                visOmopResults::splitAdditional() |>
                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_persons") %>%
-                dplyr::pull())
-  expect_true(inc1A %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("person_days") %>%
-                dplyr::pull() ==
-                inc2A %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("person_days") %>%
-                dplyr::pull())
-  expect_true(inc1A %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_events") %>%
-                dplyr::pull() ==
-                inc2A %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_events") %>%
-                dplyr::pull())
-  expect_true(inc1A %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("incidence_100000_pys") %>%
-                dplyr::pull() ==
-                inc2A %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("incidence_100000_pys") %>%
-                dplyr::pull())
+                dplyr::filter(estimate_name == "incidence_100000_pys") %>%
+                dplyr::pull("estimate_value"))
+
 
   # 365 washout, repetitive events
   inc1B <- estimateIncidence(cdm,
@@ -2227,38 +2386,19 @@ test_that("mock db: check study start and end date 1000", {
                              completeDatabaseIntervals = FALSE
   )
 
-  expect_true(inc1B %>%
+
+  expect_true(inc1B  |>
+                visOmopResults::filterSettings(result_type == "incidence")%>%
+                visOmopResults::splitAdditional() |>
                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_persons") %>%
-                dplyr::pull() ==
-                inc2B %>%
+                dplyr::filter(estimate_name == "incidence_100000_pys") %>%
+                dplyr::pull("estimate_value") ==
+                inc2B  |>
+                visOmopResults::filterSettings(result_type == "incidence")%>%
+                visOmopResults::splitAdditional() |>
                 dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_persons") %>%
-                dplyr::pull())
-  expect_true(inc1B %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("person_days") %>%
-                dplyr::pull() ==
-                inc2B %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("person_days") %>%
-                dplyr::pull())
-  expect_true(inc1B %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_events") %>%
-                dplyr::pull() ==
-                inc2B %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("n_events") %>%
-                dplyr::pull())
-  expect_true(inc1B %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("incidence_100000_pys") %>%
-                dplyr::pull() ==
-                inc2B %>%
-                dplyr::filter(lubridate::year(incidence_start_date) == 2010) %>%
-                dplyr::select("incidence_100000_pys") %>%
-                dplyr::pull())
+                dplyr::filter(estimate_name == "incidence_100000_pys") %>%
+                dplyr::pull("estimate_value"))
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -2266,21 +2406,21 @@ test_that("mock db: check study start and end date 1000", {
 test_that("expected errors with mock", {
   skip_on_cran()
   personTable <- dplyr::tibble(
-    person_id = "1",
-    gender_concept_id = "8507",
-    year_of_birth = 2000,
-    month_of_birth = 01,
-    day_of_birth = 01
+    person_id = 1L,
+    gender_concept_id = 8507L,
+    year_of_birth = 2000L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = "1",
-    person_id = "1",
+    observation_period_id = 1L,
+    person_id = 1L,
     observation_period_start_date = as.Date("2010-01-01"),
     observation_period_end_date = as.Date("2012-06-01")
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = "1",
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(
       as.Date("2010-02-05"),
       as.Date("2010-02-08"),
@@ -2313,7 +2453,7 @@ test_that("expected errors with mock", {
     denominatorTable = "denominator",
     denominatorCohortId = "1",
     outcomeTable = "outcome",
-    outcomeCohortId = "1"
+    outcomeCohortId = 1
   ))
 
   # no study pop
@@ -2345,16 +2485,16 @@ test_that("mock db: multiple observation periods", {
   skip_on_cran()
   # create data for hypothetical people to test
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = c("8507", "8507"),
-    year_of_birth = c(1998, 1976),
-    month_of_birth = c(02, 06),
-    day_of_birth = c(12, 01)
+    person_id = c(1L, 2L),
+    gender_concept_id = c(8507L, 8507L),
+    year_of_birth = c(1998L, 1976L),
+    month_of_birth = c(02L, 06L),
+    day_of_birth = c(12L, 01L)
   )
 
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2", "3"),
-    person_id = c("1", "1", "2"),
+    observation_period_id = c(1L, 2L, 3L),
+    person_id = c(1L, 1L, 2L),
     observation_period_start_date = c(
       as.Date("2005-04-01"),
       as.Date("2009-04-10"),
@@ -2368,8 +2508,8 @@ test_that("mock db: multiple observation periods", {
   )
 
   conditionX <- dplyr::tibble(
-    cohort_definition_id = c(1, 1),
-    subject_id = c("1", "2"),
+    cohort_definition_id = c(1L, 1L),
+    subject_id = c(1L, 2L),
     cohort_start_date = c(
       as.Date("2005-07-19"),
       as.Date("2010-12-11")
@@ -2381,8 +2521,8 @@ test_that("mock db: multiple observation periods", {
   )
 
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = c(1, 1, 1, 1),
-    subject_id = c("1", "1", "2", "2"),
+    cohort_definition_id = c(1L, 1L, 1L, 1L),
+    subject_id = c(1L, 1L, 2L, 2L),
     cohort_start_date = c(
       as.Date("2005-08-09"),
       as.Date("2010-01-11"),
@@ -2422,14 +2562,16 @@ test_that("mock db: multiple observation periods", {
                              minCellCount = 0
   )
   # expect all events if we have zero days washout
-  expect_true(sum(incW0$n_events) == 2)
+  expect_true(sum(as.numeric(incW0 %>%
+    dplyr::filter(estimate_name == "outcome_count") %>%
+    dplyr::pull("estimate_value"))) == 2)
   CDMConnector::cdm_disconnect(cdm)
 
   # Change the inclusion so that both patients have valid observation periods. Now 1 should have two, and 2 one.
   # Should capture the final part of the first observation period, and the initial part of the second for person 1
   conditionX <- dplyr::tibble(
-    cohort_definition_id = c(1, 1, 1),
-    subject_id = c("1", "1", "2"),
+    cohort_definition_id = c(1L, 1L, 1L),
+    subject_id = c(1L, 1L, 2L),
     cohort_start_date = c(
       as.Date("2005-07-19"),
       as.Date("2009-04-10"),
@@ -2464,13 +2606,15 @@ test_that("mock db: multiple observation periods", {
                               minCellCount = 0
   )
   # expect all events if we have ten days washout
-  expect_true(sum(incW10$n_events) == 3)
+  expect_true(sum(as.numeric(incW10 %>%
+                               dplyr::filter(estimate_name == "outcome_count") %>%
+                               dplyr::pull("estimate_value"))) == 3)
   CDMConnector::cdm_disconnect(cdm)
 
   # try event not counted for outcome but counted for washout as denominator (before observ period)
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = c(1, 1, 1, 1, 1),
-    subject_id = c("1", "1", "1", "2", "2"),
+    cohort_definition_id = c(1L, 1L, 1L, 1L, 1L),
+    subject_id = c(1L, 1L, 1L, 2L, 2L),
     cohort_start_date = c(
       as.Date("2005-07-11"),
       as.Date("2005-08-09"),
@@ -2507,14 +2651,23 @@ test_that("mock db: multiple observation periods", {
                                       completeDatabaseIntervals = FALSE,
                                       minCellCount = 0
   )
-  expect_true(sum(inc_PreWashout$n_events) == 3)
-  expect_true(inc_PreWashout %>% dplyr::select(person_days) %>% sum() == as.numeric(difftime(as.Date("2005-08-11"), as.Date("2005-07-19"))) + 1 - 2 + as.numeric(difftime(as.Date("2015-01-02"), as.Date("2009-04-10"))) + 1 - 10 + as.numeric(difftime(as.Date("2011-12-11"), as.Date("2010-12-11"))) + 1 - 10 - 3)
+  expect_true(sum(as.numeric(inc_PreWashout %>%
+                               dplyr::filter(estimate_name == "outcome_count") %>%
+                               dplyr::pull("estimate_value"))) == 3)
+  expect_true(sum(as.numeric(inc_PreWashout %>%
+                               dplyr::filter(estimate_name == "person_days") %>%
+                               dplyr::pull("estimate_value"))) ==
+                as.numeric(difftime(as.Date("2005-08-11"), as.Date("2005-07-19"))) +
+                1 - 2 + as.numeric(difftime(as.Date("2015-01-02"),
+                                            as.Date("2009-04-10"))) + 1 - 10 +
+                as.numeric(difftime(as.Date("2011-12-11"), as.Date("2010-12-11"))) +
+                1 - 10 - 3)
   CDMConnector::cdm_disconnect(cdm)
 
   # multiple events in one of the observation periods of person 1
   conditionX <- dplyr::tibble(
-    cohort_definition_id = c(1, 1, 1),
-    subject_id = c("1", "1", "2"),
+    cohort_definition_id = c(1L, 1L, 1L),
+    subject_id = c(1L, 1L, 2L),
     cohort_start_date = c(
       as.Date("2005-06-19"),
       as.Date("2009-04-10"),
@@ -2559,17 +2712,25 @@ test_that("mock db: multiple observation periods", {
   )
 
   # we should have 4 events with washout 0, but 3 events with washout 30
-  expect_true(sum(inc_Mult1_W0$n_events) == 4)
-  expect_true(sum(inc_Mult1_W30$n_events) == 3)
-  expect_true(inc_Mult1_W0 %>% dplyr::select(person_days) %>%
-                sum() == as.numeric(difftime(as.Date("2005-08-11"),
+  expect_true(sum(as.numeric(inc_Mult1_W0 %>%
+                               dplyr::filter(estimate_name == "outcome_count") %>%
+                               dplyr::pull("estimate_value"))) == 4)
+  expect_true(sum(as.numeric(inc_Mult1_W30 %>%
+                               dplyr::filter(estimate_name == "outcome_count") %>%
+                               dplyr::pull("estimate_value"))) == 3)
+  expect_true(sum(as.numeric(inc_Mult1_W0 %>%
+                               dplyr::filter(estimate_name == "person_days") %>%
+                               dplyr::pull("estimate_value"))) ==
+                as.numeric(difftime(as.Date("2005-08-11"),
                                              as.Date("2005-06-19"))) + 1 +
                 as.numeric(difftime(as.Date("2015-01-02"),
                                     as.Date("2009-04-10"))) + 1 +
                 as.numeric(difftime(as.Date("2011-12-11"),
                                     as.Date("2010-12-11"))) + 1)
-  expect_true(inc_Mult1_W30 %>% dplyr::select(person_days) %>%
-                sum() == as.numeric(difftime(as.Date("2005-08-11"),
+  expect_true(sum(as.numeric(inc_Mult1_W30 %>%
+                               dplyr::filter(estimate_name == "person_days") %>%
+                               dplyr::pull("estimate_value"))) ==
+                as.numeric(difftime(as.Date("2005-08-11"),
                                              as.Date("2005-06-19"))) - 30 +
                 as.numeric(difftime(as.Date("2015-01-02"),
                                     as.Date("2009-04-10"))) +
@@ -2580,8 +2741,8 @@ test_that("mock db: multiple observation periods", {
   # The first event of person 1 will not be included in the observation period
   # but should also influence the second event with the washout
   conditionX <- dplyr::tibble(
-    cohort_definition_id = c(1, 1, 1),
-    subject_id = c("1", "1", "2"),
+    cohort_definition_id = c(1L, 1L, 1L),
+    subject_id = c(1L, 1L, 2L),
     cohort_start_date = c(
       as.Date("2005-07-19"),
       as.Date("2009-04-10"),
@@ -2617,8 +2778,13 @@ test_that("mock db: multiple observation periods", {
   )
 
   # we should have 2 events with washout 30
-  expect_true(sum(inc_PreWashEv$n_events) == 2)
-  expect_true(inc_PreWashEv %>% dplyr::select(person_days) %>% sum() ==
+  expect_true(sum(as.numeric(inc_PreWashEv %>%
+                               dplyr::filter(estimate_name == "outcome_count") %>%
+                               dplyr::pull("estimate_value"))) == 2)
+
+  expect_true(sum(as.numeric(inc_PreWashEv %>%
+                               dplyr::filter(estimate_name == "person_days") %>%
+                               dplyr::pull("estimate_value"))) ==
                 as.numeric(difftime(as.Date("2005-08-11"),
                                     as.Date("2005-07-19"))) - 30 + 7 +
                 as.numeric(difftime(as.Date("2015-01-02"),
@@ -2630,8 +2796,8 @@ test_that("mock db: multiple observation periods", {
   # three observation periods for 1 person and a
   # couple of consecutive events lost to washout
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2", "3", "4"),
-    person_id = c("1", "1", "1", "2"),
+    observation_period_id = c(1L, 2L, 3L, 4L),
+    person_id = c(1L, 1L, 1L, 2L),
     observation_period_start_date = c(
       as.Date("2005-04-01"),
       as.Date("2009-04-10"),
@@ -2647,8 +2813,8 @@ test_that("mock db: multiple observation periods", {
   )
 
   conditionX <- dplyr::tibble(
-    cohort_definition_id = c(1, 1, 1, 1),
-    subject_id = c("1", "1", "1", "2"),
+    cohort_definition_id = c(1L, 1L, 1L, 1L),
+    subject_id = c(1L, 1L, 1L, 2L),
     cohort_start_date = c(
       as.Date("2005-04-01"),
       as.Date("2009-06-10"),
@@ -2664,8 +2830,8 @@ test_that("mock db: multiple observation periods", {
   )
 
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = c(1, 1, 1, 1, 1, 1, 1),
-    subject_id = c("1", "1", "1", "1", "1", "1", "2"),
+    cohort_definition_id = c(1L, 1L, 1L, 1L, 1L, 1L, 1L),
+    subject_id = c(1L, 1L, 1L, 1L, 1L, 1L, 2L),
     cohort_start_date = c(
       as.Date("2005-08-09"),
       as.Date("2005-08-10"),
@@ -2703,26 +2869,28 @@ test_that("mock db: multiple observation periods", {
                                denominatorTable = "denominator",
                                outcomeTable = "outcome",
                                repeatedEvents = TRUE,
-                               outcomeWashout = 1,
+                               outcomeWashout = 1L,
                                completeDatabaseIntervals = FALSE,
                                minCellCount = 0
   )
 
   # we should have 5 events with washout 1
-  expect_true(sum(inc_3op$n_events) == 5)
+  expect_true(sum(as.numeric(inc_3op %>%
+                               dplyr::filter(estimate_name == "outcome_count") %>%
+                               dplyr::pull("estimate_value"))) == 5)
 
   # try repeated events FALSE.
   inc_repev <- estimateIncidence(cdm,
                                  denominatorTable = "denominator",
                                  outcomeTable = "outcome",
                                  repeatedEvents = FALSE,
-                                 outcomeWashout = 1,
+                                 outcomeWashout = 1L,
                                  completeDatabaseIntervals = FALSE,
                                  minCellCount = 0
   )
-
-  # we should have 1 event,
-  expect_true(sum(inc_repev$n_events) == 2)
+  expect_true(sum(as.numeric(inc_repev %>%
+                               dplyr::filter(estimate_name == "outcome_count") %>%
+                               dplyr::pull("estimate_value"))) == 2)
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -2746,12 +2914,22 @@ test_that("mock db: check confidence intervals", {
                            completeDatabaseIntervals = TRUE
   )
 
-  expect_equal(inc$incidence_100000_pys_95CI_lower,
-               epitools::pois.exact(inc$n_events, inc$person_years)$lower * 100000,
+  pkg_est <- inc %>%
+    visOmopResults::filterSettings(result_type == "incidence") |>
+    dplyr::select("estimate_name",
+                  "estimate_value", "additional_level") |>
+    tidyr::pivot_wider(names_from = "estimate_name",
+                       values_from = "estimate_value") |>
+    dplyr::filter(denominator_count > 1)
+
+  expect_equal(as.numeric(pkg_est$incidence_100000_pys_95CI_lower),
+               epitools::pois.exact(as.numeric(pkg_est$outcome_count),
+                                    as.numeric(pkg_est$person_years))$lower* 100000 ,
                tolerance = 1e-2
   )
-  expect_equal(inc$incidence_100000_pys_95CI_upper,
-               epitools::pois.exact(inc$n_events, inc$person_years)$upper * 100000,
+  expect_equal(as.numeric(pkg_est$incidence_100000_pys_95CI_upper),
+               epitools::pois.exact(as.numeric(pkg_est$outcome_count),
+                                    as.numeric(pkg_est$person_years))$upper* 100000 ,
                tolerance = 1e-2
   )
 
@@ -2770,21 +2948,20 @@ test_that("mock db: check attrition", {
                            outcomeTable = "outcome",
                            interval = "years"
   )
-  # for female cohort we should have a row for those excluded for not being male
-  expect_true(any("Not Female" ==
-                    attrition(inc) %>%
-                    dplyr::filter(denominator_sex == "Female") %>%
-                    dplyr::pull(.data$reason)))
-  # for male, the opposite
-  expect_true(any("Not Male" == attrition(inc) %>%
-                    dplyr::filter(denominator_sex == "Male") %>%
-                    dplyr::pull(.data$reason)))
 
-  # check we can pick out specific analysis attrition
-  expect_true(nrow(attrition(inc) %>%
-                     dplyr::filter(analysis_id == 1)) > 1)
-  expect_true(nrow(attrition(inc) %>%
-                     dplyr::filter(analysis_id == 2)) > 1)
+ # for female cohort we should have a row for those excluded for not being male
+ expect_gt(nrow(inc |>
+   visOmopResults::filterSettings(result_type == "incidence_attrition",
+                                  denominator_sex == "Female") |>
+   dplyr::filter(strata_level == "Not Female")), 0)
+
+
+  # for male, the opposite
+ expect_gt(nrow(inc |>
+                    visOmopResults::filterSettings(result_type == "incidence_attrition",
+                                                   denominator_sex == "Male") |>
+                    dplyr::filter(strata_level == "Not Male")), 0)
+
   CDMConnector::cdm_disconnect(cdm)
 
   # check obscuring counts
@@ -2798,9 +2975,12 @@ test_that("mock db: check attrition", {
                            outcomeTable = "outcome",
                            interval = "years"
   )
-  expect_true(is.na(attrition(inc) %>%
-                dplyr::filter(reason == "Not Male") %>%
-                dplyr::pull("excluded_subjects")))
+  expect_true(is.na(inc |>
+    visOmopResults::filterSettings(result_type == "incidence_attrition",
+                                   denominator_sex == "Male") |>
+    dplyr::filter(strata_level == "Not Male") |>
+    dplyr::filter(variable_name == "excluded_subjects") |>
+    dplyr::pull("estimate_value")))
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -2808,15 +2988,15 @@ test_that("mock db: check attrition", {
 test_that("mock db: check attrition with complete database intervals", {
   skip_on_cran()
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = "8507",
-    year_of_birth = 2000,
-    month_of_birth = 01,
-    day_of_birth = 01
+    person_id = c(1L, 2L),
+    gender_concept_id = 8507L,
+    year_of_birth = 2000L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
     observation_period_start_date = c(
       as.Date("2000-06-01"),
       as.Date("2000-06-01")
@@ -2827,8 +3007,8 @@ test_that("mock db: check attrition with complete database intervals", {
     )
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = 1,
-    subject_id = "1",
+    cohort_definition_id = 1L,
+    subject_id = 1L,
     cohort_start_date = c(
       as.Date("2008-02-05"),
       as.Date("2010-02-08"),
@@ -2854,9 +3034,11 @@ test_that("mock db: check attrition with complete database intervals", {
                            interval = "years", minCellCount = 0
   )
 
-  expect_true(attrition(inc) %>%
-                dplyr::filter(reason == "Not observed during the complete database interval") %>%
-                dplyr::pull(excluded_subjects) == 1)
+  expect_true(inc |>
+    visOmopResults::filterSettings(result_type == "incidence_attrition") |>
+    dplyr::filter(strata_level == "Not observed during the complete database interval") |>
+    dplyr::filter(variable_name == "excluded_subjects") |>
+    dplyr::pull("estimate_value") == "1")
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -2875,147 +3057,11 @@ test_that("mock db: check compute permanent", {
     outcomeTable = "outcome",
     interval = "overall"
   )
-  # if using temp tables
-  # we have temp tables created by dbplyr
-  # expect_true(any(stringr::str_starts(
-  #   CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon")),
-  #   "dbplyr_"
-  # )))
-  CDMConnector::cdm_disconnect(cdm)
-
-  # using permanent
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
-  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
-  inc <- estimateIncidence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "overall"
-  )
-
-  # no temp tables created by dbplyr
+  # we have no temp tables created by dbplyr
   expect_false(any(stringr::str_starts(
     CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon")),
     "dbplyr_"
   )))
-
-  inc <- estimateIncidence(
-    cdm = cdm,
-    denominatorTable = "denominator",
-    outcomeTable = "outcome",
-    interval = "overall",
-    returnParticipants = TRUE
-  )
-  expect_true(any(stringr::str_detect(
-    CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
-                             schema = attr(cdm, "write_schema")
-    ),
-    "inc_participants"
-  )))
-  expect_false(any(stringr::str_starts(
-    CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon")),
-    "dbplyr_"
-  )))
-
-  CDMConnector::cdm_disconnect(cdm)
-})
-
-test_that("mock db: check participants", {
-  skip_on_cran()
-
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10)
-  cdm$outcome2 <- cdm$outcome %>%
-    dplyr::mutate(cohort_definition_id = subject_id)  %>%
-    dplyr::compute(name = "outcome2")
-
-  cdm <- omopgenerics::insertTable(cdm = cdm,
-                                   table = cdm$outcome2 %>%
-                                     dplyr::collect(),
-                                   name = "outcome2")
-  cdm$outcome2 <- cdm$outcome2 %>%
-    omopgenerics::newCohortTable()
-
-  cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "dpop",
-    ageGroup = list(
-      c(0, 50),
-      c(51, 100)
-    )
-  )
-  start_tables <- CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
-                                           schema = attr(attr(cdm, "cdm_source"), "write_schema"))
-
-  inc <- estimateIncidence(
-    cdm = cdm,
-    denominatorTable = "dpop",
-    outcomeTable = "outcome2",
-    interval = "overall",
-    returnParticipants = TRUE
-  )
-
-  end_tables <- CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
-                                         schema = attr(attr(cdm, "cdm_source"),
-                                                       "write_schema"))
-
-  new_tables <- setdiff(end_tables, start_tables)
-
-  # we should have cleaned up all the intermediate tables
-  expect_equal(
-    names(participants(inc, 1) %>%
-            head(1) %>%
-            dplyr::collect()),
-    c(
-      "subject_id",
-      "cohort_start_date",
-      "cohort_end_date",
-      "outcome_start_date"
-    )
-  )
-
-  CDMConnector::cdm_disconnect(cdm)
-})
-
-test_that("mock db: overwriting participants", {
-  skip_on_cran()
-
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
-  attr(cdm, "write_schema") <- c(schema = "main", prefix = "test_")
-
-  cdm <- generateDenominatorCohortSet(
-    cdm = cdm, name = "dpop",
-    ageGroup = list(
-      c(0, 50),
-      c(51, 100)
-    )
-  )
-  inc1 <- estimateIncidence(
-    cdm = cdm,
-    denominatorTable = "dpop",
-    denominatorCohortId = 1,
-    outcomeTable = "outcome",
-    returnParticipants = TRUE
-  )
-  inc1_count <- nrow(participants(inc1, 1) %>% dplyr::collect())
-
-  inc2 <- estimateIncidence(
-    cdm = cdm,
-    denominatorTable = "dpop",
-    denominatorCohortId = 2,
-    outcomeTable = "outcome",
-    returnParticipants = TRUE
-  )
-  # participants from prev1 should still be the same
-  # (ie no interference from having rerun the function)
-  expect_true(nrow(participants(inc1, 1) %>% dplyr::collect()) == inc1_count)
-
-  # # we should have two tables with participants
-  # # one for each function call
-  # expect_true(length(stringr::str_subset(
-  #   CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
-  #     schema = attr(cdm, "write_schema")
-  #   ),
-  #   "participants"
-  # )) == 2)
 
   CDMConnector::cdm_disconnect(cdm)
 })
@@ -3045,14 +3091,23 @@ test_that("mock db: empty outcome cohort", {
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
-    interval = "months"
+    interval = "months",
+    minCellCount = 0
   ))
-  expect_true(sum(inc$n_events)==0)
+  expect_true(sum(as.numeric(inc |>
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value")))==0)
 
   # make sure we also have a confidence interval even in the case of an empty outcome cohort
-  expect_true(all(inc$incidence_100000_pys == 0))
-  expect_true(all(inc$incidence_100000_pys_95CI_lower == 0))
-  expect_true(all(inc$incidence_100000_pys_95CI_upper > 0))
+  expect_true(all(inc |>
+                  dplyr::filter(estimate_name == "incidence_100000_pys") |>
+                  dplyr::pull("estimate_value")=="0"))
+  expect_true(all(as.numeric(inc |>
+                    dplyr::filter(estimate_name == "incidence_100000_pys_95CI_lower") |>
+                    dplyr::pull("estimate_value")) == 0))
+  expect_true(all(as.numeric(inc |>
+                               dplyr::filter(estimate_name == "incidence_100000_pys_95CI_upper") |>
+                               dplyr::pull("estimate_value")) > 0))
 
   CDMConnector::cdm_disconnect(cdm)
 
@@ -3060,7 +3115,7 @@ test_that("mock db: empty outcome cohort", {
 
 test_that("mock db: incidence using strata vars", {
 
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 2000,
+  cdm <- mockIncidencePrevalenceRef(sampleSize = 2000L,
                                     outPre = 0.2)
 
   cdm <- generateDenominatorCohortSet(cdm = cdm,
@@ -3077,9 +3132,10 @@ test_that("mock db: incidence using strata vars", {
   )
 
   cdm$denominator <- cdm$denominator %>%
-    dplyr::mutate(my_strata = dplyr::if_else(year(cohort_start_date) < 1995,
+    dplyr::mutate(my_strata = dplyr::if_else(year(cohort_start_date) < 1995L,
                                              "first", "second")) %>%
-    dplyr::compute()
+    dplyr::compute(name = "denominator",
+                   temporary = FALSE)
 
   inc <- estimateIncidence(
     cdm = cdm,
@@ -3088,28 +3144,24 @@ test_that("mock db: incidence using strata vars", {
     interval = "months",
     strata = list(c("my_strata"))
   )
-  expect_true(all(c("strata_name", "strata_level") %in%
-                    colnames(inc)))
-  expect_true(all(c("Overall", "my_strata") %in%
-                    unique(inc %>%
-                             dplyr::pull("strata_name"))))
-  expect_true(all(c("Overall",
+  expect_true(all(c("overall", "my_strata") %in%
+                    unique(inc$strata_name)))
+  expect_true(all(c("overall",
                     "first", "second") %in%
-                    unique(inc %>%
-                             dplyr::pull("strata_level"))))
+                    unique(inc$strata_level)))
 
   # original without strata should be the same as "Overall" strata
-  expect_equal(inc_orig,
-               inc %>%
-                 dplyr::filter(strata_name == "Overall") %>%
-                 dplyr::select(!c("strata_name", "strata_level")))
+  expect_identical(inc_orig |>
+                 visOmopResults::filterSettings(result_type == "incidence"), inc  |>
+                 visOmopResults::filterSettings(result_type == "incidence") %>%
+                 dplyr::filter(strata_level == "overall"))
 
 
   cdm$denominator <- cdm$denominator %>%
     dplyr::mutate(my_strata2 =  dplyr::if_else(month(cohort_start_date)<7,
                                                "a", "b")) %>%
-    dplyr::compute()
-
+    dplyr::compute(name = "denominator",
+                   temporary = FALSE)
   inc2 <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
@@ -3117,16 +3169,15 @@ test_that("mock db: incidence using strata vars", {
     interval = "months",
     strata = list(c("my_strata","my_strata2"))
   )
-  expect_true(all(c("strata_name", "strata_level") %in%
-                    colnames(inc2)))
-  expect_true(all(c("Overall", "my_strata and my_strata2") %in%
-                    unique(inc2 %>%
-                             dplyr::pull("strata_name"))))
-  expect_true(all(c("Overall",
-                    "first and a", "first and b",
-                    "second and a", "second and b") %in%
-                    unique(inc2 %>%
-                             dplyr::pull("strata_level"))))
+
+  expect_true(all(c("overall", "my_strata &&& my_strata2") %in%
+                    unique(inc2$strata_name)))
+  expect_true(all(c("overall",
+                    "first &&& a",
+                    "second &&& a",
+                    "first &&& b",
+                    "second &&& b") %in%
+                    unique(inc2$strata_level)))
 
   inc3 <- estimateIncidence(
     cdm = cdm,
@@ -3137,20 +3188,19 @@ test_that("mock db: incidence using strata vars", {
                   c("my_strata2"),
                   c("my_strata", "my_strata2")))
 
-  expect_true(all(c("strata_name", "strata_level") %in%
-                    colnames(inc3)))
-  expect_true(all(c("Overall", "my_strata", "my_strata2",
-                    "my_strata and my_strata2") %in%
-                    unique(inc3 %>%
-                             dplyr::pull("strata_name"))))
-  expect_true(all(c("Overall",
+  expect_true(all(c("overall",
+                    "my_strata"  ,
+                    "my_strata2"  ,
+                    "my_strata &&& my_strata2") %in%
+                    unique(inc3$strata_name)))
+  expect_true(all(c("overall",
                     "first", "second",
                     "a", "b",
-                    "first and a", "first and b",
-                    "second and a", "second and b") %in%
-                    unique(inc3 %>%
-                             dplyr::pull("strata_level"))))
-
+                    "first &&& a",
+                    "second &&& a",
+                    "first &&& b",
+                    "second &&& b") %in%
+                    unique(inc3$strata_level)))
 
   # without overall strata
   inc4 <- estimateIncidence(
@@ -3162,20 +3212,18 @@ test_that("mock db: incidence using strata vars", {
                   c("my_strata2"),
                   c("my_strata", "my_strata2")),
     includeOverallStrata = FALSE)
-  expect_false("Overall" %in% unique(inc4 %>%
-                                       dplyr::pull("strata_name")))
-  expect_true(all(c("my_strata", "my_strata2",
-                    "my_strata and my_strata2") %in%
-                    unique(inc4 %>%
-                             dplyr::pull("strata_name"))))
-  expect_false("Overall" %in% unique(inc4 %>%
-                                       dplyr::pull("strata_level")))
+  expect_true(all(c("my_strata"  ,
+                    "my_strata2"  ,
+                    "my_strata &&& my_strata2") %in%
+                    unique(inc4$strata_name)))
   expect_true(all(c("first", "second",
                     "a", "b",
-                    "first and a", "first and b",
-                    "second and a", "second and b") %in%
-                    unique(inc4 %>%
-                             dplyr::pull("strata_level"))))
+                    "first &&& a",
+                    "second &&& a",
+                    "first &&& b",
+                    "second &&& b") %in%
+                    unique(inc4$strata_level)))
+
 
   expect_error(estimateIncidence(
     cdm = cdm,
@@ -3204,15 +3252,15 @@ test_that("mock db: incidence using strata vars", {
 test_that("mock db: multiple outcome cohort id", {
 
   personTable <- dplyr::tibble(
-    person_id = c("1", "2"),
-    gender_concept_id = "8507",
-    year_of_birth = 2000,
-    month_of_birth = 01,
-    day_of_birth = 01
+    person_id = c(1L, 2L),
+    gender_concept_id = 8507L,
+    year_of_birth = 2000L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c("1", "2"),
-    person_id = c("1", "2"),
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
     observation_period_start_date = c(
       as.Date("2005-01-15"),
       as.Date("2005-01-15")
@@ -3223,8 +3271,8 @@ test_that("mock db: multiple outcome cohort id", {
     )
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = c(1,1,2),
-    subject_id = c("1", "2", "2"),
+    cohort_definition_id = c(1L,1L,2L),
+    subject_id = c(1L, 2L, 2L),
     cohort_start_date = c(
       as.Date("2006-02-05"),
       as.Date("2006-02-05"),
@@ -3250,14 +3298,14 @@ test_that("mock db: multiple outcome cohort id", {
   inc_all_outcome <- estimateIncidence(cdm,
                                        denominatorTable = "denominator",
                                        outcomeTable = "outcome",
-                                       outcomeCohortId = c(1,2),
+                                       outcomeCohortId = c(1L,2L),
                                        interval = "overall",
                                        minCellCount = 0
   )
   inc_all_outcome_1 <- estimateIncidence(cdm,
                                          denominatorTable = "denominator",
                                          outcomeTable = "outcome",
-                                         outcomeCohortId = 1,
+                                         outcomeCohortId = 1L,
                                          interval = "overall",
                                          minCellCount = 0
   )
@@ -3269,100 +3317,18 @@ test_that("mock db: multiple outcome cohort id", {
                                          minCellCount = 0
   )
 
-  expect_equal(
-    inc_all_outcome %>%
-      dplyr::filter(outcome_cohort_id == 1) %>%
-      dplyr::pull("incidence_100000_pys"),
-    inc_all_outcome_1 %>%
-      dplyr::pull("incidence_100000_pys")
-  )
+  expect_identical(inc_all_outcome %>%
+      dplyr::filter(variable_level == "cohort_1")|>
+      dplyr::pull("estimate_value"), inc_all_outcome_1 |>
+      dplyr::pull("estimate_value"))
 
-  expect_equal(
-    inc_all_outcome %>%
-      dplyr::filter(outcome_cohort_id == 2) %>%
-      dplyr::pull("incidence_100000_pys"),
-    inc_all_outcome_2 %>%
-      dplyr::pull("incidence_100000_pys")
-  )
+
+  expect_identical(inc_all_outcome %>%
+      dplyr::filter(variable_level == "cohort_2")|>
+      dplyr::pull("estimate_value"), inc_all_outcome_2 |>
+      dplyr::pull("estimate_value"))
 
   CDMConnector::cdm_disconnect(cdm)
 
 })
 
-test_that("test summarised result working", {
-#
-#   cdm <- mockIncidencePrevalenceRef()
-#
-#   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
-#
-#   inc <- estimateIncidence(
-#     cdm = cdm,
-#     denominatorTable = "denominator",
-#     outcomeTable = "outcome",
-#     interval = "months",
-#     summarisedResult = TRUE
-#   )
-#
-#   expect_true("summarised_result" %in% class(inc))
-#   expect_no_error(visOmopResults::tidy(inc))
-#   expect_true(
-#     all(colnames(settings(inc)) %in% c(
-#       'result_id', 'result_type', 'package_name', 'package_version', 'analysis_interval',
-#       'analysis_complete_database_intervals', 'denominator_cohort_name', 'denominator_age_group',
-#       'denominator_sex', 'denominator_days_prior_observation', 'denominator_start_date',
-#       'denominator_end_date', 'denominator_target_cohort_name', 'outcome_cohort_name', "min_cell_count"
-#     ))
-#   )
-#   expect_true(unique(settings(inc)$result_type) == "incidence")
-#
-#   # strata
-#   cdm$denominator <- cdm$denominator %>%
-#     dplyr::mutate(my_strata = dplyr::if_else(year(cohort_start_date) < 1995,
-#                                              "first", "second")) %>%
-#     dplyr::compute()
-#   inc <- estimateIncidence(
-#     cdm = cdm,
-#     denominatorTable = "denominator",
-#     outcomeTable = "outcome",
-#     interval = "months",
-#     strata = list(c("my_strata")),
-#     summarisedResult = TRUE,
-#     minCellCount = 0
-#   )
-#   expect_true("summarised_result" %in% class(inc))
-#   inc2 <- estimateIncidence(
-#     cdm = cdm,
-#     denominatorTable = "denominator",
-#     outcomeTable = "outcome",
-#     interval = "months",
-#     strata = list(c("my_strata")),
-#     minCellCount = 0
-#   )
-#   expect_equal(
-#     attrition(inc2) |>
-#       dplyr::mutate(result_id = as.integer(analysis_id)) |>
-#       dplyr::select(result_id, number_records, number_subjects, reason_id, reason, excluded_records, excluded_subjects),
-#     attrition(inc)
-#   )
-#
-#   inc_tidy <- inc |> visOmopResults::tidy()
-#   inc_sup <- inc |> omopgenerics::suppress() |> visOmopResults::tidy()
-#   expect_no_error(inc_tidy <- visOmopResults::tidy(inc, addSettings = FALSE))
-#   expect_true(nrow(inc_tidy) == nrow(inc2))
-#   expect_true(all(c("my_strata") %in% colnames(inc_tidy)))
-#   expect_true(all(c("overall", "first") %in%
-#                     unique(inc_tidy %>%
-#                              dplyr::pull("my_strata"))))
-#   # suppress
-#   sup <- inc_tidy |> dplyr::filter(denominator_count < 5 & denominator_count > 0) |>
-#     dplyr::select(!c("denominator_count", "outcome_count", "incidence_100000_pys", "incidence_100000_pys_95CI_lower",
-#                      "incidence_100000_pys_95CI_upper", "person_days", "person_years"))
-#
-#   expect_true(all(is.na(inc_sup |> dplyr::inner_join(sup) |> dplyr::pull("denominator_count"))))
-#   expect_true(all(is.na(inc_sup |> dplyr::inner_join(sup) |> dplyr::pull("person_days"))))
-#   expect_true(all(is.na(inc_sup |> dplyr::inner_join(sup) |> dplyr::pull("incidence_100000_pys"))))
-#   expect_false(any(is.na(inc_sup |> dplyr::inner_join(sup) |> dplyr::pull("outcome_count"))))
-#
-#   CDMConnector::cdm_disconnect(cdm)
-#
-})
