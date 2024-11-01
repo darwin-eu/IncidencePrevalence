@@ -13,6 +13,7 @@ test_that("test tables", {
   tablePrevalence(prev_period, type = "gt")
   tablePrevalence(prev_period, groupColumn = c("denominator_cohort_name", "outcome_cohort_name"))
   tablePrevalence(prev_period, hide = "prevalence_end_date", settingsColumns = "denominator_age_group", groupColumn = "denominator_age_group")
+  tablePrevalenceAttrition(prev_period)
 
   # point prevalence
   prev_point <- estimatePointPrevalence(
@@ -23,6 +24,7 @@ test_that("test tables", {
   )
   tablePrevalence(prev_point, type = "flextable", groupColumn = list("Group" = c("cdm_name", "denominator_cohort_name", "outcome_cohort_name")))
   tablePrevalence(prev_point, header = c("outcome_cohort_name", "estimate_name"))
+  tablePrevalenceAttrition(prev_point)
 
   # incidence
   cdm$denominator <- cdm$denominator %>%
@@ -38,6 +40,7 @@ test_that("test tables", {
   )
   tableIncidence(inc, type = "tibble")
   tableIncidence(inc, type = "flextable", header = "my_strata", groupColumn = "outcome_cohort_name")
+  tableIncidenceAttrition(inc)
 
   # test >1 result
   inc <- estimateIncidence(

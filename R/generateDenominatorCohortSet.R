@@ -75,6 +75,7 @@ generateDenominatorCohortSet <- function(cdm,
     cdm = cdm,
     name = name,
     cohortDateRange = cohortDateRange,
+    timeAtRisk = list(c(0, Inf)),
     ageGroup = ageGroup,
     sex = sex,
     daysPriorObservation = daysPriorObservation,
@@ -157,7 +158,11 @@ generateTargetDenominatorCohortSet <- function(cdm,
                                                daysPriorObservation = 0,
                                                requirementInteractions = TRUE){
 
-  fetchDenominatorCohortSet(
+  if(is.atomic(timeAtRisk)){
+    timeAtRisk <- list(timeAtRisk)
+  }
+
+ cdm <- fetchDenominatorCohortSet(
     cdm = cdm,
     name = name,
     cohortDateRange = cohortDateRange,
@@ -170,6 +175,96 @@ generateTargetDenominatorCohortSet <- function(cdm,
     targetCohortId = targetCohortId
   )
 
+ tar_df <- data.frame(do.call(rbind, timeAtRisk)) %>%
+   dplyr::mutate(time_at_risk = paste0(.data$X1, " to ", .data$X2)) |>
+   dplyr::rename("time_start" = "X1",
+                 "time_end" = "X2") |>
+   dplyr::mutate(tmpTbl = paste0(name, "_tar_", dplyr::row_number()))
+
+ if(nrow(tar_df) == 1 &&
+    tar_df$time_start == 0 &&
+    tar_df$time_end == Inf){
+   # default tar is all so we can return as is
+   return(cdm)
+ }
+
+ cli::cli_inform("Splitting cohorts by time at risk")
+
+# for each tar, apply
+# bind the resultant cohorts
+for(i in seq_along(tar_df$time_start)){
+ timeAtRiskStart <- tar_df$time_start[i]
+ timeAtRiskEnd <- tar_df$time_end[i]
+ workingTmp <- tar_df$tmpTbl[i]
+ ## Update entry and exit based on specified time at risk
+   cdm[[workingTmp]] <- cdm[[name]] |>
+     dplyr::compute(name = workingTmp, overwrite = TRUE)
+   if(timeAtRiskEnd != Inf){
+     # update exit to time based on risk end
+     # set observation end to whatever came first of tar end or obs end
+     cdm[[workingTmp]] <- cdm[[workingTmp]] %>%
+       dplyr::mutate(tar_end_date =
+                       !!CDMConnector::dateadd("cohort_start_date",
+                                               timeAtRiskEnd,
+                                               interval = "day")) %>%
+       dplyr::mutate(
+         cohort_end_date =
+           dplyr::if_else(.data$cohort_end_date >=
+                            as.Date(.data$tar_end_date),
+                          as.Date(.data$tar_end_date),
+                          .data$cohort_end_date
+           )
+       )
+   }
+   if(timeAtRiskStart != 0){
+     # update entry to time based on risk start
+     cdm[[workingTmp]] <- cdm[[workingTmp]]  %>%
+       dplyr::mutate(cohort_start_date  =
+                       as.Date(!!CDMConnector::dateadd("cohort_start_date",
+                                               timeAtRiskStart,
+                                               interval = "day"))) |>
+       dplyr::filter(.data$cohort_start_date <=
+                       .data$cohort_end_date)
+   }
+   cdm[[workingTmp]] <- cdm[[workingTmp]] |>
+     dplyr::compute(name = workingTmp, overwrite = TRUE)
+
+   cdm[[workingTmp]] <- omopgenerics::newCohortTable(cdm[[workingTmp]] |>
+                                                       dplyr::select(!dplyr::any_of(c("tar_end_date"))),
+                                cohortSetRef = settings(cdm[[workingTmp]]) |>
+                                  dplyr::mutate(cohort_name = paste0(.data$cohort_name,
+                                                                     "_tar_",
+                                                                     .env$timeAtRiskStart,
+                                                                     "_",
+                                                                     .env$tolower(timeAtRiskEnd)
+                                                                     ),
+                                                time_at_risk = paste0(.env$timeAtRiskStart,
+                                                                      " to ",
+                                                                      .env$timeAtRiskEnd
+                                                )))
+if(i == 1){
+  cdm[[paste0(name, "_tar")]] <- cdm[[workingTmp]] |>
+    dplyr::compute(name = paste0(name, "_tar"), temporary = FALSE)
+} else {
+  cdm <- omopgenerics::bind(cdm[[workingTmp]],
+                            cdm[[paste0(name, "_tar")]],
+                            name = paste0(name, "_tar"))
+
+ }
+ }
+ cdm[[name]] <- cdm[[paste0(name, "_tar")]] |>
+   dplyr::compute(name = name, temporary = FALSE)
+ cdm[[name]] <- cdm[[name]] |>
+   omopgenerics::recordCohortAttrition(
+     reason = "Time at risk criteria applied")
+
+ CDMConnector::dropTable(cdm = cdm, name = dplyr::starts_with(paste0(name, "_tar")))
+ cdm[[paste0(name, "_tar")]] <- NULL
+ for(i in seq_along(tar_df$time_start)){
+   cdm[[tar_df$tmpTbl[i]]] <- NULL
+ }
+ cdm
+
 }
 
 
@@ -177,18 +272,14 @@ generateTargetDenominatorCohortSet <- function(cdm,
 fetchDenominatorCohortSet <- function(cdm,
                                       name,
                                       cohortDateRange = as.Date(c(NA, NA)),
-                                      timeAtRisk = c(0, Inf),
                                       ageGroup = list(c(0, 150)),
+                                      timeAtRisk = c(0, Inf),
                                       sex = "Both",
                                       daysPriorObservation = 0,
                                       requirementInteractions = TRUE,
                                       targetCohortTable = NULL,
                                       targetCohortId = NULL) {
   startCollect <- Sys.time()
-
-  if(is.atomic(timeAtRisk)){
-    timeAtRisk <- list(timeAtRisk)
-  }
 
   checkInputGenerateDCS(
     cdm = cdm,
@@ -214,10 +305,6 @@ fetchDenominatorCohortSet <- function(cdm,
                                              collapse = "")))
 
   # define cohorts to generate
-  timeAtRiskDf <- data.frame(do.call(rbind, timeAtRisk)) %>%
-    dplyr::mutate(time_at_risk = paste0(.data$X1, " to ", .data$X2)) |>
-    dplyr::rename("time_at_risk_start" = "X1",
-                  "time_at_risk_end" = "X2")
   ageGrDf <- data.frame(do.call(rbind, ageGroup)) %>%
     dplyr::mutate(age_group = paste0(.data$X1, ";", .data$X2))
   popSpecs <- buildPopSpecs(
@@ -232,9 +319,6 @@ fetchDenominatorCohortSet <- function(cdm,
       start_date = cohortDateRange[1],
       end_date = cohortDateRange[2]
     )
-  # add time at risk windows
-  popSpecs <- tidyr::expand_grid(popSpecs, timeAtRiskDf)
-
 
   # get target cohort ids if not given
   if(!is.null(targetCohortTable) && is.null(targetCohortId)){
@@ -262,11 +346,11 @@ fetchDenominatorCohortSet <- function(cdm,
 
   # get results for a single target and time at risk
   # or, if no target and single time at risk, full result
-  if(is.null(targetCohortId) && nrow(timeAtRiskDf) == 1){
+  if(is.null(targetCohortId)){
     denominatorSet<-list(denominatorSet)
   } else {
     denominatorSet <- denominatorSet |>
-      dplyr::mutate(f_levels = paste0(.data$targetCohortId, "_", .data$time_at_risk))
+      dplyr::mutate(f_levels = .data$targetCohortId)
     denominatorSet <- split(denominatorSet,
                             f = denominatorSet$f_levels,
                             drop = FALSE)
@@ -316,7 +400,8 @@ fetchDenominatorCohortSet <- function(cdm,
   cdm[[name]] <- cdm[[name]] %>%
     omopgenerics::newCohortTable(
       cohortSetRef = cohortSetRef |>
-             dplyr::select(!dplyr::any_of(c("time_at_risk_start", "time_at_risk_end", "f_levels"))),
+             dplyr::mutate(time_at_risk = c("0 to Inf")) |> # this will get overwritten if other tar specified
+             dplyr::select(!dplyr::any_of(c("f_levels"))),
       cohortAttritionRef = cohortAttritionRef
     )
 
@@ -346,7 +431,7 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
   if(all(is.na(popSpecs$targetCohortId))){
     cli::cli_alert_info("Creating denominator cohorts")
   } else {
-    cli::cli_alert_info("Creating denominator cohorts: target cohort id {unique(popSpecs$targetCohortId)}, time at risk {unique(popSpecs$time_at_risk)} days")
+    cli::cli_alert_info("Creating denominator cohorts: target cohort id {unique(popSpecs$targetCohortId)}")
   }
 
   tablePrefix <- intermediateTable
@@ -357,8 +442,6 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
     cdm = cdm,
     startDate = unique(popSpecs$start_date),
     endDate = unique(popSpecs$end_date),
-    timeAtRiskStart = unique(popSpecs$time_at_risk_start),
-    timeAtRiskEnd = unique(popSpecs$time_at_risk_end),
     minAge = unique(popSpecs$min_age),
     maxAge = unique(popSpecs$max_age),
     daysPriorObservation = unique(popSpecs$days_prior_observation),
@@ -467,7 +550,6 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
         workingDpop <- workingDpop %>%
           dplyr::filter(.data$sex == local(popSpecs$sex[[i]]))
       }
-
       workingDpop <- workingDpop %>%
         dplyr::rename(
           # cohort start
@@ -480,8 +562,9 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
             ),
           "subject_id" = "person_id"
         ) %>%
-        dplyr::mutate(cohort_start_date = as.Date(.data$cohort_start_date),
-                      cohort_end_date = as.Date(.data$cohort_end_date)) %>%
+        dplyr::mutate(dplyr::across(dplyr::any_of(c("cohort_start_date",
+                                      "cohort_end_date",
+                                      "target_cohort_start_date")), as.Date)) %>%
         dplyr::select(dplyr::any_of(c("subject_id", "cohort_start_date", "cohort_end_date",
                                       "target_cohort_start_date")))
 

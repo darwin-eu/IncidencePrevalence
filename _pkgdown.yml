@@ -29,6 +29,3 @@ reference:
 - subtitle: Benchmark package
 - contents:
   - matches("benchmarkIncidencePrevalence")
-- subtitle: Other utility functions
-- contents:
-  - matches("participants")

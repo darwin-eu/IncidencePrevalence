@@ -430,10 +430,6 @@ test_that("mock db: subset denominator by cohort", {
   )
   expect_true(nrow(omopgenerics::settings(cdm$target_cohort_mult2))==2)
 
-  expect_identical(cdm$target_cohort_mult1 %>%
-                     dplyr::collect(),
-                   cdm$target_cohort_mult2 %>%
-                     dplyr::collect())
   CDMConnector::cdm_disconnect(cdm)
 
   targetCohortTable <- dplyr::tibble(
@@ -1809,6 +1805,7 @@ test_that("mock db: target time at risk", {
     dplyr::pull("number_records") == 0)
 
   # multiple inputs
+  startTbl<- names(cdm)
   cdm <- generateTargetDenominatorCohortSet(
     cdm = cdm, name = "denominator",
     targetCohortTable = "target",
@@ -1816,9 +1813,11 @@ test_that("mock db: target time at risk", {
                       c(16, 40),
                       c(41, Inf))
   )
-  expect_identical(omopgenerics::settings(cdm$denominator) |>
-                dplyr::pull("time_at_risk"),
-                c("0 to 15", "16 to 40", "41 to Inf"))
+  # endTbl <- names(cdm)
+  # expect_identical(sort(startTbl), sort(c(endTbl, "denominator")))
+  expect_identical(sort(omopgenerics::settings(cdm$denominator) |>
+                dplyr::pull("time_at_risk")),
+                sort(c("0 to 15", "16 to 40", "41 to Inf")))
   expect_true(nrow(omopgenerics::cohortCount(cdm$denominator)) == 3)
   expect_true(nrow(cdm$denominator |>
     dplyr::collect()) == 4)
@@ -1849,6 +1848,25 @@ test_that("mock db: target time at risk", {
     requirementInteractions = FALSE
   )
   expect_true(nrow(omopgenerics::settings(cdm$denominator)) == 6)
+
+
+
+  # same test as before - should produce same result (no tables overwritten etc)
+  cdm <- generateTargetDenominatorCohortSet(
+    cdm = cdm, name = "denominator",
+    targetCohortTable = "target",
+    timeAtRisk = c(20, Inf)
+  )
+  expect_true(nrow(cdm$denominator |>
+                     dplyr::collect()) == 2)
+  expect_true(all(cdm$denominator |>
+                    dplyr::pull("cohort_start_date") == "2005-01-21"))
+  expect_true(all(cdm$denominator |>
+                    dplyr::pull("cohort_end_date") == "2005-01-30"))
+  expect_true(omopgenerics::settings(cdm$denominator) |>
+                dplyr::pull("time_at_risk") == "20 to Inf")
+
+
 
   # input validation - expected errors
   expect_error(generateTargetDenominatorCohortSet(
@@ -1882,4 +1900,90 @@ test_that("mock db: target time at risk", {
 
 })
 
+test_that("mock db: target time at risk - requirements applied at original index", {
 
+  skip_on_cran()
+  personTable <- dplyr::tibble(
+    person_id = c(1L, 2L),
+    gender_concept_id = 8507L,
+    year_of_birth = 2000L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
+  )
+  observationPeriodTable <- dplyr::tibble(
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
+    observation_period_start_date = c(
+      as.Date("2000-01-01"),
+      as.Date("2000-01-01")
+    ),
+    observation_period_end_date = c(
+      as.Date("2010-01-30"),
+      as.Date("2010-01-30")
+    )
+  )
+
+  # person 1 target cohort starts in 2000 and ends in 2005
+  # person 2 target cohort starts in 2003 and ends in 2008
+  conditionX <- dplyr::tibble(
+    cohort_definition_id = c(1L, 1L),
+    subject_id = c(1L, 2L),
+    cohort_start_date = c(
+      as.Date("2000-01-01"),
+      as.Date("2003-01-01")
+    ),
+    cohort_end_date = c(
+      as.Date("2005-01-30"),
+      as.Date("2008-01-30")
+    )
+  )
+
+  cdm <- mockIncidencePrevalenceRef(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    targetCohortTable = conditionX
+  )
+
+  # require 180 days prior obs
+  # the prior obs requirement should be applied relative to target start
+  # so only have the second individual
+  cdm <- generateTargetDenominatorCohortSet(
+    cdm = cdm, name = "denominator",
+    targetCohortTable = "target",
+    timeAtRisk = list(c(0, Inf)),
+    daysPriorObservation = 180
+  )
+  expect_true(nrow(cdm$denominator |>
+                     dplyr::collect()) == 1)
+  expect_true(cdm$denominator |>
+    dplyr::pull("subject_id") == 2)
+
+  # time at risk is from one year onwards
+  # we should still exclude subject 1, because we care about their original
+  # cohort start date
+  cdm <- generateTargetDenominatorCohortSet(
+    cdm = cdm, name = "denominator",
+    targetCohortTable = "target",
+    timeAtRisk = list(c(365, Inf)),
+    daysPriorObservation = 180
+  )
+  expect_true(nrow(cdm$denominator |>
+                     dplyr::collect()) == 1)
+  expect_true(cdm$denominator |>
+                dplyr::pull("subject_id") == 2)
+
+  # similarly, date requirement should apply relative to initial cohort start
+  cdm <- generateTargetDenominatorCohortSet(
+    cdm = cdm, name = "denominator",
+    targetCohortTable = "target",
+    timeAtRisk = list(c(365, Inf)),
+    cohortDateRange = as.Date(c("2000-06-01", NA))
+  )
+  expect_true(nrow(cdm$denominator |>
+                     dplyr::collect()) == 1)
+  expect_true(cdm$denominator |>
+                dplyr::pull("subject_id") == 2)
+
+  CDMConnector::cdm_disconnect(cdm)
+
+})

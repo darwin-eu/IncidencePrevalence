@@ -19,8 +19,6 @@
 getDenominatorCohorts <- function(cdm,
                                   startDate,
                                   endDate,
-                                  timeAtRiskStart,
-                                  timeAtRiskEnd,
                                   minAge,
                                   maxAge,
                                   daysPriorObservation,
@@ -46,37 +44,6 @@ getDenominatorCohorts <- function(cdm,
   if (!is.na(targetCohortTable)) {
     targetDb <- cdm[[targetCohortTable]] %>%
       dplyr::filter(.data$cohort_definition_id == .env$targetCohortId)
-
-    ## Update entry and exit based on specified time at risk (if supplied)
-    if(timeAtRiskEnd != Inf || timeAtRiskStart != 0){
-      if(timeAtRiskEnd != Inf){
-        # update exit to time based on risk end
-        # set observation end to whatever came first of tar end or obs end
-        targetDb <- targetDb %>%
-          dplyr::mutate(tar_end_date =
-                          !!CDMConnector::dateadd("cohort_start_date",
-                                                  timeAtRiskEnd,
-                                                  interval = "day")) %>%
-          dplyr::mutate(
-            cohort_end_date =
-              dplyr::if_else(.data$cohort_end_date >=
-                               .data$tar_end_date,
-                             .data$tar_end_date,
-                             .data$cohort_end_date
-              )
-          )
-      }
-      if(timeAtRiskStart != 0){
-        # update entry to time based on risk start
-        targetDb <- targetDb %>%
-          dplyr::mutate(cohort_start_date  =
-                          !!CDMConnector::dateadd("cohort_start_date",
-                                                  timeAtRiskStart,
-                                                  interval = "day")) |>
-          dplyr::filter(.data$cohort_start_date <=
-                          .data$cohort_end_date)
-      }
-    }
 
     # drop anyone not in the target cohort
     personDb <- personDb %>%
@@ -349,11 +316,11 @@ getDenominatorCohorts <- function(cdm,
       studyPopDb <- studyPopDb %>%
         dplyr::mutate(
           !!varLowerPriorHistory :=
-            dplyr::if_else(.data$target_cohort_start_date >=
+            as.Date(dplyr::if_else(.data$target_cohort_start_date >=
                              .data[[varLowerPriorHistory]],
                            .data$target_cohort_start_date,
                            .data[[varLowerPriorHistory]]
-            )
+            ))
         )
     }
 
@@ -395,9 +362,9 @@ getDenominatorCohorts <- function(cdm,
       daysPriorObservation = daysPriorObservation
     )
 
-    minAgeHistDates <- glue::glue("dplyr::if_else(date_min_age_{ageHistCombos$minAge} < date_with_prior_history_{ageHistCombos$daysPriorObservation},
+    minAgeHistDates <- glue::glue("as.Date(dplyr::if_else(date_min_age_{ageHistCombos$minAge} < date_with_prior_history_{ageHistCombos$daysPriorObservation},
                                       date_with_prior_history_{ageHistCombos$daysPriorObservation},
-                                      date_min_age_{ageHistCombos$minAge})") %>%
+                                      date_min_age_{ageHistCombos$minAge}))") %>%
       rlang::parse_exprs() %>%
       rlang::set_names(glue::glue("last_of_min_age_{ageHistCombos$minAge}_prior_history_{ageHistCombos$daysPriorObservation}"))
 
