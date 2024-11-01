@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.8.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -141,8 +141,9 @@ an OMOP CDM cohort:</p>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 denominator_cohor… 18 to 65  Male                     365</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    2 denominator_cohor… 18 to 65  Fema…                    365</span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    3 denominator_cohor… 18 to 65  Both                     365</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 5 more variables: start_date &lt;date&gt;, end_date &lt;date&gt;, time_at_risk &lt;chr&gt;,</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;">#   target_cohort_definition_id &lt;int&gt;, target_cohort_name &lt;chr&gt;</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 5 more variables: start_date &lt;date&gt;, end_date &lt;date&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   target_cohort_definition_id &lt;int&gt;, target_cohort_name &lt;chr&gt;,</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;">#   time_at_risk &lt;chr&gt;</span></span></span></code></pre></div>
 <p>And we can also see the count for each cohort</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://darwin-eu-dev.github.io/omopgenerics/reference/cohortCount.html" class="external-link">cohortCount</a></span><span class="op">(</span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span><span class="op">)</span></span>
