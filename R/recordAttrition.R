@@ -20,29 +20,20 @@ recordAttrition <- function(table,
                             existingAttrition = NULL,
                             reasonId,
                             reason) {
-  errorMessage <- checkmate::makeAssertCollection()
-  checkmate::assertTRUE(any(class(table) %in%
-    c("tbl_dbi", "tbl", "data.frame", "tibble")))
-  checkmate::assertCharacter(id, add = errorMessage)
-  checkmate::assertIntegerish(reasonId, add = errorMessage)
-  checkmate::assertCharacter(reason, null.ok = TRUE, add = errorMessage)
-  if (!is.null(existingAttrition)) {
-    checkmate::assertTRUE(any(class(existingAttrition) %in%
-      c("data.frame", "tbl")))
-  }
-  checkmate::reportAssertions(collection = errorMessage)
+
   attrition <- dplyr::tibble(
     number_records = as.integer(table %>%
-      dplyr::tally() %>%
-      dplyr::pull()),
+                                  dplyr::tally() %>%
+                                  dplyr::pull()),
     number_subjects = as.integer(table %>%
-      dplyr::select(.env$id) %>%
-      dplyr::distinct() %>%
-      dplyr::tally() %>%
-      dplyr::pull()),
+                                   dplyr::select(.env$id) %>%
+                                   dplyr::distinct() %>%
+                                   dplyr::tally() %>%
+                                   dplyr::pull()),
     reason_id = as.integer(.env$reasonId),
     reason = .env$reason
   )
+
 
   if (!is.null(existingAttrition)) {
     attrition <- dplyr::bind_rows(existingAttrition, attrition) %>%

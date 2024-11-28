@@ -29,12 +29,6 @@
 #' @param outPre The fraction of patients with an event.
 #' @param seed The seed for simulating the data set. Use the same
 #' seed to get same data set.
-#' @param ageBeta The beta for the standardised age in a logistic
-#' regression outcome model.
-#' @param genderBeta The beta for the gender flag in a logistic
-#' regression outcome model.
-#' @param intercept The beta for the intercept in a logistic
-#' regression outcome model.
 #' @param earliestDateOfBirth The earliest date of birth of a patient in
 #' person table.
 #' @param latestDateOfBirth The latest date of birth of a patient in
@@ -59,20 +53,17 @@
 #'
 #' @examples
 #' \donttest{
-#' cdm <- mockIncidencePrevalenceRef(sampleSize = 100)
+#' cdm <- mockIncidencePrevalence(sampleSize = 100)
 #' cdm
 #' }
 #'
-mockIncidencePrevalenceRef <- function(personTable = NULL,
+mockIncidencePrevalence <- function(personTable = NULL,
                                        observationPeriodTable = NULL,
                                        targetCohortTable = NULL,
                                        outcomeTable = NULL,
                                        sampleSize = 1,
                                        outPre = 1,
                                        seed = 444,
-                                       ageBeta = NULL,
-                                       genderBeta = NULL,
-                                       intercept = NULL,
                                        earliestDateOfBirth = NULL,
                                        latestDateOfBirth = NULL,
                                        earliestObservationStartDate = as.Date("1900-01-01"),
@@ -85,45 +76,43 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
   rlang::check_installed("duckdb")
   rlang::check_installed("DBI")
 
-  errorMessage <- checkmate::makeAssertCollection()
   if(!is.null(personTable)){
-    checkmate::assert_true(is.data.frame(personTable))
+    omopgenerics::assertTrue(is.data.frame(personTable))
   }
   if(!is.null(observationPeriodTable)){
-    checkmate::assert_true(is.data.frame(observationPeriodTable))
+    omopgenerics::assertTrue(is.data.frame(observationPeriodTable))
   }
   if(!is.null(outcomeTable)){
-    checkmate::assert_true(is.data.frame(outcomeTable))
+    omopgenerics::assertTrue(is.data.frame(outcomeTable))
   }
-  checkmate::assert_int(sampleSize, lower = 1)
-  checkmate::assert_int(seed, lower = 1)
-  checkmate::assert_numeric(ageBeta, null.ok = TRUE)
-  checkmate::assert_numeric(genderBeta, null.ok = TRUE)
-  checkmate::assert_numeric(intercept, null.ok = TRUE)
-  checkmate::assertDate(as.Date(earliestDateOfBirth), null.ok = TRUE)
-  checkmate::assertDate(as.Date(latestDateOfBirth), null.ok = TRUE)
-  checkmate::assertDate(as.Date(earliestObservationStartDate), null.ok = TRUE)
-  checkmate::assertDate(as.Date(latestObservationStartDate), null.ok = TRUE)
-  checkmate::assert_int(minDaysToObservationEnd, lower = 1, null.ok = TRUE)
-  checkmate::assert_int(maxDaysToObservationEnd, lower = 1, null.ok = TRUE)
-  checkmate::assert_int(minOutcomeDays, lower = 1)
-  checkmate::assert_int(maxOutcomeDays, lower = 1)
-  checkmate::assert_int(maxOutcomes, lower = 1)
+
+  omopgenerics::assertNumeric(sampleSize, integerish = TRUE, min = 1)
+  omopgenerics::assertNumeric(seed, integerish = TRUE, min = 1)
+  omopgenerics::assertDate(as.Date(earliestDateOfBirth), null = TRUE)
+  omopgenerics::assertDate(as.Date(latestDateOfBirth), null = TRUE)
+  omopgenerics::assertDate(as.Date(earliestObservationStartDate), null = TRUE)
+  omopgenerics::assertDate(as.Date(latestObservationStartDate), null = TRUE)
+  omopgenerics::assertNumeric(minDaysToObservationEnd, integerish = TRUE,
+                              min = 1, null = TRUE)
+  omopgenerics::assertNumeric(maxDaysToObservationEnd, integerish = TRUE,
+                              min = 1, null = TRUE)
+  omopgenerics::assertNumeric(minOutcomeDays, integerish = TRUE, min = 1)
+  omopgenerics::assertNumeric(maxOutcomeDays, integerish = TRUE, min = 1)
+  omopgenerics::assertNumeric(maxOutcomes, integerish = TRUE, min = 1)
 
   if (!is.null(latestDateOfBirth) &&
     !is.null(earliestDateOfBirth)) {
-    checkmate::assertTRUE(latestDateOfBirth >= earliestDateOfBirth)
+    omopgenerics::assertTrue(latestDateOfBirth >= earliestDateOfBirth)
   }
   if (!is.null(earliestObservationStartDate) &&
     !is.null(latestObservationStartDate)) {
-    checkmate::assertTRUE(latestObservationStartDate >=
+    omopgenerics::assertTrue(latestObservationStartDate >=
       earliestObservationStartDate)
   }
   if (!is.null(minDaysToObservationEnd) &&
     !is.null(maxDaysToObservationEnd)) {
-    checkmate::assertTRUE(maxDaysToObservationEnd >= minDaysToObservationEnd)
+    omopgenerics::assertTrue(maxDaysToObservationEnd >= minDaysToObservationEnd)
   }
-  checkmate::reportAssertions(collection = errorMessage)
 
   set.seed(seed)
 
@@ -195,10 +184,10 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
     }
 
     if (minDaysToObservationEnd == maxDaysToObservationEnd) {
-      obsEndDate <- obsStartDate + lubridate::days(minDaysToObservationEnd)
+      obsEndDate <- obsStartDate %>% clock::add_days(minDaysToObservationEnd)
     } else {
       obsEndDate <-
-        obsStartDate + lubridate::days(
+        obsStartDate %>% clock::add_days(
           sample(
             minDaysToObservationEnd:maxDaysToObservationEnd,
             sampleSize,
@@ -242,7 +231,6 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
   }
 
   if (is.null(outcomeTable)) {
-    if (is.null(ageBeta) || is.null(genderBeta) || is.null(intercept)) {
       # outcome table
       # note, only one outcome cohort
       subjectId <- as.integer(sample(personTable$person_id,
@@ -265,8 +253,8 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
         ))) %>%
         dplyr::mutate(cohort_start_date = .data$observation_period_start_date +
           .data$days_to_outcome) %>%
-        dplyr::mutate(cohort_end_date = .data$cohort_start_date +
-          lubridate::days(sample(minOutcomeDays:maxOutcomeDays, 1))) %>%
+        dplyr::mutate(cohort_end_date = .data$cohort_start_date %>%
+                        clock::add_days(sample(minOutcomeDays:maxOutcomeDays, 1))) %>%
         dplyr::mutate(cohort_end_date = dplyr::if_else(.data$cohort_end_date > .data$observation_period_end_date,
                                                        .data$observation_period_end_date, .data$cohort_end_date)) %>%
         dplyr::select(
@@ -276,73 +264,7 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
         ) %>%
         dplyr::mutate(cohort_definition_id = c(1L)) %>%
         dplyr::relocate("cohort_definition_id")
-    } else { # outcome table
-      # calculate outcome
 
-      personCal <-
-        personTable %>%
-        dplyr::mutate(age = floor(as.numeric(difftime(
-          Sys.Date(), dateOfBirth,
-          units = "weeks" # calculating age from dob
-        )) / 52.25)) %>%
-        # standardizing age variable to have mean 0
-        dplyr::mutate_at("age", ~ (scale(.) %>%
-          as.vector())) %>%
-        # binary variable for gender
-        dplyr::mutate(male_flag = ifelse(genderId == "8507", 1, 0)) %>%
-        dplyr::mutate(
-          pre = exp(
-            .env$ageBeta * .data$age +
-              .env$genderBeta * .data$male_flag +
-              .env$intercept
-          ) / (
-            1 + exp(
-              .env$ageBeta * .data$age +
-                .env$genderBeta * .data$male_flag +
-                .env$intercept
-            )
-          )
-        ) %>% # outcome pre calculator for each person in the person table
-        dplyr::mutate(outcome_flag = sapply(.data$pre, function(x) {
-          binaryFlag <- stats::rbinom(
-            n = 1,
-            size = 1,
-            prob = min(x, 1)
-          )
-          return(binaryFlag)
-        })) # generate binary outcome with adjust_pre
-
-      outcome1 <- personCal %>%
-        dplyr::filter(.data$outcome_flag == 1) # subset of person with outcome
-      subjectId <- outcome1$person_id # define subject_id
-
-      outcomeTable <- observationPeriodTable %>%
-        dplyr::rename("subject_id" = "person_id") %>%
-        dplyr::filter(.data$subject_id %in% .env$subjectId) %>%
-        dplyr::mutate(obs_days = as.integer(difftime(
-          .data$observation_period_end_date,
-          .data$observation_period_start_date,
-          units = "days"
-        ))) %>%
-        dplyr::mutate(days_to_outcome = round(stats::runif(
-          length(.env$subjectId),
-          min = 1,
-          max = .data$obs_days
-        ))) %>%
-        dplyr::mutate(cohort_start_date = .data$observation_period_start_date +
-          .data$days_to_outcome) %>%
-        dplyr::mutate(cohort_end_date = .data$cohort_start_date +
-          lubridate::days(sample(minOutcomeDays:maxOutcomeDays, 1))) %>%
-        dplyr::mutate(cohort_end_date = dplyr::if_else(.data$cohort_end_date > .data$observation_period_end_date,
-                                                       .data$observation_period_end_date, .data$cohort_end_date)) %>%
-        dplyr::select(
-          "subject_id",
-          "cohort_start_date",
-          "cohort_end_date"
-        ) %>%
-        dplyr::mutate(cohort_definition_id = 1L) %>%
-        dplyr::relocate("cohort_definition_id")
-    }
 
     if (maxOutcomes > 1) {
       # create empty table
@@ -360,10 +282,10 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
         # create cohort start date and end date for the possible extra outcomes
         minOutStartDate <-
           minOutStartDate %>%
-          dplyr::mutate(cohort_start_date = .data$cohort_end_date +
-            lubridate::days(sample(1:100, 1))) %>%
-          dplyr::mutate(cohort_end_date = .data$cohort_start_date +
-            lubridate::days(sample(
+          dplyr::mutate(cohort_start_date = .data$cohort_end_date %>%
+                          clock::add_days(sample(1:100, 1))) %>%
+          dplyr::mutate(cohort_end_date = .data$cohort_start_date %>%
+                          clock::add_days(sample(
               minOutcomeDays:maxOutcomeDays,
               1
             )))
@@ -431,31 +353,64 @@ mockIncidencePrevalenceRef <- function(personTable = NULL,
   )
 
 
-
-  cdm_df <- omopgenerics::cdmFromTables(tables = list(
-    "person" = personTable %>%
-      dplyr::mutate(race_concept_id = as.integer(NA),
-                    ethnicity_concept_id = as.integer(NA)),
-    "observation_period" = observationPeriodTable %>%
-      dplyr::mutate(period_type_concept_id = as.integer(NA))),
-    cohortTables = list(
-      "target" = targetCohortTable %>%
-        dplyr::mutate(cohort_definition_id = as.integer(.data$cohort_definition_id)),
-      "outcome" = outcomeTable %>%
-        dplyr::mutate(cohort_definition_id = as.integer(.data$cohort_definition_id))
-    ),
-  cdmName = "mock")
-
   db <- DBI::dbConnect(duckdb::duckdb(), ":memory:")
-  cdm <- CDMConnector::copyCdmTo(con = db,
-                          cdm = cdm_df,
-                          schema = "main",
-                          overwrite = TRUE)
+  DBI::dbWriteTable(db, "person", personTable %>%
+    dplyr::mutate(
+      race_concept_id = as.integer(NA),
+      ethnicity_concept_id = as.integer(NA)
+    ), overwrite = TRUE)
+  DBI::dbWriteTable(db, "observation_period", observationPeriodTable %>%
+    dplyr::mutate(period_type_concept_id = as.integer(NA)),
+    overwrite = TRUE)
+  DBI::dbWriteTable(db, "target", targetCohortTable %>%
+    dplyr::mutate(cohort_definition_id = as.integer(.data$cohort_definition_id)),
+    overwrite = TRUE)
+  DBI::dbWriteTable(db, "outcome", outcomeTable %>%
+    dplyr::mutate(cohort_definition_id = as.integer(.data$cohort_definition_id)),
+    overwrite = TRUE)
 
-  attr(cdm, "cdm_schema") <- "main"
-  attr(cdm, "write_schema") <- "main"
+  cdm <- CDMConnector::cdmFromCon(db, "main", "main",
+                                  cohortTables = c("target", "outcome"),
+                                  cdmName = "mock", .softValidation = TRUE)
 
   return(cdm)
 }
 
-
+#' `r lifecycle::badge("deprecated")`
+#' @rdname mockIncidencePrevalence
+#' @export
+mockIncidencePrevalenceRef <- function(personTable = NULL,
+                                       observationPeriodTable = NULL,
+                                       targetCohortTable = NULL,
+                                       outcomeTable = NULL,
+                                       sampleSize = 1,
+                                       outPre = 1,
+                                       seed = 444,
+                                       earliestDateOfBirth = NULL,
+                                       latestDateOfBirth = NULL,
+                                       earliestObservationStartDate = as.Date("1900-01-01"),
+                                       latestObservationStartDate = as.Date("2010-01-01"),
+                                       minDaysToObservationEnd = 1,
+                                       maxDaysToObservationEnd = 4380,
+                                       minOutcomeDays = 1,
+                                       maxOutcomeDays = 10,
+                                       maxOutcomes = 1){
+  lifecycle::deprecate_soft("0.9.0", "mockIncidencePrevalenceRef()",
+                            "mockIncidencePrevalence()")
+  mockIncidencePrevalence(personTable = personTable,
+                          observationPeriodTable = observationPeriodTable,
+                          targetCohortTable = targetCohortTable,
+                          outcomeTable = outcomeTable,
+                          sampleSize = sampleSize,
+                          outPre = outPre,
+                          seed = seed,
+                          earliestDateOfBirth = earliestDateOfBirth,
+                          latestDateOfBirth = latestDateOfBirth,
+                          earliestObservationStartDate = earliestObservationStartDate,
+                          latestObservationStartDate = latestObservationStartDate,
+                          minDaysToObservationEnd = minDaysToObservationEnd,
+                          maxDaysToObservationEnd = maxDaysToObservationEnd,
+                          minOutcomeDays = minOutcomeDays,
+                          maxOutcomeDays = maxOutcomeDays,
+                          maxOutcomes = maxOutcomes)
+}

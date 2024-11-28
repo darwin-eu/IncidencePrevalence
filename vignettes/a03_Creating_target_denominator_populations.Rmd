@@ -78,7 +78,7 @@ acute_asthma <- tibble(
 )
 
 # mock database
-cdm <- mockIncidencePrevalenceRef(
+cdm <- mockIncidencePrevalence(
   personTable = personTable,
   observationPeriodTable = observationPeriodTable,
   targetCohortTable = acute_asthma
@@ -121,7 +121,7 @@ cdm <- generateTargetDenominatorCohortSet(
 )
 ```
 
-We can see that person "3" and "5" experienced this condition in two different occasions and contribute time to the denominator population twice, while person "2" contribute one period of time at risk. 
+We can see that persons "3" and "5" experienced this condition in two different occasions and contribute time to the denominator population twice, while person "2" contributes one period of time at risk. 
 
 ```{r, message=FALSE, warning=FALSE}
 cdm$denominator_acute_asthma %>%
@@ -140,7 +140,7 @@ cdm$denominator_acute_asthma %>%
 
 Restrictions based on age, sex, and prior observation can again be applied. Prior observation requirements are applied relative to an individual´s observation period start date. Importantly, when using a target cohort for the denominator individuals must satisfy the age and prior observation requirements on their target cohort entry date. (If you wish to stratify on a time-invariant feature, you would create a general population denominator and stratify at the time of estimating incidence and prevalence - see subsequent vignettes).
 
-In the case below we can see that person "3" and "5" satisfy the sex and age requirements on their target cohort start dates, although one of the cohort entries is exclude for patient "5" as they were below the minimum age at that time.
+In the case below we can see that persons "3" and "5" satisfy the sex and age requirements on their target cohort start dates, although one of the cohort entries is excluded for patient "5" as they were below the minimum age at that time.
 
 ```{r, message=FALSE, warning=FALSE}
 cdm <- generateTargetDenominatorCohortSet(
@@ -165,4 +165,97 @@ cdm$denominator_acute_asthma_2 %>%
   theme_minimal() +
   xlab("Year")
 ```
+We can also enforce a time at risk for people to contribute to the denominator. For instance, we might only want to take into account events for people in the target denominator cohort on their first month after cohort entry. This can be achieved by adding the input parameter `timeAtRisk = c(0,30)` when computing the denominator, before any incidence or prevalence calculations. 
 
+```{r, message=FALSE, warning=FALSE}
+cdm <- generateTargetDenominatorCohortSet(
+  cdm = cdm, 
+  name = "denominator_acute_asthma_2",
+  ageGroup = list(c(11, 15)),
+  sex = "Female",
+  daysPriorObservation = 0,
+  targetCohortTable = "target",
+  timeAtRisk = c(0,30)
+)
+
+cdm$denominator_acute_asthma_2 %>%
+  collect() %>%
+  mutate(row = row_number()) %>% 
+  pivot_longer(cols = c(
+    "cohort_start_date",
+    "cohort_end_date"
+  )) %>%
+  ggplot(aes(group = row)) +
+  geom_point(aes(x = value, y = subject_id)) +
+  geom_line(aes(x = value, y = subject_id)) +
+  theme_minimal() +
+  xlab("Year")
+```
+Note that this parameter allows the user to input different time at risk values in the same function call. Therefore, if we ask for `timeAtRisk = list(c(0, 30), c(31, 60))`, we will get a denominator cohort of people contributing time up to 30 days following cohort entry, and another one with time from 31 days following cohort entry to 60 days. 
+
+```{r, message=FALSE, warning=FALSE}
+cdm <- generateTargetDenominatorCohortSet(
+  cdm = cdm, 
+  name = "denominator_acute_asthma_3",
+  ageGroup = list(c(11, 15)),
+  sex = "Female",
+  daysPriorObservation = 0,
+  targetCohortTable = "target",
+  timeAtRisk = list(c(0,30), c(31,60))
+)
+
+cdm$denominator_acute_asthma_3 %>%
+  collect() %>%
+  dplyr::left_join(attr(cdm$denominator_acute_asthma_3, "cohort_set") %>%
+                     dplyr::select(c("cohort_definition_id",
+                                     "time_at_risk")),
+                   by = "cohort_definition_id",
+                   copy = TRUE) %>%
+  mutate(row = row_number()) %>% 
+  pivot_longer(cols = c(
+    "cohort_start_date",
+    "cohort_end_date"
+  )) %>%
+  ggplot(aes(group = row, colour = time_at_risk)) +
+  geom_point(aes(x = value, y = subject_id)) +
+  geom_line(aes(x = value, y = subject_id)) +
+  theme_minimal() +
+  xlab("Year")
+```
+
+Additionally, observe that this parameter allows us to  control the follow-up of these individuals after cohort entry for the denominator cohort, but this is inherently linked to their cohort exit and the end of their observation period. Hence, if we define the target cohort so that individuals are only followed for one month, and we now require `timeAtRisk = c(0,90)`, we will get the same denominator cohort as in the previous example.
+
+```{r, message=FALSE, warning=FALSE}
+cdm$target_2 <- cdm$target |>
+  dplyr::mutate(dif = cohort_end_date - cohort_start_date) |>
+  dplyr::mutate(cohort_end_date = dplyr::if_else(
+    dif > 30,
+    clock::add_days(cohort_start_date, 30),
+    cohort_end_date
+  )) |>
+  dplyr::select(-"dif") |>
+  dplyr::compute()
+
+cdm <- generateTargetDenominatorCohortSet(
+  cdm = cdm, 
+  name = "denominator_acute_asthma_4",
+  ageGroup = list(c(11, 15)),
+  sex = "Female",
+  daysPriorObservation = 0,
+  targetCohortTable = "target_2",
+  timeAtRisk = c(0,90)
+)
+
+cdm$denominator_acute_asthma_4 %>%
+  collect() %>%
+  mutate(row = row_number()) %>% 
+  pivot_longer(cols = c(
+    "cohort_start_date",
+    "cohort_end_date"
+  )) %>%
+  ggplot(aes(group = row)) +
+  geom_point(aes(x = value, y = subject_id)) +
+  geom_line(aes(x = value, y = subject_id)) +
+  theme_minimal() +
+  xlab("Year")
+```

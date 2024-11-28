@@ -40,14 +40,14 @@ Outcome cohorts are defined externally. When creating outcome cohorts for estima
 In addition, it is typically not recommended to include exclusion requirements when creating outcome cohorts. Restrictions on patient characteristics can be specified when identifying the denominator cohort using `generateDenominatorCohortSet()` or `generateTargetDenominatorCohortSet()`
 
 # Using estimatePointPrevalence() and estimatePeriodPrevalence()
-`estimatePointPrevalence()` and `estimatePeriodPrevalence()` are the functions we use to estimate prevalence. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `mockIncidencePrevalenceRef()` function from whom we´ll create a denominator population without adding any restrictions other than a study period.
+`estimatePointPrevalence()` and `estimatePeriodPrevalence()` are the functions we use to estimate prevalence. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `mockIncidencePrevalence()` function from whom we´ll create a denominator population without adding any restrictions other than a study period.
 
 ```{r, message=FALSE, warning=FALSE}
 library(IncidencePrevalence)
 library(dplyr)
 library(tidyr)
 
-cdm <- mockIncidencePrevalenceRef(
+cdm <- mockIncidencePrevalence(
   sampleSize = 20000,
   earliestObservationStartDate = as.Date("1960-01-01"), 
   minOutcomeDays = 365,
@@ -73,8 +73,7 @@ prev <- estimatePointPrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
-  interval = "Years",
-  minCellCount = 0
+  interval = "Years"
 )
 
 prev %>%
@@ -89,8 +88,7 @@ prev <- estimatePointPrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
-  interval = "Months",
-  minCellCount = 0
+  interval = "Months"
 )
 
 prev %>%
@@ -107,14 +105,13 @@ prev <- estimatePointPrevalence(
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "Years",
-  timePoint = "middle",
-  minCellCount = 0
+  timePoint = "middle"
 )
 
 prev %>%
   glimpse()
 
-plotPrevalence(prev, ylim = c(0, NA))
+plotPrevalence(prev, ylim = c(0, NA), options = list(line = FALSE))
 ```
 
 ## Using estimatePeriodPrevalence()
@@ -124,8 +121,7 @@ prev <- estimatePeriodPrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
-  interval = "Years",
-  minCellCount = 0
+  interval = "Years"
 )
 
 prev %>%
@@ -141,8 +137,7 @@ prev <- estimatePeriodPrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
-  interval = "Months",
-  minCellCount = 0
+  interval = "Months"
 )
 
 prev %>%
@@ -159,8 +154,7 @@ prev <- estimatePeriodPrevalence(
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "Months",
-  fullContribution = FALSE,
-  minCellCount = 0
+  fullContribution = FALSE
 )
 
 prev %>%
@@ -185,8 +179,7 @@ cdm <- generateDenominatorCohortSet(
 prev <- estimatePeriodPrevalence(
   cdm = cdm,
   denominatorTable = "denominator_age_sex",
-  outcomeTable = "outcome",
-  minCellCount = 0
+  outcomeTable = "outcome"
 )
 
 plotPrevalence(prev, facet = "denominator_age_group")
@@ -202,12 +195,11 @@ prev <- estimatePeriodPrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
-  strata = "group",
-  minCellCount = 0
+  strata = "group"
 )
 
 plotPrevalence(prev, 
-               facet = "strata_level")
+               colour = c("group"))
 ```
 
 We can also stratify on multiple variables at the same time.
@@ -223,21 +215,18 @@ prev <- estimatePeriodPrevalence(
   outcomeTable = "outcome",
   strata = list(c("group_1"), # for just group_1
                 c("group_2"), # for just group_2
-                c("group_1", "group_2")),  # for group_1 and group_2
-  minCellCount = 0
+                c("group_1", "group_2"))  # for group_1 and group_2
 )
 
 plotPrevalence(prev, 
-               facet = "strata_level")
+               facet = c("group_1", "group_2"))
 ```
 
 ## Other parameters
 
 In the examples above, we have used calculated prevalence by months and years, but it can be also calculated by weeks, months or for the entire time period observed (overall). In addition, the user can decide whether to include time intervals that are not fully captured in the database (e.g., having data up to June for the last study year when computing period prevalence rates). By default, incidence will only be estimated for those intervals where the database captures all the interval (completeDatabaseIntervals=TRUE).
 
-Given that we can set `estimatePointPrevalence()` and `estimatePeriorPrevalence()` to exclude individuals based on certain parameters (e.g., fullContribution), it is important to note that the denominator population used to compute prevalence rates might differ from the one calculated with `generateDenominatorCohortSet()`. 
-
-The user can also set the minimum number of events to be reported, below which results will be obscured. By default, results with <5 occurrences are blinded, but if minCellCount=0, all results will be reported. 95 % confidence intervals are calculated using the Wilson Score method. In addition, we can set verbose=TRUE to report progress as code is running. By default, no progress is reported (verbose=FALSE). 
+Given that we can set `estimatePointPrevalence()` and `estimatePeriorPrevalence()` to exclude individuals based on certain parameters (e.g., fullContribution), it is important to note that the denominator population used to compute prevalence rates might differ from the one calculated with `generateDenominatorCohortSet()`. Along with our central estimate, 95 % confidence intervals are calculated using the Wilson Score method. 
 
 ## Attrition
 `estimatePointPrevalence()` and `estimatePeriorPrevalence()` will generate a table with point and period prevalence rates for each of the time intervals studied and for each combination of the parameters set, respectively. We can also view attrition associated with performing the analysis.
@@ -247,9 +236,8 @@ prev <- estimatePeriodPrevalence(
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "Years",
-  fullContribution = TRUE,
-  minCellCount = 0
+  fullContribution = TRUE
 )
-tablePrevalenceAttrition(prev)
+tablePrevalenceAttrition(prev, settingsColumns = character())
 ```
 

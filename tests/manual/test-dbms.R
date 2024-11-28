@@ -32,7 +32,7 @@ test_that("postgres test", {
    cdm$observation_period |>
      utils::head(5) |>
      dplyr::collect() |>
-     dplyr::mutate(a1_1 = observation_period_start_date + lubridate::days(1)) |>
+     dplyr::mutate(a1_1 = observation_period_start_date %>% clock::add_days(1)) |>
      dplyr::mutate(a1_1 = as.Date(a1_1)) |>
      dplyr::collect() |>
      dplyr::pull("a1_1"))
@@ -54,7 +54,7 @@ test_that("postgres test", {
    cdm$observation_period |>
      utils::head(5) |>
      dplyr::collect() |>
-     dplyr::mutate(a1_1 = observation_period_start_date + lubridate::years(1)) |>
+     dplyr::mutate(a1_1 = observation_period_start_date %>% clock::add_years(1)) |>
      dplyr::mutate(a1_1 = as.Date(a1_1)) |>
      dplyr::collect() |>
      dplyr::pull("a1_1"))
@@ -102,7 +102,7 @@ test_that("redshift test", {
     cdm$observation_period |>
       utils::head(5) |>
       dplyr::collect() |>
-      dplyr::mutate(a1_1 = observation_period_start_date + lubridate::days(1)) |>
+      dplyr::mutate(a1_1 = observation_period_start_date %>% clock::add_days(1)) |>
       dplyr::mutate(a1_1 = as.Date(a1_1)) |>
       dplyr::collect() |>
       dplyr::pull("a1_1"))
@@ -124,7 +124,7 @@ test_that("redshift test", {
     cdm$observation_period |>
       utils::head(5) |>
       dplyr::collect() |>
-      dplyr::mutate(a1_1 = observation_period_start_date + lubridate::years(1)) |>
+      dplyr::mutate(a1_1 = observation_period_start_date %>% clock::add_years(1)) |>
       dplyr::mutate(a1_1 = as.Date(a1_1)) |>
       dplyr::collect() |>
       dplyr::pull("a1_1"))
@@ -174,7 +174,7 @@ test_that("sql server test", {
     cdm$observation_period |>
       utils::head(5) |>
       dplyr::collect() |>
-      dplyr::mutate(a1_1 = observation_period_start_date + lubridate::days(1)) |>
+      dplyr::mutate(a1_1 = observation_period_start_date %>% clock::add_days(1)) |>
       dplyr::mutate(a1_1 = as.Date(a1_1)) |>
       dplyr::collect() |>
       dplyr::pull("a1_1"))
@@ -196,7 +196,7 @@ test_that("sql server test", {
     cdm$observation_period |>
       utils::head(5) |>
       dplyr::collect() |>
-      dplyr::mutate(a1_1 = observation_period_start_date + lubridate::years(1)) |>
+      dplyr::mutate(a1_1 = observation_period_start_date %>% clock::add_years(1)) |>
       dplyr::mutate(a1_1 = as.Date(a1_1)) |>
       dplyr::collect() |>
       dplyr::pull("a1_1"))
@@ -246,7 +246,7 @@ test_that("snowflake test", {
     cdm$observation_period |>
       utils::head(5) |>
       dplyr::collect() |>
-      dplyr::mutate(a1_1 = observation_period_start_date + lubridate::days(1)) |>
+      dplyr::mutate(a1_1 = observation_period_start_date %>% clock::add_days(1)) |>
       dplyr::mutate(a1_1 = as.Date(a1_1)) |>
       dplyr::collect() |>
       dplyr::pull("a1_1"))
@@ -268,7 +268,7 @@ test_that("snowflake test", {
     cdm$observation_period |>
       utils::head(5) |>
       dplyr::collect() |>
-      dplyr::mutate(a1_1 = observation_period_start_date + lubridate::years(1)) |>
+      dplyr::mutate(a1_1 = observation_period_start_date %>% clock::add_years(1)) |>
       dplyr::mutate(a1_1 = as.Date(a1_1)) |>
       dplyr::collect() |>
       dplyr::pull("a1_1"))

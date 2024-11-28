@@ -1,6 +1,6 @@
 test_that("check working example with defaults", {
   skip_on_cran()
-  db <- mockIncidencePrevalenceRef(sampleSize = 10000, outPre = 0.5)
+  db <- mockIncidencePrevalence(sampleSize = 10000, outPre = 0.5)
   cdmCheck <- inherits(db, "cdm_reference")
   expect_true(cdmCheck)
 
@@ -37,7 +37,7 @@ test_that("check working example with defaults", {
 
 test_that("check working example sample size and outcome prevalence option", {
   skip_on_cran()
-  db <- mockIncidencePrevalenceRef(sampleSize = 100,
+  db <- mockIncidencePrevalence(sampleSize = 100,
                                    outPre = 0.2,
                                    earliestObservationStartDate = as.Date("2007-08-21"),
                                    latestObservationStartDate = as.Date("2007-08-21"),
@@ -63,60 +63,9 @@ test_that("check working example sample size and outcome prevalence option", {
   CDMConnector::cdm_disconnect(db)
 })
 
-test_that("outcome varies by gender and age option", {
-  skip_on_cran()
-  db <- mockIncidencePrevalenceRef(
-    sampleSize = 100,
-    outPre = 0.2,
-    genderBeta = -1,
-    ageBeta = 1,
-    intercept = -1,
-    earliestObservationStartDate = as.Date("2007-08-21"),
-    latestObservationStartDate = as.Date("2007-08-21"),
-    minDaysToObservationEnd = 1000
-  )
-
-  db2 <- mockIncidencePrevalenceRef(
-    sampleSize = 100,
-    outPre = 0.2,
-    genderBeta = -1,
-    ageBeta = 1,
-    earliestObservationStartDate = as.Date("2007-08-21"),
-    latestObservationStartDate = as.Date("2007-08-21"),
-    minDaysToObservationEnd = 1000
-  )
-
-  expect_true(nrow(db$person %>%
-    dplyr::collect()) == 100)
-
-  expect_true(nrow(db2$person %>%
-    dplyr::collect()) == 100)
-
-  expect_true(nrow(db$outcome %>%
-    dplyr::collect()) != 20)
-
-  expect_true(nrow(db2$outcome %>%
-    dplyr::collect()) == 20)
-
-
-  outcomeDbNames <- c(
-    "cohort_definition_id", "subject_id",
-    "cohort_start_date", "cohort_end_date"
-  )
-  outcomeNamesCheck <- all(outcomeDbNames %in%
-    names(db$outcome %>%
-      utils::head(1) %>%
-      dplyr::collect() %>%
-      dplyr::rename_with(tolower)))
-  expect_true(outcomeNamesCheck)
-
-  CDMConnector::cdm_disconnect(db)
-  CDMConnector::cdm_disconnect(db2)
-})
-
 test_that("multiple outcomes", {
   skip_on_cran()
-  db <- mockIncidencePrevalenceRef(
+  db <- mockIncidencePrevalence(
     sampleSize = 200,
     outPre = 0.2,
     maxOutcomes = 1,
@@ -126,7 +75,7 @@ test_that("multiple outcomes", {
     maxDaysToObservationEnd = 1000
   )
   db2 <-
-    mockIncidencePrevalenceRef(
+    mockIncidencePrevalence(
       sampleSize = 200,
       outPre = 0.2,
       maxOutcomes = 2,
@@ -136,7 +85,7 @@ test_that("multiple outcomes", {
       maxDaysToObservationEnd = 10000
     )
   db3 <-
-    mockIncidencePrevalenceRef(
+    mockIncidencePrevalence(
       sampleSize = 200,
       outPre = 0.2,
       maxOutcomes = 3,
@@ -146,7 +95,7 @@ test_that("multiple outcomes", {
       maxDaysToObservationEnd = 100000
     )
   db4 <-
-    mockIncidencePrevalenceRef(
+    mockIncidencePrevalence(
       sampleSize = 1,
       outPre = 1,
       maxOutcomes = 10,
@@ -219,39 +168,45 @@ test_that("multiple outcomes", {
 test_that("check expected errors", {
   skip_on_cran()
   expect_error(
-    mockIncidencePrevalenceRef(personTable = "x")
+    mockIncidencePrevalence(personTable = "x")
   )
   expect_error(
-    mockIncidencePrevalenceRef(observationPeriodTable = "x")
+    mockIncidencePrevalence(observationPeriodTable = "x")
   )
   expect_error(
-    mockIncidencePrevalenceRef(outcomeTable = "x")
+    mockIncidencePrevalence(outcomeTable = "x")
   )
   expect_error(
-    mockIncidencePrevalenceRef(sampleSize = -1)
+    mockIncidencePrevalence(sampleSize = -1)
   )
   expect_error(
-    mockIncidencePrevalenceRef(
+    mockIncidencePrevalence(
       sampleSize = 100,
       outPre = -0.2
     )
   )
   expect_error(
-    mockIncidencePrevalenceRef(
+    mockIncidencePrevalence(
       earliestDateOfBirth = as.Date("2000-01-01"),
       latestDateOfBirth = as.Date("1999-01-01")
     )
   )
   expect_error(
-    mockIncidencePrevalenceRef(
+    mockIncidencePrevalence(
       earliestObservationStartDate = as.Date("2000-01-01"),
       latestObservationStartDate = as.Date("1999-01-01")
     )
   )
   expect_error(
-    mockIncidencePrevalenceRef(
+    mockIncidencePrevalence(
       minDaysToObservationEnd = 10,
       maxDaysToObservationEnd = 1
     )
   )
+})
+
+test_that("mockIncidencePrevalenceRef deprecated", {
+expect_warning(
+  db <- mockIncidencePrevalenceRef(sampleSize = 10)
+)
 })

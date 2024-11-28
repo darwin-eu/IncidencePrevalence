@@ -1,5 +1,5 @@
 test_that("test tables", {
-  cdm <- mockIncidencePrevalenceRef()
+  cdm <- mockIncidencePrevalence()
 
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
 
@@ -12,7 +12,7 @@ test_that("test tables", {
   # test prevalence works
   tablePrevalence(prev_period, type = "gt")
   tablePrevalence(prev_period, groupColumn = c("denominator_cohort_name", "outcome_cohort_name"))
-  tablePrevalence(prev_period, hide = "prevalence_end_date", settingsColumns = "denominator_age_group", groupColumn = "denominator_age_group")
+  tablePrevalence(prev_period, hide = "prevalence_end_date", settingsColumn = "denominator_age_group", groupColumn = "denominator_age_group")
   tablePrevalenceAttrition(prev_period)
 
   # point prevalence
@@ -56,7 +56,7 @@ test_that("test tables", {
 })
 
 test_that("test importing results", {
-  cdm <- mockIncidencePrevalenceRef()
+  cdm <- mockIncidencePrevalence()
 
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
 

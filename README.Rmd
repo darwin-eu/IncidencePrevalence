@@ -72,10 +72,10 @@ cdm <- CDMConnector::cdm_from_con(con,
 To see how you would create a reference to your database please consult the CDMConnector package documentation. For this example though we´ll work with simulated data, and we'll generate an example cdm reference like so:
 
 ```{r}
-cdm <- mockIncidencePrevalenceRef(sampleSize = 10000, 
-                                  outPre = 0.3, 
-                                  minOutcomeDays = 365, 
-                                  maxOutcomeDays = 3650)
+cdm <- mockIncidencePrevalence(sampleSize = 10000, 
+                               outPre = 0.3, 
+                               minOutcomeDays = 365, 
+                               maxOutcomeDays = 3650)
 ```
 
 ### Identify a denominator cohort
@@ -86,7 +86,7 @@ To identify a set of denominator cohorts we can use the `generateDenominatorCoho
 cdm <- generateDenominatorCohortSet(
   cdm = cdm,
   name = "denominator",
-  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01")),
+  cohortDateRange = as.Date(c("2008-01-01", "2018-01-01")),
   ageGroup = list(
     c(0, 64),
     c(65, 100)
@@ -128,8 +128,7 @@ inc <- estimateIncidence(
   interval = "years",
   repeatedEvents = TRUE,
   outcomeWashout = 180,
-  completeDatabaseIntervals = TRUE,
-  minCellCount = 5
+  completeDatabaseIntervals = TRUE
 )
 plotIncidence(inc, facet = c("denominator_age_group", "denominator_sex"))
 ```
@@ -142,8 +141,7 @@ prev_point <- estimatePointPrevalence(
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "years",
-  timePoint = "start",
-  minCellCount = 5
+  timePoint = "start"
 )
 plotPrevalence(prev_point, facet = c("denominator_age_group", "denominator_sex"))
 ```
@@ -157,8 +155,7 @@ prev_period <- estimatePeriodPrevalence(
   outcomeTable = "outcome",
   interval = "years",
   completeDatabaseIntervals = TRUE,
-  fullContribution = TRUE,
-  minCellCount = 5
+  fullContribution = TRUE
 )
 plotPrevalence(prev_period, facet = c("denominator_age_group", "denominator_sex"))
 ```

@@ -26,9 +26,9 @@ generateTargetDenominatorCohortSet(
 to limit cohort entry and exit (with individuals only contributing to a
 cohort when they are contributing to the cohort in the target table).}
 
-\item{targetCohortId}{The cohort definition id for the cohort of interest
-in the target table. If targetCohortTable is specified, a single targetCohortId
-must also be specified.}
+\item{targetCohortId}{The cohort definition ids or the cohort names of
+the cohorts of interest for the target table. If NULL all cohorts will be
+considered in the analysis.}
 
 \item{cohortDateRange}{Two dates. The first indicating the earliest cohort
 start date and the second indicating the latest possible cohort end date. If
@@ -76,7 +76,7 @@ or \code{estimatePeriodPrevalence()}.
 }
 \examples{
 \donttest{
-cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
+cdm <- mockIncidencePrevalence(sampleSize = 1000)
 cdm <- generateTargetDenominatorCohortSet(
   cdm = cdm,
   name = "denominator",

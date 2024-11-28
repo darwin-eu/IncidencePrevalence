@@ -55,7 +55,7 @@
 #'
 #' @examples
 #' \donttest{
-#' cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
+#' cdm <- mockIncidencePrevalence(sampleSize = 1000)
 #' cdm <- generateDenominatorCohortSet(
 #'   cdm = cdm,
 #'   name = "denominator",
@@ -99,9 +99,9 @@ generateDenominatorCohortSet <- function(cdm,
 #' @param targetCohortTable A cohort table in the cdm reference to use
 #' to limit cohort entry and exit (with individuals only contributing to a
 #' cohort when they are contributing to the cohort in the target table).
-#' @param targetCohortId The cohort definition id for the cohort of interest
-#'  in the target table. If targetCohortTable is specified, a single targetCohortId
-#'  must also be specified.
+#' @param targetCohortId The cohort definition ids or the cohort names of
+#' the cohorts of interest for the target table. If NULL all cohorts will be
+#' considered in the analysis.
 #' @param cohortDateRange Two dates. The first indicating the earliest cohort
 #' start date and the second indicating the latest possible cohort end date. If
 #' NULL or the first date is set as missing, the earliest observation_start_date
@@ -138,7 +138,7 @@ generateDenominatorCohortSet <- function(cdm,
 #'
 #' @examples
 #' \donttest{
-#' cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
+#' cdm <- mockIncidencePrevalence(sampleSize = 1000)
 #' cdm <- generateTargetDenominatorCohortSet(
 #'   cdm = cdm,
 #'   name = "denominator",
@@ -281,7 +281,7 @@ fetchDenominatorCohortSet <- function(cdm,
                                       targetCohortId = NULL) {
   startCollect <- Sys.time()
 
-  checkInputGenerateDCS(
+  targetCohortId <- checkInputGenerateDCS(
     cdm = cdm,
     name = name,
     cohortDateRange = cohortDateRange,

@@ -72,10 +72,10 @@ work with simulated data, and we’ll generate an example cdm reference
 like so:
 
 ``` r
-cdm <- mockIncidencePrevalenceRef(sampleSize = 10000, 
-                                  outPre = 0.3, 
-                                  minOutcomeDays = 365, 
-                                  maxOutcomeDays = 3650)
+cdm <- mockIncidencePrevalence(sampleSize = 10000, 
+                               outPre = 0.3, 
+                               minOutcomeDays = 365, 
+                               maxOutcomeDays = 3650)
 ```
 
 ### Identify a denominator cohort
@@ -92,7 +92,7 @@ one with both sexes included).
 cdm <- generateDenominatorCohortSet(
   cdm = cdm,
   name = "denominator",
-  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01")),
+  cohortDateRange = as.Date(c("2008-01-01", "2018-01-01")),
   ageGroup = list(
     c(0, 64),
     c(65, 100)
@@ -106,7 +106,7 @@ This will then give us six denominator cohorts
 
 ``` r
 cohortSet(cdm$denominator)
-#> # A tibble: 6 × 9
+#> # A tibble: 6 × 10
 #>   cohort_definition_id cohort_name        age_group sex   days_prior_observation
 #>                  <int> <chr>              <chr>     <chr>                  <dbl>
 #> 1                    1 denominator_cohor… 0 to 64   Male                     180
@@ -115,8 +115,9 @@ cohortSet(cdm$denominator)
 #> 4                    4 denominator_cohor… 65 to 100 Male                     180
 #> 5                    5 denominator_cohor… 65 to 100 Fema…                    180
 #> 6                    6 denominator_cohor… 65 to 100 Both                     180
-#> # ℹ 4 more variables: start_date <date>, end_date <date>,
-#> #   target_cohort_definition_id <int>, target_cohort_name <chr>
+#> # ℹ 5 more variables: start_date <date>, end_date <date>,
+#> #   target_cohort_definition_id <int>, target_cohort_name <chr>,
+#> #   time_at_risk <chr>
 ```
 
 These cohorts will be in the typical OMOP CDM structure
@@ -124,19 +125,19 @@ These cohorts will be in the typical OMOP CDM structure
 ``` r
 cdm$denominator
 #> # Source:   table<main.denominator> [?? x 4]
-#> # Database: DuckDB v1.0.0 [root@Darwin 23.4.0:R 4.4.1/:memory:]
+#> # Database: DuckDB v1.0.0 [eburn@Windows 10 x64:R 4.4.0/:memory:]
 #>    cohort_definition_id subject_id cohort_start_date cohort_end_date
 #>                   <int>      <int> <date>            <date>         
-#>  1                    1          2 2008-01-01        2018-01-01     
-#>  2                    1          3 2008-01-01        2018-01-01     
-#>  3                    1          4 2008-01-01        2010-05-26     
-#>  4                    1          9 2008-01-01        2018-01-01     
-#>  5                    1         10 2008-01-01        2014-04-23     
-#>  6                    1         17 2008-01-01        2018-01-01     
-#>  7                    1         19 2008-01-01        2009-10-20     
-#>  8                    1         25 2008-01-01        2018-01-01     
-#>  9                    1         28 2008-01-01        2018-01-01     
-#> 10                    1         30 2008-01-01        2018-01-01     
+#>  1                    1        116 2008-01-01        2009-01-10     
+#>  2                    1        204 2008-01-01        2009-12-05     
+#>  3                    1        271 2008-01-01        2008-02-06     
+#>  4                    1        371 2008-01-01        2011-04-23     
+#>  5                    1        390 2010-04-14        2013-03-29     
+#>  6                    1        480 2008-01-01        2015-12-27     
+#>  7                    1        526 2008-01-01        2008-03-12     
+#>  8                    1        567 2008-01-01        2011-04-23     
+#>  9                    1        571 2008-01-01        2008-03-05     
+#> 10                    1        595 2008-01-01        2010-09-02     
 #> # ℹ more rows
 ```
 
@@ -150,19 +151,19 @@ outcome cohort.
 ``` r
 cdm$outcome
 #> # Source:   table<main.outcome> [?? x 4]
-#> # Database: DuckDB v1.0.0 [root@Darwin 23.4.0:R 4.4.1/:memory:]
+#> # Database: DuckDB v1.0.0 [eburn@Windows 10 x64:R 4.4.0/:memory:]
 #>    cohort_definition_id subject_id cohort_start_date cohort_end_date
 #>                   <int>      <int> <date>            <date>         
-#>  1                    1          2 2018-04-27        2026-04-20     
-#>  2                    1          3 1999-08-30        2007-08-23     
-#>  3                    1         10 2027-12-25        2035-12-18     
-#>  4                    1         13 1985-12-10        1993-12-03     
-#>  5                    1         15 1977-06-17        1980-04-14     
-#>  6                    1         16 1970-09-08        1978-09-01     
-#>  7                    1         17 1984-03-20        1992-03-13     
-#>  8                    1         21 2022-10-21        2030-10-14     
-#>  9                    1         27 2046-06-18        2048-02-11     
-#> 10                    1         29 1988-04-30        1996-04-23     
+#>  1                    1          2 1991-07-21        1991-12-05     
+#>  2                    1          3 1996-08-23        1999-03-13     
+#>  3                    1          9 1934-05-01        1939-09-20     
+#>  4                    1         10 1994-06-16        1994-12-01     
+#>  5                    1         13 1963-01-20        1969-02-06     
+#>  6                    1         15 1901-01-28        1904-08-02     
+#>  7                    1         16 2002-05-01        2006-07-26     
+#>  8                    1         21 1913-07-19        1915-03-10     
+#>  9                    1         29 1926-04-01        1928-01-18     
+#> 10                    1         30 1919-07-17        1919-07-30     
 #> # ℹ more rows
 ```
 
@@ -186,8 +187,7 @@ inc <- estimateIncidence(
   interval = "years",
   repeatedEvents = TRUE,
   outcomeWashout = 180,
-  completeDatabaseIntervals = TRUE,
-  minCellCount = 5
+  completeDatabaseIntervals = TRUE
 )
 plotIncidence(inc, facet = c("denominator_age_group", "denominator_sex"))
 ```
@@ -203,8 +203,7 @@ prev_point <- estimatePointPrevalence(
   denominatorTable = "denominator",
   outcomeTable = "outcome",
   interval = "years",
-  timePoint = "start",
-  minCellCount = 5
+  timePoint = "start"
 )
 plotPrevalence(prev_point, facet = c("denominator_age_group", "denominator_sex"))
 ```
@@ -222,8 +221,7 @@ prev_period <- estimatePeriodPrevalence(
   outcomeTable = "outcome",
   interval = "years",
   completeDatabaseIntervals = TRUE,
-  fullContribution = TRUE,
-  minCellCount = 5
+  fullContribution = TRUE
 )
 plotPrevalence(prev_period, facet = c("denominator_age_group", "denominator_sex"))
 ```

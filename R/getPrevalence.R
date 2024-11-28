@@ -196,8 +196,8 @@ getPrevalence <- function(cdm,
         # include ongoing in current time of interest
         result <- workingPop %>%
           dplyr::summarise(
-            n_persons = dplyr::n_distinct(.data$subject_id),
-            n_cases = dplyr::n_distinct(.data$subject_id[
+            denominator_count = dplyr::n_distinct(.data$subject_id),
+            outcome_count = dplyr::n_distinct(.data$subject_id[
               !is.na(.data$outcome_start_date) &
                 .data$outcome_start_date <= .data$cohort_end_date &
                 .data$outcome_end_date >= .data$cohort_start_date
@@ -205,8 +205,8 @@ getPrevalence <- function(cdm,
           )
 
         pr[[paste0(i)]] <- dplyr::tibble(
-          n_population = result$n_persons,
-          n_cases = result$n_cases
+          denominator_count = result$denominator_count,
+          outcome_count = result$outcome_count
         )
       } else {
         pr[[paste0(i)]] <- dplyr::tibble()
@@ -214,30 +214,27 @@ getPrevalence <- function(cdm,
 
       if(length(strata)>=1){
         pr[[paste0(i)]] <- pr[[paste0(i)]] %>%
-          dplyr::mutate(strata_name = "Overall",
-                        strata_level = "Overall")
+          omopgenerics::uniteStrata()
         for(j in seq_along(strata)){
           pr[[paste0(i)]] <- dplyr::bind_rows(pr[[paste0(i)]],
                                               getStratifiedPrevalenceResult(workingPop,
                                                                             workingStrata = strata[[j]]
-                                              ) %>%
-                                                dplyr::rename("n_population" = "n_persons"))
+                                              ))
         }}
       pr[[paste0(i)]] <- dplyr::tibble(cbind(pr[[paste0(i)]], studyDays[i, ]))
 
     }
 
     pr <- dplyr::bind_rows(pr) %>%
-      dplyr::mutate(prevalence = .data$n_cases / .data$n_population) %>%
+      dplyr::mutate(prevalence = .data$outcome_count / .data$denominator_count) %>%
       dplyr::select(dplyr::any_of(c(
-        "n_cases", "n_population",
+        "outcome_count", "denominator_count",
         "prevalence", "start_time", "end_time",
         "strata_name", "strata_level"
       ))) %>%
       dplyr::rename("prevalence_start_date" = "start_time") %>%
       dplyr::rename("prevalence_end_date" = "end_time")
   }
-
 
   results <- list()
   results[["pr"]] <- pr
@@ -246,14 +243,13 @@ getPrevalence <- function(cdm,
   return(results)
 }
 
-getStratifiedPrevalenceResult <- function(workingPop, workingStrata){
-
+getStratifiedPrevalenceResult <- function(workingPop, workingStrata) {
   # include ongoing in current time of interest
   result <- workingPop %>%
     dplyr::group_by(dplyr::pick(.env$workingStrata)) %>%
     dplyr::summarise(
-      n_persons = dplyr::n_distinct(.data$subject_id),
-      n_cases = dplyr::n_distinct(.data$subject_id[
+      denominator_count = dplyr::n_distinct(.data$subject_id),
+      outcome_count = dplyr::n_distinct(.data$subject_id[
         !is.na(.data$outcome_start_date) &
           .data$outcome_start_date <= .data$cohort_end_date &
           .data$outcome_end_date >= .data$cohort_start_date
@@ -261,15 +257,8 @@ getStratifiedPrevalenceResult <- function(workingPop, workingStrata){
     ) %>%
     dplyr::ungroup()
 
-
   result <- result %>%
-    tidyr::unite("strata_level",
-                 c(dplyr::all_of(.env$workingStrata)),
-                 remove = FALSE, sep = " and ") %>%
-    dplyr::mutate(strata_name = !!paste0(workingStrata, collapse = " and ")) %>%
-    dplyr::relocate("strata_level", .after = "strata_name") %>%
-    dplyr::select(!dplyr::any_of(workingStrata))
+    omopgenerics::uniteStrata(cols = workingStrata)
 
   return(result)
-
 }

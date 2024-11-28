@@ -9,9 +9,10 @@ tableIncidence(
   type = "gt",
   header = c("estimate_name"),
   groupColumn = character(),
-  settingsColumns = colnames(settings(result)),
+  settingsColumn = omopgenerics::settingsColumns(result),
   hide = character(),
-  .options = list()
+  .options = list(),
+  settingsColumns = lifecycle::deprecated()
 )
 }
 \arguments{
@@ -24,19 +25,21 @@ order of elements matters, with the first being the topmost header.
 The header vector can contain one of the following variables: "cdm_name",
 "denominator_cohort_name", "outcome_cohort_name", "incidence_start_date",
 "incidence_end_date", "estimate_name", variables in the \code{strata_name} column,
-and any of the settings columns specified in \code{settingsColumns} argument.
+and any of the settings columns specified in \code{settingsColumn} argument.
 The header can also include other names to use as overall header labels}
 
 \item{groupColumn}{Variables to use as group labels. Allowed columns are the
 same as in \code{header}}
 
-\item{settingsColumns}{Variables from the settings atribute to dispaly in
+\item{settingsColumn}{Variables from the settings atribute to dispaly in
 the table}
 
 \item{hide}{Table columns to exclude, options are the ones described in
 \code{header}}
 
 \item{.options}{Table options to apply}
+
+\item{settingsColumns}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}}
 }
 \value{
 Table of results
@@ -46,7 +49,7 @@ Table of incidence results
 }
 \examples{
 \donttest{
-cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
+cdm <- mockIncidencePrevalence(sampleSize = 1000)
 cdm <- generateDenominatorCohortSet(
   cdm = cdm, name = "denominator",
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))

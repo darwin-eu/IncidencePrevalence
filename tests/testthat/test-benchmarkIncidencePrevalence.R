@@ -1,7 +1,7 @@
 test_that("full benchmark", {
   skip_on_cran()
 
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     sampleSize = 100,
     earliestObservationStartDate = as.Date("2010-01-01"),
     latestObservationStartDate = as.Date("2010-01-01"),
@@ -41,7 +41,7 @@ test_that("full benchmark", {
 
 test_that("check tables cleaned up", {
 
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     sampleSize = 100,
     earliestObservationStartDate = as.Date("2010-01-01"),
     latestObservationStartDate = as.Date("2010-01-01"),
@@ -60,7 +60,7 @@ test_that("check tables cleaned up", {
   expect_equal(sort(start_tables), sort(end_tables))
   CDMConnector::cdm_disconnect(cdm)
 
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     sampleSize = 100,
     earliestObservationStartDate = as.Date("2010-01-01"),
     latestObservationStartDate = as.Date("2010-01-01"),

@@ -1,6 +1,6 @@
 Package: IncidencePrevalence
 Title: Estimate Incidence and Prevalence using the OMOP Common Data Model
-Version: 0.8.1
+Version: 0.9.0
 Authors@R: c(
     person("Edward", "Burn", email = "edward.burn@ndorms.ox.ac.uk", 
     role = c("aut", "cre"), 
@@ -36,15 +36,14 @@ Imports:
     dbplyr (>= 2.5.0),
     dplyr (>= 1.1.0),
     glue (>= 1.5.0),
-    omopgenerics (>= 0.3.1),
-    lubridate (>= 1.0.0),
+    omopgenerics (>= 0.4.0),
     magrittr (>= 2.0.0),
     PatientProfiles (>= 1.1.0),
     purrr (>= 0.3.5),
     rlang (>= 1.0.0),
     stringr (>= 1.5.0),
     tidyr (>= 1.2.0),
-    visOmopResults (>= 0.4.0)
+    lifecycle
 Suggests: 
     knitr,
     rmarkdown,
@@ -61,7 +60,8 @@ Suggests:
     gt,
     flextable,
     ggplot2 (>= 3.4.0),
-    scales (>= 1.1.0)
+    scales (>= 1.1.0),
+    visOmopResults (>= 0.5.0)
 Config/testthat/edition: 3
 Config/testthat/parallel: true
 VignetteBuilder: knitr

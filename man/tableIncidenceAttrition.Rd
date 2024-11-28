@@ -9,8 +9,9 @@ tableIncidenceAttrition(
   type = "gt",
   header = "variable_name",
   groupColumn = c("cdm_name", "variable_level"),
-  settingsColumns = colnames(settings(result)),
-  hide = "estimate_name"
+  settingsColumn = omopgenerics::settingsColumns(result),
+  hide = "estimate_name",
+  settingsColumns = lifecycle::deprecated()
 )
 }
 \arguments{
@@ -21,17 +22,19 @@ summariseCohortAttrition().}
 \code{visOmopResults::tableType()}.}
 
 \item{header}{Columns to use as header. See options with
-\code{colnames(visOmopResults::splitAll(result))}. Variables in \code{settingsColumns}
+\code{colnames(omopgenerics::splitAll(result))}. Variables in \code{settingsColumn}
 are also allowed}
 
 \item{groupColumn}{Variables to use as group labels. Allowed columns are the
 same as in \code{header}}
 
-\item{settingsColumns}{Variables from the settings atribute to dispaly in
+\item{settingsColumn}{Variables from the settings atribute to dispaly in
 the table}
 
 \item{hide}{Table columns to exclude, options are the ones described in
 \code{header}}
+
+\item{settingsColumns}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}}
 }
 \value{
 A visual table.

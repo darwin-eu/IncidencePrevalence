@@ -14,7 +14,6 @@ estimateIncidence(
   completeDatabaseIntervals = TRUE,
   outcomeWashout = Inf,
   repeatedEvents = FALSE,
-  minCellCount = 5,
   strata = list(),
   includeOverallStrata = TRUE
 )
@@ -29,12 +28,12 @@ function).}
 \item{outcomeTable}{A cohort table in the cdm reference containing
 a set of outcome cohorts.}
 
-\item{denominatorCohortId}{The cohort definition ids of the denominator
-cohorts of interest. If NULL all cohorts will be considered in the
-analysis.}
+\item{denominatorCohortId}{The cohort definition ids or the cohort names of
+the denominator cohorts of interest. If NULL all cohorts will be considered
+in the analysis.}
 
-\item{outcomeCohortId}{The cohort definition ids of the outcome
-cohorts of interest. If NULL all cohorts will be considered in the
+\item{outcomeCohortId}{The cohort definition ids or the cohort names of the
+outcome cohorts of interest. If NULL all cohorts will be considered in the
 analysis.}
 
 \item{interval}{Time intervals over which incidence is estimated. Can
@@ -59,9 +58,6 @@ present in an outcome cohort and any subsequent washout will be
 excluded). If FALSE, an individual will only contribute time up to their
 first event.}
 
-\item{minCellCount}{The minimum number of events to reported, below which
-results will be obscured. If 0, all results will be reported.}
-
 \item{strata}{Variables added to the denominator cohort table for which to
 stratify estimates.}
 
@@ -76,7 +72,7 @@ Collect population incidence estimates
 }
 \examples{
 \donttest{
-cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
+cdm <- mockIncidencePrevalence(sampleSize = 1000)
 cdm <- generateDenominatorCohortSet(
   cdm = cdm, name = "denominator",
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))

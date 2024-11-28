@@ -65,14 +65,14 @@ Outcome cohorts are defined externally. When creating outcome cohorts for estima
 3. Do not add further restrictions on sex, age and prior history requirements. These can be specified when identifying the denominator population with the `generateDenominatorCohortSet()` function.
 
 # Using estimateIncidence()
-`estimateIncidence()` is the function we use to estimate incidence rates. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `mockIncidencePrevalenceRef()` function, from whom we´ll create a denominator population without adding any restrictions other than a study period. In this example we'll use permanent tables (rather than temporary tables which would be used by default).   
+`estimateIncidence()` is the function we use to estimate incidence rates. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `mockIncidencePrevalence()` function, from whom we´ll create a denominator population without adding any restrictions other than a study period. In this example we'll use permanent tables (rather than temporary tables which would be used by default).   
 
 ```{r setup}
 library(IncidencePrevalence)
 library(dplyr)
 library(tidyr)
 
-cdm <- mockIncidencePrevalenceRef(
+cdm <- mockIncidencePrevalence(
   sampleSize = 20000,
   earliestObservationStartDate = as.Date("1960-01-01"), 
   minOutcomeDays = 365,
@@ -201,7 +201,7 @@ inc <- estimateIncidence(
 )
 
 plotIncidence(inc, 
-               facet = "strata_level")
+               colour = "group")
 
 cdm$denominator <- cdm$denominator %>% 
   mutate(group_1 = if_else(as.numeric(subject_id)  < 3000, "first", "second"),
@@ -218,16 +218,14 @@ inc <- estimateIncidence(
 )
 
 plotIncidence(inc, 
-               facet = "strata_level")
+               facet = c("group_1", "group_2"))
 ```
 
 
 ### Other parameters
 In the examples above, we have used calculated incidence rates by months and years, but it can be also calculated by weeks, months, quarters, or for the entire study time period. In addition, we can decide whether to include time intervals that are not fully captured in the database (e.g., having data up to June for the last study year when computing yearly incidence rates). By default, incidence will only be estimated for those intervals where the denominator cohort captures all the interval (completeDatabaseIntervals=TRUE).
 
-Given that we can set `estimateIncidence()` to exclude individuals based on other parameters (e.g., outcomeWashout), it is important to note that the denominator population used to compute incidence rates might differ from the one calculated with `generateDenominatorCohortSet()`.
-
-The user can also set the minimum number of events to be reported, below which results will be obscured. By default, results with <5 occurrences are blinded, but if minCellCount=0, all results will be reported. 95 % confidence intervals are calculated using the exact method. We can set verbose=TRUE to report progress as code is running. By default, no progress is reported (verbose=FALSE). 
+Given that we can set `estimateIncidence()` to exclude individuals based on other parameters (e.g., outcomeWashout), it is important to note that the denominator population used to compute incidence rates might differ from the one calculated with `generateDenominatorCohortSet()`. 95 % confidence intervals are calculated using the exact method. 
 
 ```{r, message=TRUE, warning=FALSE}
 inc <- estimateIncidence(
@@ -237,8 +235,7 @@ inc <- estimateIncidence(
   interval = c("weeks"),
   completeDatabaseIntervals = FALSE,
   outcomeWashout = 180,
-  repeatedEvents = TRUE,
-  minCellCount = 0
+  repeatedEvents = TRUE
 )
 ```
 

@@ -13,8 +13,7 @@ estimatePointPrevalence(
   interval = "years",
   timePoint = "start",
   strata = list(),
-  includeOverallStrata = TRUE,
-  minCellCount = 5
+  includeOverallStrata = TRUE
 )
 }
 \arguments{
@@ -27,12 +26,12 @@ function).}
 \item{outcomeTable}{A cohort table in the cdm reference containing
 a set of outcome cohorts.}
 
-\item{denominatorCohortId}{The cohort definition ids of the denominator
-cohorts of interest. If NULL all cohorts will be considered in the
-analysis.}
+\item{denominatorCohortId}{The cohort definition ids or the cohort names of
+the denominator cohorts of interest. If NULL all cohorts will be considered
+in the analysis.}
 
-\item{outcomeCohortId}{The cohort definition ids of the outcome
-cohorts of interest. If NULL all cohorts will be considered in the
+\item{outcomeCohortId}{The cohort definition ids or the cohort names of the
+outcome cohorts of interest. If NULL all cohorts will be considered in the
 analysis.}
 
 \item{interval}{Time intervals over which period prevalence is estimated. Can
@@ -48,9 +47,6 @@ stratify estimates.}
 
 \item{includeOverallStrata}{Whether to include an overall result as well as
 strata specific results (when strata has been specified).}
-
-\item{minCellCount}{Minimum number of events to report- results
-lower than this will be obscured. If NULL all results will be reported.}
 }
 \value{
 Point prevalence estimates
@@ -60,7 +56,7 @@ Estimate point prevalence
 }
 \examples{
 \donttest{
-cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
+cdm <- mockIncidencePrevalence(sampleSize = 1000)
 cdm <- generateDenominatorCohortSet(
   cdm = cdm, name = "denominator",
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))

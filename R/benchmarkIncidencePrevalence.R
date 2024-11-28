@@ -25,7 +25,7 @@
 #'
 #' @examples
 #' \donttest{
-#' cdm <- mockIncidencePrevalenceRef(
+#' cdm <- mockIncidencePrevalence(
 #'   sampleSize = 100,
 #'   earliestObservationStartDate = as.Date("2010-01-01"),
 #'   latestObservationStartDate = as.Date("2010-01-01"),
@@ -38,24 +38,13 @@
 #' }
 benchmarkIncidencePrevalence <- function(cdm,
                                          analysisType = "all") {
-  errorMessage <- checkmate::makeAssertCollection()
-  cdmCheck <- inherits(cdm, "cdm_reference")
-  if (!isTRUE(cdmCheck)) {
-    errorMessage$push(
-      "- cdm must be a CDMConnector CDM reference object"
-    )
-  }
-  analysistypeCheck <- analysisType %in% c(
+  omopgenerics::validateCdmArgument(cdm)
+  omopgenerics::assertChoice(analysisType, c(
     "all", "only incidence",
     "only prevalence"
-  )
-  if (!isTRUE(analysistypeCheck)) {
-    errorMessage$push(
-      "- `analysisType` is not one of the possibilities
-      ('all', 'only incidence'or 'only prevalence')"
-    )
-  }
-  checkmate::reportAssertions(collection = errorMessage)
+  ),
+  msg = "- `analysisType` is not one of the possibilities
+      ('all', 'only incidence'or 'only prevalence')")
 
   # will add timings to list
   timings <- list()
@@ -197,10 +186,6 @@ benchmarkIncidencePrevalence <- function(cdm,
   timings <- timings %>%
     dplyr::mutate(result_id = 1L,
                   cdm_name = omopgenerics::cdmName(cdm),
-                  result_type = "IncidecnePrevalence benchmark",
-                  package_name = "IncidencePrevalence",
-                  package_version =
-                    as.character(utils::packageVersion("IncidencePrevalence")),
                   group_name = "task",
                   group_level = .data$task,
                   strata_name = "overall",
@@ -220,7 +205,12 @@ benchmarkIncidencePrevalence <- function(cdm,
                   ) %>%
     dplyr::select(dplyr::all_of(
       colnames(omopgenerics::emptySummarisedResult()))) %>%
-    omopgenerics::newSummarisedResult()
+    omopgenerics::newSummarisedResult(settings = dplyr::tibble(
+      result_id = 1L,
+      result_type = "IncidecnePrevalence benchmark",
+      package_name = "IncidencePrevalence",
+      package_version = as.character(utils::packageVersion("IncidencePrevalence"))
+    ))
 
 
   return(timings)

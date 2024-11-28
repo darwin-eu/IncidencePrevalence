@@ -1,6 +1,6 @@
 test_that("test date functions with duckdb mock", {
 
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 5)
+  cdm <- mockIncidencePrevalence(sampleSize = 5)
 
   # add days
   days_q <-  addDaysQuery(cdm,
@@ -18,7 +18,7 @@ test_that("test date functions with duckdb mock", {
    cdm$observation_period |>
       utils::head(5) |>
       dplyr::collect() |>
-      dplyr::mutate(a1_1 = observation_period_start_date + lubridate::days(1)) |>
+      dplyr::mutate(a1_1 = observation_period_start_date %>% clock::add_days(1)) |>
       dplyr::mutate(a1_1=as.Date(a1_1)) |>
       dplyr::pull("a1_1"))
 
@@ -38,7 +38,7 @@ test_that("test date functions with duckdb mock", {
     cdm$observation_period |>
       utils::head(5) |>
       dplyr::collect() |>
-      dplyr::mutate(a1 = observation_period_start_date - lubridate::days(1)) |>
+      dplyr::mutate(a1 = observation_period_start_date %>% clock::add_days(-1)) |>
       dplyr::mutate(a1=as.Date(a1)) |>
       dplyr::pull("a1"))
 
@@ -59,7 +59,7 @@ test_that("test date functions with duckdb mock", {
     cdm$observation_period |>
       utils::head(5) |>
       dplyr::collect() |>
-      dplyr::mutate(a1_1 = observation_period_start_date + lubridate::years(1)) |>
+      dplyr::mutate(a1_1 = observation_period_start_date %>% clock::add_years(1)) |>
       dplyr::mutate(a1_1=as.Date(a1_1)) |>
       dplyr::pull("a1_1"))
 
@@ -80,7 +80,7 @@ test_that("test date functions with duckdb mock", {
     cdm$observation_period |>
       utils::head(5) |>
       dplyr::collect() |>
-      dplyr::mutate(a1 = observation_period_start_date - lubridate::years(1)) |>
+      dplyr::mutate(a1 = observation_period_start_date %>% clock::add_years(-1)) |>
       dplyr::mutate(a1=as.Date(a1)) |>
       dplyr::pull("a1"))
 
@@ -100,7 +100,7 @@ test_that("test date functions with duckdb mock", {
     cdm$observation_period |>
       utils::head(5) |>
       dplyr::collect() |>
-      dplyr::mutate(a1_1 = observation_period_start_date - lubridate::years(1)) |>
+      dplyr::mutate(a1_1 = observation_period_start_date %>% clock::add_years(-1)) |>
       dplyr::mutate(a1_1=as.Date(a1_1)) |>
       dplyr::pull("a1_1"))
 

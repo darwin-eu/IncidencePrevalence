@@ -1,6 +1,6 @@
 
 test_that("mock db: check output format", {
-  cdm <- mockIncidencePrevalenceRef()
+  cdm <- mockIncidencePrevalence()
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
 
   expect_true(all(c(
@@ -66,7 +66,7 @@ test_that("mock db: checks on working example", {
     observation_period_end_date = as.Date("2012-06-01")
   )
 
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable
   )
@@ -111,7 +111,7 @@ test_that("mock db: checks on working example", {
     cohort_start_date = as.Date("2010-03-15"),
     cohort_end_date = as.Date("2012-03-15")
   )
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable,
     targetCohortTable = targetCohortTable
@@ -151,7 +151,7 @@ test_that("mock db: check example we expect to work", {
     observation_period_end_date = as.Date("2015-06-01")
   )
   # mock database
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     person = personTable,
     observationPeriodTable = observationPeriodTable
   )
@@ -198,7 +198,7 @@ test_that("mock db: check another example we expect to work", {
     observation_period_end_date = rep(as.Date("2015-06-01"), 5)
   )
   # mock database
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable
   )
@@ -287,17 +287,17 @@ test_that("mock db: check another example we expect to work", {
 
 test_that("mock db: mock example 1000", {
   skip_on_cran()
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
+  cdm <- mockIncidencePrevalence(sampleSize = 1000)
   # all options being used except study start and end
   cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     name = "denominator",
     ageGroup = list(
-      c(0, 5), c(6, 10), c(11, 15), c(16, 20), c(21, 25), c(26, 30), c(31, 35),
-      c(36, 40), c(41, 45), c(46, 50), c(51, 55), c(56, 60), c(61, 100)
+      c(0, 10), c(11, 20), c(21, 30), c(31, 40), c(41, 50),
+      c(51, 60), c(61, 100)
     ),
     sex = c("Female", "Male", "Both"),
-    daysPriorObservation = c(0, 30, 60, 90, 120, 150, 180)
+    daysPriorObservation = c(0, 120, 150)
   )
   expect_true(any(omopgenerics::cohortCount(cdm$denominator)$number_records > 0))
 
@@ -345,7 +345,7 @@ test_that("mock db: subset denominator by cohort", {
   )
 
   # mock database
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable,
     targetCohortTable = targetCohortTable
@@ -442,7 +442,7 @@ test_that("mock db: subset denominator by cohort", {
                                 "2012-09-01", "2012-09-01", "2012-09-01", "2012-09-01",
                                 "2012-09-01", "2012-09-01", "2012-09-01", "2012-09-01", "2012-09-01"))
   )
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable,
     targetCohortTable = targetCohortTable
@@ -472,7 +472,7 @@ test_that("mock db: subset denominator by cohort", {
   )
 
   # mock database
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable,
     targetCohortTable = targetCohortTable
@@ -549,7 +549,7 @@ test_that("mock db: subset denominator by cohort", {
   )
 
   # mock database
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable,
     targetCohortTable = targetCohortTable
@@ -593,7 +593,7 @@ test_that("mock db: one male, one female", {
     observation_period_end_date = rep(as.Date("2012-06-01"), 2)
   )
 
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable
   )
@@ -641,7 +641,7 @@ test_that("mock db: check example with restriction on sex", {
     observation_period_end_date = rep(as.Date("2015-06-01"), 3)
   )
   # mock database
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable
   )
@@ -678,7 +678,7 @@ test_that("mock db: check example with restriction on sex", {
     observation_period_end_date = as.Date("2015-06-01")
   )
   # mock database
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable
   )
@@ -720,7 +720,7 @@ test_that("mock db: check example with restriction on age", {
     observation_period_end_date = rep(as.Date("2015-06-01"), 3)
   )
   # mock database
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable
   )
@@ -766,7 +766,7 @@ test_that("mock db: check example with restriction on age", {
   )
 
   # mock database
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable
   )
@@ -797,7 +797,7 @@ test_that("mock db: check example with restriction on age", {
 
 test_that("mock db: check age edge cases", {
   skip_on_cran()
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
+  cdm <- mockIncidencePrevalence(sampleSize = 1000)
 
   # same min and max
   # one person, born in 2000
@@ -816,7 +816,7 @@ test_that("mock db: check age edge cases", {
   )
 
   # mock database
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable
   )
@@ -853,7 +853,7 @@ test_that("mock db check age target entry and exit", {
     observation_period_start_date = as.Date("2008-01-01"),
     observation_period_end_date = as.Date("2018-06-01")
   )
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable
   )
@@ -912,7 +912,7 @@ test_that("mock db check target prior observation requirement", {
     cohort_end_date = as.Date("2018-06-01")
   )
 
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable,
     targetCohortTable = targetCohortTable
@@ -1000,7 +1000,7 @@ test_that("mock db: targetRequirementsAtEntry", {
     cohort_end_date = as.Date("2018-06-01"),
   )
 
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable,
     targetCohortTable = targetCohortTable
@@ -1059,7 +1059,7 @@ test_that("mock db: targetRequirementsAtEntry", {
     cohort_end_date = as.Date("2018-06-01")
   )
 
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable,
     targetCohortTable = targetCohortTable
@@ -1119,7 +1119,7 @@ test_that("mock db: check example with multiple observation periods", {
       as.Date("2011-06-01")
     )
   )
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable
   )
@@ -1178,7 +1178,7 @@ test_that("mock db: check imputation of date of birth", {
     observation_period_end_date = rep(as.Date("2015-06-01"), 4)
   )
 
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable
   )
@@ -1231,7 +1231,7 @@ test_that("mock db: check edge cases (zero results expected)", {
     observation_period_end_date = as.Date("2015-06-01")
   )
   # mock database
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable
   )
@@ -1274,7 +1274,7 @@ test_that("mock db: check edge cases (zero results expected)", {
 
 test_that("mock db: check expected errors", {
   skip_on_cran()
-  cdm <- mockIncidencePrevalenceRef()
+  cdm <- mockIncidencePrevalence()
 
   # not a cdm reference
   expect_error(generateDenominatorCohortSet(
@@ -1342,7 +1342,7 @@ test_that("mock db: check expected errors", {
     start_date = as.Date("2012-06-06"),
     end_date = as.Date("2013-06-06")
   )
-  expect_error(mockIncidencePrevalenceRef(targetCohortTable = targetCohortTable))
+  expect_error(mockIncidencePrevalence(targetCohortTable = targetCohortTable))
 
   CDMConnector::cdm_disconnect(cdm)
 
@@ -1374,7 +1374,7 @@ test_that("mock db: check attrition table logic", {
   )
 
   # mock database
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable
   )
@@ -1456,7 +1456,7 @@ test_that("mock db: check attrition table logic", {
     )
   )
   # mock database
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable
   )
@@ -1486,7 +1486,7 @@ test_that("mock db: check attrition with multiple cohorts", {
     observation_period_end_date = c(as.Date("2012-06-01"), as.Date("2012-06-01"))
   )
 
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable
   )
@@ -1571,7 +1571,7 @@ test_that("mock db: check attrition with multiple cohorts", {
 test_that("mock db: check tables were cleaned up", {
   skip_on_cran()
 
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 10)
+  cdm <- mockIncidencePrevalence(sampleSize = 10)
 
   startTables <- CDMConnector::listTables(attr(attr(cdm, "cdm_source"), "dbcon"),
                                           schema = attr(cdm, "write_schema")
@@ -1621,7 +1621,7 @@ test_that("mock db: check tables were cleaned up", {
 
 test_that("mock db: requirement interactions", {
   skip_on_cran()
-  cdm <- mockIncidencePrevalenceRef(sampleSize = 100)
+  cdm <- mockIncidencePrevalence(sampleSize = 100)
 
   cdm <- generateDenominatorCohortSet(cdm,
                                       name = "denominator",
@@ -1717,7 +1717,7 @@ test_that("mock db: target time at risk", {
     )
   )
 
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable,
     targetCohortTable = conditionX
@@ -1938,7 +1938,7 @@ test_that("mock db: target time at risk - requirements applied at original index
     )
   )
 
-  cdm <- mockIncidencePrevalenceRef(
+  cdm <- mockIncidencePrevalence(
     personTable = personTable,
     observationPeriodTable = observationPeriodTable,
     targetCohortTable = conditionX
@@ -1986,4 +1986,46 @@ test_that("mock db: target time at risk - requirements applied at original index
 
   CDMConnector::cdm_disconnect(cdm)
 
+})
+
+test_that("mock db: cohort names for cohortId args", {
+  skip_on_cran()
+  personTable <- dplyr::tibble(
+    person_id = 1L,
+    gender_concept_id = 8507L,
+    year_of_birth = 2000L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
+  )
+  observationPeriodTable <- dplyr::tibble(
+    observation_period_id = 1L,
+    person_id = 1L,
+    observation_period_start_date = as.Date("2010-01-28"),
+    observation_period_end_date = as.Date("2012-12-31")
+  )
+  outcomeTable <- dplyr::tibble(
+    cohort_definition_id = 1L,
+    subject_id = 1L,
+    cohort_start_date = c(
+      as.Date("2010-01-28")
+    ),
+    cohort_end_date = c(
+      as.Date("2010-01-28")
+    )
+  )
+
+  cdm <- mockIncidencePrevalence(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    outcomeTable = outcomeTable
+  )
+
+  cdm1 <- generateTargetDenominatorCohortSet(cdm, "denominator", "target", 1)
+  cdm2 <- generateTargetDenominatorCohortSet(cdm, "denominator", "target")
+  cdm3 <- generateTargetDenominatorCohortSet(cdm, "denominator", "target", "cohort_1")
+
+  expect_true(all.equal(cdm1$target,cdm2$target))
+  expect_true(all.equal(cdm2$target,cdm3$target))
+
+  CDMConnector::cdmDisconnect(cdm)
 })

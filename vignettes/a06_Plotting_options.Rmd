@@ -5,6 +5,7 @@ vignette: >
   %\VignetteIndexEntry{a06_Plotting_options}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  
 ---
 
 ```{r, include = FALSE}
@@ -33,7 +34,7 @@ library(IncidencePrevalence)
 This package provides functions to create an incidence or prevalence plot. There are a couple of options that can be specified when creating such a plot. In this vignette we are using the options in the `plotIncidence` function, however these same options can be specified in the `plotPrevalence` function.
 
 ```{r setup}
-cdm <- mockIncidencePrevalenceRef(
+cdm <- mockIncidencePrevalence(
   sampleSize = 10000,
   outPre = 0.5
 )
@@ -84,7 +85,15 @@ defines the number of columns of the subplots. In addition we set `facetScales` 
 
 ```{r stackedplot}
 plotIncidence(inc, facet = "denominator_sex", ribbon = TRUE, 
-              options = list('hideConfidenceInterval' = TRUE,
+              options = list('point' = FALSE,
                              'facetNcols' = 1, 
                              'facetScales' = "free"))
+```
+
+## More plot options
+
+To know which other options are available to customise plots refer to the function `optionsPlot()`. The description provides a brief explanation on each of the options.
+
+```{r options}
+optionsPlot()
 ```

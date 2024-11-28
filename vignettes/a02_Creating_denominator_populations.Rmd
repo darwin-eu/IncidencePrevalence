@@ -69,7 +69,7 @@ knitr::include_graphics(here("vignettes/dpop4.png"))
 ```
 
 # Using generateDenominatorCohortSet()
-`generateDenominatorCohortSet()` is the function we use to identify a set of denominator populations. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 500 example patients using the `mockIncidencePrevalenceRef()` function.
+`generateDenominatorCohortSet()` is the function we use to identify a set of denominator populations. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 500 example patients using the `mockIncidencePrevalence()` function.
 
 ```{r, message=FALSE, warning=FALSE}
 library(CDMConnector)
@@ -80,7 +80,7 @@ library(dplyr)
 ```
 
 ```{r, message=TRUE}
-cdm <- mockIncidencePrevalenceRef(sampleSize = 500)
+cdm <- mockIncidencePrevalence(sampleSize = 500)
 ```
 
 
@@ -228,7 +228,7 @@ cdm$denominator %>%
 ### Multiple options to return multiple denominator populations 
 More than one age, sex and prior history requirements can be specified at the same time. First, we can take a look at having two age groups. We can see below that those individuals who have their 41st birthday during the study period will go from the first cohort (age_group: 0;40) to the second (age_group: 41;100) on this day.
 ```{r, message=FALSE, warning=FALSE}
-cdm <- mockIncidencePrevalenceRef(sampleSize = 500, 
+cdm <- mockIncidencePrevalence(sampleSize = 500, 
                                   earliestObservationStartDate = as.Date("2000-01-01"),
                                   latestObservationStartDate =  as.Date("2005-01-01"),
                                   minDaysToObservationEnd = 10000, 

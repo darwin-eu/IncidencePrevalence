@@ -7,11 +7,11 @@
 plotIncidence(
   result,
   x = "incidence_start_date",
+  y = "incidence_100000_pys",
   ylim = c(0, NA),
   ribbon = FALSE,
   facet = NULL,
   colour = NULL,
-  colour_name = NULL,
   options = list()
 )
 }
@@ -19,6 +19,9 @@ plotIncidence(
 \item{result}{Incidence results}
 
 \item{x}{Variable to plot on x axis}
+
+\item{y}{Variable to plot on y axis. Options are: "incidence_100000_pys",
+"outcome_count", "denominator_count", "person_days"}
 
 \item{ylim}{Limits for the Y axis}
 
@@ -28,9 +31,8 @@ plotIncidence(
 
 \item{colour}{Variables to use for colours}
 
-\item{colour_name}{Colour legend name}
-
-\item{options}{a list of optional plot options}
+\item{options}{A list of optional plot options. See optionsPlot() for the
+default parameters.}
 }
 \value{
 A ggplot with the incidence results plotted
@@ -40,7 +42,7 @@ Plot incidence results
 }
 \examples{
 \donttest{
-cdm <- mockIncidencePrevalenceRef(sampleSize = 1000)
+cdm <- mockIncidencePrevalence(sampleSize = 1000)
 cdm <- generateDenominatorCohortSet(
   cdm = cdm, name = "denominator",
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))

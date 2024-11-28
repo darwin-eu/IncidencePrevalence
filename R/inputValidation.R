@@ -9,127 +9,37 @@ checkInputGenerateDCS <- function(cdm,
                                   targetCohortTable,
                                   targetCohortId,
                                   call = parent.frame()) {
-  cdmCheck(cdm)
 
-  if(stringr::str_detect(name, "^[a-z0-9_]+$", negate = TRUE)){
-    cli::cli_abort(c("name must be given in snake case",
-                     "i" = "for example 'my_cohort' is allowed but 'MyCohort' is not"))
-  }
+  omopgenerics::validateCdmArgument(cdm)
+  omopgenerics::validateNameArgument(name)
+
   if (!is.null(targetCohortTable)) {
     cdmTargetCheck(cdm, targetCohortTable = targetCohortTable)
   }
 
-  errorMessage <- checkmate::makeAssertCollection()
-  checkmate::assertCharacter(name, len = 1)
-  checkmate::assertDate(cohortDateRange, len = 2)
-  checkmate::assert_list(timeAtRisk,
-                         add = errorMessage
-  )
+  omopgenerics::assertCharacter(name, length = 1)
+  omopgenerics::assertDate(cohortDateRange, length = 2, na = TRUE)
+  omopgenerics::assertList(timeAtRisk)
   for (i in seq_along(timeAtRisk)) {
-    checkmate::assertTRUE(length(timeAtRisk[[i]]) == 2)
-    checkmate::assert_numeric(timeAtRisk[[i]][1],
-                              add = errorMessage
-    )
-    checkmate::assert_numeric(timeAtRisk[[i]][2],
-                              add = errorMessage
-    )
-    tarCheck <- timeAtRisk[[i]][1] <=
-      timeAtRisk[[i]][2]
-    checkmate::assertTRUE(tarCheck,
-                          add = errorMessage
-    )
-    if (!isTRUE(tarCheck)) {
-      errorMessage$push(
-        "- upper age value must be equal or higher than lower age value"
-      )
-    }
-    checkmate::assertTRUE(timeAtRisk[[i]][1] >= 0,
-                          add = errorMessage
-    )
-    checkmate::assertTRUE(timeAtRisk[[i]][2] >= 0,
-                          add = errorMessage
-    )
+    omopgenerics::assertTrue(length(timeAtRisk[[i]]) == 2)
+    omopgenerics::assertNumeric(timeAtRisk[[i]][1], min = 0)
+    omopgenerics::assertNumeric(timeAtRisk[[i]][2], min = 0)
+    tarCheck <- timeAtRisk[[i]][1] <= timeAtRisk[[i]][2]
+    omopgenerics::assertTrue(tarCheck,
+                             msg = "- upper age value must be equal or higher than lower age value")
   }
-  checkmate::assert_list(ageGroup,
-    add = errorMessage
-  )
-  if (!is.null(ageGroup)) {
-    for (i in seq_along(ageGroup)) {
-      checkmate::assertTRUE(length(ageGroup[[i]]) == 2)
-      checkmate::assert_numeric(ageGroup[[i]][1],
-        add = errorMessage
-      )
-      checkmate::assert_numeric(ageGroup[[i]][2],
-        add = errorMessage
-      )
-      ageCheck <- ageGroup[[i]][1] <=
-        ageGroup[[i]][2]
-      checkmate::assertTRUE(ageCheck,
-        add = errorMessage
-      )
-      if (!isTRUE(ageCheck)) {
-        errorMessage$push(
-          "- upper age value must be equal or higher than lower age value"
-        )
-      }
-      checkmate::assertTRUE(ageGroup[[i]][1] >= 0,
-        add = errorMessage
-      )
-      checkmate::assertTRUE(ageGroup[[i]][2] >= 0,
-        add = errorMessage
-      )
-    }
-  }
-  checkmate::assert_vector(sex,
-    add = errorMessage
-  )
-  sexCheck <- all(sex %in% c("Male", "Female", "Both"))
-  if (!isTRUE(sexCheck)) {
-    errorMessage$push(
-      "- sex must be from: Male, Female, and Both"
-    )
-  }
-  checkmate::assert_numeric(daysPriorObservation,
-    add = errorMessage
-  )
-  daysCheck <- all(daysPriorObservation >= 0)
-  if (!isTRUE(daysCheck)) {
-    errorMessage$push(
-      "- daysPriorObservation cannot be negative"
-    )
-  }
-  checkmate::assert_logical(requirementInteractions,
-    len = 1,
-    add = errorMessage
-  )
-  if (!is.null(targetCohortTable)) {
-    targetCohortTableCheck <- inherits(cdm[[targetCohortTable]], "tbl_dbi")
-    checkmate::assertTRUE(targetCohortTableCheck, add = errorMessage)
-    if (!isTRUE(targetCohortTableCheck)) {
-      errorMessage$push(
-        "- targetCohortTable not found"
-      )
-    }
-    targetNamesCheck <- all(names(cdm[[targetCohortTable]] %>%
-      utils::head(1) %>%
-      dplyr::collect()) %in%
-      c(
-        "cohort_definition_id", "subject_id",
-        "cohort_start_date", "cohort_end_date"
-      ))
-    checkmate::assertTRUE(targetNamesCheck, add = errorMessage)
-    if (!isTRUE(targetNamesCheck)) {
-      errorMessage$push(
-        "- targetCohortTable does not conform to cohort table specification"
-      )
-    }
-  }
-    checkmate::assertIntegerish(targetCohortId,
-      add = errorMessage,
-      null.ok = TRUE
-    )
 
-  return(checkmate::reportAssertions(collection = errorMessage))
+  omopgenerics::validateAgeGroupArgument(ageGroup, overlap = TRUE)
+  omopgenerics::assertChoice(sex, c("Male", "Female", "Both"))
+  omopgenerics::assertNumeric(daysPriorObservation, min = 0)
+  omopgenerics::assertLogical(requirementInteractions, length = 1)
+
+  if(!is.null(targetCohortId)) {
+    targetCohortId <- omopgenerics::validateCohortIdArgument(
+      targetCohortId, cdm[[targetCohortTable]])
+  }
+
+  return(targetCohortId)
 }
 
 checkInputEstimateIncidence <- function(cdm,
@@ -140,92 +50,64 @@ checkInputEstimateIncidence <- function(cdm,
                                         interval,
                                         completeDatabaseIntervals,
                                         outcomeWashout,
-                                        repeatedEvents,
-                                        minCellCount) {
-  cdmCheck(cdm)
+                                        repeatedEvents) {
 
-  errorMessage <- checkmate::makeAssertCollection()
-  denominatorCheck <- denominatorTable %in% names(cdm)
-  checkmate::assertTRUE(denominatorCheck,
-    add = errorMessage
-  )
-  if (!isTRUE(denominatorCheck)) {
-    errorMessage$push(
-      "- `denominatorTable` is not found in cdm"
-    )
+  omopgenerics::validateCdmArgument(cdm)
+  omopgenerics::assertChoice(denominatorTable, names(cdm),
+                             msg = "- `denominatorTable` is not found in cdm")
+
+  if(!is.null(denominatorCohortId)) {
+    denominatorCohortId <- omopgenerics::validateCohortIdArgument(
+      denominatorCohortId, cdm[[denominatorTable]])
   }
-  checkmate::assertIntegerish(denominatorCohortId,
-    add = errorMessage,
-    null.ok = TRUE
-  )
-  if(!outcomeTable %in% names(cdm)){
-    cli::cli_abort(paste0("outcomeTable ", outcomeTable, " is not found in cdm"))
-  }
+
+  omopgenerics::assertChoice(outcomeTable, names(cdm),
+                             msg = paste0("outcomeTable ", outcomeTable, " is not found in cdm"))
+
   outcomeAttributeCheck <- (!is.null(
     omopgenerics::cohortCount(cdm[[outcomeTable]])
   ) &
     !is.null(
       omopgenerics::settings(cdm[[outcomeTable]])
     ))
-  checkmate::assertTRUE(outcomeAttributeCheck,
-    add = errorMessage
-  )
-  if (!isTRUE(outcomeAttributeCheck)) {
-    errorMessage$push(
-      "- `outcomeTable` is missing cohort_count or cohort_set attribute"
-    )
+  omopgenerics::assertTrue(outcomeAttributeCheck,
+                           msg = "- `outcomeTable` is missing cohort_count or cohort_set attribute")
+
+  if(!is.null(outcomeCohortId)) {
+    outcomeCohortId <- omopgenerics::validateCohortIdArgument(
+      outcomeCohortId, cdm[[outcomeTable]])
   }
 
-  checkmate::assertIntegerish(outcomeCohortId,
-    add = errorMessage,
-    null.ok = TRUE
-  )
-  checkmate::assertTRUE(
-    all(interval %in%
-      c(
-        "weeks", "months",
-        "quarters", "years",
-        "overall"
-      )),
-    add = errorMessage
-  )
-  checkmate::assert_logical(completeDatabaseIntervals,
-    add = errorMessage
-  )
-  if (any(is.null(outcomeWashout))) {
-    cli::cli_abort("outcomeWashout cannot be NULL")
-    }
+  omopgenerics::assertTrue(all(interval %in%
+                                 c(
+                                   "weeks", "months",
+                                   "quarters", "years",
+                                   "overall"
+                                 )))
+  omopgenerics::assertLogical(completeDatabaseIntervals)
+
   if (any(outcomeWashout != Inf)) {
-    checkmate::assert_numeric(outcomeWashout[which(!is.infinite(outcomeWashout))],
-                              lower = 0, upper = 99999,
-                              null.ok = FALSE,
-      add = errorMessage
-    )
+    omopgenerics::assertNumeric(outcomeWashout[which(!is.infinite(outcomeWashout))],
+                              min = 0, max = 99999)
   }
-  checkmate::assert_logical(repeatedEvents,
-    add = errorMessage
-  )
-  checkmate::assert_number(minCellCount)
-  return(checkmate::reportAssertions(collection = errorMessage))
+
+  omopgenerics::assertLogical(repeatedEvents)
+
+  return(list(denominatorCohortId, outcomeCohortId))
 }
 
-checkInputEstimateIncidenceAdditional <- function(cdm,
-                                                  denominatorTable,
-                                                  outcomeTable,
-                                                  denominatorCohortId,
-                                                  outcomeCohortId) {
-  errorMessage <- checkmate::makeAssertCollection()
-  denomCountCheck <- cdm[[denominatorTable]] %>%
-    dplyr::filter(.data$cohort_definition_id %in%
-      .env$denominatorCohortId) %>%
-    dplyr::count() %>%
-    dplyr::pull() > 0
-  if (!isTRUE(denomCountCheck)) {
-    errorMessage$push(
-      "- nobody in `denominatorTable` with one of the `denominatorCohortId`"
-    )
-  }
-  return(checkmate::reportAssertions(collection = errorMessage))
+checkInputEstimateAdditional <- function(cdm,
+                                         denominatorTable,
+                                         outcomeTable,
+                                         denominatorCohortId,
+                                         outcomeCohortId) {
+
+  checkEmpty <- omopgenerics::isTableEmpty(cdm[[denominatorTable]] %>%
+                                             dplyr::filter(.data$cohort_definition_id %in%
+                                                             .env$denominatorCohortId))
+  omopgenerics::assertTrue(!checkEmpty,
+                           msg =  "- nobody in `denominatorTable` with one of the `denominatorCohortId`")
+
 }
 
 checkInputEstimatePrevalence <- function(cdm,
@@ -237,129 +119,78 @@ checkInputEstimatePrevalence <- function(cdm,
                                          interval,
                                          completeDatabaseIntervals,
                                          fullContribution,
-                                         timePoint,
-                                         minCellCount) {
-  cdmCheck(cdm)
+                                         timePoint) {
+  omopgenerics::validateCdmArgument(cdm)
+  omopgenerics::assertChoice(denominatorTable, names(cdm),
+                             msg = "- `denominatorTable` is not found in cdm")
 
-  errorMessage <- checkmate::makeAssertCollection()
-  denomCheck <- denominatorTable %in% names(cdm)
-  checkmate::assertTRUE(denomCheck,
-    add = errorMessage
-  )
-  if (!isTRUE(denomCheck)) {
-    errorMessage$push(
-      "- `denominatorTable` is not found in cdm"
-    )
+  if(!is.null(denominatorCohortId)) {
+    denominatorCohortId <- omopgenerics::validateCohortIdArgument(
+      denominatorCohortId, cdm[[denominatorTable]])
   }
-  checkmate::assertIntegerish(denominatorCohortId,
-    add = errorMessage,
-    null.ok = TRUE
-  )
-  outcomeCheck <- outcomeTable %in% names(cdm)
-  checkmate::assertTRUE(outcomeCheck,
-    add = errorMessage
-  )
-  if (!isTRUE(outcomeCheck)) {
-    errorMessage$push(
-      "- `outcomeTable` is not found in cdm"
-    )
-  }
+
+  omopgenerics::assertChoice(outcomeTable, names(cdm),
+                             msg = "- `outcomeTable` is not found in cdm")
+
   outcomeAttributeCheck <- (!is.null(
   omopgenerics::cohortCount(cdm[[outcomeTable]])) &
     !is.null(
       omopgenerics::settings(cdm[[outcomeTable]])))
-  checkmate::assertTRUE(outcomeAttributeCheck,
-    add = errorMessage
-  )
-  if (!isTRUE(outcomeAttributeCheck)) {
-    errorMessage$push(
-      "- `outcomeTable` is missing cohort_count or cohort_set attribute"
-    )
-  }
-  checkmate::assertIntegerish(outcomeCohortId,
-    add = errorMessage,
-    null.ok = TRUE
-  )
-  checkmate::assert_choice(type,
-    choices = c("point", "period"),
-    add = errorMessage
-  )
-  checkmate::assertTRUE(
-    all(interval %in%
-      c(
-        "weeks", "months",
-        "quarters", "years",
-        "overall"
-      )),
-    add = errorMessage
-  )
-  checkmate::assertTRUE(all(timePoint %in% c("start", "middle", "end")),
-    add = errorMessage
-  )
-  checkmate::assert_number(minCellCount)
-  checkmate::assert_logical(fullContribution,
-    add = errorMessage
-  )
-  checkmate::assert_logical(completeDatabaseIntervals,
-    add = errorMessage
-  )
-  return(checkmate::reportAssertions(collection = errorMessage))
-}
+  omopgenerics::assertTrue(outcomeAttributeCheck,
+                           msg = "- `outcomeTable` is missing cohort_count or cohort_set attribute")
 
-cdmCheck <- function(cdm) {
-  errorMessage <- checkmate::makeAssertCollection()
-  cdmCheck <- inherits(cdm, "cdm_reference")
-  checkmate::assertTRUE(cdmCheck,
-    add = errorMessage
-  )
-  if (!isTRUE(cdmCheck)) {
-    errorMessage$push(
-      "- cdm must be a CDMConnector CDM reference"
-    )
+  if(!is.null(outcomeCohortId)) {
+    outcomeCohortId <- omopgenerics::validateCohortIdArgument(
+      outcomeCohortId, cdm[[outcomeTable]])
   }
-  checkmate::reportAssertions(collection = errorMessage)
 
-  errorMessage <- checkmate::makeAssertCollection()
-  cdmPersonCheck <- inherits(cdm$person, "tbl_dbi")
-  checkmate::assertTRUE(cdmPersonCheck, add = errorMessage)
-  if (!isTRUE(cdmPersonCheck)) {
-    errorMessage$push(
-      "- table `person` is not found"
-    )
+  omopgenerics::assertChoice(type, c("point", "period"))
+  # overall only for period prevalence
+  if(type == "period"){
+  omopgenerics::assertTrue(all(interval %in%
+                                 c(
+                                   "weeks", "months",
+                                   "quarters", "years",
+                                   "overall"
+                                 )))
+  } else {
+    omopgenerics::assertTrue(all(interval %in%
+                                   c(
+                                     "weeks", "months",
+                                     "quarters", "years"
+                                   )))
   }
-  cdmObsPeriodCheck <- inherits(cdm$observation_period, "tbl_dbi")
-  checkmate::assertTRUE(cdmObsPeriodCheck, add = errorMessage)
-  if (!isTRUE(cdmObsPeriodCheck)) {
-    errorMessage$push(
-      "- table `observation_period` is not found"
-    )
-  }
-  return(checkmate::reportAssertions(collection = errorMessage))
+  omopgenerics::assertTrue(all(timePoint %in% c("start", "middle", "end")))
+  omopgenerics::assertLogical(fullContribution)
+  omopgenerics::assertLogical(completeDatabaseIntervals)
+
+  return(list(denominatorCohortId, outcomeCohortId))
 }
 
 cdmTargetCheck <- function(cdm, targetCohortTable) {
-  errorMessage <- checkmate::makeAssertCollection()
   cdmTargetCheck <- inherits(cdm[[targetCohortTable]], "tbl_dbi")
-  checkmate::assertTRUE(cdmTargetCheck, add = errorMessage)
-  if (!isTRUE(cdmTargetCheck)) {
-    errorMessage$push(
-      "- targetCohortTable table not found"
-    )
-  }
-  return(checkmate::reportAssertions(collection = errorMessage))
+  omopgenerics::assertTrue(cdmTargetCheck,
+                           msg = "- targetCohortTable table not found")
+  omopgenerics::assertChoice(names(cdm[[targetCohortTable]] %>%
+                                         utils::head(1) %>%
+                                         dplyr::collect()),
+                                 c(
+                                   "cohort_definition_id", "subject_id",
+                                   "cohort_start_date", "cohort_end_date"
+                                 ))
 }
 
 checkStrata <- function(strata, table) {
   errorMessage <- "strata should be a list that point to columns in the denominator table"
-  if (!is.list(strata)) {
-    cli::cli_abort(errorMessage)
-  }
+
+  omopgenerics::assertList(strata,
+                           msg = "strata should be a list that point to columns in the denominator table")
+
   if (length(strata) > 0) {
-    if (!is.character(unlist(strata))) {
-      cli::cli_abort(errorMessage)
-    }
-    if (!all(unlist(strata) %in% colnames(table))) {
-      cli::cli_abort(errorMessage)
-    }
+    unlistStrata <- unlist(strata)
+    omopgenerics::assertCharacter(unlistStrata,
+                                  msg = "strata should be a list that point to columns in the denominator table")
+    omopgenerics::assertChoice(unlistStrata, colnames(table),
+                               msg = "strata should be a list that point to columns in the denominator table")
   }
 }

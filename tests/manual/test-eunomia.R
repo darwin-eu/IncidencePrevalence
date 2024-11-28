@@ -88,14 +88,12 @@ test_that("eunomia test - some empty cohorts", {
 
   plotIncidence(inc,
     facet = c("outcome_cohort_name", "denominator_sex"),
-    colour = "denominator_sex",
-    colour_name = "Sex"
+    colour = "denominator_sex"
   )
 
   plotPrevalence(prev,
     facet = c("outcome_cohort_name", "denominator_sex"),
-    colour = "denominator_sex",
-    colour_name = "Sex"
+    colour = "denominator_sex"
   )
 })
 

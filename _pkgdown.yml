@@ -19,13 +19,13 @@ reference:
   - matches("estimatePointPrevalence|estimatePeriodPrevalence")
 - subtitle: Plot results
 - contents:
-  - matches("plotIncidence|plotPrevalence")
+  - matches("plotIncidence|plotPrevalence|optionsPlot")
 - subtitle: Tabulate results
 - contents:
   - matches("tablePrevalence|optionsTablePrevalence|tableIncidence|optionsTableIncidence")
 - subtitle: Mock data
 - contents:
-  - matches("mockIncidencePrevalenceRef")
+  - matches("mockIncidencePrevalence")
 - subtitle: Benchmark package
 - contents:
   - matches("benchmarkIncidencePrevalence")
