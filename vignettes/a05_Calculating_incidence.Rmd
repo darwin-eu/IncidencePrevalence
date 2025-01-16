@@ -10,6 +10,8 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
+  warning = FALSE, 
+  message = FALSE,
   comment = "#>",
   fig.width = 7,
   fig.height = 5,
@@ -65,16 +67,18 @@ Outcome cohorts are defined externally. When creating outcome cohorts for estima
 3. Do not add further restrictions on sex, age and prior history requirements. These can be specified when identifying the denominator population with the `generateDenominatorCohortSet()` function.
 
 # Using estimateIncidence()
-`estimateIncidence()` is the function we use to estimate incidence rates. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `mockIncidencePrevalence()` function, from whom we´ll create a denominator population without adding any restrictions other than a study period. In this example we'll use permanent tables (rather than temporary tables which would be used by default).   
+`estimateIncidence()` is the function we use to estimate incidence rates. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 20,000 example patients using the `mockIncidencePrevalence()` function, from whom we´ll create a denominator population without adding any restrictions other than a study period. In this example we'll use permanent tables (rather than temporary tables which would be used by default).   
 
 ```{r setup}
 library(IncidencePrevalence)
 library(dplyr)
 library(tidyr)
+library(ggplot2)
+library(patchwork)
 
 cdm <- mockIncidencePrevalence(
   sampleSize = 20000,
-  earliestObservationStartDate = as.Date("1960-01-01"), 
+  earliestObservationStartDate = as.Date("1960-01-01"),
   minOutcomeDays = 365,
   outPre = 0.3
 )
@@ -107,6 +111,20 @@ inc %>%
   glimpse()
 
 plotIncidence(inc)
+```
+
+As well as plotting our prevalence estimates, we can also plot the population for whom these were calculated. Here we´ll plot outcome and population counts together.
+```{r, message= FALSE, warning=FALSE}
+outcome_plot <- plotIncidencePopulation(result = inc, y = "outcome_count") +
+  xlab("") +
+  theme(axis.text.x = element_blank()) +
+  ggtitle("a) Number of outcomes by year")
+denominator_plot <- plotIncidencePopulation(result = inc) +
+  ggtitle("b) Number of people in denominator population by year")
+pys_plot <- plotIncidencePopulation(result = inc, y = "person_years") +
+  ggtitle("c) Person-years contributed by year")
+
+outcome_plot / denominator_plot / pys_plot
 ```
 
 Now with a washout of all prior history while still not allowing repetitive events. Here we use `Inf` to specify that we will use a washout of all prior history for an individual.
@@ -167,9 +185,11 @@ As with prevalence. if we specified multiple denominator populations results wil
 cdm <- generateDenominatorCohortSet(
   cdm = cdm, name = "denominator_age_sex",
   cohortDateRange = c(as.Date("1990-01-01"), as.Date("2009-12-31")),
-  ageGroup = list(c(0, 39),
-                  c(41, 65),
-                  c(66, 150)),
+  ageGroup = list(
+    c(0, 39),
+    c(41, 65),
+    c(66, 150)
+  ),
   sex = "Both",
   daysPriorObservation = 0
 )
@@ -185,11 +205,19 @@ inc <- estimateIncidence(
 plotIncidence(inc, facet = "denominator_age_group")
 ```
 
+We can also plot person years by year for each strata.
+```{r, message= FALSE, warning=FALSE}
+pys_plot <- plotIncidencePopulation(result = inc, y = "person_years")
+
+pys_plot +
+  facet_wrap(vars(denominator_age_group), ncol = 1)
+```
+
 And again, as with prevalence while we specify time-varying stratifications when defining our denominator populations, if we have time-invariant stratifications we can include these at the the estimation stage. 
 
 ```{r}
-cdm$denominator <- cdm$denominator %>% 
-  mutate(group = if_else(as.numeric(subject_id)  < 3000, "first", "second")) 
+cdm$denominator <- cdm$denominator %>%
+  mutate(group = if_else(as.numeric(subject_id) < 3000, "first", "second"))
 
 inc <- estimateIncidence(
   cdm = cdm,
@@ -200,25 +228,34 @@ inc <- estimateIncidence(
   repeatedEvents = TRUE
 )
 
-plotIncidence(inc, 
-               colour = "group")
+plotIncidence(inc,
+  facet = "group",
+  colour = "group"
+)
 
-cdm$denominator <- cdm$denominator %>% 
-  mutate(group_1 = if_else(as.numeric(subject_id)  < 3000, "first", "second"),
-         group_2 = if_else(as.numeric(subject_id)  < 2000, "one", "two"))
+cdm$denominator <- cdm$denominator %>%
+  mutate(
+    group_1 = if_else(as.numeric(subject_id) < 3000, "first", "second"),
+    group_2 = if_else(as.numeric(subject_id) < 2000, "one", "two")
+  )
 
 inc <- estimateIncidence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
-  strata = list(c("group_1"), # for just group_1
-                c("group_2"), # for just group_2
-                c("group_1", "group_2")),  # for group_1 and group_2  outcomeWashout = 180,
+  strata = list(
+    c("group_1"), # for just group_1
+    c("group_2"), # for just group_2
+    c("group_1", "group_2")
+  ), # for group_1 and group_2
+  outcomeWashout = 180,
   repeatedEvents = TRUE
 )
 
-plotIncidence(inc, 
-               facet = c("group_1", "group_2"))
+plotIncidence(inc,
+  facet = c("group_1", "group_2"),
+  colour = c("group_1", "group_2")
+)
 ```
 
 

@@ -20,26 +20,34 @@ test_that("mock db: check output format", {
     interval = "months"
   )
   expect_true(inherits(inc, "summarised_result"))
-  expect_identical(sort(colnames(settings(inc))),
-                   sort(c("result_id", "result_type",
-                     "package_name", "package_version",
-                     "group", "strata", "additional", "min_cell_count",
-                     "analysis_complete_database_intervals",
-                     "analysis_outcome_washout","analysis_repeated_events",
-                     "denominator_age_group", "denominator_sex",
-                     "denominator_days_prior_observation", "denominator_start_date",
-                     "denominator_end_date", "denominator_target_cohort_name",
-                     "denominator_time_at_risk")))
+  expect_identical(
+    sort(colnames(settings(inc))),
+    sort(c(
+      "result_id", "result_type",
+      "package_name", "package_version",
+      "group", "strata", "additional", "min_cell_count",
+      "analysis_complete_database_intervals",
+      "analysis_outcome_washout", "analysis_repeated_events",
+      "denominator_age_group", "denominator_sex",
+      "denominator_days_prior_observation", "denominator_start_date",
+      "denominator_end_date", "denominator_target_cohort_name",
+      "denominator_time_at_risk"
+    ))
+  )
 
-  expect_identical(colnames(inc),
-                   c("result_id", "cdm_name", "group_name",
-                     "group_level", "strata_name", "strata_level",
-                     "variable_name", "variable_level", "estimate_name",
-                     "estimate_type", "estimate_value", "additional_name",
-                     "additional_level"))
+  expect_identical(
+    colnames(inc),
+    c(
+      "result_id", "cdm_name", "group_name",
+      "group_level", "strata_name", "strata_level",
+      "variable_name", "variable_level", "estimate_name",
+      "estimate_type", "estimate_value", "additional_name",
+      "additional_level"
+    )
+  )
 
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: checks on working example", {
@@ -88,10 +96,10 @@ test_that("mock db: checks on working example", {
   expect_gte(nrow(inc), 1)
 
   # reconnect
-  cdmReconn <- CDMConnector::cdm_from_con(
-    con =  attr(attr(cdm, "cdm_source"), "dbcon"),
-    cohort_tables = c("denominator", "outcome"),
-    write_schema = "main", cdm_schema = "main", cdm_name = "mock"
+  cdmReconn <- CDMConnector::cdmFromCon(
+    con = attr(attr(cdm, "cdm_source"), "dbcon"),
+    cohortTables = c("denominator", "outcome"),
+    writeSchema = "main", cdmSchema = "main", cdmName = "mock"
   )
   inc_recon <- estimateIncidence(
     cdm = cdmReconn,
@@ -101,7 +109,7 @@ test_that("mock db: checks on working example", {
   )
   expect_identical(inc, inc_recon)
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check working example 2", {
@@ -143,70 +151,75 @@ test_that("mock db: check working example 2", {
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
 
   inc <- estimateIncidence(cdm,
-                           denominatorTable = "denominator",
-                           outcomeTable = "outcome",
-                           repeatedEvents = FALSE,
-                           outcomeWashout = 0,
-                           completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = FALSE,
+    outcomeWashout = 0,
+    completeDatabaseIntervals = FALSE
   )
   expect_true(sum(as.numeric(inc |>
-                               dplyr::filter(
-                                 estimate_name == "outcome_count") |>
-                               dplyr::pull("estimate_value"))) == 1)
+    dplyr::filter(
+      estimate_name == "outcome_count"
+    ) |>
+    dplyr::pull("estimate_value"))) == 1)
 
   inc <- estimateIncidence(cdm,
-                           denominatorTable = "denominator",
-                           outcomeTable = "outcome",
-                           repeatedEvents = TRUE,
-                           outcomeWashout = 2,
-                           completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = TRUE,
+    outcomeWashout = 2,
+    completeDatabaseIntervals = FALSE
   )
   expect_true(sum(as.numeric(inc |>
-                               dplyr::filter(
-                                 estimate_name == "outcome_count") |>
-                               dplyr::pull("estimate_value"))) == 3)
+    dplyr::filter(
+      estimate_name == "outcome_count"
+    ) |>
+    dplyr::pull("estimate_value"))) == 3)
 
   inc <- estimateIncidence(cdm,
-                           denominatorTable = "denominator",
-                           outcomeTable = "outcome",
-                           repeatedEvents = TRUE,
-                           outcomeWashout = 10,
-                           completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = TRUE,
+    outcomeWashout = 10,
+    completeDatabaseIntervals = FALSE
   )
   expect_true(sum(as.numeric(inc |>
-                               dplyr::filter(
-                                 estimate_name == "outcome_count") |>
-                               dplyr::pull("estimate_value"))) == 2)
+    dplyr::filter(
+      estimate_name == "outcome_count"
+    ) |>
+    dplyr::pull("estimate_value"))) == 2)
 
   # even if repeatedEvents = TRUE,
   # if outcomeWashout=NULL (all of history)
-  # then it won´t be possible to have any recurrent events
+  # then it won<U+00B4>t be possible to have any recurrent events
   inc <- estimateIncidence(cdm,
-                           denominatorTable = "denominator",
-                           outcomeTable = "outcome",
-                           repeatedEvents = TRUE,
-                           outcomeWashout = Inf,
-                           completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = TRUE,
+    outcomeWashout = Inf,
+    completeDatabaseIntervals = FALSE
   )
   expect_true(sum(as.numeric(inc |>
-                               dplyr::filter(
-                                 estimate_name == "outcome_count") |>
-                               dplyr::pull("estimate_value"))) == 1)
+    dplyr::filter(
+      estimate_name == "outcome_count"
+    ) |>
+    dplyr::pull("estimate_value"))) == 1)
 
   inc <- estimateIncidence(cdm,
-                           denominatorTable = "denominator",
-                           outcomeTable = "outcome",
-                           repeatedEvents = TRUE,
-                           outcomeWashout = Inf,
-                           interval = "weeks",
-                           completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = TRUE,
+    outcomeWashout = Inf,
+    interval = "weeks",
+    completeDatabaseIntervals = FALSE
   )
   expect_true(sum(as.numeric(inc |>
-                               dplyr::filter(
-                                 estimate_name == "outcome_count") |>
-                               dplyr::pull("estimate_value"))) == 1)
+    dplyr::filter(
+      estimate_name == "outcome_count"
+    ) |>
+    dplyr::pull("estimate_value"))) == 1)
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check study periods", {
@@ -248,35 +261,35 @@ test_that("mock db: check study periods", {
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
 
   inc <- estimateIncidence(cdm,
-                           denominatorTable = "denominator",
-                           outcomeTable = "outcome",
-                           interval = "months",
-                           outcomeWashout = 0,
-                           repeatedEvents = TRUE,
-                           completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "months",
+    outcomeWashout = 0,
+    repeatedEvents = TRUE,
+    completeDatabaseIntervals = FALSE
   )
 
   # we expect 12 months of which the last in december
   # the last month should also be included
   # as the person goes up to the last day of the month
   expect_true(nrow(inc |>
-                     dplyr::filter(estimate_name == "outcome_count")) == 12)
+    dplyr::filter(estimate_name == "outcome_count")) == 12)
 
   inc <- estimateIncidence(cdm,
-                           denominatorTable = "denominator",
-                           outcomeTable = "outcome",
-                           outcomeWashout = 0,
-                           interval = "months",
-                           repeatedEvents = TRUE,
-                           completeDatabaseIntervals = TRUE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    outcomeWashout = 0,
+    interval = "months",
+    repeatedEvents = TRUE,
+    completeDatabaseIntervals = TRUE
   )
 
   # now with completeDatabaseIntervals is TRUE
   # we expect 10 months of which the last in november
   expect_true(nrow(inc |>
-                     dplyr::filter(estimate_name == "outcome_count")) == 10)
+    dplyr::filter(estimate_name == "outcome_count")) == 10)
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check overall", {
@@ -327,12 +340,12 @@ test_that("mock db: check overall", {
   )
 
   inc <- estimateIncidence(cdm,
-                           denominatorTable = "denominator",
-                           outcomeTable = "outcome",
-                           interval = "overall",
-                           repeatedEvents = FALSE,
-                           outcomeWashout = 0,
-                           completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "overall",
+    repeatedEvents = FALSE,
+    outcomeWashout = 0,
+    completeDatabaseIntervals = FALSE
   )
   # we expect one row with the overall results
   # with two people
@@ -340,42 +353,42 @@ test_that("mock db: check overall", {
   # (but washout was 0 so was included)
   # one person had the event during the study period
   expect_true(nrow(inc |>
-                     dplyr::filter(estimate_name == "outcome_count")) == 1)
+    dplyr::filter(estimate_name == "outcome_count")) == 1)
   expect_true(inc |>
-                dplyr::filter(estimate_name == "denominator_count") |>
-                dplyr::pull("estimate_value") == "2")
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value") == "2")
 
   expect_true(all(inc |>
-                    omopgenerics::filterSettings(result_type == "incidence") |>
-                    omopgenerics::splitAdditional() |>
-                    dplyr::pull("incidence_start_date") == as.Date("2007-01-01")))
+    omopgenerics::filterSettings(result_type == "incidence") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::pull("incidence_start_date") == as.Date("2007-01-01")))
   expect_true(all(inc |>
-                    omopgenerics::filterSettings(result_type == "incidence") |>
-                    omopgenerics::splitAdditional() |>
-                    dplyr::pull("incidence_end_date") == as.Date("2010-02-05"))) # date of first event
+    omopgenerics::filterSettings(result_type == "incidence") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::pull("incidence_end_date") == as.Date("2010-02-05"))) # date of first event
 
 
   inc <- estimateIncidence(cdm,
-                           denominatorTable = "denominator",
-                           outcomeTable = "outcome",
-                           interval = "overall",
-                           repeatedEvents = TRUE,
-                           outcomeWashout = 0,
-                           completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "overall",
+    repeatedEvents = TRUE,
+    outcomeWashout = 0,
+    completeDatabaseIntervals = FALSE
   )
   expect_true(nrow(inc |>
-                     omopgenerics::filterSettings(result_type == "incidence") |>
-                     dplyr::filter(estimate_name == "outcome_count")) == 1)
+    omopgenerics::filterSettings(result_type == "incidence") |>
+    dplyr::filter(estimate_name == "outcome_count")) == 1)
   expect_true(all(inc |>
-                    omopgenerics::filterSettings(result_type == "incidence") |>
-                    omopgenerics::splitAdditional() |>
-                    dplyr::pull("incidence_start_date") == as.Date("2007-01-01")))
+    omopgenerics::filterSettings(result_type == "incidence") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::pull("incidence_start_date") == as.Date("2007-01-01")))
   expect_true(all(inc |>
-                    omopgenerics::filterSettings(result_type == "incidence") |>
-                    omopgenerics::splitAdditional() |>
-                    dplyr::pull("incidence_end_date") == as.Date("2011-06-15"))) # date of end of obs
+    omopgenerics::filterSettings(result_type == "incidence") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::pull("incidence_end_date") == as.Date("2011-06-15"))) # date of end of obs
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check person days", {
@@ -429,57 +442,57 @@ test_that("mock db: check person days", {
 
   # in 2019 we expect person 2 to contribute from 1st july to end of December
   expect_true(inc |>
-                dplyr::filter(estimate_name == "person_days") |>
-                head(1) |>
-                dplyr::pull("estimate_value") ==
-                as.numeric(difftime(
-                  as.Date("2019-12-31"),
-                  as.Date("2019-07-01")
-                )) + 1)
+    dplyr::filter(estimate_name == "person_days") |>
+    head(1) |>
+    dplyr::pull("estimate_value") ==
+    as.numeric(difftime(
+      as.Date("2019-12-31"),
+      as.Date("2019-07-01")
+    )) + 1)
 
   # in 2020 we expect person 2 to contribute all year
   # and person 1 from 1st January to end of December
   expect_true(inc |>
-                dplyr::filter(estimate_name == "person_days") |>
-                dplyr::filter(dplyr::row_number() == 2) |>
-                dplyr::pull("estimate_value") ==
-                (as.numeric(difftime(
-                  as.Date("2020-12-31"),
-                  as.Date("2020-07-01")
-                )) + 1) +
-                (as.numeric(difftime(
-                  as.Date("2020-12-31"),
-                  as.Date("2020-01-01")
-                ) + 1)))
+    dplyr::filter(estimate_name == "person_days") |>
+    dplyr::filter(dplyr::row_number() == 2) |>
+    dplyr::pull("estimate_value") ==
+    (as.numeric(difftime(
+      as.Date("2020-12-31"),
+      as.Date("2020-07-01")
+    )) + 1) +
+      (as.numeric(difftime(
+        as.Date("2020-12-31"),
+        as.Date("2020-01-01")
+      ) + 1)))
 
   # in 2021 we expect person 2 to contribute all year
   # and person 1 from 1st January up to 27th june (date of their outcome)
   expect_true(inc |>
-                dplyr::filter(estimate_name == "person_days") |>
-                dplyr::filter(dplyr::row_number() == 3) |>
-                dplyr::pull("estimate_value") ==
-                (as.numeric(difftime(
-                  as.Date("2021-12-31"),
-                  as.Date("2021-01-01")
-                )) + 1) +
-                (as.numeric(difftime(
-                  as.Date("2021-06-27"),
-                  as.Date("2021-01-01")
-                ) + 1)))
+    dplyr::filter(estimate_name == "person_days") |>
+    dplyr::filter(dplyr::row_number() == 3) |>
+    dplyr::pull("estimate_value") ==
+    (as.numeric(difftime(
+      as.Date("2021-12-31"),
+      as.Date("2021-01-01")
+    )) + 1) +
+      (as.numeric(difftime(
+        as.Date("2021-06-27"),
+        as.Date("2021-01-01")
+      ) + 1)))
 
 
   # in 2022 we expect person 2 to contribute all year
   # (person 1 is out- they have had an event)
   expect_true(inc |>
-                dplyr::filter(estimate_name == "person_days") |>
-                dplyr::filter(dplyr::row_number() == 4) |>
-                dplyr::pull("estimate_value") ==
-                (as.numeric(difftime(
-                  as.Date("2021-10-05"),
-                  as.Date("2021-01-01")
-                )) + 1))
+    dplyr::filter(estimate_name == "person_days") |>
+    dplyr::filter(dplyr::row_number() == 4) |>
+    dplyr::pull("estimate_value") ==
+    (as.numeric(difftime(
+      as.Date("2021-10-05"),
+      as.Date("2021-01-01")
+    )) + 1))
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check periods follow calendar dates", {
@@ -538,13 +551,13 @@ test_that("mock db: check periods follow calendar dates", {
   )
 
   expect_true(inc |>
-                dplyr::filter(estimate_name == "outcome_count") |>
-                dplyr::filter(dplyr::row_number() == 1) |>
-                dplyr::pull("estimate_value") == "1")
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::filter(dplyr::row_number() == 1) |>
+    dplyr::pull("estimate_value") == "1")
   expect_true(inc |>
-                dplyr::filter(estimate_name == "outcome_count") |>
-                dplyr::filter(dplyr::row_number() == 2) |>
-                dplyr::pull("estimate_value") == "3")
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::filter(dplyr::row_number() == 2) |>
+    dplyr::pull("estimate_value") == "3")
 
   # startDate during a month (with month as interval)
   cdm <- generateDenominatorCohortSet(
@@ -562,19 +575,19 @@ test_that("mock db: check periods follow calendar dates", {
     completeDatabaseIntervals = FALSE
   )
   expect_true(inc |>
-                dplyr::filter(estimate_name == "outcome_count") |>
-                dplyr::filter(dplyr::row_number() == 1) |>
-                dplyr::pull("estimate_value") == "1")
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::filter(dplyr::row_number() == 1) |>
+    dplyr::pull("estimate_value") == "1")
   expect_true(inc |>
-                dplyr::filter(estimate_name == "outcome_count") |>
-                dplyr::filter(dplyr::row_number() == 2) |>
-                dplyr::pull("estimate_value") == "1")
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::filter(dplyr::row_number() == 2) |>
+    dplyr::pull("estimate_value") == "1")
   expect_true(inc |>
-                dplyr::filter(estimate_name == "outcome_count") |>
-                dplyr::filter(dplyr::row_number() == 3) |>
-                dplyr::pull("estimate_value") == "1")
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::filter(dplyr::row_number() == 3) |>
+    dplyr::pull("estimate_value") == "1")
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check washout windows", {
@@ -621,74 +634,74 @@ test_that("mock db: check washout windows", {
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
 
   incW0 <- estimateIncidence(cdm,
-                             denominatorTable = "denominator",
-                             outcomeTable = "outcome",
-                             repeatedEvents = TRUE,
-                             outcomeWashout = 0,
-                             completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = TRUE,
+    outcomeWashout = 0,
+    completeDatabaseIntervals = FALSE
   )
   # expect all events if we have zero days washout
   expect_true(sum(as.numeric(incW0 |>
-                               dplyr::filter(estimate_name == "outcome_count") |>
-                               dplyr::pull("estimate_value"))) == 4)
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value"))) == 4)
 
   incW1 <- estimateIncidence(cdm,
-                             denominatorTable = "denominator",
-                             outcomeTable = "outcome",
-                             repeatedEvents = TRUE,
-                             outcomeWashout = 1L,
-                             completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = TRUE,
+    outcomeWashout = 1L,
+    completeDatabaseIntervals = FALSE
   )
   # expect three events if we have one days washout
   expect_true(sum(as.numeric(incW1 |>
-                               dplyr::filter(estimate_name == "outcome_count") |>
-                               dplyr::pull("estimate_value"))) == 3)
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value"))) == 3)
 
   incW2 <- estimateIncidence(cdm,
-                             denominatorTable = "denominator",
-                             outcomeTable = "outcome",
-                             repeatedEvents = TRUE,
-                             outcomeWashout = 2,
-                             completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = TRUE,
+    outcomeWashout = 2,
+    completeDatabaseIntervals = FALSE
   )
   # expect two events if we have two days washout
   expect_true(sum(as.numeric(incW2 |>
-                               dplyr::filter(estimate_name == "outcome_count") |>
-                               dplyr::pull("estimate_value"))) == 2)
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value"))) == 2)
 
   incW365 <- estimateIncidence(cdm,
-                               denominatorTable = "denominator",
-                               outcomeTable = "outcome",
-                               repeatedEvents = TRUE,
-                               outcomeWashout = 365,
-                               completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = TRUE,
+    outcomeWashout = 365,
+    completeDatabaseIntervals = FALSE
   )
   # expect one event if we have 365 days washout
   expect_true(sum(as.numeric(incW365 |>
-                               dplyr::filter(estimate_name == "outcome_count") |>
-                               dplyr::pull("estimate_value"))) == 1)
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value"))) == 1)
 
   incInf <- estimateIncidence(cdm,
-                              denominatorTable = "denominator",
-                              outcomeTable = "outcome",
-                              repeatedEvents = TRUE,
-                              outcomeWashout = Inf,
-                              completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = TRUE,
+    outcomeWashout = Inf,
+    completeDatabaseIntervals = FALSE
   )
   # expect one event if we have NULL (all history washout)
   expect_true(sum(as.numeric(incInf |>
-                               dplyr::filter(estimate_name == "outcome_count") |>
-                               dplyr::pull("estimate_value"))) == 1)
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value"))) == 1)
 
   # but, we will have move days when using the 365 day washout
   # as the person came back to contribute more time at risk
   expect_lt(sum(as.numeric(incInf |>
-                             dplyr::filter(estimate_name == "person_days") |>
-                             dplyr::pull("estimate_value"))), sum(as.numeric(incW365 |>
-                                                                               dplyr::filter(estimate_name == "person_days") |>
-                                                                               dplyr::pull("estimate_value"))))
+    dplyr::filter(estimate_name == "person_days") |>
+    dplyr::pull("estimate_value"))), sum(as.numeric(incW365 |>
+    dplyr::filter(estimate_name == "person_days") |>
+    dplyr::pull("estimate_value"))))
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 
 
   # never satisfy criteria in study period
@@ -722,21 +735,23 @@ test_that("mock db: check washout windows", {
     outcomeTable = outcomeTable
   )
 
-  cdm <- generateDenominatorCohortSet(cdm = cdm,
-                                      name = "denominator",
-                                      cohortDateRange = as.Date(c("2010-01-01", NA)))
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm,
+    name = "denominator",
+    cohortDateRange = as.Date(c("2010-01-01", NA))
+  )
 
   incW365 <- estimateIncidence(cdm,
-                               denominatorTable = "denominator",
-                               outcomeTable = "outcome",
-                               repeatedEvents = TRUE,
-                               outcomeWashout = 36500,
-                               completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = TRUE,
+    outcomeWashout = 36500,
+    completeDatabaseIntervals = FALSE
   )
   expect_true(nrow(incW365 |>
-                     omopgenerics::filterSettings(result_type == "incidence")) == 0)
+    omopgenerics::filterSettings(result_type == "incidence")) == 0)
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check events overlapping with start of a period", {
@@ -789,9 +804,9 @@ test_that("mock db: check events overlapping with start of a period", {
   )
 
   expect_true(all(inc |>
-                    dplyr::filter(estimate_name == "denominator_count") |>
-                    dplyr::pull("estimate_value") == 1))
-  CDMConnector::cdm_disconnect(cdm)
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value") == 1))
+  CDMConnector::cdmDisconnect(cdm)
 
   # another example
   personTable <- dplyr::tibble(
@@ -840,10 +855,10 @@ test_that("mock db: check events overlapping with start of a period", {
     interval = c("Years")
   )
   expect_true(all(inc2 |>
-                    dplyr::filter(estimate_name == "denominator_count") |>
-                    dplyr::pull("estimate_value") == 1))
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value") == 1))
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: compare results from months and years", {
@@ -901,27 +916,29 @@ test_that("mock db: compare results from months and years", {
 
   # consistent results for months and years
   expect_true(sum(as.numeric(incMonths |>
-                               dplyr::filter(estimate_name == "outcome_count") |>
-                               dplyr::pull("estimate_value")))  ==
-                sum(as.numeric(incYears |>
-                                 dplyr::filter(estimate_name == "outcome_count") |>
-                                 dplyr::pull("estimate_value"))))
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value"))) ==
+    sum(as.numeric(incYears |>
+      dplyr::filter(estimate_name == "outcome_count") |>
+      dplyr::pull("estimate_value"))))
 
   expect_true(sum(as.numeric(incMonths |>
-                               dplyr::filter(estimate_name == "person_days") |>
-                               dplyr::pull("estimate_value")))  ==
-                sum(as.numeric(incYears |>
-                                 dplyr::filter(estimate_name == "person_days") |>
-                                 dplyr::pull("estimate_value"))))
+    dplyr::filter(estimate_name == "person_days") |>
+    dplyr::pull("estimate_value"))) ==
+    sum(as.numeric(incYears |>
+      dplyr::filter(estimate_name == "person_days") |>
+      dplyr::pull("estimate_value"))))
 
-  expect_equal(sum(as.numeric(incMonths |>
-                                dplyr::filter(estimate_name == "person_years") |>
-                                dplyr::pull("estimate_value"))),
-               sum(as.numeric(incYears |>
-                                dplyr::filter(estimate_name == "person_years") |>
-                                dplyr::pull("estimate_value"))))
+  expect_equal(
+    sum(as.numeric(incMonths |>
+      dplyr::filter(estimate_name == "person_years") |>
+      dplyr::pull("estimate_value"))),
+    sum(as.numeric(incYears |>
+      dplyr::filter(estimate_name == "person_years") |>
+      dplyr::pull("estimate_value")))
+  )
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 
 
   cdm <- mockIncidencePrevalence(sampleSize = 1000)
@@ -961,38 +978,38 @@ test_that("mock db: compare results from months and years", {
 
   # consistent results for months and years
   expect_identical(sum(as.numeric(incWeeks |>
-                                    dplyr::filter(estimate_name == "outcome_count") |>
-                                    dplyr::pull("estimate_value"))), sum(as.numeric(incYears |>
-                                                                                      dplyr::filter(estimate_name == "outcome_count") |>
-                                                                                      dplyr::pull("estimate_value"))))
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value"))), sum(as.numeric(incYears |>
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value"))))
   expect_identical(sum(as.numeric(incQuarters |>
-                                    dplyr::filter(estimate_name == "outcome_count") |>
-                                    dplyr::pull("estimate_value"))), sum(as.numeric(incYears |>
-                                                                                      dplyr::filter(estimate_name == "outcome_count") |>
-                                                                                      dplyr::pull("estimate_value"))))
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value"))), sum(as.numeric(incYears |>
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value"))))
   expect_identical(sum(as.numeric(incMonths |>
-                                    dplyr::filter(estimate_name == "outcome_count") |>
-                                    dplyr::pull("estimate_value"))), sum(as.numeric(incYears |>
-                                                                                      dplyr::filter(estimate_name == "outcome_count") |>
-                                                                                      dplyr::pull("estimate_value"))))
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value"))), sum(as.numeric(incYears |>
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value"))))
 
   expect_identical(sum(as.numeric(incWeeks |>
-                                    dplyr::filter(estimate_name == "person_days") |>
-                                    dplyr::pull("estimate_value"))), sum(as.numeric(incYears |>
-                                                                                      dplyr::filter(estimate_name == "person_days") |>
-                                                                                      dplyr::pull("estimate_value"))))
+    dplyr::filter(estimate_name == "person_days") |>
+    dplyr::pull("estimate_value"))), sum(as.numeric(incYears |>
+    dplyr::filter(estimate_name == "person_days") |>
+    dplyr::pull("estimate_value"))))
   expect_identical(sum(as.numeric(incQuarters |>
-                                    dplyr::filter(estimate_name == "person_days") |>
-                                    dplyr::pull("estimate_value"))), sum(as.numeric(incYears |>
-                                                                                      dplyr::filter(estimate_name == "person_days") |>
-                                                                                      dplyr::pull("estimate_value"))))
+    dplyr::filter(estimate_name == "person_days") |>
+    dplyr::pull("estimate_value"))), sum(as.numeric(incYears |>
+    dplyr::filter(estimate_name == "person_days") |>
+    dplyr::pull("estimate_value"))))
   expect_identical(sum(as.numeric(incMonths |>
-                                    dplyr::filter(estimate_name == "person_days") |>
-                                    dplyr::pull("estimate_value"))), sum(as.numeric(incYears |>
-                                                                                      dplyr::filter(estimate_name == "person_days") |>
-                                                                                      dplyr::pull("estimate_value"))))
+    dplyr::filter(estimate_name == "person_days") |>
+    dplyr::pull("estimate_value"))), sum(as.numeric(incYears |>
+    dplyr::filter(estimate_name == "person_days") |>
+    dplyr::pull("estimate_value"))))
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check entry and event on same day", {
@@ -1040,8 +1057,8 @@ test_that("mock db: check entry and event on same day", {
   )
 
   expect_true(sum(as.numeric(incWithoutRep |>
-                               dplyr::filter(estimate_name == "outcome_count") |>
-                               dplyr::pull("estimate_value"))) == "1")
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value"))) == "1")
 
   incWithRep <- estimateIncidence(
     cdm = cdm,
@@ -1053,10 +1070,10 @@ test_that("mock db: check entry and event on same day", {
     completeDatabaseIntervals = FALSE
   )
   expect_true(sum(as.numeric(incWithRep |>
-                               dplyr::filter(estimate_name == "outcome_count") |>
-                               dplyr::pull("estimate_value"))) == "1")
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value"))) == "1")
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: cohort start overlaps with the outcome", {
@@ -1095,8 +1112,10 @@ test_that("mock db: cohort start overlaps with the outcome", {
 
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
-    cohortDateRange = as.Date(c("2021-01-01",
-                                "2021-12-31"))
+    cohortDateRange = as.Date(c(
+      "2021-01-01",
+      "2021-12-31"
+    ))
   )
 
   inc <- estimateIncidence(
@@ -1108,10 +1127,10 @@ test_that("mock db: cohort start overlaps with the outcome", {
     interval = c("Years")
   )
   expect_true(all(inc |>
-                    dplyr::filter(estimate_name == "denominator_count") |>
-                    dplyr::pull("estimate_value") == "1"))
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value") == "1"))
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check outcome in previous obeservation period", {
@@ -1125,7 +1144,7 @@ test_that("mock db: check outcome in previous obeservation period", {
     day_of_birth = c(01L, 01L)
   )
   observationPeriodTable <- dplyr::tibble(
-    observation_period_id = c(1L, 2L ,3L),
+    observation_period_id = c(1L, 2L, 3L),
     person_id = c(1L, 1L, 2L),
     observation_period_start_date = c(
       as.Date("2000-01-01"),
@@ -1166,8 +1185,8 @@ test_that("mock db: check outcome in previous obeservation period", {
     interval = c("Years")
   )
   expect_true(all(incRep |>
-                    dplyr::filter(estimate_name == "denominator_count") |>
-                    dplyr::pull("estimate_value") == "2"))
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value") == "2"))
 
   # with inf wash out- should only have 1 person
   incNoRep <- estimateIncidence(
@@ -1179,8 +1198,8 @@ test_that("mock db: check outcome in previous obeservation period", {
     interval = c("Years")
   )
   expect_true(all(incNoRep |>
-                    dplyr::filter(estimate_name == "denominator_count") |>
-                    dplyr::pull("estimate_value") == "1"))
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value") == "1"))
 
   # with 5 year wash out- should have 2 people at the start of the study period
   incNoRep2 <- estimateIncidence(
@@ -1193,11 +1212,10 @@ test_that("mock db: check outcome in previous obeservation period", {
   )
 
   expect_true(max(as.numeric(incNoRep2 |>
-                               dplyr::filter(estimate_name == "denominator_count") |>
-                               dplyr::pull("estimate_value"))) == 2)
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value"))) == 2)
 
-  CDMConnector::cdm_disconnect(cdm)
-
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check minimum counts", {
@@ -1259,52 +1277,52 @@ test_that("mock db: check minimum counts", {
   )
 
   expect_identical(inc |>
-                     dplyr::filter(estimate_name == "denominator_count") |>
-                     dplyr::pull("estimate_value"), c("20", "3"))
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value"), c("20", "3"))
   expect_identical(inc |>
-                     dplyr::filter(estimate_name == "outcome_count") |>
-                     dplyr::pull("estimate_value"), c("17", "3"))
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value"), c("17", "3"))
   expect_false(is.na(inc |>
-                       dplyr::filter(estimate_name == "person_days") |>
-                       dplyr::filter(dplyr::row_number() == 1) |>
-                       dplyr::pull("estimate_value")))
+    dplyr::filter(estimate_name == "person_days") |>
+    dplyr::filter(dplyr::row_number() == 1) |>
+    dplyr::pull("estimate_value")))
   expect_false(is.na(inc |>
-                       dplyr::filter(estimate_name == "person_days") |>
-                       dplyr::filter(dplyr::row_number() == 2) |>
-                       dplyr::pull("estimate_value")))
+    dplyr::filter(estimate_name == "person_days") |>
+    dplyr::filter(dplyr::row_number() == 2) |>
+    dplyr::pull("estimate_value")))
   expect_false(is.na(inc |>
-                       dplyr::filter(estimate_name == "person_years") |>
-                       dplyr::filter(dplyr::row_number() == 1) |>
-                       dplyr::pull("estimate_value")))
+    dplyr::filter(estimate_name == "person_years") |>
+    dplyr::filter(dplyr::row_number() == 1) |>
+    dplyr::pull("estimate_value")))
   expect_false(is.na(inc |>
-                       dplyr::filter(estimate_name == "person_years") |>
-                       dplyr::filter(dplyr::row_number() == 2) |>
-                       dplyr::pull("estimate_value")))
+    dplyr::filter(estimate_name == "person_years") |>
+    dplyr::filter(dplyr::row_number() == 2) |>
+    dplyr::pull("estimate_value")))
 
   expect_false(is.na(inc |>
-                       dplyr::filter(estimate_name == "incidence_100000_pys") |>
-                       dplyr::filter(dplyr::row_number() == 1) |>
-                       dplyr::pull("estimate_value")))
+    dplyr::filter(estimate_name == "incidence_100000_pys") |>
+    dplyr::filter(dplyr::row_number() == 1) |>
+    dplyr::pull("estimate_value")))
   expect_false(is.na(inc |>
-                       dplyr::filter(estimate_name == "incidence_100000_pys") |>
-                       dplyr::filter(dplyr::row_number() == 2) |>
-                       dplyr::pull("estimate_value")))
+    dplyr::filter(estimate_name == "incidence_100000_pys") |>
+    dplyr::filter(dplyr::row_number() == 2) |>
+    dplyr::pull("estimate_value")))
   expect_false(is.na(inc |>
-                       dplyr::filter(estimate_name == "incidence_100000_pys_95CI_lower") |>
-                       dplyr::filter(dplyr::row_number() == 1) |>
-                       dplyr::pull("estimate_value")))
+    dplyr::filter(estimate_name == "incidence_100000_pys_95CI_lower") |>
+    dplyr::filter(dplyr::row_number() == 1) |>
+    dplyr::pull("estimate_value")))
   expect_false(is.na(inc |>
-                       dplyr::filter(estimate_name == "incidence_100000_pys_95CI_lower") |>
-                       dplyr::filter(dplyr::row_number() == 2) |>
-                       dplyr::pull("estimate_value")))
+    dplyr::filter(estimate_name == "incidence_100000_pys_95CI_lower") |>
+    dplyr::filter(dplyr::row_number() == 2) |>
+    dplyr::pull("estimate_value")))
   expect_false(is.na(inc |>
-                       dplyr::filter(estimate_name == "incidence_100000_pys_95CI_upper") |>
-                       dplyr::filter(dplyr::row_number() == 1) |>
-                       dplyr::pull("estimate_value")))
+    dplyr::filter(estimate_name == "incidence_100000_pys_95CI_upper") |>
+    dplyr::filter(dplyr::row_number() == 1) |>
+    dplyr::pull("estimate_value")))
   expect_false(is.na(inc |>
-                       dplyr::filter(estimate_name == "incidence_100000_pys_95CI_upper") |>
-                       dplyr::filter(dplyr::row_number() == 2) |>
-                       dplyr::pull("estimate_value")))
+    dplyr::filter(estimate_name == "incidence_100000_pys_95CI_upper") |>
+    dplyr::filter(dplyr::row_number() == 2) |>
+    dplyr::pull("estimate_value")))
 
 
   inc <- estimateIncidence(
@@ -1316,33 +1334,32 @@ test_that("mock db: check minimum counts", {
     completeDatabaseIntervals = FALSE
   ) |> omopgenerics::suppress(5)
   expect_identical(inc |>
-                     dplyr::filter(estimate_name == "denominator_count") |>
-                     dplyr::pull("estimate_value"), c("20", "-"))
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value"), c("20", "-"))
   expect_identical(inc |>
-                     dplyr::filter(estimate_name == "outcome_count") |>
-                     dplyr::pull("estimate_value"), c("17", "-"))
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value"), c("17", "-"))
   expect_false(inc |>
-                 dplyr::filter(estimate_name == "person_days") |>
-                 dplyr::filter(dplyr::row_number() == 1) |>
-                 dplyr::pull("estimate_value") == "-")
+    dplyr::filter(estimate_name == "person_days") |>
+    dplyr::filter(dplyr::row_number() == 1) |>
+    dplyr::pull("estimate_value") == "-")
   expect_true(inc |>
-                dplyr::filter(estimate_name == "person_days") |>
-                dplyr::filter(dplyr::row_number() == 2) |>
-                dplyr::pull("estimate_value") == "-")
+    dplyr::filter(estimate_name == "person_days") |>
+    dplyr::filter(dplyr::row_number() == 2) |>
+    dplyr::pull("estimate_value") == "-")
   expect_false(inc |>
-                 dplyr::filter(estimate_name == "person_years") |>
-                 dplyr::filter(dplyr::row_number() == 1) |>
-                 dplyr::pull("estimate_value") == "-")
+    dplyr::filter(estimate_name == "person_years") |>
+    dplyr::filter(dplyr::row_number() == 1) |>
+    dplyr::pull("estimate_value") == "-")
   expect_true(inc |>
-                dplyr::filter(estimate_name == "person_years") |>
-                dplyr::filter(dplyr::row_number() == 2) |>
-                dplyr::pull("estimate_value") == "-")
+    dplyr::filter(estimate_name == "person_years") |>
+    dplyr::filter(dplyr::row_number() == 2) |>
+    dplyr::pull("estimate_value") == "-")
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: multiple overlapping outcomes", {
-
   # technically overlapping outcomes are not allowed
   # check this edge case, but validation might also not allow this
 
@@ -1393,12 +1410,12 @@ test_that("mock db: multiple overlapping outcomes", {
   )
 
   expect_true(inc |>
-                dplyr::filter(estimate_name == "denominator_count") |>
-                dplyr::pull("estimate_value") == "2")
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value") == "2")
   expect_true(inc |>
-                dplyr::filter(estimate_name == "outcome_count") |>
-                dplyr::pull("estimate_value") == "1")
-  CDMConnector::cdm_disconnect(cdm)
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value") == "1")
+  CDMConnector::cdmDisconnect(cdm)
 
   # three
   personTable <- dplyr::tibble(
@@ -1452,13 +1469,13 @@ test_that("mock db: multiple overlapping outcomes", {
     interval = "overall"
   )
   expect_true(inc |>
-                dplyr::filter(estimate_name == "denominator_count") |>
-                dplyr::pull("estimate_value") == "2")
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value") == "2")
   expect_true(inc |>
-                dplyr::filter(estimate_name == "outcome_count") |>
-                dplyr::pull("estimate_value") == "1")
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value") == "1")
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: cohort before period start ending after period", {
@@ -1520,8 +1537,8 @@ test_that("mock db: cohort before period start ending after period", {
     completeDatabaseIntervals = FALSE
   )
   expect_true(all(inc |>
-                    dplyr::filter(estimate_name == "outcome_count") |>
-                    dplyr::pull("estimate_value") == "1"))
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value") == "1"))
 
   # washout
   inc <- estimateIncidence(
@@ -1534,10 +1551,10 @@ test_that("mock db: cohort before period start ending after period", {
     completeDatabaseIntervals = FALSE
   )
   expect_true(all(inc |>
-                    dplyr::filter(estimate_name == "outcome_count") |>
-                    dplyr::pull("estimate_value") == "1"))
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value") == "1"))
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check full period requirement - year", {
@@ -1589,8 +1606,8 @@ test_that("mock db: check full period requirement - year", {
     interval = c("Years")
   )
   expect_true(nrow(inc |>
-                     omopgenerics::filterSettings(result_type == "incidence")) == 0)
-  CDMConnector::cdm_disconnect(cdm)
+    omopgenerics::filterSettings(result_type == "incidence")) == 0)
+  CDMConnector::cdmDisconnect(cdm)
 
   # edge case first day to last of the year
   # still expect this to work
@@ -1641,11 +1658,11 @@ test_that("mock db: check full period requirement - year", {
   )
 
   expect_true(nrow(inc |>
-                     omopgenerics::filterSettings(result_type == "incidence") |>
-                     dplyr::filter(estimate_name == "outcome_count")) ==
-                1)
+    omopgenerics::filterSettings(result_type == "incidence") |>
+    dplyr::filter(estimate_name == "outcome_count")) ==
+    1)
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check full period requirement - month", {
@@ -1697,7 +1714,7 @@ test_that("mock db: check full period requirement - month", {
     interval = c("Months")
   )
   expect_gte(nrow(inc), 1)
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 
   # edge case first day to last of the month
   # still expect this to work
@@ -1747,9 +1764,9 @@ test_that("mock db: check full period requirement - month", {
     interval = c("Months")
   )
   expect_gte(nrow(inc |>
-                    omopgenerics::filterSettings(result_type == "incidence")), 1)
+    omopgenerics::filterSettings(result_type == "incidence")), 1)
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check completeDatabaseIntervals", {
@@ -1805,19 +1822,19 @@ test_that("mock db: check completeDatabaseIntervals", {
   )
 
   expect_true(nrow(inc |>
-                     dplyr::filter(estimate_name == "outcome_count")) == 2)
+    dplyr::filter(estimate_name == "outcome_count")) == 2)
   expect_true(clock::get_year(inc |>
-                                dplyr::filter(estimate_name == "outcome_count") |>
-                                omopgenerics::splitAdditional() |>
-                                dplyr::filter(dplyr::row_number() == 1) |>
-                                dplyr::pull("incidence_start_date") |>
-                                as.Date()) == "2020")
+    dplyr::filter(estimate_name == "outcome_count") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(dplyr::row_number() == 1) |>
+    dplyr::pull("incidence_start_date") |>
+    as.Date()) == "2020")
   expect_true(clock::get_year(inc |>
-                                dplyr::filter(estimate_name == "outcome_count") |>
-                                omopgenerics::splitAdditional() |>
-                                dplyr::filter(dplyr::row_number() == 2) |>
-                                dplyr::pull("incidence_start_date") |>
-                                as.Date()) == "2021")
+    dplyr::filter(estimate_name == "outcome_count") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(dplyr::row_number() == 2) |>
+    dplyr::pull("incidence_start_date") |>
+    as.Date()) == "2021")
 
   # repetitive events FALSE
   # - now we expect only to use 2020 (id 2 obs end is in 21)
@@ -1830,13 +1847,13 @@ test_that("mock db: check completeDatabaseIntervals", {
     completeDatabaseIntervals = TRUE
   )
   expect_true(nrow(inc |>
-                     dplyr::filter(estimate_name == "outcome_count")) == 1)
+    dplyr::filter(estimate_name == "outcome_count")) == 1)
   expect_true(clock::get_year(inc |>
-                                dplyr::filter(estimate_name == "outcome_count") |>
-                                omopgenerics::splitAdditional() |>
-                                dplyr::filter(dplyr::row_number() == 1) |>
-                                dplyr::pull("incidence_start_date") |>
-                                as.Date()) == "2020")
+    dplyr::filter(estimate_name == "outcome_count") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(dplyr::row_number() == 1) |>
+    dplyr::pull("incidence_start_date") |>
+    as.Date()) == "2020")
 
   # full periods required FALSE
   # repetitive events TRUE
@@ -1852,31 +1869,31 @@ test_that("mock db: check completeDatabaseIntervals", {
     completeDatabaseIntervals = FALSE
   )
   expect_true(nrow(inc |>
-                     dplyr::filter(estimate_name == "outcome_count")) == 4)
+    dplyr::filter(estimate_name == "outcome_count")) == 4)
   expect_true(clock::get_year(inc |>
-                                dplyr::filter(estimate_name == "outcome_count") |>
-                                omopgenerics::splitAdditional() |>
-                                dplyr::filter(dplyr::row_number() == 1) |>
-                                dplyr::pull("incidence_start_date") |>
-                                as.Date()) == "2019")
+    dplyr::filter(estimate_name == "outcome_count") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(dplyr::row_number() == 1) |>
+    dplyr::pull("incidence_start_date") |>
+    as.Date()) == "2019")
   expect_true(clock::get_year(inc |>
-                                dplyr::filter(estimate_name == "outcome_count") |>
-                                omopgenerics::splitAdditional() |>
-                                dplyr::filter(dplyr::row_number() == 2) |>
-                                dplyr::pull("incidence_start_date") |>
-                                as.Date()) == "2020")
+    dplyr::filter(estimate_name == "outcome_count") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(dplyr::row_number() == 2) |>
+    dplyr::pull("incidence_start_date") |>
+    as.Date()) == "2020")
   expect_true(clock::get_year(inc |>
-                                dplyr::filter(estimate_name == "outcome_count") |>
-                                omopgenerics::splitAdditional() |>
-                                dplyr::filter(dplyr::row_number() == 3) |>
-                                dplyr::pull("incidence_start_date") |>
-                                as.Date()) == "2021")
+    dplyr::filter(estimate_name == "outcome_count") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(dplyr::row_number() == 3) |>
+    dplyr::pull("incidence_start_date") |>
+    as.Date()) == "2021")
   expect_true(clock::get_year(inc |>
-                                dplyr::filter(estimate_name == "outcome_count") |>
-                                omopgenerics::splitAdditional() |>
-                                dplyr::filter(dplyr::row_number() == 4) |>
-                                dplyr::pull("incidence_start_date") |>
-                                as.Date()) == "2022")
+    dplyr::filter(estimate_name == "outcome_count") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(dplyr::row_number() == 4) |>
+    dplyr::pull("incidence_start_date") |>
+    as.Date()) == "2022")
 
   # repetitive events FALSE
   inc <- estimateIncidence(
@@ -1888,27 +1905,27 @@ test_that("mock db: check completeDatabaseIntervals", {
     completeDatabaseIntervals = FALSE
   )
   expect_true(nrow(inc |>
-                     dplyr::filter(estimate_name == "outcome_count")) == 3)
+    dplyr::filter(estimate_name == "outcome_count")) == 3)
   expect_true(clock::get_year(inc |>
-                                dplyr::filter(estimate_name == "outcome_count") |>
-                                omopgenerics::splitAdditional() |>
-                                dplyr::filter(dplyr::row_number() == 1) |>
-                                dplyr::pull("incidence_start_date") |>
-                                as.Date()) == "2019")
+    dplyr::filter(estimate_name == "outcome_count") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(dplyr::row_number() == 1) |>
+    dplyr::pull("incidence_start_date") |>
+    as.Date()) == "2019")
   expect_true(clock::get_year(inc |>
-                                dplyr::filter(estimate_name == "outcome_count") |>
-                                omopgenerics::splitAdditional() |>
-                                dplyr::filter(dplyr::row_number() == 2) |>
-                                dplyr::pull("incidence_start_date") |>
-                                as.Date()) == "2020")
+    dplyr::filter(estimate_name == "outcome_count") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(dplyr::row_number() == 2) |>
+    dplyr::pull("incidence_start_date") |>
+    as.Date()) == "2020")
   expect_true(clock::get_year(inc |>
-                                dplyr::filter(estimate_name == "outcome_count") |>
-                                omopgenerics::splitAdditional() |>
-                                dplyr::filter(dplyr::row_number() == 3) |>
-                                dplyr::pull("incidence_start_date") |>
-                                as.Date()) == "2021")
+    dplyr::filter(estimate_name == "outcome_count") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(dplyr::row_number() == 3) |>
+    dplyr::pull("incidence_start_date") |>
+    as.Date()) == "2021")
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check insufficient study days", {
@@ -1951,7 +1968,7 @@ test_that("mock db: check insufficient study days", {
 
   # we have less than a year of follow up
   # so we should return an empty tibble if full periods are required
-  # and we´re looking for yearly incidence
+  # and we<U+00B4>re looking for yearly incidence
   inc <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
@@ -1962,9 +1979,9 @@ test_that("mock db: check insufficient study days", {
   )
 
   expect_true(nrow(inc |>
-                     omopgenerics::filterSettings(result_type == "incidence")) == 0)
+    omopgenerics::filterSettings(result_type == "incidence")) == 0)
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check with and without study start and end date", {
@@ -2055,114 +2072,114 @@ test_that("mock db: check with and without study start and end date", {
 
   # no washout, repetitive events
   inc1A <- estimateIncidence(cdm,
-                             denominatorTable = "denominator1",
-                             outcomeTable = "outcome",
-                             interval = "years",
-                             repeatedEvents = TRUE,
-                             outcomeWashout = 0,
-                             completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator1",
+    outcomeTable = "outcome",
+    interval = "years",
+    repeatedEvents = TRUE,
+    outcomeWashout = 0,
+    completeDatabaseIntervals = FALSE
   )
   inc2A <- estimateIncidence(cdm,
-                             denominatorTable = "denominator2",
-                             outcomeTable = "outcome",
-                             interval = "years",
-                             repeatedEvents = TRUE,
-                             outcomeWashout = 0,
-                             completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator2",
+    outcomeTable = "outcome",
+    interval = "years",
+    repeatedEvents = TRUE,
+    outcomeWashout = 0,
+    completeDatabaseIntervals = FALSE
   )
 
   # given the settings above we would expect the same results for 2010
   expect_identical(inc1A |>
-                     dplyr::filter(estimate_name == "denominator_count") |>
-                     omopgenerics::splitAdditional() |>
-                     dplyr::filter(clock::get_year(incidence_start_date |>
-                                                     as.Date()) == 2010) |>
-                     dplyr::pull("estimate_value"), inc2A |>
-                     dplyr::filter(estimate_name == "denominator_count") |>
-                     omopgenerics::splitAdditional() |>
-                     dplyr::filter(clock::get_year(incidence_start_date |>
-                                                     as.Date()) == 2010) |>
-                     dplyr::pull("estimate_value"))
+    dplyr::filter(estimate_name == "denominator_count") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(clock::get_year(incidence_start_date |>
+      as.Date()) == 2010) |>
+    dplyr::pull("estimate_value"), inc2A |>
+    dplyr::filter(estimate_name == "denominator_count") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(clock::get_year(incidence_start_date |>
+      as.Date()) == 2010) |>
+    dplyr::pull("estimate_value"))
 
   expect_identical(inc1A |>
-                     dplyr::filter(estimate_name == "person_days") |>
-                     omopgenerics::splitAdditional() |>
-                     dplyr::filter(clock::get_year(incidence_start_date |>
-                                                     as.Date()) == 2010) |>
-                     dplyr::pull("estimate_value"), inc2A |>
-                     dplyr::filter(estimate_name == "person_days") |>
-                     omopgenerics::splitAdditional() |>
-                     dplyr::filter(clock::get_year(incidence_start_date |>
-                                                     as.Date()) == 2010) |>
-                     dplyr::pull("estimate_value"))
+    dplyr::filter(estimate_name == "person_days") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(clock::get_year(incidence_start_date |>
+      as.Date()) == 2010) |>
+    dplyr::pull("estimate_value"), inc2A |>
+    dplyr::filter(estimate_name == "person_days") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(clock::get_year(incidence_start_date |>
+      as.Date()) == 2010) |>
+    dplyr::pull("estimate_value"))
 
   expect_identical(inc1A |>
-                     dplyr::filter(estimate_name == "outcome_count") |>
-                     omopgenerics::splitAdditional() |>
-                     dplyr::filter(clock::get_year(incidence_start_date |>
-                                                     as.Date()) == 2010) |>
-                     dplyr::pull("estimate_value"), inc2A |>
-                     dplyr::filter(estimate_name == "outcome_count") |>
-                     omopgenerics::splitAdditional() |>
-                     dplyr::filter(clock::get_year(incidence_start_date |>
-                                                     as.Date()) == 2010) |>
-                     dplyr::pull("estimate_value"))
+    dplyr::filter(estimate_name == "outcome_count") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(clock::get_year(incidence_start_date |>
+      as.Date()) == 2010) |>
+    dplyr::pull("estimate_value"), inc2A |>
+    dplyr::filter(estimate_name == "outcome_count") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(clock::get_year(incidence_start_date |>
+      as.Date()) == 2010) |>
+    dplyr::pull("estimate_value"))
 
   # 365 washout, repetitive events
   inc1B <- estimateIncidence(cdm,
-                             denominatorTable = "denominator1",
-                             outcomeTable = "outcome",
-                             interval = "years",
-                             repeatedEvents = TRUE,
-                             outcomeWashout = 365,
-                             completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator1",
+    outcomeTable = "outcome",
+    interval = "years",
+    repeatedEvents = TRUE,
+    outcomeWashout = 365,
+    completeDatabaseIntervals = FALSE
   )
   inc2B <- estimateIncidence(cdm,
-                             denominatorTable = "denominator2",
-                             outcomeTable = "outcome",
-                             interval = "years",
-                             repeatedEvents = TRUE,
-                             outcomeWashout = 365,
-                             completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator2",
+    outcomeTable = "outcome",
+    interval = "years",
+    repeatedEvents = TRUE,
+    outcomeWashout = 365,
+    completeDatabaseIntervals = FALSE
   )
   # given the settings above we would expect the same results for 2010
   expect_identical(inc1B |>
-                     dplyr::filter(estimate_name == "denominator_count") |>
-                     omopgenerics::splitAdditional() |>
-                     dplyr::filter(clock::get_year(incidence_start_date |>
-                                                     as.Date()) == 2010) |>
-                     dplyr::pull("estimate_value"), inc2B |>
-                     dplyr::filter(estimate_name == "denominator_count") |>
-                     omopgenerics::splitAdditional() |>
-                     dplyr::filter(clock::get_year(incidence_start_date |>
-                                                     as.Date()) == 2010) |>
-                     dplyr::pull("estimate_value"))
+    dplyr::filter(estimate_name == "denominator_count") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(clock::get_year(incidence_start_date |>
+      as.Date()) == 2010) |>
+    dplyr::pull("estimate_value"), inc2B |>
+    dplyr::filter(estimate_name == "denominator_count") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(clock::get_year(incidence_start_date |>
+      as.Date()) == 2010) |>
+    dplyr::pull("estimate_value"))
 
   expect_identical(inc1B |>
-                     dplyr::filter(estimate_name == "person_days") |>
-                     omopgenerics::splitAdditional() |>
-                     dplyr::filter(clock::get_year(incidence_start_date |>
-                                                     as.Date()) == 2010) |>
-                     dplyr::pull("estimate_value"), inc2B |>
-                     dplyr::filter(estimate_name == "person_days") |>
-                     omopgenerics::splitAdditional() |>
-                     dplyr::filter(clock::get_year(incidence_start_date |>
-                                                     as.Date()) == 2010) |>
-                     dplyr::pull("estimate_value"))
+    dplyr::filter(estimate_name == "person_days") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(clock::get_year(incidence_start_date |>
+      as.Date()) == 2010) |>
+    dplyr::pull("estimate_value"), inc2B |>
+    dplyr::filter(estimate_name == "person_days") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(clock::get_year(incidence_start_date |>
+      as.Date()) == 2010) |>
+    dplyr::pull("estimate_value"))
 
   expect_identical(inc1B |>
-                     dplyr::filter(estimate_name == "outcome_count") |>
-                     omopgenerics::splitAdditional() |>
-                     dplyr::filter(clock::get_year(incidence_start_date |>
-                                                     as.Date()) == 2010) |>
-                     dplyr::pull("estimate_value"), inc2B |>
-                     dplyr::filter(estimate_name == "outcome_count") |>
-                     omopgenerics::splitAdditional() |>
-                     dplyr::filter(clock::get_year(incidence_start_date |>
-                                                     as.Date()) == 2010) |>
-                     dplyr::pull("estimate_value"))
+    dplyr::filter(estimate_name == "outcome_count") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(clock::get_year(incidence_start_date |>
+      as.Date()) == 2010) |>
+    dplyr::pull("estimate_value"), inc2B |>
+    dplyr::filter(estimate_name == "outcome_count") |>
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(clock::get_year(incidence_start_date |>
+      as.Date()) == 2010) |>
+    dplyr::pull("estimate_value"))
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check study start and end date 1000", {
@@ -2182,100 +2199,100 @@ test_that("mock db: check study start and end date 1000", {
 
   # no washout, repetitive events
   inc1A <- estimateIncidence(cdm,
-                             denominatorTable = "denominator1",
-                             outcomeTable = "outcome",
-                             interval = "years",
-                             repeatedEvents = TRUE,
-                             outcomeWashout = 0,
-                             completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator1",
+    outcomeTable = "outcome",
+    interval = "years",
+    repeatedEvents = TRUE,
+    outcomeWashout = 0,
+    completeDatabaseIntervals = FALSE
   )
   inc2A <- estimateIncidence(cdm,
-                             denominatorTable = "denominator2",
-                             outcomeTable = "outcome",
-                             interval = "years",
-                             repeatedEvents = TRUE,
-                             outcomeWashout = 0,
-                             completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator2",
+    outcomeTable = "outcome",
+    interval = "years",
+    repeatedEvents = TRUE,
+    outcomeWashout = 0,
+    completeDatabaseIntervals = FALSE
   )
 
-  expect_true(inc1A  |>
-                omopgenerics::filterSettings(result_type == "incidence")%>%
-                omopgenerics::splitAdditional() |>
-                dplyr::filter(clock::get_year(incidence_start_date |>
-                                                as.Date()) == 2010) %>%
-                dplyr::filter(estimate_name == "denominator_count") %>%
-                dplyr::pull("estimate_value") ==
-                inc2A  |>
-                omopgenerics::filterSettings(result_type == "incidence")%>%
-                omopgenerics::splitAdditional() |>
-                dplyr::filter(clock::get_year(incidence_start_date |>
-                                                as.Date()) == 2010) %>%
-                dplyr::filter(estimate_name == "denominator_count") %>%
-                dplyr::pull("estimate_value"))
   expect_true(inc1A |>
-                omopgenerics::filterSettings(result_type == "incidence") %>%
-                omopgenerics::splitAdditional() |>
-                dplyr::filter(clock::get_year(incidence_start_date |>
-                                                as.Date()) == 2010) %>%
-                dplyr::filter(estimate_name == "person_days") %>%
-                dplyr::pull("estimate_value") ==
-                inc2A  |>
-                omopgenerics::filterSettings(result_type == "incidence")%>%
-                omopgenerics::splitAdditional() |>
-                dplyr::filter(clock::get_year(incidence_start_date |>
-                                                as.Date()) == 2010) %>%
-                dplyr::filter(estimate_name == "person_days") %>%
-                dplyr::pull("estimate_value"))
-  expect_true(inc1A  |>
-                omopgenerics::filterSettings(result_type == "incidence")%>%
-                omopgenerics::splitAdditional() |>
-                dplyr::filter(clock::get_year(incidence_start_date |>
-                                                as.Date()) == 2010) %>%
-                dplyr::filter(estimate_name == "outcome_count") %>%
-                dplyr::pull("estimate_value") ==
-                inc2A  |>
-                omopgenerics::filterSettings(result_type == "incidence")%>%
-                omopgenerics::splitAdditional() |>
-                dplyr::filter(clock::get_year(incidence_start_date |>
-                                                as.Date()) == 2010) %>%
-                dplyr::filter(estimate_name == "outcome_count") %>%
-                dplyr::pull("estimate_value"))
+    omopgenerics::filterSettings(result_type == "incidence") %>%
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(clock::get_year(incidence_start_date |>
+      as.Date()) == 2010) %>%
+    dplyr::filter(estimate_name == "denominator_count") %>%
+    dplyr::pull("estimate_value") ==
+    inc2A |>
+      omopgenerics::filterSettings(result_type == "incidence") %>%
+      omopgenerics::splitAdditional() |>
+      dplyr::filter(clock::get_year(incidence_start_date |>
+        as.Date()) == 2010) %>%
+      dplyr::filter(estimate_name == "denominator_count") %>%
+      dplyr::pull("estimate_value"))
+  expect_true(inc1A |>
+    omopgenerics::filterSettings(result_type == "incidence") %>%
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(clock::get_year(incidence_start_date |>
+      as.Date()) == 2010) %>%
+    dplyr::filter(estimate_name == "person_days") %>%
+    dplyr::pull("estimate_value") ==
+    inc2A |>
+      omopgenerics::filterSettings(result_type == "incidence") %>%
+      omopgenerics::splitAdditional() |>
+      dplyr::filter(clock::get_year(incidence_start_date |>
+        as.Date()) == 2010) %>%
+      dplyr::filter(estimate_name == "person_days") %>%
+      dplyr::pull("estimate_value"))
+  expect_true(inc1A |>
+    omopgenerics::filterSettings(result_type == "incidence") %>%
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(clock::get_year(incidence_start_date |>
+      as.Date()) == 2010) %>%
+    dplyr::filter(estimate_name == "outcome_count") %>%
+    dplyr::pull("estimate_value") ==
+    inc2A |>
+      omopgenerics::filterSettings(result_type == "incidence") %>%
+      omopgenerics::splitAdditional() |>
+      dplyr::filter(clock::get_year(incidence_start_date |>
+        as.Date()) == 2010) %>%
+      dplyr::filter(estimate_name == "outcome_count") %>%
+      dplyr::pull("estimate_value"))
 
   # 365 washout, repetitive events
   inc1B <- estimateIncidence(cdm,
-                             denominatorTable = "denominator1",
-                             outcomeTable = "outcome",
-                             interval = "years",
-                             repeatedEvents = TRUE,
-                             outcomeWashout = 365,
-                             completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator1",
+    outcomeTable = "outcome",
+    interval = "years",
+    repeatedEvents = TRUE,
+    outcomeWashout = 365,
+    completeDatabaseIntervals = FALSE
   )
   inc2B <- estimateIncidence(cdm,
-                             denominatorTable = "denominator2",
-                             outcomeTable = "outcome",
-                             interval = "years",
-                             repeatedEvents = TRUE,
-                             outcomeWashout = 365,
-                             completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator2",
+    outcomeTable = "outcome",
+    interval = "years",
+    repeatedEvents = TRUE,
+    outcomeWashout = 365,
+    completeDatabaseIntervals = FALSE
   )
 
-  expect_true(inc1B  |>
-                omopgenerics::filterSettings(result_type == "incidence")%>%
-                omopgenerics::splitAdditional() |>
-                dplyr::filter(clock::get_year(incidence_start_date |>
-                                                as.Date()) == 2010) %>%
-                dplyr::filter(estimate_name == "incidence_100000_pys") %>%
-                dplyr::pull("estimate_value") ==
-                inc2B  |>
-                omopgenerics::filterSettings(result_type == "incidence")%>%
-                omopgenerics::splitAdditional() |>
-                dplyr::filter(clock::get_year(incidence_start_date |>
-                                                as.Date()) == 2010) %>%
-                dplyr::filter(estimate_name == "incidence_100000_pys") %>%
-                dplyr::pull("estimate_value"))
+  expect_true(inc1B |>
+    omopgenerics::filterSettings(result_type == "incidence") %>%
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(clock::get_year(incidence_start_date |>
+      as.Date()) == 2010) %>%
+    dplyr::filter(estimate_name == "incidence_100000_pys") %>%
+    dplyr::pull("estimate_value") ==
+    inc2B |>
+      omopgenerics::filterSettings(result_type == "incidence") %>%
+      omopgenerics::splitAdditional() |>
+      dplyr::filter(clock::get_year(incidence_start_date |>
+        as.Date()) == 2010) %>%
+      dplyr::filter(estimate_name == "incidence_100000_pys") %>%
+      dplyr::pull("estimate_value"))
 
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 
   # with multiple outcomes per person
   cdm <- mockIncidencePrevalence(
@@ -2295,73 +2312,73 @@ test_that("mock db: check study start and end date 1000", {
 
   # no washout, repetitive events
   inc1A <- estimateIncidence(cdm,
-                             denominatorTable = "denominator1",
-                             outcomeTable = "outcome",
-                             interval = "years",
-                             repeatedEvents = TRUE,
-                             outcomeWashout = 0,
-                             completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator1",
+    outcomeTable = "outcome",
+    interval = "years",
+    repeatedEvents = TRUE,
+    outcomeWashout = 0,
+    completeDatabaseIntervals = FALSE
   )
   inc2A <- estimateIncidence(cdm,
-                             denominatorTable = "denominator2",
-                             outcomeTable = "outcome",
-                             interval = "years",
-                             repeatedEvents = TRUE,
-                             outcomeWashout = 0,
-                             completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator2",
+    outcomeTable = "outcome",
+    interval = "years",
+    repeatedEvents = TRUE,
+    outcomeWashout = 0,
+    completeDatabaseIntervals = FALSE
   )
 
 
   expect_true(inc1A |>
-                omopgenerics::filterSettings(result_type == "incidence") %>%
-                omopgenerics::splitAdditional() |>
-                dplyr::filter(clock::get_year(incidence_start_date |>
-                                                as.Date()) == 2010) %>%
-                dplyr::filter(estimate_name == "incidence_100000_pys") %>%
-                dplyr::pull("estimate_value") ==
-                inc2A  |>
-                omopgenerics::filterSettings(result_type == "incidence")%>%
-                omopgenerics::splitAdditional() |>
-                dplyr::filter(clock::get_year(incidence_start_date |>
-                                                as.Date()) == 2010) %>%
-                dplyr::filter(estimate_name == "incidence_100000_pys") %>%
-                dplyr::pull("estimate_value"))
+    omopgenerics::filterSettings(result_type == "incidence") %>%
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(clock::get_year(incidence_start_date |>
+      as.Date()) == 2010) %>%
+    dplyr::filter(estimate_name == "incidence_100000_pys") %>%
+    dplyr::pull("estimate_value") ==
+    inc2A |>
+      omopgenerics::filterSettings(result_type == "incidence") %>%
+      omopgenerics::splitAdditional() |>
+      dplyr::filter(clock::get_year(incidence_start_date |>
+        as.Date()) == 2010) %>%
+      dplyr::filter(estimate_name == "incidence_100000_pys") %>%
+      dplyr::pull("estimate_value"))
 
   # 365 washout, repetitive events
   inc1B <- estimateIncidence(cdm,
-                             denominatorTable = "denominator1",
-                             outcomeTable = "outcome",
-                             interval = "years",
-                             repeatedEvents = TRUE,
-                             outcomeWashout = 365,
-                             completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator1",
+    outcomeTable = "outcome",
+    interval = "years",
+    repeatedEvents = TRUE,
+    outcomeWashout = 365,
+    completeDatabaseIntervals = FALSE
   )
   inc2B <- estimateIncidence(cdm,
-                             denominatorTable = "denominator2",
-                             outcomeTable = "outcome",
-                             interval = "years",
-                             repeatedEvents = TRUE,
-                             outcomeWashout = 365,
-                             completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator2",
+    outcomeTable = "outcome",
+    interval = "years",
+    repeatedEvents = TRUE,
+    outcomeWashout = 365,
+    completeDatabaseIntervals = FALSE
   )
 
 
-  expect_true(inc1B  |>
-                omopgenerics::filterSettings(result_type == "incidence")%>%
-                omopgenerics::splitAdditional() |>
-                dplyr::filter(clock::get_year(incidence_start_date |>
-                                                as.Date()) == 2010) %>%
-                dplyr::filter(estimate_name == "incidence_100000_pys") %>%
-                dplyr::pull("estimate_value") ==
-                inc2B  |>
-                omopgenerics::filterSettings(result_type == "incidence")%>%
-                omopgenerics::splitAdditional() |>
-                dplyr::filter(clock::get_year(incidence_start_date |>
-                                                as.Date()) == 2010) %>%
-                dplyr::filter(estimate_name == "incidence_100000_pys") %>%
-                dplyr::pull("estimate_value"))
+  expect_true(inc1B |>
+    omopgenerics::filterSettings(result_type == "incidence") %>%
+    omopgenerics::splitAdditional() |>
+    dplyr::filter(clock::get_year(incidence_start_date |>
+      as.Date()) == 2010) %>%
+    dplyr::filter(estimate_name == "incidence_100000_pys") %>%
+    dplyr::pull("estimate_value") ==
+    inc2B |>
+      omopgenerics::filterSettings(result_type == "incidence") %>%
+      omopgenerics::splitAdditional() |>
+      dplyr::filter(clock::get_year(incidence_start_date |>
+        as.Date()) == 2010) %>%
+      dplyr::filter(estimate_name == "incidence_100000_pys") %>%
+      dplyr::pull("estimate_value"))
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("expected errors with mock", {
@@ -2419,33 +2436,34 @@ test_that("expected errors with mock", {
 
   # no study pop
   expect_error(estimateIncidence(cdm,
-                                 outcomeTable = "outcome",
-                                 interval = c("months"),
-                                 denominatorTable = "denominator1"
+    outcomeTable = "outcome",
+    interval = c("months"),
+    denominatorTable = "denominator1"
   ))
   expect_error(estimateIncidence(cdm,
-                                 outcomeTable = "outcome",
-                                 interval = c("months"),
-                                 denominatorTable = "denominator",
-                                 denominatorCohortId = 999
+    outcomeTable = "outcome",
+    interval = c("months"),
+    denominatorTable = "denominator",
+    denominatorCohortId = 999
   ))
 
 
   # outcome definition id doesn't exist in cohort set
   expect_error(estimateIncidence(cdm,
-                                 outcomeTable = "outcome",
-                                 interval = c("months"),
-                                 denominatorTable = "denominator",
-                                 outcomeCohortId = 11
+    outcomeTable = "outcome",
+    interval = c("months"),
+    denominatorTable = "denominator",
+    outcomeCohortId = 11
   ))
 
   # cohortId wrong format
   expect_error(estimateIncidence(cdm,
-                                 denominatorTable = "denominator",
-                                 outcomeTable = "outcome",
-                                 outcomeCohortId = TRUE))
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    outcomeCohortId = TRUE
+  ))
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: multiple observation periods", {
@@ -2521,17 +2539,17 @@ test_that("mock db: multiple observation periods", {
   )
 
   incW0 <- estimateIncidence(cdm,
-                             denominatorTable = "denominator",
-                             outcomeTable = "outcome",
-                             repeatedEvents = TRUE,
-                             outcomeWashout = 0,
-                             completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = TRUE,
+    outcomeWashout = 0,
+    completeDatabaseIntervals = FALSE
   )
   # expect all events if we have zero days washout
   expect_true(sum(as.numeric(incW0 %>%
-                               dplyr::filter(estimate_name == "outcome_count") %>%
-                               dplyr::pull("estimate_value"))) == 2)
-  CDMConnector::cdm_disconnect(cdm)
+    dplyr::filter(estimate_name == "outcome_count") %>%
+    dplyr::pull("estimate_value"))) == 2)
+  CDMConnector::cdmDisconnect(cdm)
 
   # Change the inclusion so that both patients have valid observation periods. Now 1 should have two, and 2 one.
   # Should capture the final part of the first observation period, and the initial part of the second for person 1
@@ -2564,17 +2582,17 @@ test_that("mock db: multiple observation periods", {
   )
 
   incW10 <- estimateIncidence(cdm,
-                              denominatorTable = "denominator",
-                              outcomeTable = "outcome",
-                              repeatedEvents = TRUE,
-                              outcomeWashout = 10,
-                              completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = TRUE,
+    outcomeWashout = 10,
+    completeDatabaseIntervals = FALSE
   )
   # expect all events if we have ten days washout
   expect_true(sum(as.numeric(incW10 %>%
-                               dplyr::filter(estimate_name == "outcome_count") %>%
-                               dplyr::pull("estimate_value"))) == 3)
-  CDMConnector::cdm_disconnect(cdm)
+    dplyr::filter(estimate_name == "outcome_count") %>%
+    dplyr::pull("estimate_value"))) == 3)
+  CDMConnector::cdmDisconnect(cdm)
 
   # try event not counted for outcome but counted for washout as denominator (before observ period)
   outcomeTable <- dplyr::tibble(
@@ -2609,24 +2627,26 @@ test_that("mock db: multiple observation periods", {
     targetCohortId = 1
   )
   inc_PreWashout <- estimateIncidence(cdm,
-                                      denominatorTable = "denominator",
-                                      outcomeTable = "outcome",
-                                      repeatedEvents = TRUE,
-                                      outcomeWashout = 10,
-                                      completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = TRUE,
+    outcomeWashout = 10,
+    completeDatabaseIntervals = FALSE
   )
   expect_true(sum(as.numeric(inc_PreWashout %>%
-                               dplyr::filter(estimate_name == "outcome_count") %>%
-                               dplyr::pull("estimate_value"))) == 3)
+    dplyr::filter(estimate_name == "outcome_count") %>%
+    dplyr::pull("estimate_value"))) == 3)
   expect_true(sum(as.numeric(inc_PreWashout %>%
-                               dplyr::filter(estimate_name == "person_days") %>%
-                               dplyr::pull("estimate_value"))) ==
-                as.numeric(difftime(as.Date("2005-08-11"), as.Date("2005-07-19"))) +
-                1 - 2 + as.numeric(difftime(as.Date("2015-01-02"),
-                                            as.Date("2009-04-10"))) + 1 - 10 +
-                as.numeric(difftime(as.Date("2011-12-11"), as.Date("2010-12-11"))) +
-                1 - 10 - 3)
-  CDMConnector::cdm_disconnect(cdm)
+    dplyr::filter(estimate_name == "person_days") %>%
+    dplyr::pull("estimate_value"))) ==
+    as.numeric(difftime(as.Date("2005-08-11"), as.Date("2005-07-19"))) +
+      1 - 2 + as.numeric(difftime(
+        as.Date("2015-01-02"),
+        as.Date("2009-04-10")
+      )) + 1 - 10 +
+      as.numeric(difftime(as.Date("2011-12-11"), as.Date("2010-12-11"))) +
+      1 - 10 - 3)
+  CDMConnector::cdmDisconnect(cdm)
 
   # multiple events in one of the observation periods of person 1
   conditionX <- dplyr::tibble(
@@ -2658,47 +2678,59 @@ test_that("mock db: multiple observation periods", {
   )
 
   inc_Mult1_W0 <- estimateIncidence(cdm,
-                                    denominatorTable = "denominator",
-                                    outcomeTable = "outcome",
-                                    repeatedEvents = TRUE,
-                                    outcomeWashout = 0,
-                                    completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = TRUE,
+    outcomeWashout = 0,
+    completeDatabaseIntervals = FALSE
   )
 
   inc_Mult1_W30 <- estimateIncidence(cdm,
-                                     denominatorTable = "denominator",
-                                     outcomeTable = "outcome",
-                                     repeatedEvents = TRUE,
-                                     outcomeWashout = 30,
-                                     completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = TRUE,
+    outcomeWashout = 30,
+    completeDatabaseIntervals = FALSE
   )
 
   # we should have 4 events with washout 0, but 3 events with washout 30
   expect_true(sum(as.numeric(inc_Mult1_W0 %>%
-                               dplyr::filter(estimate_name == "outcome_count") %>%
-                               dplyr::pull("estimate_value"))) == 4)
+    dplyr::filter(estimate_name == "outcome_count") %>%
+    dplyr::pull("estimate_value"))) == 4)
   expect_true(sum(as.numeric(inc_Mult1_W30 %>%
-                               dplyr::filter(estimate_name == "outcome_count") %>%
-                               dplyr::pull("estimate_value"))) == 3)
+    dplyr::filter(estimate_name == "outcome_count") %>%
+    dplyr::pull("estimate_value"))) == 3)
   expect_true(sum(as.numeric(inc_Mult1_W0 %>%
-                               dplyr::filter(estimate_name == "person_days") %>%
-                               dplyr::pull("estimate_value"))) ==
-                as.numeric(difftime(as.Date("2005-08-11"),
-                                    as.Date("2005-06-19"))) + 1 +
-                as.numeric(difftime(as.Date("2015-01-02"),
-                                    as.Date("2009-04-10"))) + 1 +
-                as.numeric(difftime(as.Date("2011-12-11"),
-                                    as.Date("2010-12-11"))) + 1)
+    dplyr::filter(estimate_name == "person_days") %>%
+    dplyr::pull("estimate_value"))) ==
+    as.numeric(difftime(
+      as.Date("2005-08-11"),
+      as.Date("2005-06-19")
+    )) + 1 +
+      as.numeric(difftime(
+        as.Date("2015-01-02"),
+        as.Date("2009-04-10")
+      )) + 1 +
+      as.numeric(difftime(
+        as.Date("2011-12-11"),
+        as.Date("2010-12-11")
+      )) + 1)
   expect_true(sum(as.numeric(inc_Mult1_W30 %>%
-                               dplyr::filter(estimate_name == "person_days") %>%
-                               dplyr::pull("estimate_value"))) ==
-                as.numeric(difftime(as.Date("2005-08-11"),
-                                    as.Date("2005-06-19"))) - 30 +
-                as.numeric(difftime(as.Date("2015-01-02"),
-                                    as.Date("2009-04-10"))) +
-                1 - 30 + as.numeric(difftime(as.Date("2011-12-11"),
-                                             as.Date("2010-12-11"))) + 1 - 30)
-  CDMConnector::cdm_disconnect(cdm)
+    dplyr::filter(estimate_name == "person_days") %>%
+    dplyr::pull("estimate_value"))) ==
+    as.numeric(difftime(
+      as.Date("2005-08-11"),
+      as.Date("2005-06-19")
+    )) - 30 +
+      as.numeric(difftime(
+        as.Date("2015-01-02"),
+        as.Date("2009-04-10")
+      )) +
+      1 - 30 + as.numeric(difftime(
+        as.Date("2011-12-11"),
+        as.Date("2010-12-11")
+      )) + 1 - 30)
+  CDMConnector::cdmDisconnect(cdm)
 
   # The first event of person 1 will not be included in the observation period
   # but should also influence the second event with the washout
@@ -2731,28 +2763,34 @@ test_that("mock db: multiple observation periods", {
   )
 
   inc_PreWashEv <- estimateIncidence(cdm,
-                                     denominatorTable = "denominator",
-                                     outcomeTable = "outcome",
-                                     repeatedEvents = TRUE,
-                                     outcomeWashout = 30,
-                                     completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = TRUE,
+    outcomeWashout = 30,
+    completeDatabaseIntervals = FALSE
   )
 
   # we should have 2 events with washout 30
   expect_true(sum(as.numeric(inc_PreWashEv %>%
-                               dplyr::filter(estimate_name == "outcome_count") %>%
-                               dplyr::pull("estimate_value"))) == 2)
+    dplyr::filter(estimate_name == "outcome_count") %>%
+    dplyr::pull("estimate_value"))) == 2)
 
   expect_true(sum(as.numeric(inc_PreWashEv %>%
-                               dplyr::filter(estimate_name == "person_days") %>%
-                               dplyr::pull("estimate_value"))) ==
-                as.numeric(difftime(as.Date("2005-08-11"),
-                                    as.Date("2005-07-19"))) - 30 + 7 +
-                as.numeric(difftime(as.Date("2015-01-02"),
-                                    as.Date("2009-04-10"))) + 1 - 30 +
-                as.numeric(difftime(as.Date("2011-12-11"),
-                                    as.Date("2010-12-11"))) + 1 - 30)
-  CDMConnector::cdm_disconnect(cdm)
+    dplyr::filter(estimate_name == "person_days") %>%
+    dplyr::pull("estimate_value"))) ==
+    as.numeric(difftime(
+      as.Date("2005-08-11"),
+      as.Date("2005-07-19")
+    )) - 30 + 7 +
+      as.numeric(difftime(
+        as.Date("2015-01-02"),
+        as.Date("2009-04-10")
+      )) + 1 - 30 +
+      as.numeric(difftime(
+        as.Date("2011-12-11"),
+        as.Date("2010-12-11")
+      )) + 1 - 30)
+  CDMConnector::cdmDisconnect(cdm)
 
   # three observation periods for 1 person and a
   # couple of consecutive events lost to washout
@@ -2827,31 +2865,31 @@ test_that("mock db: multiple observation periods", {
   )
 
   inc_3op <- estimateIncidence(cdm,
-                               denominatorTable = "denominator",
-                               outcomeTable = "outcome",
-                               repeatedEvents = TRUE,
-                               outcomeWashout = 1L,
-                               completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = TRUE,
+    outcomeWashout = 1L,
+    completeDatabaseIntervals = FALSE
   )
 
   # we should have 5 events with washout 1
   expect_true(sum(as.numeric(inc_3op %>%
-                               dplyr::filter(estimate_name == "outcome_count") %>%
-                               dplyr::pull("estimate_value"))) == 5)
+    dplyr::filter(estimate_name == "outcome_count") %>%
+    dplyr::pull("estimate_value"))) == 5)
 
   # try repeated events FALSE.
   inc_repev <- estimateIncidence(cdm,
-                                 denominatorTable = "denominator",
-                                 outcomeTable = "outcome",
-                                 repeatedEvents = FALSE,
-                                 outcomeWashout = 1L,
-                                 completeDatabaseIntervals = FALSE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    repeatedEvents = FALSE,
+    outcomeWashout = 1L,
+    completeDatabaseIntervals = FALSE
   )
   expect_true(sum(as.numeric(inc_repev %>%
-                               dplyr::filter(estimate_name == "outcome_count") %>%
-                               dplyr::pull("estimate_value"))) == 2)
+    dplyr::filter(estimate_name == "outcome_count") %>%
+    dplyr::pull("estimate_value"))) == 2)
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check confidence intervals", {
@@ -2864,34 +2902,42 @@ test_that("mock db: check confidence intervals", {
     cohortDateRange = c(as.Date("2008-01-01"), as.Date("2011-01-01"))
   )
   inc <- estimateIncidence(cdm,
-                           denominatorTable = "denominator",
-                           outcomeTable = "outcome",
-                           interval = "years",
-                           repeatedEvents = TRUE,
-                           outcomeWashout = 0,
-                           completeDatabaseIntervals = TRUE
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years",
+    repeatedEvents = TRUE,
+    outcomeWashout = 0,
+    completeDatabaseIntervals = TRUE
   )
 
   pkg_est <- inc %>%
     omopgenerics::filterSettings(result_type == "incidence") |>
-    dplyr::select("estimate_name",
-                  "estimate_value", "additional_level") |>
-    tidyr::pivot_wider(names_from = "estimate_name",
-                       values_from = "estimate_value") |>
+    dplyr::select(
+      "estimate_name",
+      "estimate_value", "additional_level"
+    ) |>
+    tidyr::pivot_wider(
+      names_from = "estimate_name",
+      values_from = "estimate_value"
+    ) |>
     dplyr::filter(denominator_count > 1)
 
   expect_equal(as.numeric(pkg_est$incidence_100000_pys_95CI_lower),
-               epitools::pois.exact(as.numeric(pkg_est$outcome_count),
-                                    as.numeric(pkg_est$person_years))$lower* 100000 ,
-               tolerance = 1e-2
+    epitools::pois.exact(
+      as.numeric(pkg_est$outcome_count),
+      as.numeric(pkg_est$person_years)
+    )$lower * 100000,
+    tolerance = 1e-2
   )
   expect_equal(as.numeric(pkg_est$incidence_100000_pys_95CI_upper),
-               epitools::pois.exact(as.numeric(pkg_est$outcome_count),
-                                    as.numeric(pkg_est$person_years))$upper* 100000 ,
-               tolerance = 1e-2
+    epitools::pois.exact(
+      as.numeric(pkg_est$outcome_count),
+      as.numeric(pkg_est$person_years)
+    )$upper * 100000,
+    tolerance = 1e-2
   )
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check attrition", {
@@ -2902,25 +2948,29 @@ test_that("mock db: check attrition", {
     sex = c("Male", "Female")
   )
   inc <- estimateIncidence(cdm,
-                           denominatorTable = "denominator",
-                           outcomeTable = "outcome",
-                           interval = "years"
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years"
   )
 
   # for female cohort we should have a row for those excluded for not being male
   expect_gt(nrow(inc |>
-                   omopgenerics::filterSettings(result_type == "incidence_attrition",
-                                                  denominator_sex == "Female") |>
-                   dplyr::filter(strata_level == "Not Female")), 0)
+    omopgenerics::filterSettings(
+      result_type == "incidence_attrition",
+      denominator_sex == "Female"
+    ) |>
+    dplyr::filter(strata_level == "Not Female")), 0)
 
 
   # for male, the opposite
   expect_gt(nrow(inc |>
-                   omopgenerics::filterSettings(result_type == "incidence_attrition",
-                                                  denominator_sex == "Male") |>
-                   dplyr::filter(strata_level == "Not Male")), 0)
+    omopgenerics::filterSettings(
+      result_type == "incidence_attrition",
+      denominator_sex == "Male"
+    ) |>
+    dplyr::filter(strata_level == "Not Male")), 0)
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 
   # check obscuring counts
   cdm <- mockIncidencePrevalence(sampleSize = 4)
@@ -2929,18 +2979,20 @@ test_that("mock db: check attrition", {
     sex = c("Male", "Female")
   )
   inc <- estimateIncidence(cdm,
-                           denominatorTable = "denominator",
-                           outcomeTable = "outcome",
-                           interval = "years"
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years"
   ) |> omopgenerics::suppress(5)
   expect_true(inc |>
-                omopgenerics::filterSettings(result_type == "incidence_attrition",
-                                               denominator_sex == "Male") |>
-                dplyr::filter(strata_level == "Not Male") |>
-                dplyr::filter(variable_name == "excluded_subjects") |>
-                dplyr::pull("estimate_value") == "-")
+    omopgenerics::filterSettings(
+      result_type == "incidence_attrition",
+      denominator_sex == "Male"
+    ) |>
+    dplyr::filter(strata_level == "Not Male") |>
+    dplyr::filter(variable_name == "excluded_subjects") |>
+    dplyr::pull("estimate_value") == "-")
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check attrition with complete database intervals", {
@@ -2987,18 +3039,18 @@ test_that("mock db: check attrition with complete database intervals", {
 
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
   inc <- estimateIncidence(cdm,
-                           denominatorTable = "denominator",
-                           outcomeTable = "outcome",
-                           interval = "years"
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "years"
   )
 
   expect_true(inc |>
-                omopgenerics::filterSettings(result_type == "incidence_attrition") |>
-                dplyr::filter(strata_level == "Not observed during the complete database interval") |>
-                dplyr::filter(variable_name == "excluded_subjects") |>
-                dplyr::pull("estimate_value") == "1")
+    omopgenerics::filterSettings(result_type == "incidence_attrition") |>
+    dplyr::filter(strata_level == "Not observed during the complete database interval") |>
+    dplyr::filter(variable_name == "excluded_subjects") |>
+    dplyr::pull("estimate_value") == "1")
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check compute permanent", {
@@ -3021,7 +3073,7 @@ test_that("mock db: check compute permanent", {
     "dbplyr_"
   )))
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: if missing cohort attributes", {
@@ -3035,15 +3087,14 @@ test_that("mock db: if missing cohort attributes", {
     outcomeTable = "outcome",
     interval = "overall"
   ))
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: empty outcome cohort", {
-
   cdm <- mockIncidencePrevalence(sampleSize = 200)
 
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
-  cdm$outcome <-  cdm$outcome %>% dplyr::filter(cohort_definition_id == 99)
+  cdm$outcome <- cdm$outcome %>% dplyr::filter(cohort_definition_id == 99)
 
   expect_no_error(inc <- estimateIncidence(
     cdm = cdm,
@@ -3052,43 +3103,45 @@ test_that("mock db: empty outcome cohort", {
     interval = "months"
   ))
   expect_true(sum(as.numeric(inc |>
-                               dplyr::filter(estimate_name == "outcome_count") |>
-                               dplyr::pull("estimate_value")))==0)
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value"))) == 0)
 
   # make sure we also have a confidence interval even in the case of an empty outcome cohort
   expect_true(all(inc |>
-                    dplyr::filter(estimate_name == "incidence_100000_pys") |>
-                    dplyr::pull("estimate_value")=="0"))
+    dplyr::filter(estimate_name == "incidence_100000_pys") |>
+    dplyr::pull("estimate_value") == "0"))
   expect_true(all(as.numeric(inc |>
-                               dplyr::filter(estimate_name == "incidence_100000_pys_95CI_lower") |>
-                               dplyr::pull("estimate_value")) == 0))
+    dplyr::filter(estimate_name == "incidence_100000_pys_95CI_lower") |>
+    dplyr::pull("estimate_value")) == 0))
   expect_true(all(as.numeric(inc |>
-                               dplyr::filter(estimate_name == "incidence_100000_pys_95CI_upper") |>
-                               dplyr::pull("estimate_value")) > 0))
+    dplyr::filter(estimate_name == "incidence_100000_pys_95CI_upper") |>
+    dplyr::pull("estimate_value")) > 0))
 
   tidyInc <- inc |>
-    omopgenerics::filterSettings(result_type == "incidence") |>
-    tidyIncidence()
+    asIncidenceResult()
 
   # compare our wilson CIs with those from epitools
-  epi_ci <- epitools::binom.wilson(as.numeric(tidyInc$outcome_count),
-                                   as.numeric(tidyInc$denominator_count)
+  epi_ci <- epitools::binom.wilson(
+    as.numeric(tidyInc$outcome_count),
+    as.numeric(tidyInc$denominator_count)
   )
 
-  CDMConnector::cdm_disconnect(cdm)
-
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: incidence using strata vars", {
+  cdm <- mockIncidencePrevalence(
+    sampleSize = 2000L,
+    outPre = 0.2
+  )
 
-  cdm <- mockIncidencePrevalence(sampleSize = 2000L,
-                                 outPre = 0.2)
-
-  cdm <- generateDenominatorCohortSet(cdm = cdm,
-                                      name = "denominator",
-                                      cohortDateRange = as.Date(
-                                        c("1993-01-01", "1998-01-01")
-                                      ))
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm,
+    name = "denominator",
+    cohortDateRange = as.Date(
+      c("1993-01-01", "1998-01-01")
+    )
+  )
 
   inc_orig <- estimateIncidence(
     cdm = cdm,
@@ -3099,9 +3152,12 @@ test_that("mock db: incidence using strata vars", {
 
   cdm$denominator <- cdm$denominator %>%
     dplyr::mutate(my_strata = dplyr::if_else(year(cohort_start_date) < 1995L,
-                                             "first", "second")) %>%
-    dplyr::compute(name = "denominator",
-                   temporary = FALSE)
+      "first", "second"
+    )) %>%
+    dplyr::compute(
+      name = "denominator",
+      temporary = FALSE
+    )
 
   inc <- estimateIncidence(
     cdm = cdm,
@@ -3112,7 +3168,7 @@ test_that("mock db: incidence using strata vars", {
   ) |>
     omopgenerics::filterSettings(result_type == "incidence")
   expect_true(all(c("overall", "my_strata") %in% unique(inc$strata_name)))
-  expect_true(all(c("overall", "first", "second") %in%  unique(inc$strata_level)))
+  expect_true(all(c("overall", "first", "second") %in% unique(inc$strata_level)))
 
   org <- inc_orig |>
     omopgenerics::filterSettings(result_type == "incidence")
@@ -3122,49 +3178,61 @@ test_that("mock db: incidence using strata vars", {
   expect_identical(org, inc |> dplyr::filter(strata_level == "overall"))
 
   cdm$denominator <- cdm$denominator %>%
-    dplyr::mutate(my_strata2 =  dplyr::if_else(month(cohort_start_date)<7,
-                                               "a", "b")) %>%
-    dplyr::compute(name = "denominator",
-                   temporary = FALSE)
+    dplyr::mutate(my_strata2 = dplyr::if_else(month(cohort_start_date) < 7,
+      "a", "b"
+    )) %>%
+    dplyr::compute(
+      name = "denominator",
+      temporary = FALSE
+    )
   inc2 <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "months",
-    strata = list(c("my_strata","my_strata2"))
+    strata = list(c("my_strata", "my_strata2"))
   )
 
   expect_true(all(c("overall", "my_strata &&& my_strata2") %in%
-                    unique(inc2$strata_name)))
-  expect_true(all(c("overall",
-                    "first &&& a",
-                    "second &&& a",
-                    "first &&& b",
-                    "second &&& b") %in%
-                    unique(inc2$strata_level)))
+    unique(inc2$strata_name)))
+  expect_true(all(c(
+    "overall",
+    "first &&& a",
+    "second &&& a",
+    "first &&& b",
+    "second &&& b"
+  ) %in%
+    unique(inc2$strata_level)))
 
   inc3 <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "months",
-    strata = list(c("my_strata"),
-                  c("my_strata2"),
-                  c("my_strata", "my_strata2")))
+    strata = list(
+      c("my_strata"),
+      c("my_strata2"),
+      c("my_strata", "my_strata2")
+    )
+  )
 
-  expect_true(all(c("overall",
-                    "my_strata"  ,
-                    "my_strata2"  ,
-                    "my_strata &&& my_strata2") %in%
-                    unique(inc3$strata_name)))
-  expect_true(all(c("overall",
-                    "first", "second",
-                    "a", "b",
-                    "first &&& a",
-                    "second &&& a",
-                    "first &&& b",
-                    "second &&& b") %in%
-                    unique(inc3$strata_level)))
+  expect_true(all(c(
+    "overall",
+    "my_strata",
+    "my_strata2",
+    "my_strata &&& my_strata2"
+  ) %in%
+    unique(inc3$strata_name)))
+  expect_true(all(c(
+    "overall",
+    "first", "second",
+    "a", "b",
+    "first &&& a",
+    "second &&& a",
+    "first &&& b",
+    "second &&& b"
+  ) %in%
+    unique(inc3$strata_level)))
 
   # without overall strata
   inc4 <- estimateIncidence(
@@ -3172,48 +3240,57 @@ test_that("mock db: incidence using strata vars", {
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "months",
-    strata = list(c("my_strata"),
-                  c("my_strata2"),
-                  c("my_strata", "my_strata2")),
-    includeOverallStrata = FALSE)
-  expect_true(all(c("my_strata"  ,
-                    "my_strata2"  ,
-                    "my_strata &&& my_strata2") %in%
-                    unique(inc4$strata_name)))
-  expect_true(all(c("first", "second",
-                    "a", "b",
-                    "first &&& a",
-                    "second &&& a",
-                    "first &&& b",
-                    "second &&& b") %in%
-                    unique(inc4$strata_level)))
+    strata = list(
+      c("my_strata"),
+      c("my_strata2"),
+      c("my_strata", "my_strata2")
+    ),
+    includeOverallStrata = FALSE
+  )
+  expect_true(all(c(
+    "my_strata",
+    "my_strata2",
+    "my_strata &&& my_strata2"
+  ) %in%
+    unique(inc4$strata_name)))
+  expect_true(all(c(
+    "first", "second",
+    "a", "b",
+    "first &&& a",
+    "second &&& a",
+    "first &&& b",
+    "second &&& b"
+  ) %in%
+    unique(inc4$strata_level)))
 
   expect_error(estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "months",
-    strata = list(c("not_a_col"))))
+    strata = list(c("not_a_col"))
+  ))
 
   expect_error(estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "months",
-    strata = list(c("my_strata", "not_a_col"))))
+    strata = list(c("my_strata", "not_a_col"))
+  ))
 
   expect_error(estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
     outcomeTable = "outcome",
     interval = "months",
-    strata = list(c("my_strata"), c("not_a_col"))))
+    strata = list(c("my_strata"), c("not_a_col"))
+  ))
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: multiple outcome cohort id", {
-
   personTable <- dplyr::tibble(
     person_id = c(1L, 2L),
     gender_concept_id = 8507L,
@@ -3234,7 +3311,7 @@ test_that("mock db: multiple outcome cohort id", {
     )
   )
   outcomeTable <- dplyr::tibble(
-    cohort_definition_id = c(1L,1L,2L),
+    cohort_definition_id = c(1L, 1L, 2L),
     subject_id = c(1L, 2L, 2L),
     cohort_start_date = c(
       as.Date("2006-02-05"),
@@ -3259,37 +3336,36 @@ test_that("mock db: multiple outcome cohort id", {
   )
 
   inc_all_outcome <- estimateIncidence(cdm,
-                                       denominatorTable = "denominator",
-                                       outcomeTable = "outcome",
-                                       outcomeCohortId = c(1L,2L),
-                                       interval = "overall"
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    outcomeCohortId = c(1L, 2L),
+    interval = "overall"
   )
   inc_all_outcome_1 <- estimateIncidence(cdm,
-                                         denominatorTable = "denominator",
-                                         outcomeTable = "outcome",
-                                         outcomeCohortId = 1L,
-                                         interval = "overall"
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    outcomeCohortId = 1L,
+    interval = "overall"
   )
   inc_all_outcome_2 <- estimateIncidence(cdm,
-                                         denominatorTable = "denominator",
-                                         outcomeTable = "outcome",
-                                         outcomeCohortId = 2,
-                                         interval = "overall"
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    outcomeCohortId = 2,
+    interval = "overall"
   )
 
   expect_identical(inc_all_outcome %>%
-                     omopgenerics::filterGroup(outcome_cohort_name == "cohort_1") |>
-                     dplyr::pull("estimate_value"), inc_all_outcome_1 |>
-                     dplyr::pull("estimate_value"))
+    omopgenerics::filterGroup(outcome_cohort_name == "cohort_1") |>
+    dplyr::pull("estimate_value"), inc_all_outcome_1 |>
+    dplyr::pull("estimate_value"))
 
 
   expect_identical(inc_all_outcome %>%
-                     omopgenerics::filterGroup(outcome_cohort_name == "cohort_2") |>
-                     dplyr::pull("estimate_value"), inc_all_outcome_2 |>
-                     dplyr::pull("estimate_value"))
+    omopgenerics::filterGroup(outcome_cohort_name == "cohort_2") |>
+    dplyr::pull("estimate_value"), inc_all_outcome_2 |>
+    dplyr::pull("estimate_value"))
 
-  CDMConnector::cdm_disconnect(cdm)
-
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("mock db: cohort names for cohortId args", {
@@ -3329,7 +3405,7 @@ test_that("mock db: cohort names for cohortId args", {
   inc3 <- estimateIncidence(cdm, "target", "outcome", "cohort_1", "cohort_1")
 
   expect_true(all.equal(inc1, inc2))
-  expect_true(all.equal(inc2,inc3))
+  expect_true(all.equal(inc2, inc3))
 
   CDMConnector::cdmDisconnect(cdm)
 })
@@ -3380,3 +3456,49 @@ test_that("mock db: empty denominator", {
   CDMConnector::cdmDisconnect(cdm)
 })
 
+test_that("mock db: check local cdm", {
+  personTable <- dplyr::tibble(
+    person_id = 1L,
+    gender_concept_id = 8507L,
+    year_of_birth = 2000L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
+  )
+  observationPeriodTable <- dplyr::tibble(
+    observation_period_id = 1L,
+    person_id = 1L,
+    observation_period_start_date = as.Date("2000-01-01"),
+    observation_period_end_date = as.Date("2012-06-01")
+  )
+  outcomeTable <- dplyr::tibble(
+    cohort_definition_id = 1L,
+    subject_id = 1L,
+    cohort_start_date = c(
+      as.Date("2008-02-05"),
+      as.Date("2010-02-08"),
+      as.Date("2010-02-20")
+    ),
+    cohort_end_date = c(
+      as.Date("2008-02-05"),
+      as.Date("2010-02-08"),
+      as.Date("2010-02-20")
+    )
+  )
+
+  cdm <- mockIncidencePrevalence(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    outcomeTable = outcomeTable
+  )
+
+  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
+
+  cdm <- cdm |> dplyr::collect()
+
+  expect_no_error(inc <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = c("years", "overall")
+  ))
+})

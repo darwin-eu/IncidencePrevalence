@@ -1,4 +1,4 @@
-# Copyright 2024 DARWIN EU®
+# Copyright 2025 DARWIN EU®
 #
 # This file is part of IncidencePrevalence
 #
@@ -45,34 +45,38 @@ getStudyDays <- function(startDate,
   if (type == "point") {
     startDay <- as.Date(clock::as_year_month_day(
       clock::calendar_start(
-        helper_function_clock(startDate, unit), precision = unit)
+        helper_function_clock(startDate, unit),
+        precision = unit
+      )
     ))
     studyDays <- getStudyDaysElements(startDay, endDate, timeInterval) %>%
-      dplyr::mutate(start_time =
-        switch(timePoint,
-          "start" = .data$start_time %>% clock::add_days(weekCorrection) %>%
-            clock::add_days(0),
-          "middle" = switch(timeInterval,
-            "weeks" = .data$start_time %>% clock::add_days(weekCorrection) %>%
-              clock::add_days(3),
-            "months" = .data$start_time %>% clock::add_days(weekCorrection) %>%
-              clock::add_days(14),
-            "quarters" = .data$start_time %>% clock::add_days(weekCorrection) %>%
-              clock::add_months(1) %>% clock::add_days(14),
-            "years" = .data$start_time %>% clock::add_days(weekCorrection) %>%
-              clock::add_months(6)
-          ),
-          "end" = switch(timeInterval,
-            "weeks" = .data$start_time %>% clock::add_days(weekCorrection) %>%
-              clock::add_days(6),
-            "months" = .data$start_time %>% clock::add_days(weekCorrection) %>%
-              clock::add_months(1) %>% clock::add_days(-1),
-            "quarters" = .data$start_time %>% clock::add_days(weekCorrection) %>%
-              clock::add_months(3) %>% clock::add_days(-1),
-            "years" = .data$start_time %>% clock::add_days(weekCorrection) %>%
-              clock::add_years(1) %>% clock::add_days(-1)
+      dplyr::mutate(
+        start_time =
+          switch(timePoint,
+            "start" = .data$start_time %>% clock::add_days(weekCorrection) %>%
+              clock::add_days(0),
+            "middle" = switch(timeInterval,
+              "weeks" = .data$start_time %>% clock::add_days(weekCorrection) %>%
+                clock::add_days(3),
+              "months" = .data$start_time %>% clock::add_days(weekCorrection) %>%
+                clock::add_days(14),
+              "quarters" = .data$start_time %>% clock::add_days(weekCorrection) %>%
+                clock::add_months(1) %>% clock::add_days(14),
+              "years" = .data$start_time %>% clock::add_days(weekCorrection) %>%
+                clock::add_months(6)
+            ),
+            "end" = switch(timeInterval,
+              "weeks" = .data$start_time %>% clock::add_days(weekCorrection) %>%
+                clock::add_days(6),
+              "months" = .data$start_time %>% clock::add_days(weekCorrection) %>%
+                clock::add_months(1) %>% clock::add_days(-1),
+              "quarters" = .data$start_time %>% clock::add_days(weekCorrection) %>%
+                clock::add_months(3) %>% clock::add_days(-1),
+              "years" = .data$start_time %>% clock::add_days(weekCorrection) %>%
+                clock::add_years(1) %>% clock::add_days(-1)
+            )
           )
-        )) %>%
+      ) %>%
       dplyr::rename("time" = .env$timeInterval) %>%
       dplyr::mutate(time = as.character(.data$time)) %>%
       dplyr::select("time", "start_time") %>%
@@ -103,19 +107,19 @@ getStudyDays <- function(startDate,
       if (timeInterval %in% c("months", "quarters", "years")) {
         studyDays <- studyDays %>%
           dplyr::filter(.data$start_time ==
-                          as.Date(clock::as_year_month_day(
-                            clock::calendar_start(
-                              helper_function_clock(.data$start_time, unit),
-                              precision = unit)
-                          )) %>% clock::add_days(weekCorrection)
-                        ) %>%
+            as.Date(clock::as_year_month_day(
+              clock::calendar_start(
+                helper_function_clock(.data$start_time, unit),
+                precision = unit
+              )
+            )) %>% clock::add_days(weekCorrection)) %>%
           dplyr::filter(.data$end_time ==
-                          as.Date(clock::as_year_month_day(
-                            clock::calendar_end(
-                              helper_function_clock(.data$end_time, unit),
-                              precision = unit)
-                          ))
-          )
+            as.Date(clock::as_year_month_day(
+              clock::calendar_end(
+                helper_function_clock(.data$end_time, unit),
+                precision = unit
+              )
+            )))
       }
     }
   }
@@ -130,7 +134,8 @@ getStudyDaysElements <- function(s, e, i) {
   ))
   x <- x %>%
     dplyr::mutate(isoweek = clock::get_week(
-      clock::as_iso_year_week_day(.data$start_time))) %>%
+      clock::as_iso_year_week_day(.data$start_time)
+    )) %>%
     dplyr::mutate(month = clock::get_month(.data$start_time)) %>%
     dplyr::mutate(quarter = quarters(.data$start_time)) %>%
     dplyr::mutate(year = clock::get_year(.data$start_time)) %>%
@@ -155,7 +160,13 @@ getStudyDaysElements <- function(s, e, i) {
 }
 
 helper_function_clock <- function(startDate, unit) {
-  if(unit == "week") return(clock::as_year_week_day(startDate))
-  if(unit == "quarter") return(clock::as_year_quarter_day(startDate))
-  if(unit == "month" | unit == "year") return(clock::as_year_month_day(startDate))
+  if (unit == "week") {
+    return(clock::as_year_week_day(startDate))
+  }
+  if (unit == "quarter") {
+    return(clock::as_year_quarter_day(startDate))
+  }
+  if (unit == "month" | unit == "year") {
+    return(clock::as_year_month_day(startDate))
+  }
 }

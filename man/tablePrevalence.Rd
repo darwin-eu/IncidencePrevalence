@@ -8,11 +8,10 @@ tablePrevalence(
   result,
   type = "gt",
   header = c("estimate_name"),
-  groupColumn = character(),
-  settingsColumn = omopgenerics::settingsColumns(result),
-  hide = character(),
-  .options = list(),
-  settingsColumns = lifecycle::deprecated()
+  groupColumn = c("cdm_name", "outcome_cohort_name"),
+  settingsColumn = c("denominator_age_group", "denominator_sex"),
+  hide = c("denominator_cohort_name", "analysis_interval"),
+  .options = list()
 )
 }
 \arguments{
@@ -31,15 +30,13 @@ The header can also include other names to use as overall header labels}
 \item{groupColumn}{Variables to use as group labels. Allowed columns are the
 same as in \code{header}}
 
-\item{settingsColumn}{Variables from the settings atribute to dispaly in
+\item{settingsColumn}{Variables from the settings attribute to display in
 the table}
 
 \item{hide}{Table columns to exclude, options are the ones described in
 \code{header}}
 
 \item{.options}{Table options to apply}
-
-\item{settingsColumns}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}}
 }
 \value{
 Table of prevalence results

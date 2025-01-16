@@ -1,4 +1,4 @@
-# Copyright 2024 DARWIN EU®
+# Copyright 2025 DARWIN EU®
 #
 # This file is part of IncidencePrevalence
 #
@@ -20,7 +20,11 @@ getPrevalence <- function(cdm,
                           outcomeTable,
                           outcomeCohortId,
                           type,
-                          interval,
+                          weeks,
+                          months,
+                          quarters,
+                          years,
+                          overall,
                           completeDatabaseIntervals,
                           timePoint,
                           fullContribution,
@@ -28,20 +32,23 @@ getPrevalence <- function(cdm,
                           analysisId,
                           strata,
                           includeOverallStrata) {
-
   # keeping outcome of interest
   # of people in the denominator of interest
   studyPop <- cdm[[denominatorTable]] %>%
-    dplyr::mutate(cohort_start_date = as.Date(.data$cohort_start_date),
-                  cohort_end_date = as.Date(.data$cohort_end_date)) %>%
+    dplyr::mutate(
+      cohort_start_date = as.Date(.data$cohort_start_date),
+      cohort_end_date = as.Date(.data$cohort_end_date)
+    ) %>%
     dplyr::filter(.data$cohort_definition_id ==
-                    .env$denominatorCohortId) %>%
+      .env$denominatorCohortId) %>%
     dplyr::select(-"cohort_definition_id") %>%
     dplyr::left_join(
       cdm[[outcomeTable]] %>%
         dplyr::filter(.data$cohort_definition_id == .env$outcomeCohortId) %>%
-        dplyr::rename("outcome_start_date" = "cohort_start_date",
-                      "outcome_end_date" = "cohort_end_date") %>%
+        dplyr::rename(
+          "outcome_start_date" = "cohort_start_date",
+          "outcome_end_date" = "cohort_end_date"
+        ) %>%
         dplyr::select(
           "subject_id", "outcome_start_date",
           "outcome_end_date"
@@ -50,7 +57,7 @@ getPrevalence <- function(cdm,
     )
 
   studyPop <- studyPop %>%
-      dplyr::collect()
+    dplyr::collect()
 
   attrition <- recordAttrition(
     table = studyPop,
@@ -67,17 +74,85 @@ getPrevalence <- function(cdm,
     dplyr::collect()
 
   # get studyDays as a function of inputs
-  studyDays <- getStudyDays(
-    startDate = as.Date(startEnd$min),
-    endDate =  as.Date(startEnd$max),
-    timeInterval = interval,
-    completeDatabaseIntervals = completeDatabaseIntervals,
-    type = type,
-    timePoint = timePoint
+  interval <- c(
+    "weeks" = weeks,
+    "months" = months,
+    "quarters" = quarters,
+    "years" = years,
+    "overall" = overall
   )
+  interval <- names(interval[interval])
+  # study dates
+  # based on the earliest start and latest end of those
+  # in the relevant denominator
+  studyDays <- list()
+  if (nrow(studyPop) > 0) {
+    startEnd <- studyPop %>%
+      dplyr::summarise(
+        min = as.Date(min(.data$cohort_start_date, na.rm = TRUE)),
+        max = as.Date(max(.data$cohort_end_date, na.rm = TRUE))
+      )
+    if ("weeks" %in% interval) {
+      studyDays[["weeks"]] <- getStudyDays(
+        startDate = startEnd$min,
+        endDate = startEnd$max,
+        timeInterval = "weeks",
+        completeDatabaseIntervals = completeDatabaseIntervals,
+        type = type,
+        timePoint = timePoint
+      )
+    }
+    if ("months" %in% interval) {
+      studyDays[["months"]] <- getStudyDays(
+        startDate = startEnd$min,
+        endDate = startEnd$max,
+        timeInterval = "months",
+        completeDatabaseIntervals = completeDatabaseIntervals,
+        type = type,
+        timePoint = timePoint
+      )
+    }
+    if ("quarters" %in% interval) {
+      studyDays[["quarters"]] <- getStudyDays(
+        startDate = startEnd$min,
+        endDate = startEnd$max,
+        timeInterval = "quarters",
+        completeDatabaseIntervals = completeDatabaseIntervals,
+        type = type,
+        timePoint = timePoint
+      )
+    }
+    if ("years" %in% interval) {
+      studyDays[["years"]] <- getStudyDays(
+        startDate = startEnd$min,
+        endDate = startEnd$max,
+        timeInterval = "years",
+        completeDatabaseIntervals = completeDatabaseIntervals,
+        type = type,
+        timePoint = timePoint
+      )
+    }
+    if ("overall" %in% interval) {
+      # note, full periods argument does not apply
+      # for overall we just go from start to end
+      studyDays[["overall"]] <- dplyr::tibble(
+        time = "overall",
+        start_time = startEnd$min,
+        end_time = startEnd$max
+      )
+    }
+  } else {
+    # empty population
+    studyDays[["none"]] <- dplyr::tibble()
+  }
 
-  if (nrow(studyDays) == 0) {
-    # if no study days we´ll return an empty tibble
+  if (nrow(dplyr::bind_rows(studyDays)) == 0) {
+    # no study days
+    studyDays[["none"]] <- dplyr::tibble()
+  }
+
+  if ("none" %in% names(studyDays)) {
+    # if no study days we<U+00B4>ll return an empty tibble
     pr <- dplyr::tibble()
 
     attrition <- recordAttrition(
@@ -94,13 +169,17 @@ getPrevalence <- function(cdm,
       reason = "Do not satisfy full contribution requirement for any time interval",
       existingAttrition = attrition
     )
-  } else {
+  }
+
+  if (!"none" %in% names(studyDays)) {
     # drop for complete database intervals requirement
-    minStartDate <- min(studyDays$start_time)
-    maxStartDate <- max(studyDays$end_time)
+    minStartDate <- min(dplyr::bind_rows(studyDays)$start_time)
+    maxStartDate <- max(dplyr::bind_rows(studyDays)$end_time)
 
     minStartDateChar <- as.character(minStartDate)
     maxStartDateChar <- as.character(maxStartDate)
+
+    allstudyDays <- dplyr::bind_rows(studyDays)
 
     studyPop <- studyPop %>%
       dplyr::filter(
@@ -118,16 +197,16 @@ getPrevalence <- function(cdm,
 
     # drop people who never fulfill contribution requirement
     if (fullContribution == TRUE) {
-        checkExpression <- glue::glue("(.data$cohort_end_date >= studyDays$end_time[{seq_along(studyDays$end_time)}]) &
-           (.data$cohort_start_date <= studyDays$start_time[{seq_along(studyDays$start_time)}])") %>%
-          paste0(collapse = "|") %>%
-          rlang::parse_expr()
+      checkExpression <- glue::glue("(.data$cohort_end_date >= allstudyDays$end_time[{seq_along(allstudyDays$end_time)}]) &
+           (.data$cohort_start_date <= allstudyDays$start_time[{seq_along(allstudyDays$start_time)}])") %>%
+        paste0(collapse = "|") %>%
+        rlang::parse_expr()
 
       studyPop <- studyPop %>%
         dplyr::mutate(
           has_full_contribution = dplyr::if_else(!!checkExpression,
-                                                 1L,
-                                                 0L
+            1L,
+            0L
           )
         ) %>%
         dplyr::filter(.data$has_full_contribution >= 1) %>%
@@ -152,88 +231,103 @@ getPrevalence <- function(cdm,
 
     # fetch prevalence
     # looping through each time interval
-    pr <- vector(mode = "list", length = length(studyDays$time))
+    pr <- list()
+    for (j in seq_along(interval)) {
+      workingInterval <- interval[j]
+      workingStudyDays <- studyDays[[workingInterval]]
+      for (i in seq_len(nrow(workingStudyDays))) {
+        workingStart <- workingStudyDays$start_time[i]
+        workingEnd <- workingStudyDays$end_time[i]
 
-    for (i in seq_along(studyDays$time)) {
-      workingStart <- studyDays$start_time[i]
-      workingEnd <- studyDays$end_time[i]
-
-      if (fullContribution == TRUE) {
-        # require presence for all of period
-        # drop people with end_date not after workingEnd
-        # and start_date not before workingStart
-        workingPop <- studyPop %>%
-          dplyr::filter(.data$cohort_end_date >= .env$workingEnd,
-                        .data$cohort_start_date <= .env$workingStart)
-      } else {
-        # otherwise include people if they can contribute a day
-        # drop people with end_date prior to workingStart
-        # and start_date after workingEnd
-        workingPop <- studyPop %>%
-          dplyr::filter(.data$cohort_end_date >= .env$workingStart,
-                        .data$cohort_start_date <= .env$workingEnd)
-      }
-
-      workingPop <- workingPop %>%
-        dplyr::mutate(
-          # individuals start date for this period
-          # which could be start of the period or later
-          cohort_start_date =
-            dplyr::if_else(.data$cohort_start_date <= .env$workingStart,
-                           .env$workingStart,
-                           as.Date(.data$cohort_start_date)
-            ),
-          # individuals end date for this period
-          # end of the period or earlier
-          cohort_end_date =
-            dplyr::if_else(.data$cohort_end_date >= .env$workingEnd,
-                           .env$workingEnd,
-                           as.Date(.data$cohort_end_date)
+        if (fullContribution == TRUE) {
+          # require presence for all of period
+          # drop people with end_date not after workingEnd
+          # and start_date not before workingStart
+          workingPop <- studyPop %>%
+            dplyr::filter(
+              .data$cohort_end_date >= .env$workingEnd,
+              .data$cohort_start_date <= .env$workingStart
             )
-        )
+        } else {
+          # otherwise include people if they can contribute a day
+          # drop people with end_date prior to workingStart
+          # and start_date after workingEnd
+          workingPop <- studyPop %>%
+            dplyr::filter(
+              .data$cohort_end_date >= .env$workingStart,
+              .data$cohort_start_date <= .env$workingEnd
+            )
+        }
 
-      if(length(strata) == 0 || includeOverallStrata == TRUE){
-        # include ongoing in current time of interest
-        result <- workingPop %>%
-          dplyr::summarise(
-            denominator_count = dplyr::n_distinct(.data$subject_id),
-            outcome_count = dplyr::n_distinct(.data$subject_id[
-              !is.na(.data$outcome_start_date) &
-                .data$outcome_start_date <= .data$cohort_end_date &
-                .data$outcome_end_date >= .data$cohort_start_date
-            ])
+        workingPop <- workingPop %>%
+          dplyr::mutate(
+            # individuals start date for this period
+            # which could be start of the period or later
+            cohort_start_date =
+              dplyr::if_else(.data$cohort_start_date <= .env$workingStart,
+                .env$workingStart,
+                as.Date(.data$cohort_start_date)
+              ),
+            # individuals end date for this period
+            # end of the period or earlier
+            cohort_end_date =
+              dplyr::if_else(.data$cohort_end_date >= .env$workingEnd,
+                .env$workingEnd,
+                as.Date(.data$cohort_end_date)
+              )
           )
 
-        pr[[paste0(i)]] <- dplyr::tibble(
-          denominator_count = result$denominator_count,
-          outcome_count = result$outcome_count
-        )
-      } else {
-        pr[[paste0(i)]] <- dplyr::tibble()
+        if (length(strata) == 0 || includeOverallStrata == TRUE) {
+          # include ongoing in current time of interest
+          result <- workingPop %>%
+            dplyr::summarise(
+              denominator_count = dplyr::n_distinct(.data$subject_id),
+              outcome_count = dplyr::n_distinct(.data$subject_id[
+                !is.na(.data$outcome_start_date) &
+                  .data$outcome_start_date <= .data$cohort_end_date &
+                  .data$outcome_end_date >= .data$cohort_start_date
+              ])
+            )
+
+          pr[[paste0(i, "_", j)]] <- dplyr::tibble(
+            denominator_count = result$denominator_count,
+            outcome_count = result$outcome_count
+          ) %>%
+            dplyr::mutate(
+              prevalence_start_date = .env$workingStart,
+              prevalence_end_date = .env$workingEnd,
+              analysis_interval = .env$workingInterval
+            )
+        } else {
+          pr[[paste0(i, "_", j)]] <- dplyr::tibble()
+        }
+
+        if (length(strata) >= 1) {
+          pr[[paste0(i, "_", j)]] <- pr[[paste0(i, "_", j)]] %>%
+            omopgenerics::uniteStrata()
+          for (k in seq_along(strata)) {
+            pr[[paste0(i, "_", j, "_", k)]] <- dplyr::bind_rows(
+              pr[[paste0(i, "_", j)]],
+              getStratifiedPrevalenceResult(workingPop,
+                workingStrata = strata[[k]]
+              )
+            ) %>%
+              dplyr::mutate(
+                prevalence_start_date = .env$workingStart,
+                prevalence_end_date = .env$workingEnd,
+                analysis_interval = .env$workingInterval
+              )
+          }
+        }
       }
-
-      if(length(strata)>=1){
-        pr[[paste0(i)]] <- pr[[paste0(i)]] %>%
-          omopgenerics::uniteStrata()
-        for(j in seq_along(strata)){
-          pr[[paste0(i)]] <- dplyr::bind_rows(pr[[paste0(i)]],
-                                              getStratifiedPrevalenceResult(workingPop,
-                                                                            workingStrata = strata[[j]]
-                                              ))
-        }}
-      pr[[paste0(i)]] <- dplyr::tibble(cbind(pr[[paste0(i)]], studyDays[i, ]))
-
     }
-
     pr <- dplyr::bind_rows(pr) %>%
-      dplyr::mutate(prevalence = .data$outcome_count / .data$denominator_count) %>%
+      dplyr::mutate(prevalence = round((.data$outcome_count / .data$denominator_count), 3)) %>%
       dplyr::select(dplyr::any_of(c(
         "outcome_count", "denominator_count",
-        "prevalence", "start_time", "end_time",
-        "strata_name", "strata_level"
-      ))) %>%
-      dplyr::rename("prevalence_start_date" = "start_time") %>%
-      dplyr::rename("prevalence_end_date" = "end_time")
+        "prevalence", "prevalence_start_date", "prevalence_end_date",
+        "strata_name", "strata_level", "analysis_interval"
+      )))
   }
 
   results <- list()

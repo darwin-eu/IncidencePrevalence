@@ -32,16 +32,18 @@ test_that("check working example with defaults", {
       dplyr::rename_with(tolower)))
   expect_true(obsPeriodNamesCheck)
 
-  CDMConnector::cdm_disconnect(db)
+  CDMConnector::cdmDisconnect(db)
 })
 
 test_that("check working example sample size and outcome prevalence option", {
   skip_on_cran()
-  db <- mockIncidencePrevalence(sampleSize = 100,
-                                   outPre = 0.2,
-                                   earliestObservationStartDate = as.Date("2007-08-21"),
-                                   latestObservationStartDate = as.Date("2007-08-21"),
-                                   minDaysToObservationEnd = 1000)
+  db <- mockIncidencePrevalence(
+    sampleSize = 100,
+    outPre = 0.2,
+    earliestObservationStartDate = as.Date("2007-08-21"),
+    latestObservationStartDate = as.Date("2007-08-21"),
+    minDaysToObservationEnd = 1000
+  )
 
   expect_true(nrow(db$person %>%
     dplyr::collect()) == 100)
@@ -60,7 +62,7 @@ test_that("check working example sample size and outcome prevalence option", {
       dplyr::rename_with(tolower)))
   expect_true(outcomeNamesCheck)
 
-  CDMConnector::cdm_disconnect(db)
+  CDMConnector::cdmDisconnect(db)
 })
 
 test_that("multiple outcomes", {
@@ -106,15 +108,15 @@ test_that("multiple outcomes", {
     )
 
   expect_true(nrow(db$outcome %>%
-                     dplyr::collect()) == 40)
+    dplyr::collect()) == 40)
 
   expect_true(nrow(db2$outcome %>%
-                     dplyr::collect()) > nrow(db$outcome %>%
-                                                dplyr::collect()))
+    dplyr::collect()) > nrow(db$outcome %>%
+    dplyr::collect()))
 
   expect_true(nrow(db3$outcome %>%
-                     dplyr::collect()) > nrow(db2$outcome %>%
-                                                dplyr::collect()))
+    dplyr::collect()) > nrow(db2$outcome %>%
+    dplyr::collect()))
 
   expect_true(
     nrow(
@@ -141,9 +143,9 @@ test_that("multiple outcomes", {
       dplyr::select(cohort_end_date) %>%
       dplyr::collect() <
       db4$outcome %>%
-      dplyr::filter(row_number() == 2) %>%
-      dplyr::select(cohort_start_date) %>%
-      dplyr::collect()
+        dplyr::filter(row_number() == 2) %>%
+        dplyr::select(cohort_start_date) %>%
+        dplyr::collect()
   )
 
 
@@ -153,16 +155,16 @@ test_that("multiple outcomes", {
     "cohort_start_date", "cohort_end_date"
   )
   outcomeNamesCheck <- all(outcomeDbNames %in%
-                             names(db$outcome %>%
-                                     utils::head(1) %>%
-                                     dplyr::collect() %>%
-                                     dplyr::rename_with(tolower)))
+    names(db$outcome %>%
+      utils::head(1) %>%
+      dplyr::collect() %>%
+      dplyr::rename_with(tolower)))
   expect_true(outcomeNamesCheck)
 
-  CDMConnector::cdm_disconnect(db)
-  CDMConnector::cdm_disconnect(db2)
-  CDMConnector::cdm_disconnect(db3)
-  CDMConnector::cdm_disconnect(db4)
+  CDMConnector::cdmDisconnect(db)
+  CDMConnector::cdmDisconnect(db2)
+  CDMConnector::cdmDisconnect(db3)
+  CDMConnector::cdmDisconnect(db4)
 })
 
 test_that("check expected errors", {
@@ -203,10 +205,4 @@ test_that("check expected errors", {
       maxDaysToObservationEnd = 1
     )
   )
-})
-
-test_that("mockIncidencePrevalenceRef deprecated", {
-expect_warning(
-  db <- mockIncidencePrevalenceRef(sampleSize = 10)
-)
 })

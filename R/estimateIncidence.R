@@ -1,4 +1,4 @@
-# Copyright 2024 DARWIN EU®
+# Copyright 2025 DARWIN EU®
 #
 # This file is part of IncidencePrevalence
 #
@@ -78,7 +78,6 @@ estimateIncidence <- function(cdm,
                               repeatedEvents = FALSE,
                               strata = list(),
                               includeOverallStrata = TRUE) {
-
   startCollect <- Sys.time()
 
   tablePrefix <- paste0(
@@ -95,7 +94,6 @@ estimateIncidence <- function(cdm,
     outcomeCohortId, interval, completeDatabaseIntervals,
     outcomeWashout, repeatedEvents
   )
-
   denominatorCohortId <- cohortIds[[1]]
   outcomeCohortId <- cohortIds[[2]]
 
@@ -104,7 +102,8 @@ estimateIncidence <- function(cdm,
   # if not given, use all denominator and outcome cohorts
   if (is.null(denominatorCohortId)) {
     denominatorCohortId <- omopgenerics::cohortCount(
-      cdm[[denominatorTable]]) %>%
+      cdm[[denominatorTable]]
+    ) %>%
       dplyr::filter(.data$number_records > 0) %>%
       dplyr::pull("cohort_definition_id")
   }
@@ -113,22 +112,26 @@ estimateIncidence <- function(cdm,
       dplyr::pull("cohort_definition_id")
   }
 
-  if(denominatorTable == outcomeTable &&
-     any(denominatorCohortId %in% outcomeCohortId)){
+  if (denominatorTable == outcomeTable &&
+    any(denominatorCohortId %in% outcomeCohortId)) {
     cli::cli_abort("Denominator cohort can not be the same as the outcome cohort")
   }
 
   ## add outcome from attribute
   outcomeRef <- omopgenerics::settings(cdm[[outcomeTable]]) %>%
-    dplyr::filter(.env$outcomeCohortId %in% .data$cohort_definition_id) %>%
-    dplyr::collect("cohort_definition_id", "cohort_name") %>%
-    dplyr::rename("outcome_cohort_id" = "cohort_definition_id",
-                  "outcome_cohort_name" = "cohort_name")
-  if(nrow(outcomeRef) == 0){
+    dplyr::filter(.data$cohort_definition_id %in% .env$outcomeCohortId) %>%
+    dplyr::select("cohort_definition_id", "cohort_name") |>
+    dplyr::collect() %>%
+    dplyr::rename(
+      "outcome_cohort_id" = "cohort_definition_id",
+      "outcome_cohort_name" = "cohort_name"
+    )
+  if (nrow(outcomeRef) == 0) {
     cli::cli_abort(message = c("Specified outcome IDs not found in the cohort set of
                     {paste0('cdm$', outcomeTable)}",
-                               "i" = "Run CDMConnector::cohort_set({paste0('cdm$', outcomeTable)})
-                   to check which IDs exist"))
+      "i" = "Run omopgenerics::settings({paste0('cdm$', outcomeTable)})
+                   to check which IDs exist"
+    ))
   }
 
   # further checks that there are the required data elements
@@ -148,9 +151,11 @@ estimateIncidence <- function(cdm,
     dplyr::inner_join(
       cdm[[denominatorTable]] %>%
         dplyr::filter(.data$cohort_definition_id %in%
-                        .env$denominatorCohortId) %>%
-        dplyr::select(c("subject_id", "cohort_start_date",
-                        "cohort_end_date")) %>%
+          .env$denominatorCohortId) %>%
+        dplyr::select(c(
+          "subject_id", "cohort_start_date",
+          "cohort_end_date"
+        )) %>%
         dplyr::distinct(),
       by = "subject_id"
     ) %>%
@@ -163,13 +168,31 @@ estimateIncidence <- function(cdm,
   cdm[[paste0(tablePrefix, "_inc_2")]] <- cdm[[paste0(tablePrefix, "_inc_1")]] %>%
     # most recent outcome starting before cohort start per person
     dplyr::filter(.data$outcome_start_date < .data$cohort_start_date) %>%
-    dplyr::group_by(
-      .data$subject_id,
-      .data$cohort_start_date,
-      .data$outcome_cohort_id
-    ) %>%
-    dplyr::filter(.data$outcome_start_date ==
-                    max(.data$outcome_start_date, na.rm = TRUE)) %>%
+    dplyr::compute(
+      name = paste0(tablePrefix, "_inc_2"),
+      temporary = FALSE,
+      overwrite = TRUE
+    )
+
+  if (nrow(cdm[[paste0(tablePrefix, "_inc_2")]] |>
+    utils::head(1) |>
+    dplyr::collect()) > 0) {
+    cdm[[paste0(tablePrefix, "_inc_2")]] <- cdm[[paste0(tablePrefix, "_inc_2")]] %>%
+      dplyr::group_by(
+        .data$subject_id,
+        .data$cohort_start_date,
+        .data$outcome_cohort_id
+      ) %>%
+      dplyr::filter(.data$outcome_start_date ==
+        max(.data$outcome_start_date, na.rm = TRUE)) %>%
+      dplyr::compute(
+        name = paste0(tablePrefix, "_inc_2"),
+        temporary = FALSE,
+        overwrite = TRUE
+      )
+  }
+
+  cdm[[paste0(tablePrefix, "_inc_2")]] <- cdm[[paste0(tablePrefix, "_inc_2")]] %>%
     dplyr::union_all(
       # all starting during cohort period
       cdm[[paste0(tablePrefix, "_inc_1")]] %>%
@@ -182,14 +205,14 @@ estimateIncidence <- function(cdm,
       overwrite = TRUE
     )
 
-  cdm[[paste0(tablePrefix, "_inc_3")]] <-  cdm[[paste0(tablePrefix, "_inc_2")]] %>%
+  cdm[[paste0(tablePrefix, "_inc_3")]] <- cdm[[paste0(tablePrefix, "_inc_2")]] %>%
     dplyr::group_by(
       .data$subject_id,
       .data$cohort_start_date,
       .data$outcome_cohort_id
     ) %>%
-    dbplyr::window_order(.data$outcome_start_date) %>%
-    dplyr::mutate(index = rank()) %>%
+    dplyr::arrange(.data$outcome_start_date) %>%
+    dplyr::mutate(index = dplyr::row_number()) %>%
     dplyr::ungroup() %>%
     dplyr::compute(
       name = paste0(tablePrefix, "_inc_3"),
@@ -219,22 +242,28 @@ estimateIncidence <- function(cdm,
   studySpecs <- tidyr::expand_grid(
     outcome_cohort_id = outcomeCohortId,
     denominator_cohort_id = denominatorCohortId,
-    # interval = interval,
     complete_database_intervals = completeDatabaseIntervals,
     outcome_washout = outcomeWashout,
     repeated_events = repeatedEvents
   )
   studySpecs <- studySpecs |>
-    dplyr::mutate(weeks = dplyr::if_else("weeks" %in% .env$interval,
-                                          TRUE, FALSE),
-                  months = dplyr::if_else("months" %in% .env$interval,
-                                          TRUE, FALSE),
-                  quarters = dplyr::if_else("quarters" %in% .env$interval,
-                                            TRUE, FALSE),
-                  years = dplyr::if_else("years" %in% .env$interval,
-                                         TRUE, FALSE),
-                  overall = dplyr::if_else("overall" %in% .env$interval,
-                                           TRUE, FALSE))
+    dplyr::mutate(
+      weeks = dplyr::if_else("weeks" %in% .env$interval,
+        TRUE, FALSE
+      ),
+      months = dplyr::if_else("months" %in% .env$interval,
+        TRUE, FALSE
+      ),
+      quarters = dplyr::if_else("quarters" %in% .env$interval,
+        TRUE, FALSE
+      ),
+      years = dplyr::if_else("years" %in% .env$interval,
+        TRUE, FALSE
+      ),
+      overall = dplyr::if_else("overall" %in% .env$interval,
+        TRUE, FALSE
+      )
+    )
   if (any(is.infinite(outcomeWashout))) {
     studySpecs$outcome_washout[
       which(is.infinite(studySpecs$outcome_washout))
@@ -251,9 +280,9 @@ estimateIncidence <- function(cdm,
   counter <- 0
   irsList <- lapply(studySpecs, function(x) {
     counter <<- counter + 1
-    message(glue::glue(
+    cli::cli_alert_info(
       "Getting incidence for analysis {counter} of {length(studySpecs)}"
-    ))
+    )
 
     workingInc <- getIncidence(
       cdm = cdm,
@@ -302,12 +331,11 @@ estimateIncidence <- function(cdm,
     return(result)
   })
 
-  irsList <- purrr::flatten(irsList)
+  irsList <- purrr::list_flatten(irsList, name_spec = "{inner}")
 
   # analysis settings
   analysisSettings <- irsList[names(irsList) == "analysis_settings"]
   analysisSettings <- dplyr::bind_rows(analysisSettings, .id = NULL)
-
   analysisSettings <- analysisSettings %>%
     dplyr::left_join(
       omopgenerics::settings(cdm[[denominatorTable]]) %>%
@@ -335,7 +363,7 @@ estimateIncidence <- function(cdm,
       omopgenerics::attrition(cdm[[denominatorTable]]) %>%
         dplyr::rename("denominator_cohort_id" = "cohort_definition_id") %>%
         dplyr::filter(.data$denominator_cohort_id ==
-                        studySpecs[[i]]$denominator_cohort_id) %>%
+          studySpecs[[i]]$denominator_cohort_id) %>%
         dplyr::mutate(analysis_id = studySpecs[[i]]$analysis_id) %>%
         dplyr::mutate(dplyr::across(dplyr::where(is.numeric), as.integer)),
       irsList[names(irsList) == "attrition"][[i]] %>%
@@ -356,14 +384,15 @@ estimateIncidence <- function(cdm,
   if (nrow(irs) > 0) {
     irs <- irs %>%
       dplyr::bind_cols(
-        incRateCiExact(irs$outcome_count, irs$person_years))
+        incRateCiExact(irs$outcome_count, irs$person_years)
+      )
   }
 
-  CDMConnector::dropTable(
+  omopgenerics::dropTable(
     cdm = cdm,
     name = dplyr::starts_with(paste0(tablePrefix, "_inc_"))
   )
-  CDMConnector::dropTable(
+  omopgenerics::dropTable(
     cdm = cdm,
     name = dplyr::starts_with(paste0(tablePrefix, "_analysis_"))
   )
@@ -377,7 +406,7 @@ estimateIncidence <- function(cdm,
       by = "analysis_id"
     ) |>
     dplyr::select(!"analysis_id") |>
-    omopgenerics::uniteGroup(cols = c("denominator_cohort_name","outcome_cohort_name")) |>
+    omopgenerics::uniteGroup(cols = c("denominator_cohort_name", "outcome_cohort_name")) |>
     tidyr::pivot_longer(
       cols = c(
         "number_records", "number_subjects", "excluded_records",
@@ -398,7 +427,7 @@ estimateIncidence <- function(cdm,
     dplyr::relocate(omopgenerics::resultColumns())
 
   ## result
-  if(nrow(irs) == 0){
+  if (nrow(irs) == 0) {
     irs <- omopgenerics::emptySummarisedResult()
   } else {
     if (!"strata_name" %in% colnames(irs)) {
@@ -413,12 +442,14 @@ estimateIncidence <- function(cdm,
         by = "analysis_id"
       ) |>
       dplyr::select(!"analysis_id") |>
-      omopgenerics::uniteGroup(cols = c("denominator_cohort_name","outcome_cohort_name")) |>
+      omopgenerics::uniteGroup(cols = c("denominator_cohort_name", "outcome_cohort_name")) |>
       omopgenerics::uniteAdditional(cols = c("incidence_start_date", "incidence_end_date", "analysis_interval")) |>
       tidyr::pivot_longer(
-        cols = c("denominator_count", "outcome_count", "person_days", "person_years",
-                 "incidence_100000_pys", "incidence_100000_pys_95CI_lower",
-                 "incidence_100000_pys_95CI_upper"),
+        cols = c(
+          "denominator_count", "outcome_count", "person_days", "person_years",
+          "incidence_100000_pys", "incidence_100000_pys_95CI_lower",
+          "incidence_100000_pys_95CI_upper"
+        ),
         names_to = "estimate_name",
         values_to = "estimate_value"
       ) |>
@@ -443,13 +474,15 @@ estimateIncidence <- function(cdm,
       package_name = "IncidencePrevalence",
       package_version = as.character(utils::packageVersion("IncidencePrevalence"))
     ) |>
-    dplyr::select(!dplyr::ends_with("_cohort_id"))|>
+    dplyr::select(!dplyr::ends_with("_cohort_id")) |>
     dplyr::select(!dplyr::ends_with("_cohort_definition_id")) |>
     dplyr::select(!c("denominator_cohort_name", "outcome_cohort_name")) |>
-    dplyr::select(c(
-      "result_id", "result_type", "package_name", "package_version",
-      "analysis_outcome_washout", "analysis_repeated_events",
-      "analysis_complete_database_intervals"),
+    dplyr::select(
+      c(
+        "result_id", "result_type", "package_name", "package_version",
+        "analysis_outcome_washout", "analysis_repeated_events",
+        "analysis_complete_database_intervals"
+      ),
       dplyr::starts_with("denominator_"), dplyr::starts_with("outcome_")
     ) |>
     dplyr::distinct()
@@ -463,17 +496,17 @@ estimateIncidence <- function(cdm,
 
   attritionSR <- attritionSR |>
     omopgenerics::newSummarisedResult(
-    settings = analysisSettings |>
-      dplyr::mutate(result_type = "incidence_attrition") |>
-      dplyr::mutate(dplyr::across(-"result_id", as.character))
-  )
+      settings = analysisSettings |>
+        dplyr::mutate(result_type = "incidence_attrition") |>
+        dplyr::mutate(dplyr::across(-"result_id", as.character))
+    )
 
   irs <- omopgenerics::bind(irs, attritionSR)
 
   dur <- abs(as.numeric(Sys.time() - startCollect, units = "secs"))
-  message(glue::glue(
+  cli::cli_alert_success(
     "Overall time taken: {floor(dur/60)} mins and {dur %% 60 %/% 1} secs"
-  ))
+  )
 
   return(irs)
 }

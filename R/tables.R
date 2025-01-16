@@ -1,4 +1,4 @@
-# Copyright 2024 DARWIN EU®
+# Copyright 2025 DARWIN EU®
 #
 # This file is part of IncidencePrevalence
 #
@@ -13,8 +13,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-
 
 #' Table of prevalence results
 #'
@@ -29,12 +27,11 @@
 #' The header can also include other names to use as overall header labels
 #' @param groupColumn Variables to use as group labels. Allowed columns are the
 #' same as in `header`
-#' @param settingsColumn Variables from the settings atribute to dispaly in
+#' @param settingsColumn Variables from the settings attribute to display in
 #' the table
 #' @param hide  Table columns to exclude, options are the ones described in
 #' `header`
 #' @param .options Table options to apply
-#' @param settingsColumns `r lifecycle::badge("deprecated")`
 #'
 #' @return Table of prevalence results
 #' @export
@@ -57,19 +54,11 @@
 tablePrevalence <- function(result,
                             type = "gt",
                             header = c("estimate_name"),
-                            groupColumn = character(),
-                            settingsColumn = omopgenerics::settingsColumns(result),
-                            hide = character(),
-                            .options = list(),
-                            settingsColumns = lifecycle::deprecated()
-) {
-
-  if (lifecycle::is_present(settingsColumns)) {
-    settingsColumn <- settingsColumns
-    lifecycle::deprecate_soft(when = "0.9.0", what = "tablePrevalence(settingsColumns)", with = "tablePrevalence(settingsColumn)")
-  }
-
-  rlang::check_installed("visOmopResults", version = "0.5.0")
+                            groupColumn = c("cdm_name", "outcome_cohort_name"),
+                            settingsColumn = c("denominator_age_group", "denominator_sex"),
+                            hide = c("denominator_cohort_name", "analysis_interval"),
+                            .options = list()) {
+  rlang::check_installed("visOmopResults", version = "1.0.0")
 
   formatEstimateName <- c(
     "Denominator (N)" = "<denominator_count>",
@@ -88,7 +77,6 @@ tablePrevalence <- function(result,
     resultType = "prevalence",
     .options = .options
   )
-
 }
 
 
@@ -105,12 +93,11 @@ tablePrevalence <- function(result,
 #' The header can also include other names to use as overall header labels
 #' @param groupColumn Variables to use as group labels. Allowed columns are the
 #' same as in `header`
-#' @param settingsColumn Variables from the settings atribute to dispaly in
+#' @param settingsColumn Variables from the settings attribute to display in
 #' the table
 #' @param hide  Table columns to exclude, options are the ones described in
 #' `header`
 #' @param .options Table options to apply
-#' @param settingsColumns `r lifecycle::badge("deprecated")`
 #'
 #' @return Table of results
 #' @export
@@ -132,19 +119,11 @@ tablePrevalence <- function(result,
 tableIncidence <- function(result,
                            type = "gt",
                            header = c("estimate_name"),
-                           groupColumn = character(),
-                           settingsColumn = omopgenerics::settingsColumns(result),
-                           hide = character(),
-                           .options = list(),
-                           settingsColumns = lifecycle::deprecated()
-) {
-
-  if (lifecycle::is_present(settingsColumns)) {
-    settingsColumn <- settingsColumns
-    lifecycle::deprecate_soft(when = "0.9.0", what = "tableIncidence(settingsColumns)", with = "tableIncidence(settingsColumn)")
-  }
-
-  rlang::check_installed("visOmopResults", version = "0.5.0")
+                           groupColumn = c("cdm_name", "outcome_cohort_name"),
+                           settingsColumn = c("denominator_age_group", "denominator_sex"),
+                           hide = c("denominator_cohort_name", "analysis_interval"),
+                           .options = list()) {
+  rlang::check_installed("visOmopResults", version = "1.0.0")
 
   tableInternal(
     result = result,
@@ -152,7 +131,7 @@ tableIncidence <- function(result,
       "Denominator (N)" = "<denominator_count>",
       "Person-years" = "<person_years>",
       "Outcome (N)" = "<outcome_count>",
-      "Incidence 100 person-years [95% CI]" =
+      "Incidence 100,000 person-years [95% CI]" =
         "<incidence_100000_pys> (<incidence_100000_pys_95CI_lower> -
       <incidence_100000_pys_95CI_upper>)"
     ),
@@ -164,7 +143,6 @@ tableIncidence <- function(result,
     resultType = "incidence",
     .options = .options
   )
-
 }
 
 tableInternal <- function(
@@ -182,8 +160,7 @@ tableInternal <- function(
     groupColumn = character(),
     settingsColumn = character(),
     hide = character(),
-    .options = list()
-) {
+    .options = list()) {
   result <- omopgenerics::newSummarisedResult(result) |>
     omopgenerics::filterSettings(.data$result_type == resultType)
   if (nrow(result) == 0) {
@@ -196,7 +173,7 @@ tableInternal <- function(
   omopgenerics::assertCharacter(hide, null = TRUE)
   omopgenerics::assertChoice(type, visOmopResults::tableType())
   if (!is.list(groupColumn)) groupColumn <- list(groupColumn)
-  omopgenerics::assertList(groupColumn, null = TRUE, class = "character")
+  omopgenerics::assertList(groupColumn, null = TRUE)
 
   # .options
   .options <- defaultTableIncidencePrevalence(.options, resultType)
@@ -220,11 +197,10 @@ tableInternal <- function(
 }
 
 defaultTableIncidencePrevalence <- function(.options, type) {
-
   defaults <- visOmopResults::tableOptions()
 
   if ("incidence" %in% type) {
-    defaults$keepNotFormatted = FALSE
+    defaults$keepNotFormatted <- FALSE
   }
 
   for (opt in names(.options)) {
@@ -247,7 +223,7 @@ defaultTableIncidencePrevalence <- function(.options, type) {
 #'
 #' @examples
 #' {
-#' optionsTablePrevalence()
+#'   optionsTablePrevalence()
 #' }
 #'
 optionsTablePrevalence <- function() {
@@ -267,7 +243,7 @@ optionsTablePrevalence <- function() {
 #'
 #' @examples
 #' {
-#' optionsTableIncidence()
+#'   optionsTableIncidence()
 #' }
 #'
 optionsTableIncidence <- function() {
@@ -285,31 +261,35 @@ optionsTableIncidence <- function() {
 #' are also allowed
 #' @param groupColumn Variables to use as group labels. Allowed columns are the
 #' same as in `header`
-#' @param settingsColumn Variables from the settings atribute to dispaly in
+#' @param settingsColumn Variables from the settings attribute to display in
 #' the table
 #' @param hide  Table columns to exclude, options are the ones described in
 #' `header`
-#' @param settingsColumns `r lifecycle::badge("deprecated")`
 #'
 #' @return A visual table.
 #'
 #' @export
 #'
 #' @examples
-#'
+#' \donttest{
+#' cdm <- mockIncidencePrevalence(sampleSize = 1000)
+#' cdm <- generateDenominatorCohortSet(
+#'   cdm = cdm, name = "denominator",
+#'   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
+#' )
+#' inc <- estimateIncidence(
+#'   cdm = cdm,
+#'   denominatorTable = "denominator",
+#'   outcomeTable = "outcome"
+#' )
+#' tableIncidenceAttrition(inc)
+#' }
 tableIncidenceAttrition <- function(result,
                                     type = "gt",
                                     header = "variable_name",
-                                    groupColumn = c("cdm_name", "variable_level"),
-                                    settingsColumn = omopgenerics::settingsColumns(result),
-                                    hide = "estimate_name",
-                                    settingsColumns = lifecycle::deprecated()) {
-
-  if (lifecycle::is_present(settingsColumns)) {
-    settingsColumn <- settingsColumns
-    lifecycle::deprecate_soft(when = "0.9.0", what = "tableIncidenceAttrition(settingsColumns)", with = "tableIncidenceAttrition(settingsColumn)")
-  }
-
+                                    groupColumn = c("cdm_name", "outcome_cohort_name"),
+                                    settingsColumn = NULL,
+                                    hide = c("denominator_cohort_name", "estimate_name", "reason_id", "variable_level")) {
   # initial checks
   result <- omopgenerics::validateResultArgument(result)
   omopgenerics::assertChoice(type, c("gt", "flextable", "tibble"))
@@ -354,31 +334,36 @@ tableIncidenceAttrition <- function(result,
 #' are also allowed
 #' @param groupColumn Variables to use as group labels. Allowed columns are the
 #' same as in `header`
-#' @param settingsColumn Variables from the settings atribute to dispaly in
+#' @param settingsColumn Variables from the settings attribute to display in
 #' the table
 #' @param hide  Table columns to exclude, options are the ones described in
 #' `header`
-#' @param settingsColumns `r lifecycle::badge("deprecated")`
 #'
 #' @return A visual table.
 #'
 #' @export
 #'
 #' @examples
-#'
+#' \donttest{
+#' cdm <- mockIncidencePrevalence(sampleSize = 1000)
+#' cdm <- generateDenominatorCohortSet(
+#'   cdm = cdm, name = "denominator",
+#'   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
+#' )
+#' prev <- estimatePointPrevalence(
+#'   cdm = cdm,
+#'   denominatorTable = "denominator",
+#'   outcomeTable = "outcome",
+#'   interval = "months"
+#' )
+#' tablePrevalenceAttrition(prev)
+#' }
 tablePrevalenceAttrition <- function(result,
                                      type = "gt",
                                      header = "variable_name",
-                                     groupColumn = c("cdm_name", "variable_level"),
-                                     settingsColumn = omopgenerics::settingsColumns(result),
-                                     hide = "estimate_name",
-                                     settingsColumns = lifecycle::deprecated()) {
-
-  if (lifecycle::is_present(settingsColumns)) {
-    settingsColumn <- settingsColumns
-    lifecycle::deprecate_soft(when = "0.9.0", what = "tablePrevalenceAttrition(settingsColumns)", with = "tablePrevalenceAttrition(settingsColumn)")
-  }
-
+                                     groupColumn = c("cdm_name", "outcome_cohort_name"),
+                                     settingsColumn = NULL,
+                                     hide = c("denominator_cohort_name", "estimate_name", "reason_id", "variable_level")) {
   # initial checks
   result <- omopgenerics::validateResultArgument(result)
   omopgenerics::assertChoice(type, visOmopResults::tableType())

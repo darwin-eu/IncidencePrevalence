@@ -2,30 +2,10 @@
 % Please edit documentation in R/mockIncidencePrevalence.R
 \name{mockIncidencePrevalence}
 \alias{mockIncidencePrevalence}
-\alias{mockIncidencePrevalenceRef}
 \title{Generate example subset of the OMOP CDM for
 estimating incidence and prevalence}
 \usage{
 mockIncidencePrevalence(
-  personTable = NULL,
-  observationPeriodTable = NULL,
-  targetCohortTable = NULL,
-  outcomeTable = NULL,
-  sampleSize = 1,
-  outPre = 1,
-  seed = 444,
-  earliestDateOfBirth = NULL,
-  latestDateOfBirth = NULL,
-  earliestObservationStartDate = as.Date("1900-01-01"),
-  latestObservationStartDate = as.Date("2010-01-01"),
-  minDaysToObservationEnd = 1,
-  maxDaysToObservationEnd = 4380,
-  minOutcomeDays = 1,
-  maxOutcomeDays = 10,
-  maxOutcomes = 1
-)
-
-mockIncidencePrevalenceRef(
   personTable = NULL,
   observationPeriodTable = NULL,
   targetCohortTable = NULL,
@@ -96,8 +76,6 @@ A cdm reference to a duckdb database with mock data.
 \description{
 Generate example subset of the OMOP CDM for
 estimating incidence and prevalence
-
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}
 }
 \examples{
 \donttest{

@@ -4,7 +4,7 @@
 [![CRANstatus](https://www.r-pkg.org/badges/version/IncidencePrevalence)](https://CRAN.R-project.org/package=IncidencePrevalence)
 [![codecov.io](https://codecov.io/github/darwin-eu/IncidencePrevalence/coverage.svg?branch=main)](https://app.codecov.io/github/darwin-eu/IncidencePrevalence?branch=main)
 [![R-CMD-check](https://github.com/darwin-eu/IncidencePrevalence/workflows/R-CMD-check/badge.svg)](https://github.com/darwin-eu/IncidencePrevalence/actions)
-[![Lifecycle:Experimental](https://img.shields.io/badge/Lifecycle-Experimental-339999)](https://lifecycle.r-lib.org/articles/stages.html)
+[![Lifecycle:stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 
 ## Package overview
 
@@ -60,9 +60,9 @@ con <- DBI::dbConnect(RPostgres::Postgres(),
   password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD")
 )
 
-cdm <- CDMConnector::cdm_from_con(con,
-  cdm_schema = Sys.getenv("CDM5_POSTGRESQL_CDM_SCHEMA"),
-  write_schema = Sys.getenv("CDM5_POSTGRESQL_RESULT_SCHEMA")
+cdm <- CDMConnector::cdmFromCon(con,
+  cdmSchema = Sys.getenv("CDM5_POSTGRESQL_CDM_SCHEMA"),
+  writeSchema = Sys.getenv("CDM5_POSTGRESQL_RESULT_SCHEMA")
 )
 ```
 
@@ -72,10 +72,12 @@ work with simulated data, and we’ll generate an example cdm reference
 like so:
 
 ``` r
-cdm <- mockIncidencePrevalence(sampleSize = 10000, 
-                               outPre = 0.3, 
-                               minOutcomeDays = 365, 
-                               maxOutcomeDays = 3650)
+cdm <- mockIncidencePrevalence(
+  sampleSize = 10000,
+  outPre = 0.3,
+  minOutcomeDays = 365,
+  maxOutcomeDays = 3650
+)
 ```
 
 ### Identify a denominator cohort
@@ -125,19 +127,19 @@ These cohorts will be in the typical OMOP CDM structure
 ``` r
 cdm$denominator
 #> # Source:   table<main.denominator> [?? x 4]
-#> # Database: DuckDB v1.0.0 [eburn@Windows 10 x64:R 4.4.0/:memory:]
+#> # Database: DuckDB v1.1.3 [eburn@Windows 10 x64:R 4.4.0/:memory:]
 #>    cohort_definition_id subject_id cohort_start_date cohort_end_date
 #>                   <int>      <int> <date>            <date>         
-#>  1                    1        116 2008-01-01        2009-01-10     
-#>  2                    1        204 2008-01-01        2009-12-05     
-#>  3                    1        271 2008-01-01        2008-02-06     
-#>  4                    1        371 2008-01-01        2011-04-23     
-#>  5                    1        390 2010-04-14        2013-03-29     
-#>  6                    1        480 2008-01-01        2015-12-27     
-#>  7                    1        526 2008-01-01        2008-03-12     
-#>  8                    1        567 2008-01-01        2011-04-23     
-#>  9                    1        571 2008-01-01        2008-03-05     
-#> 10                    1        595 2008-01-01        2010-09-02     
+#>  1                    1         87 2008-01-01        2018-01-01     
+#>  2                    1        116 2008-01-01        2009-01-10     
+#>  3                    1        204 2008-01-01        2009-12-05     
+#>  4                    1        271 2008-01-01        2008-02-06     
+#>  5                    1        371 2008-01-01        2011-04-23     
+#>  6                    1        390 2010-04-14        2013-03-29     
+#>  7                    1        480 2008-01-01        2015-12-27     
+#>  8                    1        526 2008-01-01        2008-03-12     
+#>  9                    1        555 2010-03-24        2017-12-09     
+#> 10                    1        567 2008-01-01        2011-04-23     
 #> # ℹ more rows
 ```
 
@@ -151,7 +153,7 @@ outcome cohort.
 ``` r
 cdm$outcome
 #> # Source:   table<main.outcome> [?? x 4]
-#> # Database: DuckDB v1.0.0 [eburn@Windows 10 x64:R 4.4.0/:memory:]
+#> # Database: DuckDB v1.1.3 [eburn@Windows 10 x64:R 4.4.0/:memory:]
 #>    cohort_definition_id subject_id cohort_start_date cohort_end_date
 #>                   <int>      <int> <date>            <date>         
 #>  1                    1          2 1991-07-21        1991-12-05     

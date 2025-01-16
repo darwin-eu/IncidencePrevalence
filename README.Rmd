@@ -17,7 +17,7 @@ knitr::opts_chunk$set(
 [![CRANstatus](https://www.r-pkg.org/badges/version/IncidencePrevalence)](https://CRAN.R-project.org/package=IncidencePrevalence)
 [![codecov.io](https://codecov.io/github/darwin-eu/IncidencePrevalence/coverage.svg?branch=main)](https://app.codecov.io/github/darwin-eu/IncidencePrevalence?branch=main)
 [![R-CMD-check](https://github.com/darwin-eu/IncidencePrevalence/workflows/R-CMD-check/badge.svg)](https://github.com/darwin-eu/IncidencePrevalence/actions)
-[![Lifecycle:Experimental](https://img.shields.io/badge/Lifecycle-Experimental-339999)](https://lifecycle.r-lib.org/articles/stages.html)
+[![Lifecycle:stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 
 ## Package overview
 
@@ -63,19 +63,21 @@ con <- DBI::dbConnect(RPostgres::Postgres(),
   password = Sys.getenv("CDM5_POSTGRESQL_PASSWORD")
 )
 
-cdm <- CDMConnector::cdm_from_con(con,
-  cdm_schema = Sys.getenv("CDM5_POSTGRESQL_CDM_SCHEMA"),
-  write_schema = Sys.getenv("CDM5_POSTGRESQL_RESULT_SCHEMA")
+cdm <- CDMConnector::cdmFromCon(con,
+  cdmSchema = Sys.getenv("CDM5_POSTGRESQL_CDM_SCHEMA"),
+  writeSchema = Sys.getenv("CDM5_POSTGRESQL_RESULT_SCHEMA")
 )
 ```
 
 To see how you would create a reference to your database please consult the CDMConnector package documentation. For this example though we´ll work with simulated data, and we'll generate an example cdm reference like so:
 
 ```{r}
-cdm <- mockIncidencePrevalence(sampleSize = 10000, 
-                               outPre = 0.3, 
-                               minOutcomeDays = 365, 
-                               maxOutcomeDays = 3650)
+cdm <- mockIncidencePrevalence(
+  sampleSize = 10000,
+  outPre = 0.3,
+  minOutcomeDays = 365,
+  maxOutcomeDays = 3650
+)
 ```
 
 ### Identify a denominator cohort

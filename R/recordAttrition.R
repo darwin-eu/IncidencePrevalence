@@ -1,4 +1,4 @@
-# Copyright 2024 DARWIN EU®
+# Copyright 2025 DARWIN EU®
 #
 # This file is part of IncidencePrevalence
 #
@@ -14,22 +14,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 recordAttrition <- function(table,
                             id = "person_id",
                             existingAttrition = NULL,
                             reasonId,
                             reason) {
-
   attrition <- dplyr::tibble(
     number_records = as.integer(table %>%
-                                  dplyr::tally() %>%
-                                  dplyr::pull()),
+      dplyr::tally() %>%
+      dplyr::pull()),
     number_subjects = as.integer(table %>%
-                                   dplyr::select(.env$id) %>%
-                                   dplyr::distinct() %>%
-                                   dplyr::tally() %>%
-                                   dplyr::pull()),
+      dplyr::select(.env$id) %>%
+      dplyr::distinct() %>%
+      dplyr::tally() %>%
+      dplyr::pull()),
     reason_id = as.integer(.env$reasonId),
     reason = .env$reason
   )

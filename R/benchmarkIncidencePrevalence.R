@@ -1,4 +1,4 @@
-# Copyright 2024 DARWIN EU®
+# Copyright 2025 DARWIN EU®
 #
 # This file is part of IncidencePrevalence
 #
@@ -44,7 +44,8 @@ benchmarkIncidencePrevalence <- function(cdm,
     "only prevalence"
   ),
   msg = "- `analysisType` is not one of the possibilities
-      ('all', 'only incidence'or 'only prevalence')")
+      ('all', 'only incidence'or 'only prevalence')"
+  )
 
   # will add timings to list
   timings <- list()
@@ -74,27 +75,34 @@ benchmarkIncidencePrevalence <- function(cdm,
   # we will create two outcome cohorts
   cdm$bench_outcome <- dplyr::union_all(
     cdm$person %>%
-    dplyr::select("person_id") %>%
-    dplyr::distinct() %>%
-    dplyr::slice_sample(n = nSample) %>%
-    dplyr::left_join(cdm$observation_period,
-                     by = c("person_id")) %>%
-    dplyr::mutate(cohort_definition_id = 1L),
+      dplyr::select("person_id") %>%
+      dplyr::distinct() %>%
+      dplyr::slice_sample(n = nSample) %>%
+      dplyr::left_join(cdm$observation_period,
+        by = c("person_id")
+      ) %>%
+      dplyr::mutate(cohort_definition_id = 1L),
     cdm$person %>%
       dplyr::select("person_id") %>%
       dplyr::distinct() %>%
       dplyr::slice_sample(n = nSample) %>%
       dplyr::left_join(cdm$observation_period,
-                       by = c("person_id")) %>%
-      dplyr::mutate(cohort_definition_id = 2L)) %>%
-    dplyr::select("subject_id" = "person_id",
-                  "cohort_definition_id",
-                  "cohort_start_date" = "observation_period_start_date",
-                  "cohort_end_date" = "observation_period_end_date") %>%
+        by = c("person_id")
+      ) %>%
+      dplyr::mutate(cohort_definition_id = 2L)
+  ) %>%
+    dplyr::select(
+      "subject_id" = "person_id",
+      "cohort_definition_id",
+      "cohort_start_date" = "observation_period_start_date",
+      "cohort_end_date" = "observation_period_end_date"
+    ) %>%
     dplyr::filter(!is.na(.data$cohort_start_date) &
-                  !is.na(.data$cohort_end_date)) %>%
-    dplyr::compute(temporary = FALSE,
-                   name = "bench_outcome") %>%
+      !is.na(.data$cohort_end_date)) %>%
+    dplyr::compute(
+      temporary = FALSE,
+      name = "bench_outcome"
+    ) %>%
     omopgenerics::newCohortTable()
 
   # calculate prevalence if analysisType is not "only incidence"
@@ -111,7 +119,7 @@ benchmarkIncidencePrevalence <- function(cdm,
     timings[["pointPrev"]] <- dplyr::tibble(
       task = paste0(
         "yearly point prevalence for two outcomes with eight denominator cohorts"
-        ),
+      ),
       time_taken_secs = as.numeric(t$toc - t$tic)
     )
 
@@ -158,7 +166,7 @@ benchmarkIncidencePrevalence <- function(cdm,
     dplyr::mutate(dbms = attr(attr(cdm, "cdm_source"), "source_type")) %>%
     dplyr::mutate(person_n = cdm$person %>%
       dplyr::count() %>%
-        dplyr::pull()) %>%
+      dplyr::pull()) %>%
     dplyr::mutate(min_observation_start = cdm$observation_period %>%
       dplyr::summarise(
         db_min_obs_start =
@@ -177,34 +185,44 @@ benchmarkIncidencePrevalence <- function(cdm,
       dplyr::pull())
 
 
-  CDMConnector::dropTable(cdm = cdm,
-                          name = dplyr::contains("denominator_typical"))
-  CDMConnector::dropTable(cdm = cdm,
-                          name = dplyr::contains("bench_outcome"))
+  omopgenerics::dropTable(
+    cdm = cdm,
+    name = dplyr::contains("denominator_typical")
+  )
+  omopgenerics::dropTable(
+    cdm = cdm,
+    name = dplyr::contains("bench_outcome")
+  )
 
   # as a summarised result
   timings <- timings %>%
-    dplyr::mutate(result_id = 1L,
-                  cdm_name = omopgenerics::cdmName(cdm),
-                  group_name = "task",
-                  group_level = .data$task,
-                  strata_name = "overall",
-                  strata_level = "overall",
-                  variable_name = "overall",
-                  variable_level = "overall",
-                  estimate_name = "Time taken (minutes)",
-                  estimate_type = "numeric",
-                  estimate_value = as.character(.data$time_taken_mins),
-                  additional_name = paste0("dbms &&& person_n &&& ",
-                                          "min_observation_start &&& ",
-                                          "max_observation_end"),
-                  additional_level = paste0(.data$dbms, " &&& ",
-                                            .data$person_n, " &&& ",
-                                            .data$min_observation_start, " &&& ",
-                                            .data$max_observation_end)
-                  ) %>%
+    dplyr::mutate(
+      result_id = 1L,
+      cdm_name = omopgenerics::cdmName(cdm),
+      group_name = "task",
+      group_level = .data$task,
+      strata_name = "overall",
+      strata_level = "overall",
+      variable_name = "overall",
+      variable_level = "overall",
+      estimate_name = "time_taken_minutes",
+      estimate_type = "numeric",
+      estimate_value = as.character(.data$time_taken_mins),
+      additional_name = paste0(
+        "dbms &&& person_n &&& ",
+        "min_observation_start &&& ",
+        "max_observation_end"
+      ),
+      additional_level = paste0(
+        .data$dbms, " &&& ",
+        .data$person_n, " &&& ",
+        .data$min_observation_start, " &&& ",
+        .data$max_observation_end
+      )
+    ) %>%
     dplyr::select(dplyr::all_of(
-      colnames(omopgenerics::emptySummarisedResult()))) %>%
+      colnames(omopgenerics::emptySummarisedResult())
+    )) %>%
     omopgenerics::newSummarisedResult(settings = dplyr::tibble(
       result_id = 1L,
       result_type = "IncidecnePrevalence benchmark",

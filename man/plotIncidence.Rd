@@ -8,11 +8,13 @@ plotIncidence(
   result,
   x = "incidence_start_date",
   y = "incidence_100000_pys",
-  ylim = c(0, NA),
+  line = FALSE,
+  point = TRUE,
   ribbon = FALSE,
+  ymin = "incidence_100000_pys_95CI_lower",
+  ymax = "incidence_100000_pys_95CI_upper",
   facet = NULL,
-  colour = NULL,
-  options = list()
+  colour = NULL
 )
 }
 \arguments{
@@ -20,19 +22,23 @@ plotIncidence(
 
 \item{x}{Variable to plot on x axis}
 
-\item{y}{Variable to plot on y axis. Options are: "incidence_100000_pys",
-"outcome_count", "denominator_count", "person_days"}
+\item{y}{Variable to plot on y axis.}
 
-\item{ylim}{Limits for the Y axis}
+\item{line}{Whether to plot a line using \code{geom_line}}
 
-\item{ribbon}{If TRUE, the plot will join points using a ribbon}
+\item{point}{Whether to plot points using \code{geom_point}}
 
-\item{facet}{Variables to use for facets}
+\item{ribbon}{Whether to plot a ribbon using \code{geom_ribbon}}
 
-\item{colour}{Variables to use for colours}
+\item{ymin}{Lower limit of error bars, if provided is plot using \code{geom_errorbar}}
 
-\item{options}{A list of optional plot options. See optionsPlot() for the
-default parameters.}
+\item{ymax}{Upper limit of error bars, if provided is plot using \code{geom_errorbar}}
+
+\item{facet}{Variables to use for facets. To see available variables for
+facetting use the function \code{availableIncidenceGrouping()}.}
+
+\item{colour}{Variables to use for colours. To see available variables for
+colouring use the function \code{availableIncidenceGrouping()}.}
 }
 \value{
 A ggplot with the incidence results plotted

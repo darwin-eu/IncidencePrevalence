@@ -17,9 +17,12 @@ reference:
 - subtitle: Estimate point and period prevalence
 - contents:
   - matches("estimatePointPrevalence|estimatePeriodPrevalence")
+- subtitle: Tidy results
+- contents:
+  - matches("asIncidenceResult|asPrevalenceResult")
 - subtitle: Plot results
 - contents:
-  - matches("plotIncidence|plotPrevalence|optionsPlot")
+  - matches("plotIncidence|plotPrevalence|plotIncidencePopulation|plotPrevalencePopulation|availableIncidenceGrouping|availablePrevalenceGrouping")
 - subtitle: Tabulate results
 - contents:
   - matches("tablePrevalence|optionsTablePrevalence|tableIncidence|optionsTableIncidence")
@@ -28,4 +31,4 @@ reference:
   - matches("mockIncidencePrevalence")
 - subtitle: Benchmark package
 - contents:
-  - matches("benchmarkIncidencePrevalence")
+  - matches("benchmarkIncidencePrevalence|IncidencePrevalenceBenchmarkResults")

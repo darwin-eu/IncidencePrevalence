@@ -17,10 +17,29 @@ test_that("basic plots", {
   )
   plot <- plotIncidence(inc)
   expect_true(ggplot2::is.ggplot(plot))
+  plot <- plotIncidencePopulation(inc)
+  expect_true(ggplot2::is.ggplot(plot))
+  plot <- plotIncidencePopulation(inc, y = "outcome_count")
+  expect_true(ggplot2::is.ggplot(plot))
+  plot <- plotIncidencePopulation(inc, y = "person_days")
+  expect_true(ggplot2::is.ggplot(plot))
+  # grouping cols
+  expect_true(length(availableIncidenceGrouping(inc)) == 0)
+  expect_equal(
+    availableIncidenceGrouping(inc, TRUE),
+    c(
+      "cdm_name", "outcome_cohort_name", "denominator_age_group",
+      "denominator_sex", "denominator_target_cohort_name", "denominator_days_prior_observation"
+    )
+  )
+  inc <- inc |>
+    dplyr::mutate(cdm_name = "prova") |>
+    omopgenerics::bind(inc)
+  expect_true(availableIncidenceGrouping(inc) == "cdm_name")
 
   # with a different x axis
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm,name = "denominator",
+    cdm = cdm, name = "denominator",
     ageGroup = list(
       c(0, 30),
       c(31, 100)
@@ -40,13 +59,32 @@ test_that("basic plots", {
   expect_true(ggplot2::is.ggplot(plot))
 
   # prevalence plot
-  plot <- plotPrevalence(prev, x = "prevalence_start_date",
-                         facet = "denominator_age_group")
+  plot <- plotPrevalence(prev,
+    x = "prevalence_start_date",
+    facet = "denominator_age_group"
+  )
   expect_true(ggplot2::is.ggplot(plot))
+  plot <- plotPrevalencePopulation(prev, x = "denominator_age_group")
+  expect_true(ggplot2::is.ggplot(plot))
+  plot <- plotPrevalencePopulation(prev, colour = "denominator_age_group")
+  expect_true(ggplot2::is.ggplot(plot))
+  # grouping cols
+  expect_true(availablePrevalenceGrouping(prev) == "denominator_age_group")
+  expect_equal(
+    availablePrevalenceGrouping(prev, TRUE),
+    c(
+      "cdm_name", "outcome_cohort_name", "denominator_age_group",
+      "denominator_sex", "denominator_target_cohort_name", "denominator_days_prior_observation"
+    )
+  )
+  prev <- prev |>
+    dplyr::mutate(cdm_name = "prova") |>
+    omopgenerics::bind(prev)
+  expect_equal(availablePrevalenceGrouping(prev), c("cdm_name", "denominator_age_group"))
 
   # with a different x axis
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm,name = "denominator",
+    cdm = cdm, name = "denominator",
     cohortDateRange = c(as.Date("2010-01-01"), as.Date("2010-06-01")),
     ageGroup = list(
       c(0, 30),
@@ -59,52 +97,76 @@ test_that("basic plots", {
     outcomeTable = "outcome"
   )
   plot <- plotPrevalence(prev,
-                         x = "denominator_age_group"
+    x = "denominator_age_group"
   )
   expect_true(ggplot2::is.ggplot(plot))
 
   # empty plot if an empty result
   expect_warning(expect_true(ggplot2::is.ggplot(
     plotIncidence(inc |>
-    dplyr::filter(result_id == 0)))))
+      dplyr::filter(result_id == 0))
+  )))
   expect_warning(expect_true(ggplot2::is.ggplot(
     plotPrevalence(prev |>
-                    dplyr::filter(result_id == 0)))))
+      dplyr::filter(result_id == 0))
+  )))
 
   # other result type
   expect_warning(expect_true(ggplot2::is.ggplot(
-    plotIncidence(prev))))
+    plotIncidence(prev)
+  )))
   expect_warning(expect_true(ggplot2::is.ggplot(
-    plotPrevalence(inc))))
-
+    plotPrevalence(inc)
+  )))
 
   # mixed result types
-  expect_true(ggplot2::is.ggplot(plotPrevalence(omopgenerics::bind(inc,
-                                    prev),
-                 x = "denominator_age_group"
+  expect_true(ggplot2::is.ggplot(plotPrevalence(
+    omopgenerics::bind(
+      inc,
+      prev
+    ),
+    x = "denominator_age_group"
   )))
-  expect_true(ggplot2::is.ggplot(plotIncidence(omopgenerics::bind(inc,
-                                                                   prev),
-                                                x = "denominator_age_group"
+  expect_true(ggplot2::is.ggplot(plotIncidence(
+    omopgenerics::bind(
+      inc,
+      prev
+    ),
+    x = "denominator_age_group"
   )))
 
   # imported result
   result_path <- tempdir("result_to_plot")
   result <- omopgenerics::bind(inc, prev)
-  omopgenerics::exportSummarisedResult(result, path = result_path,
-                                       minCellCount = 5)
+  omopgenerics::exportSummarisedResult(result,
+    path = result_path,
+    minCellCount = 5
+  )
 
   result <- result |> omopgenerics::suppress(5)
-  result_imported <-  omopgenerics::importSummarisedResult(result_path)
+  result_imported <- omopgenerics::importSummarisedResult(result_path)
 
   expect_identical(
     plotIncidence(result, x = "denominator_age_group"),
-    plotIncidence(result_imported, x = "denominator_age_group"))
+    plotIncidence(result_imported, x = "denominator_age_group")
+  )
   expect_identical(
-    plotPrevalence(result,  x = "denominator_age_group"),
-    plotPrevalence(result_imported, x = "denominator_age_group"))
+    plotPrevalence(result, x = "denominator_age_group"),
+    plotPrevalence(result_imported, x = "denominator_age_group")
+  )
 
-  CDMConnector::cdm_disconnect(cdm)
+  # tidy first also gives plot
+  tidy_inc <- asIncidenceResult(inc)
+  tidy_prev <- asPrevalenceResult(prev)
+
+  expect_true(ggplot2::is.ggplot(plotIncidence(tidy_inc)))
+  expect_true(ggplot2::is.ggplot(plotPrevalence(tidy_prev)))
+
+  # errors if plotting functions are called with tidy outputs from other result type
+  expect_error(plotIncidence(tidy_prev))
+  expect_error(plotPrevalence(tidy_inc))
+
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("plot facets", {
@@ -113,7 +175,7 @@ test_that("plot facets", {
   skip_if_not_installed("scales")
   cdm <- mockIncidencePrevalence(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm,name = "denominator",
+    cdm = cdm, name = "denominator",
     ageGroup = list(
       c(0, 30),
       c(31, 100)
@@ -132,7 +194,7 @@ test_that("plot facets", {
 
   # multiple facet grouping
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm,name = "denominator",
+    cdm = cdm, name = "denominator",
     ageGroup = list(
       c(0, 30),
       c(31, 100)
@@ -146,14 +208,14 @@ test_that("plot facets", {
   )
 
   plot <- plotIncidence(inc,
-                        facet = c(
-                          "denominator_age_group",
-                          "denominator_sex"
-                        )
+    facet = c(
+      "denominator_age_group",
+      "denominator_sex"
+    )
   )
   expect_true(ggplot2::is.ggplot(plot))
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("plot colour", {
@@ -162,7 +224,7 @@ test_that("plot colour", {
   skip_if_not_installed("scales")
   cdm <- mockIncidencePrevalence(sampleSize = 1000)
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm,name = "denominator",
+    cdm = cdm, name = "denominator",
     ageGroup = list(
       c(0, 30),
       c(31, 100)
@@ -175,13 +237,13 @@ test_that("plot colour", {
   )
 
   plot <- plotIncidence(inc,
-                        colour = "denominator_age_group"
+    colour = "denominator_age_group"
   )
   expect_true(ggplot2::is.ggplot(plot))
 
   # multiple grouping
   cdm <- generateDenominatorCohortSet(
-    cdm = cdm,name = "denominator",
+    cdm = cdm, name = "denominator",
     ageGroup = list(
       c(0, 30),
       c(31, 100)
@@ -195,15 +257,15 @@ test_that("plot colour", {
   )
 
   plot <- plotIncidence(inc,
-                        colour = c(
-                          "denominator_age_group",
-                          "denominator_sex"
-                        )
+    colour = c(
+      "denominator_age_group",
+      "denominator_sex"
+    )
   )
 
   expect_true(ggplot2::is.ggplot(plot))
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("plot options", {
@@ -214,8 +276,10 @@ test_that("plot options", {
   cdm <- generateDenominatorCohortSet(
     cdm = cdm,
     name = "denominator",
-    ageGroup = list(c(0, 30),
-                    c(31, 100))
+    ageGroup = list(
+      c(0, 30),
+      c(31, 100)
+    )
   )
   inc <- estimateIncidence(
     cdm = cdm,
@@ -223,11 +287,10 @@ test_that("plot options", {
     outcomeTable = "outcome"
   )
 
-  plotOptions <- list('hideConfidenceInterval' = TRUE,
-                      'facetNcols' = 1)
   plot <- plotIncidence(inc,
-                        colour = "denominator_age_group",
-                        options = plotOptions)
+    colour = "denominator_age_group",
+    ymin = NULL, ymax = NULL
+  )
   expect_true(ggplot2::is.ggplot(plot))
 
   # prevalence
@@ -238,26 +301,35 @@ test_that("plot options", {
   )
 
   plot <- plotPrevalence(prev,
-                         colour = c("denominator_age_group",
-                                    "denominator_sex"),
-                         options = plotOptions)
+    colour = c(
+      "denominator_age_group",
+      "denominator_sex"
+    ),
+    ymin = NULL, ymax = NULL
+  )
 
   expect_true(ggplot2::is.ggplot(plot))
 
   plot <- plotPrevalence(prev,
-                         colour = c("denominator_age_group",
-                                    "denominator_sex"),
-                         options = list("line" = FALSE))
+    colour = c(
+      "denominator_age_group",
+      "denominator_sex"
+    ),
+    line = FALSE
+  )
   expect_true(ggplot2::is.ggplot(plot))
 
   plot <- plotPrevalence(prev,
-                         colour = c("denominator_age_group",
-                                    "denominator_sex"),
-                         ribbon = TRUE,
-                         options = list("point" = FALSE))
+    colour = c(
+      "denominator_age_group",
+      "denominator_sex"
+    ),
+    ribbon = TRUE,
+    point = FALSE
+  )
   expect_true(ggplot2::is.ggplot(plot))
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })
 
 test_that("y axis", {
@@ -280,7 +352,7 @@ test_that("y axis", {
   plot <- plotIncidence(inc, x = "denominator_age_group", y = "denominator_count", facet = "incidence_start_date")
   expect_true(ggplot2::is.ggplot(plot))
 
-  plot <- plotIncidence(inc, options = list(line = FALSE), ribbon = TRUE, y = "person_days")
+  plot <- plotIncidence(inc, line = FALSE, ribbon = TRUE, y = "person_days")
   expect_true(ggplot2::is.ggplot(plot))
 
   # prevalence plot
@@ -293,5 +365,5 @@ test_that("y axis", {
   expect_true(ggplot2::is.ggplot(plot))
 
 
-  CDMConnector::cdm_disconnect(cdm)
+  CDMConnector::cdmDisconnect(cdm)
 })

@@ -15,7 +15,7 @@ and their given default values.
 }
 \examples{
 {
-optionsTableIncidence()
+  optionsTableIncidence()
 }
 
 }

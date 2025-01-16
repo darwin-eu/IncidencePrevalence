@@ -8,10 +8,9 @@ tableIncidenceAttrition(
   result,
   type = "gt",
   header = "variable_name",
-  groupColumn = c("cdm_name", "variable_level"),
-  settingsColumn = omopgenerics::settingsColumns(result),
-  hide = "estimate_name",
-  settingsColumns = lifecycle::deprecated()
+  groupColumn = c("cdm_name", "outcome_cohort_name"),
+  settingsColumn = NULL,
+  hide = c("denominator_cohort_name", "estimate_name", "reason_id", "variable_level")
 )
 }
 \arguments{
@@ -28,17 +27,30 @@ are also allowed}
 \item{groupColumn}{Variables to use as group labels. Allowed columns are the
 same as in \code{header}}
 
-\item{settingsColumn}{Variables from the settings atribute to dispaly in
+\item{settingsColumn}{Variables from the settings attribute to display in
 the table}
 
 \item{hide}{Table columns to exclude, options are the ones described in
 \code{header}}
-
-\item{settingsColumns}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#deprecated}{\figure{lifecycle-deprecated.svg}{options: alt='[Deprecated]'}}}{\strong{[Deprecated]}}}
 }
 \value{
 A visual table.
 }
 \description{
 Table of incidence attrition results
+}
+\examples{
+\donttest{
+cdm <- mockIncidencePrevalence(sampleSize = 1000)
+cdm <- generateDenominatorCohortSet(
+  cdm = cdm, name = "denominator",
+  cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
+)
+inc <- estimateIncidence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome"
+)
+tableIncidenceAttrition(inc)
+}
 }

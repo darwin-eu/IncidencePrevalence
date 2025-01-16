@@ -49,7 +49,7 @@ cdm <- mockIncidencePrevalence(
 This example data already includes an outcome cohort. 
 
 ```{r eval=FALSE}
-cdm$outcome %>% 
+cdm$outcome %>%
   glimpse()
 ```
 
@@ -100,9 +100,10 @@ prev %>%
 ```
 
 ```{r, message= FALSE, warning=FALSE, echo=FALSE}
-plotPrevalence(prev, 
-               facet = "denominator_sex", 
-               colour = "denominator_sex")
+plotPrevalence(prev,
+  facet = "denominator_sex",
+  colour = "denominator_sex"
+)
 ```
 
 Similarly we can use the `estimateIncidence()` function to estimate incidence rates. Here we annual incidence rates, with 180 days used for outcome washout windows.

@@ -1,4 +1,4 @@
-# Copyright 2024 DARWIN EU®
+# Copyright 2025 DARWIN EU®
 #
 # This file is part of IncidencePrevalence
 #
@@ -58,31 +58,31 @@
 #' }
 #'
 mockIncidencePrevalence <- function(personTable = NULL,
-                                       observationPeriodTable = NULL,
-                                       targetCohortTable = NULL,
-                                       outcomeTable = NULL,
-                                       sampleSize = 1,
-                                       outPre = 1,
-                                       seed = 444,
-                                       earliestDateOfBirth = NULL,
-                                       latestDateOfBirth = NULL,
-                                       earliestObservationStartDate = as.Date("1900-01-01"),
-                                       latestObservationStartDate = as.Date("2010-01-01"),
-                                       minDaysToObservationEnd = 1,
-                                       maxDaysToObservationEnd = 4380,
-                                       minOutcomeDays = 1,
-                                       maxOutcomeDays = 10,
-                                       maxOutcomes = 1) {
+                                    observationPeriodTable = NULL,
+                                    targetCohortTable = NULL,
+                                    outcomeTable = NULL,
+                                    sampleSize = 1,
+                                    outPre = 1,
+                                    seed = 444,
+                                    earliestDateOfBirth = NULL,
+                                    latestDateOfBirth = NULL,
+                                    earliestObservationStartDate = as.Date("1900-01-01"),
+                                    latestObservationStartDate = as.Date("2010-01-01"),
+                                    minDaysToObservationEnd = 1,
+                                    maxDaysToObservationEnd = 4380,
+                                    minOutcomeDays = 1,
+                                    maxOutcomeDays = 10,
+                                    maxOutcomes = 1) {
   rlang::check_installed("duckdb")
   rlang::check_installed("DBI")
 
-  if(!is.null(personTable)){
+  if (!is.null(personTable)) {
     omopgenerics::assertTrue(is.data.frame(personTable))
   }
-  if(!is.null(observationPeriodTable)){
+  if (!is.null(observationPeriodTable)) {
     omopgenerics::assertTrue(is.data.frame(observationPeriodTable))
   }
-  if(!is.null(outcomeTable)){
+  if (!is.null(outcomeTable)) {
     omopgenerics::assertTrue(is.data.frame(outcomeTable))
   }
 
@@ -92,10 +92,14 @@ mockIncidencePrevalence <- function(personTable = NULL,
   omopgenerics::assertDate(as.Date(latestDateOfBirth), null = TRUE)
   omopgenerics::assertDate(as.Date(earliestObservationStartDate), null = TRUE)
   omopgenerics::assertDate(as.Date(latestObservationStartDate), null = TRUE)
-  omopgenerics::assertNumeric(minDaysToObservationEnd, integerish = TRUE,
-                              min = 1, null = TRUE)
-  omopgenerics::assertNumeric(maxDaysToObservationEnd, integerish = TRUE,
-                              min = 1, null = TRUE)
+  omopgenerics::assertNumeric(minDaysToObservationEnd,
+    integerish = TRUE,
+    min = 1, null = TRUE
+  )
+  omopgenerics::assertNumeric(maxDaysToObservationEnd,
+    integerish = TRUE,
+    min = 1, null = TRUE
+  )
   omopgenerics::assertNumeric(minOutcomeDays, integerish = TRUE, min = 1)
   omopgenerics::assertNumeric(maxOutcomeDays, integerish = TRUE, min = 1)
   omopgenerics::assertNumeric(maxOutcomes, integerish = TRUE, min = 1)
@@ -231,39 +235,40 @@ mockIncidencePrevalence <- function(personTable = NULL,
   }
 
   if (is.null(outcomeTable)) {
-      # outcome table
-      # note, only one outcome cohort
-      subjectId <- as.integer(sample(personTable$person_id,
-        round(nrow(personTable) * outPre, digits = 0),
-        replace = FALSE
-      ))
+    # outcome table
+    # note, only one outcome cohort
+    subjectId <- as.integer(sample(personTable$person_id,
+      round(nrow(personTable) * outPre, digits = 0),
+      replace = FALSE
+    ))
 
-      outcomeTable <- observationPeriodTable %>%
-        dplyr::rename("subject_id" = "person_id") %>%
-        dplyr::filter(.data$subject_id %in% .env$subjectId) %>%
-        dplyr::mutate(obs_days = as.integer(difftime(
-          .data$observation_period_end_date,
-          .data$observation_period_start_date,
-          units = "days"
-        ))) %>%
-        dplyr::mutate(days_to_outcome = round(stats::runif(
-          length(.env$subjectId),
-          min = 1,
-          max = .data$obs_days
-        ))) %>%
-        dplyr::mutate(cohort_start_date = .data$observation_period_start_date +
-          .data$days_to_outcome) %>%
-        dplyr::mutate(cohort_end_date = .data$cohort_start_date %>%
-                        clock::add_days(sample(minOutcomeDays:maxOutcomeDays, 1))) %>%
-        dplyr::mutate(cohort_end_date = dplyr::if_else(.data$cohort_end_date > .data$observation_period_end_date,
-                                                       .data$observation_period_end_date, .data$cohort_end_date)) %>%
-        dplyr::select(
-          "subject_id",
-          "cohort_start_date",
-          "cohort_end_date"
-        ) %>%
-        dplyr::mutate(cohort_definition_id = c(1L)) %>%
-        dplyr::relocate("cohort_definition_id")
+    outcomeTable <- observationPeriodTable %>%
+      dplyr::rename("subject_id" = "person_id") %>%
+      dplyr::filter(.data$subject_id %in% .env$subjectId) %>%
+      dplyr::mutate(obs_days = as.integer(difftime(
+        .data$observation_period_end_date,
+        .data$observation_period_start_date,
+        units = "days"
+      ))) %>%
+      dplyr::mutate(days_to_outcome = round(stats::runif(
+        length(.env$subjectId),
+        min = 1,
+        max = .data$obs_days
+      ))) %>%
+      dplyr::mutate(cohort_start_date = .data$observation_period_start_date +
+        .data$days_to_outcome) %>%
+      dplyr::mutate(cohort_end_date = .data$cohort_start_date %>%
+        clock::add_days(sample(minOutcomeDays:maxOutcomeDays, 1))) %>%
+      dplyr::mutate(cohort_end_date = dplyr::if_else(.data$cohort_end_date > .data$observation_period_end_date,
+        .data$observation_period_end_date, .data$cohort_end_date
+      )) %>%
+      dplyr::select(
+        "subject_id",
+        "cohort_start_date",
+        "cohort_end_date"
+      ) %>%
+      dplyr::mutate(cohort_definition_id = c(1L)) %>%
+      dplyr::relocate("cohort_definition_id")
 
 
     if (maxOutcomes > 1) {
@@ -271,7 +276,7 @@ mockIncidencePrevalence <- function(personTable = NULL,
       outcome1 <- data.frame()
       # seed for loops
       set.seed(seed)
-      seedOutcome <- sample(1:99999, 1000)
+      seedOutcome <- sample.int(99999, 1000)
       # work out minimum outcome start date for each subject in outcome table
       minOutStartDate <- stats::aggregate(cohort_end_date ~ subject_id,
         data = outcomeTable, max
@@ -283,9 +288,9 @@ mockIncidencePrevalence <- function(personTable = NULL,
         minOutStartDate <-
           minOutStartDate %>%
           dplyr::mutate(cohort_start_date = .data$cohort_end_date %>%
-                          clock::add_days(sample(1:100, 1))) %>%
+            clock::add_days(sample.int(100, 1))) %>%
           dplyr::mutate(cohort_end_date = .data$cohort_start_date %>%
-                          clock::add_days(sample(
+            clock::add_days(sample(
               minOutcomeDays:maxOutcomeDays,
               1
             )))
@@ -324,7 +329,7 @@ mockIncidencePrevalence <- function(personTable = NULL,
       dplyr::rename("cohort_start_date" = "observation_period_start_date") %>%
       dplyr::rename("cohort_end_date" = "observation_period_end_date") %>%
       dplyr::select(
-        "cohort_definition_id","subject_id",
+        "cohort_definition_id", "subject_id",
         "cohort_start_date", "cohort_end_date"
       )
   }
@@ -356,61 +361,26 @@ mockIncidencePrevalence <- function(personTable = NULL,
   db <- DBI::dbConnect(duckdb::duckdb(), ":memory:")
   DBI::dbWriteTable(db, "person", personTable %>%
     dplyr::mutate(
-      race_concept_id = as.integer(NA),
-      ethnicity_concept_id = as.integer(NA)
+      race_concept_id = NA_integer_,
+      ethnicity_concept_id = NA_integer_
     ), overwrite = TRUE)
   DBI::dbWriteTable(db, "observation_period", observationPeriodTable %>%
-    dplyr::mutate(period_type_concept_id = as.integer(NA)),
-    overwrite = TRUE)
+    dplyr::mutate(period_type_concept_id = NA_integer_),
+  overwrite = TRUE
+  )
   DBI::dbWriteTable(db, "target", targetCohortTable %>%
     dplyr::mutate(cohort_definition_id = as.integer(.data$cohort_definition_id)),
-    overwrite = TRUE)
+  overwrite = TRUE
+  )
   DBI::dbWriteTable(db, "outcome", outcomeTable %>%
     dplyr::mutate(cohort_definition_id = as.integer(.data$cohort_definition_id)),
-    overwrite = TRUE)
+  overwrite = TRUE
+  )
 
   cdm <- CDMConnector::cdmFromCon(db, "main", "main",
-                                  cohortTables = c("target", "outcome"),
-                                  cdmName = "mock", .softValidation = TRUE)
+    cohortTables = c("target", "outcome"),
+    cdmName = "mock", .softValidation = TRUE
+  )
 
   return(cdm)
-}
-
-#' `r lifecycle::badge("deprecated")`
-#' @rdname mockIncidencePrevalence
-#' @export
-mockIncidencePrevalenceRef <- function(personTable = NULL,
-                                       observationPeriodTable = NULL,
-                                       targetCohortTable = NULL,
-                                       outcomeTable = NULL,
-                                       sampleSize = 1,
-                                       outPre = 1,
-                                       seed = 444,
-                                       earliestDateOfBirth = NULL,
-                                       latestDateOfBirth = NULL,
-                                       earliestObservationStartDate = as.Date("1900-01-01"),
-                                       latestObservationStartDate = as.Date("2010-01-01"),
-                                       minDaysToObservationEnd = 1,
-                                       maxDaysToObservationEnd = 4380,
-                                       minOutcomeDays = 1,
-                                       maxOutcomeDays = 10,
-                                       maxOutcomes = 1){
-  lifecycle::deprecate_soft("0.9.0", "mockIncidencePrevalenceRef()",
-                            "mockIncidencePrevalence()")
-  mockIncidencePrevalence(personTable = personTable,
-                          observationPeriodTable = observationPeriodTable,
-                          targetCohortTable = targetCohortTable,
-                          outcomeTable = outcomeTable,
-                          sampleSize = sampleSize,
-                          outPre = outPre,
-                          seed = seed,
-                          earliestDateOfBirth = earliestDateOfBirth,
-                          latestDateOfBirth = latestDateOfBirth,
-                          earliestObservationStartDate = earliestObservationStartDate,
-                          latestObservationStartDate = latestObservationStartDate,
-                          minDaysToObservationEnd = minDaysToObservationEnd,
-                          maxDaysToObservationEnd = maxDaysToObservationEnd,
-                          minOutcomeDays = minOutcomeDays,
-                          maxOutcomeDays = maxOutcomeDays,
-                          maxOutcomes = maxOutcomes)
 }

@@ -1,16 +1,33 @@
+# Copyright 2025 DARWIN EU®
+#
+# This file is part of IncidencePrevalence
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
 #' Plot incidence results
 #'
 #' @param result Incidence results
 #' @param x Variable to plot on x axis
-#' @param y Variable to plot on y axis. Options are: "incidence_100000_pys",
-#' "outcome_count", "denominator_count", "person_days"
-#' @param ylim Limits for the Y axis
-#' @param ribbon If TRUE, the plot will join points using a ribbon
-#' @param facet Variables to use for facets
-#' @param colour Variables to use for colours
-#' @param options A list of optional plot options. See optionsPlot() for the
-#' default parameters.
+#' @param y Variable to plot on y axis.
+#' @param line Whether to plot a line using `geom_line`
+#' @param point Whether to plot points using `geom_point`
+#' @param ribbon Whether to plot a ribbon using `geom_ribbon`
+#' @param ymin Lower limit of error bars, if provided is plot using `geom_errorbar`
+#' @param ymax Upper limit of error bars, if provided is plot using `geom_errorbar`
+#' @param facet Variables to use for facets. To see available variables for
+#' facetting use the function `availableIncidenceGrouping()`.
+#' @param colour Variables to use for colours. To see available variables for
+#' colouring use the function `availableIncidenceGrouping()`.
 #'
 #' @return A ggplot with the incidence results plotted
 #' @export
@@ -32,53 +49,53 @@
 plotIncidence <- function(result,
                           x = "incidence_start_date",
                           y = "incidence_100000_pys",
-                          ylim = c(0, NA),
+                          line = FALSE,
+                          point = TRUE,
                           ribbon = FALSE,
+                          ymin = "incidence_100000_pys_95CI_lower",
+                          ymax = "incidence_100000_pys_95CI_upper",
                           facet = NULL,
-                          colour = NULL,
-                          options = list()) {
-
-  rlang::check_installed("visOmopResults", version = "0.5.0")
+                          colour = NULL) {
+  rlang::check_installed("visOmopResults", version = "1.0.0")
 
   if (nrow(result) == 0) {
     cli::cli_warn("Empty result object")
     return(emptyPlot())
   }
 
-  result <- omopgenerics::validateResultArgument(result) |>
-    omopgenerics::filterSettings(
-      .data$result_type == "incidence"
-    )
+  # check if result is tidy or not
+  if (inherits(result, "summarised_result")) {
+    resultTidy <- result |>
+      tidyResult(type = "incidence", attrition = FALSE)
+  } else if (result |>
+    dplyr::pull("result_type") |>
+    unique() ==
+    "tidy_incidence") {
+    resultTidy <- result
+  } else {
+    cli::cli_abort("result must be either a summarised_result object output of
+                   the estimateIncidence() function or a tidied result from the
+                   asIncidenceResult() function.")
+  }
 
-  if (nrow(result) == 0) {
+  if (nrow(resultTidy) == 0) {
     cli::cli_warn("No incidence results available to plot")
     return(emptyPlot())
   }
 
   omopgenerics::assertChoice(y, c("incidence_100000_pys", "outcome_count", "denominator_count", "person_days"))
 
-  resultTidy <- result |>
-    tidyIncidence() |>
-    dplyr::mutate(
-      dplyr::across(
-        .cols = dplyr::ends_with("_date"),
-        .fns = ~ toDate(.x)
-      ),
-      dplyr::across(
-        .cols = dplyr::contains("time|washout|days"),
-        .fns = ~ as.numeric(.x)
-      )
-    )
-
   plotEstimates(
     result = resultTidy,
     x = x,
     y = y,
-    ylim = ylim,
+    line = line,
+    point = point,
     ribbon = ribbon,
+    ymin = ymin,
+    ymax = ymax,
     facet = facet,
-    colour = colour,
-    options = options
+    colour = colour
   )
 }
 
@@ -86,14 +103,16 @@ plotIncidence <- function(result,
 #'
 #' @param result Prevalence results
 #' @param x  Variable to plot on x axis
-#' @param y Variable to plot on y axis. Options are: "prevalence",
-#' "denominator_count", "outcome_count"
-#' @param ylim Limits for the Y axis
-#' @param ribbon If TRUE, the plot will join points using a ribbon
-#' @param facet Variables to use for facets
-#' @param colour Variables to use for colours
-#' @param options A list of optional plot options. See optionsPlot() for the
-#' default parameters.
+#' @param y Variable to plot on y axis.
+#' @param line Whether to plot a line using `geom_line`
+#' @param point Whether to plot points using `geom_point`
+#' @param ribbon Whether to plot a ribbon using `geom_ribbon`
+#' @param ymin Lower limit of error bars, if provided is plot using `geom_errorbar`
+#' @param ymax Upper limit of error bars, if provided is plot using `geom_errorbar`
+#' @param facet Variables to use for facets. To see available variables for
+#' facetting use the function `availablePrevalenceGrouping()`.
+#' @param colour Variables to use for colours. To see available variables for
+#' colouring use the function `availablePrevalenceGrouping()`.
 #'
 #' @return A ggplot with the prevalence results plotted
 #' @export
@@ -115,96 +134,218 @@ plotIncidence <- function(result,
 plotPrevalence <- function(result,
                            x = "prevalence_start_date",
                            y = "prevalence",
-                           ylim = c(0, NA),
+                           line = FALSE,
+                           point = TRUE,
                            ribbon = FALSE,
+                           ymin = "prevalence_95CI_lower",
+                           ymax = "prevalence_95CI_upper",
                            facet = NULL,
-                           colour = NULL,
-                           options = list()) {
-
+                           colour = NULL) {
   if (nrow(result) == 0) {
     cli::cli_warn("Empty result object")
     return(emptyPlot())
   }
 
-  rlang::check_installed("visOmopResults", version = "0.5.0")
+  rlang::check_installed("visOmopResults", version = "1.0.0")
 
-  result <- omopgenerics::validateResultArgument(result) |>
-    omopgenerics::filterSettings(
-      .data$result_type == "prevalence"
-    )
+  # check if result is tidy or not
+  if (inherits(result, "summarised_result")) {
+    resultTidy <- result |>
+      tidyResult(type = "prevalence", attrition = FALSE)
+  } else if (result |>
+    dplyr::pull("result_type") |>
+    unique() ==
+    "tidy_prevalence") {
+    resultTidy <- result
+  } else {
+    cli::cli_abort("result must be either a summarised_result object output of
+                   the estimatePointPrevalence() or estimatePeriodPrevalence()
+                   functions or a tidied result from the asPrevalebceResult()
+                   function.")
+  }
 
-  if (nrow(result) == 0) {
-    cli::cli_warn("No incidence results available to plot")
+  if (nrow(resultTidy) == 0) {
+    cli::cli_warn("No prevalence results available to plot")
     return(emptyPlot())
   }
-  omopgenerics::assertChoice(y, c("prevalence", "denominator_count", "outcome_count"))
 
-  resultTidy <- result |>
-    tidyPrevalence() |>
-    dplyr::mutate(
-      dplyr::across(
-        .cols = dplyr::ends_with("_date"),
-        .fns = ~ toDate(.x)
-      ),
-      dplyr::across(
-        .cols = dplyr::contains("time|washout|days"),
-        .fns = ~ as.numeric(.x)
-      )
-    )
+  omopgenerics::assertChoice(y, c("prevalence", "denominator_count", "outcome_count"))
 
   plotEstimates(
     result = resultTidy,
     x = x,
     y = y,
-    ylim = ylim,
+    line = line,
+    point = point,
     ribbon = ribbon,
+    ymin = ymin,
+    ymax = ymax,
     facet = facet,
-    colour = colour,
-    options = options
+    colour = colour
   )
 }
 
+#' Bar plot of denominator counts, outcome counts, and person-time from
+#' incidence results
+#'
+#' @param result Incidence results
+#' @param x  Variable to plot on x axis
+#' @param y Variable to plot on y axis.
+#' @param facet Variables to use for facets. To see available variables for
+#' facetting use the functions `availableIncidenceGrouping()`.
+#' @param colour Variables to use for colours. To see available variables for
+#' colouring use the function `availableIncidenceGrouping()`.
+#'
+#' @return A ggplot object
+#' @export
+#'
+#' @examples
+#' \donttest{
+#' cdm <- mockIncidencePrevalence(sampleSize = 1000)
+#' cdm <- generateDenominatorCohortSet(
+#'   cdm = cdm, name = "denominator",
+#'   cohortDateRange = c(as.Date("2014-01-01"), as.Date("2018-01-01"))
+#' )
+#' inc <- estimateIncidence(
+#'   cdm = cdm,
+#'   denominatorTable = "denominator",
+#'   outcomeTable = "outcome"
+#' )
+#' plotIncidencePopulation(inc)
+#' }
+#'
+plotIncidencePopulation <- function(result,
+                                    x = "incidence_start_date",
+                                    y = "denominator_count",
+                                    facet = NULL,
+                                    colour = NULL) {
+  rlang::check_installed("visOmopResults", version = "1.0.0")
+  result <- omopgenerics::validateResultArgument(result) |>
+    omopgenerics::filterSettings(.data$result_type == "incidence")
+  if (nrow(result) == 0) {
+    cli::cli_warn("No incidence results available to plot")
+    return(emptyPlot())
+  }
+  resultTidy <- tidyResult(result, "incidence", attrition = FALSE)
+  return(
+    plotPopulation(resultTidy, x, y, facet, colour)
+  )
+}
 
+#' Bar plot of denominator and outcome counts from prevalence results
+#'
+#' @param result Prevalence results
+#' @param x  Variable to plot on x axis
+#' @param y Variable to plot on y axis.
+#' @param facet Variables to use for facets. To see available variables for
+#' facetting use the functions `availablePrevalenceGrouping()`.
+#' @param colour Variables to use for colours. To see available variables for
+#' colouring use the function `availablePrevalenceGrouping()`.
+#'
+#' @return A ggplot object
+#' @export
+#'
+#' @examples
+#' \donttest{
+#' cdm <- mockIncidencePrevalence(sampleSize = 1000)
+#' cdm <- generateDenominatorCohortSet(
+#'   cdm = cdm, name = "denominator",
+#'   cohortDateRange = c(as.Date("2014-01-01"), as.Date("2018-01-01"))
+#' )
+#' prev <- estimatePointPrevalence(
+#'   cdm = cdm,
+#'   denominatorTable = "denominator",
+#'   outcomeTable = "outcome"
+#' )
+#' plotPrevalencePopulation(prev)
+#' }
+#'
+plotPrevalencePopulation <- function(result,
+                                     x = "prevalence_start_date",
+                                     y = "denominator_count",
+                                     facet = NULL,
+                                     colour = NULL) {
+  rlang::check_installed("visOmopResults", version = "1.0.0")
+  result <- omopgenerics::validateResultArgument(result) |>
+    omopgenerics::filterSettings(.data$result_type == "prevalence")
+  if (nrow(result) == 0) {
+    cli::cli_warn("No prevalence results available to plot")
+    return(emptyPlot())
+  }
+  resultTidy <- tidyResult(result, "prevalence", attrition = FALSE)
+  return(
+    plotPopulation(resultTidy, x, y, facet, colour)
+  )
+}
 
 # helper functions
+plotPopulation <- function(result,
+                           x,
+                           y = "denominator_count",
+                           facet = NULL,
+                           colour = NULL) {
+  labels <- c(
+    "outcome_cohort_name", "denominator_count", "outcome_count", "person_days",
+    "incidence_100000_pys", "incidence_100000_pys_95CI_lower", "incidence_100000_pys_95CI_upper",
+    "prevalence", "prevalence_95CI_lower", "prevalence_95CI_upper",
+    "incidence_start_date", "incidence_end_date", "prevalence_start_date", "prevalence_end_date"
+  )
+
+  labels <- labels[labels %in% colnames(result)]
+
+  plot <- visOmopResults::barPlot(
+    result = result,
+    x = x,
+    y = y,
+    facet = facet,
+    colour = colour,
+    label = labels
+  ) +
+    visOmopResults::themeVisOmop()
+
+  if (y == "person_days") {
+    plot <- plot +
+      ggplot2::ylab("Person-Days")
+  }
+  if (y == "person_years") {
+    plot <- plot +
+      ggplot2::ylab("Person-Years")
+  }
+
+  return(plot + visOmopResults::themeVisOmop())
+}
 
 plotEstimates <- function(result,
                           x,
                           y,
-                          ylim,
+                          line,
+                          point,
                           ribbon,
+                          ymin,
+                          ymax,
                           facet,
-                          colour,
-                          options) {
-
+                          colour) {
   rlang::check_installed("ggplot2", reason = "for plot functions")
   rlang::check_installed("scales", reason = "for plot functions")
 
   if (y %in% c("prevalence")) {
-    ytype = "percentage"
+    ytype <- "percentage"
   } else {
-    ytype = "count"
+    ytype <- "count"
   }
 
-  options <- getOptions(options)
-
-  if (!options$hideConfidenceInterval & (y %in% c("incidence_100000_pys", "prevalence"))) {
-    ymin <- paste0(y, "_95CI_lower")
-    ymax <- paste0(y, "_95CI_upper")
-  } else {
-    ymin <- NULL
-    ymax <- NULL
-  }
-
-  labels = c("denominator_cohort_name", "outcome_cohort_name", "denominator_count", "outcome_count", "person_days", y, ymin, ymax,
-             "incidence_start_date", "incidence_end_date", "prevalence_start_date", "prevalence_end_date")
+  labels <- c(
+    "outcome_cohort_name", "denominator_count", "outcome_count", "person_days", y, ymin, ymax,
+    "incidence_start_date", "incidence_end_date", "prevalence_start_date", "prevalence_end_date"
+  )
   labels <- labels[labels %in% colnames(result)]
+
   plot <- visOmopResults::scatterPlot(
     result = result,
     x = x,
     y = y,
-    line = options$line,
-    point = options$point,
+    line = line,
+    point = point,
     ribbon = ribbon,
     ymin = ymin,
     ymax = ymax,
@@ -214,25 +355,14 @@ plotEstimates <- function(result,
     label = labels
   )
 
-  if (is.null(ylim)) {
-    if (ytype == "count") {
-      plot <- plot +
-        ggplot2::scale_y_continuous(labels = scales::comma)
-    }
-    if (ytype == "percentage") {
-      plot <- plot +
-        ggplot2::scale_y_continuous(
-          labels =
-            scales::percent_format(accuracy = 0.1)
-        )
-    }
-  } else {
-    plot <- addYLimits(plot = plot, ylim = ylim, ytype = ytype)
+  ylim <- c(0, NA)
+  if (ytype == "count") {
+    plot <- plot +
+      ggplot2::scale_y_continuous(labels = scales::comma)
   }
-
-  if (!is.null(facet) & (!is.null(options$facetNcols) | is.null(options$facetScales))) {
-    facetOpt <- list("facets" = facet, "ncol" = options$facetNcols, "scales" = options$facetScales)
-    plot <- plot + do.call(ggplot2::facet_wrap, facetOpt)
+  if (ytype == "percentage") {
+    plot <- plot +
+      ggplot2::scale_y_continuous(labels = scales::percent_format(accuracy = 0.1))
   }
 
   if (plot$labels$y == "Incidence 100000 pys") {
@@ -271,71 +401,6 @@ emptyPlot <- function(title = "No result to plot",
     )
 }
 
-getOptions <- function(options) {
-  default <- list(
-    "hideConfidenceInterval" = FALSE,
-    "line" = FALSE,
-    "point" = TRUE,
-    "facetNcols" = NULL,
-    "facetScales" = "fixed"
-  )
-  if (is.null(options)) {return(default)}
-  for (opt in names(options)) {
-    default[[opt]] <- options[[opt]]
-  }
-  return(default)
-}
-
-#' List of parameter options for IncidencePrevalence plot functions.
-#'
-#' @description
-#' Options are:
-#'
-#'
-#' **hideConfidenceInterval:** Logical. Whether to show confidence intervals
-#'
-#'
-#' **line:** Logical. Whether to plot a line using `geom_line`
-#'
-#'
-#' **point:** Logical. Whether to plot points using `geom_point`
-#'
-#'
-#' **facetNcols** -> Numeric. Number of facet columns
-#'
-#'
-#' **facetScales** -> Character. Should scales be fixed ("fixed", the default), free ("free"), or free in one dimension ("free_x", "free_y")?
-#'
-#'
-#' @return List of available parameters and their default values.
-#' @export
-#'
-#' @examples
-#' \donttest{
-#' optionsPlot()
-#' }
-optionsPlot <- function() {
-  getOptions(NULL)
-}
-
-tidyIncidence <- function(result) {
-  result |>
-    omopgenerics::addSettings() |>
-    omopgenerics::splitAll() |>
-    dplyr::select(!c("variable_name", "variable_level")) |>
-    omopgenerics::pivotEstimates()
-}
-
-tidyPrevalence <- function(result) {
-
-result |>
-    omopgenerics::addSettings() |>
-    omopgenerics::splitAll() |>
-  dplyr::select(!c("variable_name", "variable_level")) |>
-  omopgenerics::pivotEstimates()
-
-}
-
 toDate <- function(x) {
   tryCatch(
     expr = {
@@ -344,4 +409,81 @@ toDate <- function(x) {
     error = function(e) e,
     finally = return(x)
   )
+}
+
+#' Variables that can be used for faceting and colouring incidence plots
+#'
+#' @param result Incidence results
+#' @param varying If FALSE, only variables with non-unique values will be
+#' returned, otherwise all available variables will be returned
+#'
+#' @export
+#'
+#' @examples
+#' \donttest{
+#' cdm <- mockIncidencePrevalence(sampleSize = 1000)
+#' cdm <- generateDenominatorCohortSet(
+#'   cdm = cdm, name = "denominator",
+#'   cohortDateRange = c(as.Date("2014-01-01"), as.Date("2018-01-01"))
+#' )
+#' inc <- estimateIncidence(
+#'   cdm = cdm,
+#'   denominatorTable = "denominator",
+#'   outcomeTable = "outcome"
+#' )
+#' availableIncidenceGrouping(inc)
+#' }
+availableIncidenceGrouping <- function(result, varying = FALSE) {
+  omopgenerics::assertLogical(varying, length = 1)
+  result <- omopgenerics::validateResultArgument(result) |>
+    omopgenerics::filterSettings(.data$result_type == "incidence")
+  availableGrouping(result, varying)
+}
+
+#' Variables that can be used for faceting and colouring prevalence plots
+#'
+#' @param result Prevalence results
+#' @param varying If FALSE, only variables with non-unique values will be
+#' returned, otherwise all available variables will be returned
+#'
+#' @export
+#'
+#' @examples
+#' \donttest{
+#' cdm <- mockIncidencePrevalence(sampleSize = 1000)
+#' cdm <- generateDenominatorCohortSet(
+#'   cdm = cdm, name = "denominator",
+#'   cohortDateRange = c(as.Date("2014-01-01"), as.Date("2018-01-01"))
+#' )
+#' prev <- estimatePointPrevalence(
+#'   cdm = cdm,
+#'   denominatorTable = "denominator",
+#'   outcomeTable = "outcome"
+#' )
+#' availablePrevalenceGrouping(prev)
+#' }
+availablePrevalenceGrouping <- function(result, varying = FALSE) {
+  omopgenerics::assertLogical(varying, length = 1)
+  result <- omopgenerics::validateResultArgument(result) |>
+    omopgenerics::filterSettings(.data$result_type == "prevalence")
+  availableGrouping(result, varying)
+}
+
+availableGrouping <- function(result, varying) {
+  cols <- c(
+    "cdm_name", "outcome_cohort_name", omopgenerics::strataColumns(result),
+    "denominator_age_group", "denominator_sex", "denominator_target_cohort_name",
+    "denominator_days_prior_observation"
+  )
+  if (!varying) {
+    resultTidy <- tidyResult(result, unique(omopgenerics::settings(result)$result_type), attrition = FALSE)
+    pos <- lapply(as.list(cols), function(x, res = resultTidy) {
+      res |>
+        dplyr::pull(.data[[x]]) |>
+        unique() |>
+        length()
+    }) |> unlist()
+    cols <- cols[pos > 1]
+  }
+  return(cols)
 }

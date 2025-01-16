@@ -9,7 +9,9 @@ vignette: >
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
+  collapse = TRUE, 
+  warning = FALSE, 
+  message = FALSE,
   comment = "#>",
   fig.width = 7,
   fig.height = 5,
@@ -40,16 +42,18 @@ Outcome cohorts are defined externally. When creating outcome cohorts for estima
 In addition, it is typically not recommended to include exclusion requirements when creating outcome cohorts. Restrictions on patient characteristics can be specified when identifying the denominator cohort using `generateDenominatorCohortSet()` or `generateTargetDenominatorCohortSet()`
 
 # Using estimatePointPrevalence() and estimatePeriodPrevalence()
-`estimatePointPrevalence()` and `estimatePeriodPrevalence()` are the functions we use to estimate prevalence. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 50,000 example patients using the `mockIncidencePrevalence()` function from whom we´ll create a denominator population without adding any restrictions other than a study period.
+`estimatePointPrevalence()` and `estimatePeriodPrevalence()` are the functions we use to estimate prevalence. To demonstrate its use, let´s load the IncidencePrevalence package (along with a couple of packages to help for subsequent plots) and generate 20,000 example patients using the `mockIncidencePrevalence()` function from whom we´ll create a denominator population without adding any restrictions other than a study period.
 
 ```{r, message=FALSE, warning=FALSE}
 library(IncidencePrevalence)
 library(dplyr)
 library(tidyr)
+library(ggplot2)
+library(patchwork)
 
 cdm <- mockIncidencePrevalence(
   sampleSize = 20000,
-  earliestObservationStartDate = as.Date("1960-01-01"), 
+  earliestObservationStartDate = as.Date("1960-01-01"),
   minOutcomeDays = 365,
   outPre = 0.3
 )
@@ -79,7 +83,17 @@ prev <- estimatePointPrevalence(
 prev %>%
   glimpse()
 
-plotPrevalence(prev, ylim = c(0, NA))
+plotPrevalence(prev)
+```
+
+As well as plotting our prevalence estimates, we can also plot the population for whom these were calculated. Here we´ll plot outcome and population counts together.
+```{r, message= FALSE, warning=FALSE}
+outcome_plot <- plotPrevalencePopulation(result = prev, y = "outcome_count") + xlab("") +
+  theme(axis.text.x = element_blank()) +
+  ggtitle("a) Number of outcomes by year")
+denominator_plot <- plotPrevalencePopulation(result = prev) +
+  ggtitle("b) Number of people in denominator population by year")
+outcome_plot / denominator_plot
 ```
 
 We can also calculate point prevalence by calendar month.
@@ -94,7 +108,7 @@ prev <- estimatePointPrevalence(
 prev %>%
   glimpse()
 
-plotPrevalence(prev, ylim = c(0, NA))
+plotPrevalence(prev)
 ```
 
 By using the estimatePointPrevalence() function, we can further specify where to compute point prevalence in each time interval (start, middle, end). By default, this parameter is set to start. But we can use middle instead like so:
@@ -111,7 +125,7 @@ prev <- estimatePointPrevalence(
 prev %>%
   glimpse()
 
-plotPrevalence(prev, ylim = c(0, NA), options = list(line = FALSE))
+plotPrevalence(prev, line = FALSE)
 ```
 
 ## Using estimatePeriodPrevalence()
@@ -143,7 +157,7 @@ prev <- estimatePeriodPrevalence(
 prev %>%
   glimpse()
 
-plotPrevalence(prev, ylim = c(0, NA))
+plotPrevalence(prev)
 ```
 
 When using the estimatePeriodPrevalence() function, we can set the fullContribution parameter to decide whether individuals are required to be present in the database throughout the interval of interest in order to be included (fullContribution=TRUE). If not, individuals will only be required to be present for one day of the interval to contribute (fullContribution=FALSE), which would be specified like so:  
@@ -170,9 +184,11 @@ If we specified multiple denominator populations results will be returned for ea
 cdm <- generateDenominatorCohortSet(
   cdm = cdm, name = "denominator_age_sex",
   cohortDateRange = c(as.Date("1990-01-01"), as.Date("2009-12-31")),
-  ageGroup = list(c(0, 39),
-                  c(41, 65),
-                  c(66, 150)),
+  ageGroup = list(
+    c(0, 39),
+    c(41, 65),
+    c(66, 150)
+  ),
   sex = "Both",
   daysPriorObservation = 0
 )
@@ -182,14 +198,24 @@ prev <- estimatePeriodPrevalence(
   outcomeTable = "outcome"
 )
 
-plotPrevalence(prev, facet = "denominator_age_group")
+plotPrevalence(prev) +
+  facet_wrap(vars(denominator_age_group), ncol = 1)
 ```
 
-While we specify time-varying stratifications when defining our denominator populations, if we have time-invariant stratifications we can include these at the the estimation stage. To do this we first need to add a new column to our denominator cohort with our stratification variable. Here we´ll add an example stratification just to show the idea. Note, as well as getting stratified results we´ll also get overall results.
+We can also plot a count of the denominator by year for each strata.
+```{r, message= FALSE, warning=FALSE}
+denominator_plot <- plotPrevalencePopulation(result = prev)
+
+denominator_plot +
+  facet_wrap(vars(denominator_age_group), ncol = 1)
+```
+
+
+While we specify time-varying stratifications when defining our denominator populations, if we have time-invariant stratifications we can include these at the the estimation stage. To do this we first need to add a new column to our denominator cohort with our stratification variable. Here we'll add an example stratification just to show the idea. Note, as well as getting stratified results we'll also get overall results.
 
 ```{r}
-cdm$denominator <- cdm$denominator %>% 
-  mutate(group = if_else(as.numeric(subject_id)  < 500, "first", "second")) 
+cdm$denominator <- cdm$denominator %>%
+  mutate(group = if_else(as.numeric(subject_id) < 500, "first", "second"))
 
 prev <- estimatePeriodPrevalence(
   cdm = cdm,
@@ -198,28 +224,35 @@ prev <- estimatePeriodPrevalence(
   strata = "group"
 )
 
-plotPrevalence(prev, 
-               colour = c("group"))
+plotPrevalence(prev,
+  facet = "group",
+  colour = "group"
+)
 ```
 
 We can also stratify on multiple variables at the same time.
 
 ```{r}
-cdm$denominator <- cdm$denominator %>% 
-  mutate(group_1 = if_else(as.numeric(subject_id)  < 1500, "first", "second"),
-         group_2 = if_else(as.numeric(subject_id)  < 1000, "one", "two"))
+cdm$denominator <- cdm$denominator %>%
+  mutate(
+    group_1 = if_else(as.numeric(subject_id) < 1500, "first", "second"),
+    group_2 = if_else(as.numeric(subject_id) < 1000, "one", "two")
+  )
 
 prev <- estimatePeriodPrevalence(
   cdm = cdm,
   denominatorTable = "denominator",
   outcomeTable = "outcome",
-  strata = list(c("group_1"), # for just group_1
-                c("group_2"), # for just group_2
-                c("group_1", "group_2"))  # for group_1 and group_2
+  strata = list(
+    c("group_1"), # for just group_1
+    c("group_2"), # for just group_2
+    c("group_1", "group_2")
+  ) # for group_1 and group_2
 )
 
-plotPrevalence(prev, 
-               facet = c("group_1", "group_2"))
+plotPrevalence(prev,
+  facet = c("group_1", "group_2")
+)
 ```
 
 ## Other parameters
@@ -238,6 +271,6 @@ prev <- estimatePeriodPrevalence(
   interval = "Years",
   fullContribution = TRUE
 )
-tablePrevalenceAttrition(prev, settingsColumns = character())
+tablePrevalenceAttrition(prev)
 ```
 

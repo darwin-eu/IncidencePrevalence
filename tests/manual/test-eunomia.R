@@ -2,10 +2,10 @@ test_that("eunomia test - some empty cohorts", {
   db <- DBI::dbConnect(duckdb::duckdb(),
     dbdir = CDMConnector::eunomia_dir()
   )
-  cdm <- CDMConnector::cdm_from_con(
+  cdm <- CDMConnector::cdmFromCon(
     con = db,
-    cdm_schema = "main",
-    write_schema = "main"
+    cdmSchema = "main",
+    writeSchema = "main"
   )
 
   # outcome cohorts
@@ -102,21 +102,23 @@ test_that("eunomia test - strata", {
   db <- DBI::dbConnect(duckdb::duckdb(),
     dbdir = CDMConnector::eunomia_dir()
   )
-  cdm <- CDMConnector::cdm_from_con(
+  cdm <- CDMConnector::cdmFromCon(
     con = db,
-    cdm_schema = "main",
-    write_schema = "main"
+    cdmSchema = "main",
+    writeSchema = "main"
   )
 
   asthma_cohort1 <- Capr::cohort(entry = Capr::entry(
     Capr::conditionOccurrence(Capr::cs(Capr::descendants(317009),
-                                       name ="asthma")),
+      name = "asthma"
+    )),
     primaryCriteriaLimit = "First"
   ))
   asthma_cohort2 <- Capr::cohort(entry = Capr::entry(
     Capr::conditionOccurrence(
       Capr::cs(Capr::descendants(317009),
-               name ="asthma"),
+        name = "asthma"
+      ),
       Capr::age(Capr::gte(18))
     ),
     primaryCriteriaLimit = "First"
@@ -152,7 +154,8 @@ test_that("eunomia test - strata", {
   )
 
 
-  cdm$dpop <- generateDenominatorCohortSet(cdm, name ="dpop",
+  cdm$dpop <- generateDenominatorCohortSet(cdm,
+    name = "dpop",
     targetCohortTable = "strata"
   )
 
@@ -179,10 +182,10 @@ test_that("eunomia test - participants", {
   db <- DBI::dbConnect(duckdb::duckdb(),
     dbdir = CDMConnector::eunomia_dir()
   )
-  cdm <- CDMConnector::cdm_from_con(
+  cdm <- CDMConnector::cdmFromCon(
     con = db,
-    cdm_schema = "main",
-    write_schema = "main"
+    cdmSchema = "main",
+    writeSchema = "main"
   )
   cdm$dpop <- generateDenominatorCohortSet(cdm)
   asthma_cohort <- Capr::cohort(entry = Capr::entry(
