@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,8 +23,9 @@
     <li><a class="dropdown-item" href="../articles/a03_Creating_target_denominator_populations.html">Creating target denominator populations</a></li>
     <li><a class="dropdown-item" href="../articles/a04_Calculating_prevalence.html">Calculating prevalence</a></li>
     <li><a class="dropdown-item" href="../articles/a05_Calculating_incidence.html">Calculating incidence</a></li>
-    <li><a class="dropdown-item" href="../articles/a06_Plotting_options.html">Plotting options</a></li>
+    <li><a class="dropdown-item" href="../articles/a06_benchmark.html">Benchmarking the IncidencePrevalence R package</a></li>
   </ul></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"></ul></div>
 
 
@@ -75,68 +76,65 @@
 <span class="r-in"><span>  maxDaysToObservationEnd <span class="op">=</span> <span class="fl">364</span>,</span></span>
 <span class="r-in"><span>  outPre <span class="op">=</span> <span class="fl">0.1</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Note: method with signature ‘DBIConnection#Id’ chosen for function ‘dbExistsTable’,</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  target signature ‘duckdb_connection#Id’.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  "duckdb_connection#ANY" would also be valid</span>
 <span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="va">timings</span> <span class="op">&lt;-</span> <span class="fu">benchmarkIncidencePrevalence</span><span class="op">(</span><span class="va">cdm</span><span class="op">)</span></span></span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Creating denominator cohorts</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  -- getting cohort dates for <span style="color: #00BB00;">■■■■■■■■■■■■■■■■                </span> 4 of 8 cohorts</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span>  -- getting cohort dates for <span style="color: #00BB00;">■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■ </span> 8 of 8 cohorts</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Cohorts created in 0 min and 8 sec</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">!</span> cohort columns will be reordered to match the expected order:</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span>   cohort_definition_id, subject_id, cohort_start_date, and cohort_end_date.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 1 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 2 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 3 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 4 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 5 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 6 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 7 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 8 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 9 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 10 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 11 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 12 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 13 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 14 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 15 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 16 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken: 0 mins and 2 secs</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 1 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 2 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 3 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 4 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 5 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 6 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 7 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 8 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 9 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 10 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 11 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 12 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 13 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 14 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 15 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting prevalence for analysis 16 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Time taken: 0 mins and 2 secs</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 1 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 2 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 3 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 4 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 5 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 6 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 7 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 8 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 9 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 10 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 11 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 12 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 13 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 14 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 15 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Getting incidence for analysis 16 of 16</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Overall time taken: 0 mins and 8 secs</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Cohorts created in 0 min and 6 sec</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #BBBB00;">!</span> cohort columns will be reordered to match the expected order:</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span>   cohort_definition_id, subject_id, cohort_start_date, and cohort_end_date.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 1 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 2 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 3 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 4 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 5 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 6 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 7 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 8 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 9 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 10 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 11 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 12 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 13 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 14 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 15 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 16 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Time taken: 0 mins and 2 secs</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 1 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 2 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 3 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 4 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 5 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 6 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 7 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 8 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 9 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 10 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 11 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 12 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 13 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 14 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 15 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting prevalence for analysis 16 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Time taken: 0 mins and 3 secs</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting incidence for analysis 1 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting incidence for analysis 2 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting incidence for analysis 3 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting incidence for analysis 4 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting incidence for analysis 5 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting incidence for analysis 6 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting incidence for analysis 7 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting incidence for analysis 8 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting incidence for analysis 9 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting incidence for analysis 10 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting incidence for analysis 11 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting incidence for analysis 12 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting incidence for analysis 13 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting incidence for analysis 14 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting incidence for analysis 15 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Getting incidence for analysis 16 of 16</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BB00;">✔</span> Overall time taken: 0 mins and 8 secs</span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>

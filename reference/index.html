@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.9.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -23,8 +23,9 @@
     <li><a class="dropdown-item" href="../articles/a03_Creating_target_denominator_populations.html">Creating target denominator populations</a></li>
     <li><a class="dropdown-item" href="../articles/a04_Calculating_prevalence.html">Calculating prevalence</a></li>
     <li><a class="dropdown-item" href="../articles/a05_Calculating_incidence.html">Calculating incidence</a></li>
-    <li><a class="dropdown-item" href="../articles/a06_Plotting_options.html">Plotting options</a></li>
+    <li><a class="dropdown-item" href="../articles/a06_benchmark.html">Benchmarking the IncidencePrevalence R package</a></li>
   </ul></li>
+<li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
       </ul><ul class="navbar-nav"></ul></div>
 
 
@@ -100,6 +101,29 @@
         <dd>Estimate point prevalence</dd>
       </dl></div><div class="section level2">
 
+      <h3 id="tidy-results">Tidy results<a class="anchor" aria-label="anchor" href="#tidy-results"></a></h3>
+
+
+
+    </div><div class="section level2">
+
+
+
+
+      <dl><dt>
+
+          <code><a href="asIncidenceResult.html">asIncidenceResult()</a></code>
+
+        </dt>
+        <dd>A tidy implementation of the summarised_result object for incidence results.</dd>
+      </dl><dl><dt>
+
+          <code><a href="asPrevalenceResult.html">asPrevalenceResult()</a></code>
+
+        </dt>
+        <dd>A tidy implementation of the summarised_result object for prevalence results.</dd>
+      </dl></div><div class="section level2">
+
       <h3 id="plot-results">Plot results<a class="anchor" aria-label="anchor" href="#plot-results"></a></h3>
 
 
@@ -111,10 +135,16 @@
 
       <dl><dt>
 
-          <code><a href="optionsPlot.html">optionsPlot()</a></code>
+          <code><a href="availableIncidenceGrouping.html">availableIncidenceGrouping()</a></code>
 
         </dt>
-        <dd>List of parameter options for IncidencePrevalence plot functions.</dd>
+        <dd>Variables that can be used for faceting and colouring incidence plots</dd>
+      </dl><dl><dt>
+
+          <code><a href="availablePrevalenceGrouping.html">availablePrevalenceGrouping()</a></code>
+
+        </dt>
+        <dd>Variables that can be used for faceting and colouring prevalence plots</dd>
       </dl><dl><dt>
 
           <code><a href="plotIncidence.html">plotIncidence()</a></code>
@@ -123,10 +153,22 @@
         <dd>Plot incidence results</dd>
       </dl><dl><dt>
 
+          <code><a href="plotIncidencePopulation.html">plotIncidencePopulation()</a></code>
+
+        </dt>
+        <dd>Bar plot of denominator counts, outcome counts, and person-time from incidence results</dd>
+      </dl><dl><dt>
+
           <code><a href="plotPrevalence.html">plotPrevalence()</a></code>
 
         </dt>
         <dd>Plot prevalence results</dd>
+      </dl><dl><dt>
+
+          <code><a href="plotPrevalencePopulation.html">plotPrevalencePopulation()</a></code>
+
+        </dt>
+        <dd>Bar plot of denominator and outcome counts from prevalence results</dd>
       </dl></div><div class="section level2">
 
       <h3 id="tabulate-results">Tabulate results<a class="anchor" aria-label="anchor" href="#tabulate-results"></a></h3>
@@ -187,8 +229,8 @@
 
       <dl><dt>
 
-          <code><a href="mockIncidencePrevalence.html">mockIncidencePrevalence()</a></code> <code><a href="mockIncidencePrevalence.html">mockIncidencePrevalenceRef()</a></code>
-          <span class="badge lifecycle lifecycle-deprecated">deprecated</span>
+          <code><a href="mockIncidencePrevalence.html">mockIncidencePrevalence()</a></code>
+
         </dt>
         <dd>Generate example subset of the OMOP CDM for estimating incidence and prevalence</dd>
       </dl></div><div class="section level2">
@@ -203,6 +245,12 @@
 
 
       <dl><dt>
+
+          <code><a href="IncidencePrevalenceBenchmarkResults.html">IncidencePrevalenceBenchmarkResults</a></code>
+
+        </dt>
+        <dd>Benchmarking results</dd>
+      </dl><dl><dt>
 
           <code><a href="benchmarkIncidencePrevalence.html">benchmarkIncidencePrevalence()</a></code>
 
