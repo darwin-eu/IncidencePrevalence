@@ -79,7 +79,8 @@ generateDenominatorCohortSet <- function(cdm,
     daysPriorObservation = daysPriorObservation,
     requirementInteractions = requirementInteractions,
     targetCohortTable = NULL,
-    targetCohortId = NULL
+    targetCohortId = NULL,
+    requirementsAtEntry = FALSE # does not apply
   )
 }
 
@@ -115,15 +116,15 @@ generateDenominatorCohortSet <- function(cdm,
 #' only time up to these will be contributed.
 #' @param ageGroup A list of age groups for which cohorts will be generated. A
 #' value of `list(c(0,17), c(18,30))` would, for example, lead to the creation
-#' of cohorts for those aged from 0 to 17, and from 18 to 30. In this example
-#' an individual turning 18 during the time period would appear in both
-#' cohorts (leaving the first cohort the day before their 18th birthday and
-#' entering the second from the day of their 18th birthday).
+#' of cohorts for those aged from 0 to 17, and from 18 to 30.
 #' @param sex Sex of the cohorts. This can be one or more of: `"Male"`,
 #' `"Female"`, or `"Both"`.
 #' @param daysPriorObservation The number of days of prior observation observed in
 #' the database required for an individual to start contributing time in
 #' a cohort.
+#' @param requirementsAtEntry If TRUE, individuals must satisfy requirements
+#' for inclusion on their cohort start date for the target cohort. If FALSE,
+#' individuals will be included once they satisfy all requirements.
 #' @param requirementInteractions If TRUE, cohorts will be created for
 #' all combinations of ageGroup, sex, and daysPriorObservation. If FALSE, only the
 #' first value specified for the other factors will be used. Consequently,
@@ -153,6 +154,7 @@ generateTargetDenominatorCohortSet <- function(cdm,
                                                ageGroup = list(c(0, 150)),
                                                sex = "Both",
                                                daysPriorObservation = 0,
+                                               requirementsAtEntry = TRUE,
                                                requirementInteractions = TRUE) {
   if (is.atomic(timeAtRisk)) {
     timeAtRisk <- list(timeAtRisk)
@@ -166,6 +168,7 @@ generateTargetDenominatorCohortSet <- function(cdm,
     ageGroup = ageGroup,
     sex = sex,
     daysPriorObservation = daysPriorObservation,
+    requirementsAtEntry = requirementsAtEntry,
     requirementInteractions = requirementInteractions,
     targetCohortTable = targetCohortTable,
     targetCohortId = targetCohortId
@@ -183,11 +186,12 @@ generateTargetDenominatorCohortSet <- function(cdm,
     tar_df$time_start == 0 &&
     tar_df$time_end == Inf) {
     # default tar is all so we can return as is
+    cdm[[name]] <- cdm[[name]] |>
+      dplyr::select(!dplyr::any_of(c("target_cohort_start_date")))
     return(cdm)
   }
 
   cli::cli_inform("Splitting cohorts by time at risk")
-
   # for each tar, apply
   # bind the resultant cohorts
   for (i in seq_along(tar_df$time_start)) {
@@ -206,7 +210,7 @@ generateTargetDenominatorCohortSet <- function(cdm,
       cdm[[workingTmp]] <- cdm[[workingTmp]] %>%
         dplyr::mutate(
           tar_end_date =
-            !!CDMConnector::dateadd("cohort_start_date",
+            !!CDMConnector::dateadd("target_cohort_start_date",
               timeAtRiskEnd,
               interval = "day"
             )
@@ -218,14 +222,16 @@ generateTargetDenominatorCohortSet <- function(cdm,
             as.Date(.data$tar_end_date),
             .data$cohort_end_date
             )
-        )
+        ) |>
+        dplyr::filter(.data$cohort_start_date <=
+                        .data$cohort_end_date)
     }
     if (timeAtRiskStart != 0) {
       # update entry to time based on risk start
       cdm[[workingTmp]] <- cdm[[workingTmp]] %>%
         dplyr::mutate(
           cohort_start_date =
-            as.Date(!!CDMConnector::dateadd("cohort_start_date",
+            as.Date(!!CDMConnector::dateadd("target_cohort_start_date",
               timeAtRiskStart,
               interval = "day"
             ))
@@ -233,15 +239,20 @@ generateTargetDenominatorCohortSet <- function(cdm,
         dplyr::filter(.data$cohort_start_date <=
           .data$cohort_end_date)
     }
+
+    # keep only tar when in cohort
+    cdm[[workingTmp]] <- cdm[[workingTmp]] |>
+      dplyr::filter(.data$cohort_end_date >= .data$cohort_start_date)
+
     cdm[[workingTmp]] <- cdm[[workingTmp]] |>
       dplyr::compute(
         name = workingTmp, overwrite = TRUE,
         logPrefix = "IncidencePrevalence_generateTargetDenominatorCohortSet_updateEntryExit_"
       )
-
     cdm[[workingTmp]] <- omopgenerics::newCohortTable(
       cdm[[workingTmp]] |>
-        dplyr::select(!dplyr::any_of(c("tar_end_date"))),
+        dplyr::select(!dplyr::any_of(c("tar_end_date",
+                                       "target_cohort_start_date"))),
       cohortSetRef = settings(cdm[[workingTmp]]) |>
         dplyr::mutate(
           cohort_name = paste0(
@@ -301,6 +312,7 @@ fetchDenominatorCohortSet <- function(cdm,
                                       timeAtRisk = c(0, Inf),
                                       sex = "Both",
                                       daysPriorObservation = 0,
+                                      requirementsAtEntry = TRUE,
                                       requirementInteractions = TRUE,
                                       targetCohortTable = NULL,
                                       targetCohortId = NULL) {
@@ -314,6 +326,7 @@ fetchDenominatorCohortSet <- function(cdm,
     ageGroup = ageGroup,
     sex = sex,
     daysPriorObservation = daysPriorObservation,
+    requirementsAtEntry = requirementsAtEntry,
     requirementInteractions = requirementInteractions,
     targetCohortTable = targetCohortTable,
     targetCohortId = targetCohortId
@@ -359,7 +372,9 @@ fetchDenominatorCohortSet <- function(cdm,
   if (is.null(targetCohortId)) {
     denominatorSet <- popSpecs %>%
       dplyr::mutate(
-        targetCohortTable = NA_character_, targetCohortId = NA_real_
+        targetCohortTable = NA_character_,
+        targetCohortId = NA_real_,
+        requirements_at_entry = "FALSE"
       )
   } else {
     denominatorSet <- list()
@@ -367,7 +382,8 @@ fetchDenominatorCohortSet <- function(cdm,
       denominatorSet[[i]] <- popSpecs %>%
         dplyr::mutate(
           targetCohortTable = targetCohortTable,
-          targetCohortId = targetCohortId[[i]]
+          targetCohortId = targetCohortId[[i]],
+          requirements_at_entry = as.character(requirementsAtEntry)
         )
     }
   }
@@ -395,7 +411,8 @@ fetchDenominatorCohortSet <- function(cdm,
       cdm = cdm,
       name = name,
       intermediateTable = paste0(intermediateTable, i),
-      popSpecs = denominatorSet[[i]]
+      popSpecs = denominatorSet[[i]],
+      requirementsAtEntry = requirementsAtEntry
     )
     cohortSetRef <- cohortSetRef %>%
       dplyr::union_all(attr(denom, "cohort_set"))
@@ -431,7 +448,6 @@ fetchDenominatorCohortSet <- function(cdm,
   } else {
     cdm[[name]] <- cohortRef
   }
-
   cdm[[name]] <- cdm[[name]] %>%
     omopgenerics::newCohortTable(
       cohortSetRef = cohortSetRef |>
@@ -460,7 +476,8 @@ fetchDenominatorCohortSet <- function(cdm,
 fetchSingleTargetDenominatorCohortSet <- function(cdm,
                                                   name,
                                                   intermediateTable,
-                                                  popSpecs) {
+                                                  popSpecs,
+                                                  requirementsAtEntry) {
   if (all(is.na(popSpecs$targetCohortId))) {
     cli::cli_alert_info("Creating denominator cohorts")
   } else {
@@ -495,8 +512,8 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
 
     studyPops <- dpop$denominator_population %>%
       dplyr::select(
-        "cohort_definition_id" = "gender_concept_id",
         "subject_id" = "person_id",
+        "cohort_definition_id" = "gender_concept_id",
         "cohort_start_date" = "observation_period_start_date",
         "cohort_end_date" = "observation_period_end_date"
       )
@@ -585,13 +602,13 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
       }
       workingDpop <- workingDpop %>%
         dplyr::select(dplyr::any_of(c(
+          "subject_id" = "person_id",
           "cohort_start_date" =
             glue::glue("date_min_age_{popSpecs$min_age[[i]]}_prior_history_{popSpecs$days_prior_observation[[i]]}"),
           "cohort_end_date" =
             glue::glue(
               "date_max_age_{popSpecs$max_age[[i]]}"
             ),
-          "subject_id" = "person_id",
           "target_cohort_start_date"
         ))) %>%
         dplyr::mutate(dplyr::across(dplyr::any_of(c(
@@ -601,6 +618,7 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
         )), as.Date))
 
       if (!is.na(unique(popSpecs$targetCohortTable))) {
+        if(isTRUE(requirementsAtEntry)){
         # make sure that cohort start was before or on target start
         # and update cohort start to target start
         workingDpop <- workingDpop %>%
@@ -610,8 +628,27 @@ fetchSingleTargetDenominatorCohortSet <- function(cdm,
           dplyr::select(dplyr::any_of(c(
             "subject_id",
             "cohort_start_date",
-            "cohort_end_date"
+            "cohort_end_date",
+            "target_cohort_start_date"
           )))
+        } else {
+          # does not have to satisfy criteria on target start
+          # set cohort start date to whatever comes last - cohort start or
+          # target start (so they only contribute time when in target and
+          # satisfying requirements)
+          workingDpop <- workingDpop %>%
+            dplyr::mutate(cohort_start_date =
+                            dplyr::if_else(.data$target_cohort_start_date >
+                                           .data$cohort_start_date,
+                                           .data$target_cohort_start_date,
+                                           .data$cohort_start_date)) %>%
+            dplyr::select(dplyr::any_of(c(
+              "subject_id",
+              "cohort_start_date",
+              "cohort_end_date",
+              "target_cohort_start_date"
+            )))
+        }
       }
 
       workingDpop <- workingDpop %>%

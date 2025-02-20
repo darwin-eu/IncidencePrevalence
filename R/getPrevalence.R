@@ -322,7 +322,7 @@ getPrevalence <- function(cdm,
       }
     }
     pr <- dplyr::bind_rows(pr) %>%
-      dplyr::mutate(prevalence = round((.data$outcome_count / .data$denominator_count), 3)) %>%
+      dplyr::mutate(prevalence = round((.data$outcome_count / .data$denominator_count), 5)) %>%
       dplyr::select(dplyr::any_of(c(
         "outcome_count", "denominator_count",
         "prevalence", "prevalence_start_date", "prevalence_end_date",

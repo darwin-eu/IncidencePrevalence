@@ -48,7 +48,8 @@ Table of prevalence results
 \donttest{
 cdm <- mockIncidencePrevalence(sampleSize = 1000)
 cdm <- generateDenominatorCohortSet(
-  cdm = cdm, name = "denominator",
+  cdm = cdm,
+  name = "denominator",
   cohortDateRange = c(as.Date("2008-01-01"), as.Date("2018-01-01"))
 )
 prev <- estimatePointPrevalence(

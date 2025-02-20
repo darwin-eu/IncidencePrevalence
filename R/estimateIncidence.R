@@ -209,6 +209,7 @@ estimateIncidence <- function(cdm,
     dplyr::group_by(
       .data$subject_id,
       .data$cohort_start_date,
+      .data$cohort_end_date,
       .data$outcome_cohort_id
     ) %>%
     dplyr::arrange(.data$outcome_start_date) %>%
@@ -239,46 +240,16 @@ estimateIncidence <- function(cdm,
       overwrite = TRUE
     )
 
-  studySpecs <- tidyr::expand_grid(
-    outcome_cohort_id = outcomeCohortId,
-    denominator_cohort_id = denominatorCohortId,
-    complete_database_intervals = completeDatabaseIntervals,
-    outcome_washout = outcomeWashout,
-    repeated_events = repeatedEvents
-  )
-  studySpecs <- studySpecs |>
-    dplyr::mutate(
-      weeks = dplyr::if_else("weeks" %in% .env$interval,
-        TRUE, FALSE
-      ),
-      months = dplyr::if_else("months" %in% .env$interval,
-        TRUE, FALSE
-      ),
-      quarters = dplyr::if_else("quarters" %in% .env$interval,
-        TRUE, FALSE
-      ),
-      years = dplyr::if_else("years" %in% .env$interval,
-        TRUE, FALSE
-      ),
-      overall = dplyr::if_else("overall" %in% .env$interval,
-        TRUE, FALSE
-      )
-    )
-  if (any(is.infinite(outcomeWashout))) {
-    studySpecs$outcome_washout[
-      which(is.infinite(studySpecs$outcome_washout))
-    ] <- NA
-  }
-  studySpecs <- studySpecs %>%
-    dplyr::mutate(analysis_id = as.character(dplyr::row_number()))
-  studySpecs <- split(
-    studySpecs,
-    studySpecs[, c("analysis_id")]
-  )
+  studySpecs <- getIncAnalysisSpecs(outcomeCohortId = outcomeCohortId,
+                      denominatorCohortId = denominatorCohortId,
+                      completeDatabaseIntervals = completeDatabaseIntervals,
+                      outcomeWashout = outcomeWashout,
+                      repeatedEvents = repeatedEvents,
+                      interval = interval)
 
   # get irs
   counter <- 0
-  irsList <- lapply(studySpecs, function(x) {
+  irsList <- purrr::map(studySpecs, function(x) {
     counter <<- counter + 1
     cli::cli_alert_info(
       "Getting incidence for analysis {counter} of {length(studySpecs)}"
@@ -519,5 +490,55 @@ incRateCiExact <- function(ev, pt) {
       ((stats::qchisq(p = 0.025, df = 2 * ev) / 2) / pt) * 100000,
     incidence_100000_pys_95CI_upper =
       ((stats::qchisq(p = 0.975, df = 2 * (ev + 1)) / 2) / pt) * 100000
-  ))
+  ) |>
+  dplyr::mutate(incidence_100000_pys_95CI_lower = round(.data$incidence_100000_pys_95CI_lower, 3),
+                incidence_100000_pys_95CI_upper = round(.data$incidence_100000_pys_95CI_upper, 3))
+  )
+}
+
+# returns a tibble with one row per analysis specification
+getIncAnalysisSpecs <- function(outcomeCohortId,
+                                denominatorCohortId,
+                                completeDatabaseIntervals,
+                                outcomeWashout,
+                                repeatedEvents,
+                                interval) {
+  studySpecs <- tidyr::expand_grid(
+    outcome_cohort_id = outcomeCohortId,
+    denominator_cohort_id = denominatorCohortId,
+    complete_database_intervals = completeDatabaseIntervals,
+    outcome_washout = outcomeWashout,
+    repeated_events = repeatedEvents
+  )
+  studySpecs <- studySpecs |>
+    dplyr::mutate(
+      weeks = dplyr::if_else("weeks" %in% .env$interval,
+        TRUE, FALSE
+      ),
+      months = dplyr::if_else("months" %in% .env$interval,
+        TRUE, FALSE
+      ),
+      quarters = dplyr::if_else("quarters" %in% .env$interval,
+        TRUE, FALSE
+      ),
+      years = dplyr::if_else("years" %in% .env$interval,
+        TRUE, FALSE
+      ),
+      overall = dplyr::if_else("overall" %in% .env$interval,
+        TRUE, FALSE
+      )
+    )
+  if (any(is.infinite(outcomeWashout))) {
+    studySpecs$outcome_washout[
+      which(is.infinite(studySpecs$outcome_washout))
+    ] <- NA
+  }
+  studySpecs <- studySpecs %>%
+    dplyr::mutate(analysis_id = as.character(dplyr::row_number()))
+  studySpecs <- split(
+    studySpecs,
+    studySpecs[, c("analysis_id")]
+  )
+
+  studySpecs
 }

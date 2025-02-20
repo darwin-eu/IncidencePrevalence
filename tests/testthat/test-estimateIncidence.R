@@ -30,7 +30,9 @@ test_that("mock db: check output format", {
       "analysis_outcome_washout", "analysis_repeated_events",
       "denominator_age_group", "denominator_sex",
       "denominator_days_prior_observation", "denominator_start_date",
-      "denominator_end_date", "denominator_target_cohort_name",
+      "denominator_end_date",
+      "denominator_requirements_at_entry",
+      "denominator_target_cohort_name",
       "denominator_time_at_risk"
     ))
   )
@@ -51,6 +53,7 @@ test_that("mock db: check output format", {
 })
 
 test_that("mock db: checks on working example", {
+  skip_on_cran()
   personTable <- dplyr::tibble(
     person_id = 1L,
     gender_concept_id = 8507L,
@@ -1010,6 +1013,49 @@ test_that("mock db: compare results from months and years", {
     dplyr::pull("estimate_value"))))
 
   CDMConnector::cdmDisconnect(cdm)
+})
+
+test_that("mock db: multiple denominator inputs", {
+  cdm <- mockIncidencePrevalence(sampleSize = 6000,
+                                 maxOutcomeDays = 5,
+                                 maxOutcomes = 6)
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm,
+    name = "denominator_1",
+    cohortDateRange = c(as.Date("2010-01-01"),
+                        as.Date("2020-12-31")),
+    ageGroup = list(c(25, 50)),
+    sex = "Both")
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm,
+    name = "denominator_2",
+    cohortDateRange = c(as.Date("2010-01-01"),
+                        as.Date("2020-12-31")),
+    ageGroup = list(c(0, 50),
+                    c(25, 30),
+                    c(25, 50),
+                    c(25, 80),
+                    c(45, 100)),
+    sex =  c("Both", "Male", "Female"))
+
+  inc_1 <- estimateIncidence(cdm,
+                             denominatorTable = "denominator_1",
+                             outcomeTable = "outcome")
+  inc_2 <- estimateIncidence(cdm,
+                             denominatorTable = "denominator_2",
+                             outcomeTable = "outcome")
+
+  expect_identical(
+    tableIncidence(inc_1,
+                   type = "tibble"),
+    tableIncidence(inc_2 |>
+                     omopgenerics::filterSettings(denominator_age_group == "25 to 50",
+                                                  denominator_sex == "Both"),
+                   type = "tibble")
+  )
+
+  CDMConnector::cdmDisconnect(cdm)
+
 })
 
 test_that("mock db: check entry and event on same day", {
@@ -3077,6 +3123,7 @@ test_that("mock db: check compute permanent", {
 })
 
 test_that("mock db: if missing cohort attributes", {
+  skip_on_cran()
   # missing cohort_set
   cdm <- mockIncidencePrevalence()
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
@@ -3091,6 +3138,7 @@ test_that("mock db: if missing cohort attributes", {
 })
 
 test_that("mock db: empty outcome cohort", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalence(sampleSize = 200)
 
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
@@ -3130,6 +3178,7 @@ test_that("mock db: empty outcome cohort", {
 })
 
 test_that("mock db: incidence using strata vars", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalence(
     sampleSize = 2000L,
     outPre = 0.2
@@ -3291,6 +3340,7 @@ test_that("mock db: incidence using strata vars", {
 })
 
 test_that("mock db: multiple outcome cohort id", {
+  skip_on_cran()
   personTable <- dplyr::tibble(
     person_id = c(1L, 2L),
     gender_concept_id = 8507L,
@@ -3457,6 +3507,7 @@ test_that("mock db: empty denominator", {
 })
 
 test_that("mock db: check local cdm", {
+  skip_on_cran()
   personTable <- dplyr::tibble(
     person_id = 1L,
     gender_concept_id = 8507L,

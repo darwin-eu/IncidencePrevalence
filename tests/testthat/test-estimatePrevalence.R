@@ -37,6 +37,7 @@ test_that("mock db: check output format", {
 })
 
 test_that("mock db: checks on working example", {
+  skip_on_cran()
   personTable <- dplyr::tibble(
     person_id = 1L,
     gender_concept_id = 8507L,
@@ -689,6 +690,51 @@ test_that("mock db: check multiple outcome ids", {
     dplyr::pull("estimate_value") == "1"))
 
   CDMConnector::cdmDisconnect(cdm)
+})
+
+test_that("mock db: multiple denominator inputs", {
+  skip_on_cran()
+  cdm <- mockIncidencePrevalence(sampleSize = 6000,
+                                 maxOutcomeDays = 5,
+                                 maxOutcomes = 6)
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm,
+    name = "denominator_1",
+    cohortDateRange = c(as.Date("2010-01-01"),
+                        as.Date("2020-12-31")),
+    ageGroup = list(c(25, 50)),
+    sex = "Both")
+  cdm <- generateDenominatorCohortSet(
+    cdm = cdm,
+    name = "denominator_2",
+    cohortDateRange = c(as.Date("2010-01-01"),
+                        as.Date("2020-12-31")),
+    ageGroup = list(c(0, 50),
+                    c(25, 30),
+                    c(25, 50),
+                    c(25, 80),
+                    c(55, 100)
+    ) ,
+    sex =  c("Both", "Male", "Female"))
+
+  prev_1 <- estimatePeriodPrevalence(cdm,
+                                     denominatorTable = "denominator_1",
+                                     outcomeTable = "outcome")
+  prev_2 <- estimatePeriodPrevalence(cdm,
+                                     denominatorTable = "denominator_2",
+                                     outcomeTable = "outcome")
+
+  expect_identical(
+    tablePrevalence(prev_1,
+                    type = "tibble"),
+    tablePrevalence(prev_2 |>
+                      omopgenerics::filterSettings(denominator_age_group == "25 to 50",
+                                                   denominator_sex == "Both"),
+                    type = "tibble")
+  )
+
+  CDMConnector::cdmDisconnect(cdm)
+
 })
 
 test_that("mock db: some empty result sets", {

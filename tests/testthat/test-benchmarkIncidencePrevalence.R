@@ -42,6 +42,7 @@ test_that("full benchmark", {
 })
 
 test_that("check tables cleaned up", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalence(
     sampleSize = 100,
     earliestObservationStartDate = as.Date("2010-01-01"),

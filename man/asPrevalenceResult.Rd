@@ -4,10 +4,12 @@
 \alias{asPrevalenceResult}
 \title{A tidy implementation of the summarised_result object for prevalence results.}
 \usage{
-asPrevalenceResult(result)
+asPrevalenceResult(result, metadata = FALSE)
 }
 \arguments{
 \item{result}{A summarised_result object created by the IncidencePrevalence package.}
+
+\item{metadata}{If TRUE additional metadata columns will be included in the result.}
 }
 \value{
 A tibble with a tidy version of the summarised_result object.

@@ -128,7 +128,7 @@ getDenominatorCohorts <- function(cdm,
   # drop anyone missing year_of_birth or gender_concept_id
   studyPopDb <- personDb %>%
     dplyr::left_join(observationPeriodDb,
-      by = "person_id", x_as = "x", y_as = "y"
+      by = "person_id"
     )
 
   attrition <- recordAttrition(
@@ -187,7 +187,6 @@ getDenominatorCohorts <- function(cdm,
   # as character so we can insert into db
   startDateChar <- as.character(startDate)
   endDateChar <- as.character(endDate)
-
   studyPopDb <- studyPopDb %>%
     dplyr::mutate(
       lower_age_check = !!CDMConnector::dateadd("dob",
@@ -195,7 +194,7 @@ getDenominatorCohorts <- function(cdm,
         interval = "year"
       ),
       upper_age_check = !!CDMConnector::dateadd("dob",
-        {{ upperAgeLimit }},
+        {{ upperAgeLimit + 1L }},
         interval = "year"
       ),
       start_date = as.Date(.env$startDateChar),

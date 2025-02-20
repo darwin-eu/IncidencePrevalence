@@ -101,7 +101,7 @@ cdm <- generateDenominatorCohortSet(
 This will then give us six denominator cohorts
 
 ```{r}
-cohortSet(cdm$denominator)
+settings(cdm$denominator)
 ```
 
 These cohorts will be in the typical OMOP CDM structure

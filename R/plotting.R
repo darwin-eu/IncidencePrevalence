@@ -68,9 +68,9 @@ plotIncidence <- function(result,
     resultTidy <- result |>
       tidyResult(type = "incidence", attrition = FALSE)
   } else if (result |>
-    dplyr::pull("result_type") |>
-    unique() ==
-    "tidy_incidence") {
+             dplyr::pull("result_type") |>
+             unique() ==
+             "tidy_incidence") {
     resultTidy <- result
   } else {
     cli::cli_abort("result must be either a summarised_result object output of
@@ -95,7 +95,8 @@ plotIncidence <- function(result,
     ymin = ymin,
     ymax = ymax,
     facet = facet,
-    colour = colour
+    colour = colour,
+    type = "incidence"
   )
 }
 
@@ -153,9 +154,9 @@ plotPrevalence <- function(result,
     resultTidy <- result |>
       tidyResult(type = "prevalence", attrition = FALSE)
   } else if (result |>
-    dplyr::pull("result_type") |>
-    unique() ==
-    "tidy_prevalence") {
+             dplyr::pull("result_type") |>
+             unique() ==
+             "tidy_prevalence") {
     resultTidy <- result
   } else {
     cli::cli_abort("result must be either a summarised_result object output of
@@ -181,7 +182,8 @@ plotPrevalence <- function(result,
     ymin = ymin,
     ymax = ymax,
     facet = facet,
-    colour = colour
+    colour = colour,
+    type = "prevalence"
   )
 }
 
@@ -228,7 +230,7 @@ plotIncidencePopulation <- function(result,
   }
   resultTidy <- tidyResult(result, "incidence", attrition = FALSE)
   return(
-    plotPopulation(resultTidy, x, y, facet, colour)
+    plotPopulation(resultTidy, x, y, facet, colour, type = "incidence")
   )
 }
 
@@ -274,7 +276,7 @@ plotPrevalencePopulation <- function(result,
   }
   resultTidy <- tidyResult(result, "prevalence", attrition = FALSE)
   return(
-    plotPopulation(resultTidy, x, y, facet, colour)
+    plotPopulation(resultTidy, x, y, facet, colour, type = "prevalence")
   )
 }
 
@@ -283,7 +285,8 @@ plotPopulation <- function(result,
                            x,
                            y = "denominator_count",
                            facet = NULL,
-                           colour = NULL) {
+                           colour = NULL,
+                           type) {
   labels <- c(
     "outcome_cohort_name", "denominator_count", "outcome_count", "person_days",
     "incidence_100000_pys", "incidence_100000_pys_95CI_lower", "incidence_100000_pys_95CI_upper",
@@ -293,6 +296,15 @@ plotPopulation <- function(result,
 
   labels <- labels[labels %in% colnames(result)]
 
+  if ("analysis_interval" %in% colnames(result)) {
+    if (all(unique(result$analysis_interval) == "years") & any(grepl("_date", c(x, y)))) {
+      result <- result |>
+        dplyr::mutate("date_years" = clock::get_year(.data[[paste0(type, "_start_date")]]))
+      if (any(grepl("_date", x))) x[grepl("_date", x)] <- "date_years"
+      if (any(grepl("_date", y))) y[grepl("_date", y)] <- "date_years"
+    }
+  }
+
   plot <- visOmopResults::barPlot(
     result = result,
     x = x,
@@ -301,15 +313,33 @@ plotPopulation <- function(result,
     colour = colour,
     label = labels
   ) +
-    visOmopResults::themeVisOmop()
+  visOmopResults::themeVisOmop()
 
   if (y == "person_days") {
     plot <- plot +
       ggplot2::ylab("Person-Days")
   }
+  if (x == "person_days") {
+    plot <- plot +
+      ggplot2::xlab("Person-Days")
+  }
   if (y == "person_years") {
     plot <- plot +
       ggplot2::ylab("Person-Years")
+  }
+  if (x == "person_years") {
+    plot <- plot +
+      ggplot2::xlab("Person-Years")
+  }
+  if (x == "date_years") {
+    plot <- plot +
+      ggplot2::scale_x_continuous(breaks = seq.int(min(result$date_years), max(result$date_years), by = 1)) +
+      ggplot2::xlab("Date (years)")
+  }
+  if (y == "date_years") {
+    plot <- plot +
+      ggplot2::scale_x_continuous(breaks = seq.int(min(result$date_years), max(result$date_years), by = 1)) +
+      ggplot2::ylab("Date (years)")
   }
 
   return(plot + visOmopResults::themeVisOmop())
@@ -324,11 +354,12 @@ plotEstimates <- function(result,
                           ymin,
                           ymax,
                           facet,
-                          colour) {
+                          colour,
+                          type) {
   rlang::check_installed("ggplot2", reason = "for plot functions")
   rlang::check_installed("scales", reason = "for plot functions")
 
-  if (y %in% c("prevalence")) {
+  if (any(c(y, x) %in% c("prevalence"))) {
     ytype <- "percentage"
   } else {
     ytype <- "count"
@@ -339,6 +370,16 @@ plotEstimates <- function(result,
     "incidence_start_date", "incidence_end_date", "prevalence_start_date", "prevalence_end_date"
   )
   labels <- labels[labels %in% colnames(result)]
+
+  # if interval is years --> use years in axis
+  if ("analysis_interval" %in% colnames(result)) {
+    if (all(unique(result$analysis_interval) == "years") & any(grepl("_date", c(x, y)))) {
+      result <- result |>
+        dplyr::mutate("date_years" = clock::get_year(.data[[paste0(type, "_start_date")]]))
+      if (any(grepl("_date", x))) x[grepl("_date", x)] <- "date_years"
+      if (any(grepl("_date", y))) y[grepl("_date", y)] <- "date_years"
+    }
+  }
 
   plot <- visOmopResults::scatterPlot(
     result = result,
@@ -356,17 +397,41 @@ plotEstimates <- function(result,
   )
 
   ylim <- c(0, NA)
-  if (ytype == "count") {
-    plot <- plot +
-      ggplot2::scale_y_continuous(labels = scales::comma)
+  if (y == "prevalence") {
+    if (ytype == "count") {
+      plot <- plot +
+        ggplot2::scale_y_continuous(labels = scales::comma)
+    }
+    if (ytype == "percentage") {
+      plot <- plot +
+        ggplot2::scale_y_continuous(labels = scales::percent_format(accuracy = 0.1))
+    }
   }
-  if (ytype == "percentage") {
-    plot <- plot +
-      ggplot2::scale_y_continuous(labels = scales::percent_format(accuracy = 0.1))
+  if (x == "prevalence") {
+    if (ytype == "count") {
+      plot <- plot +
+        ggplot2::scale_x_continuous(labels = scales::comma)
+    }
+    if (ytype == "percentage") {
+      plot <- plot +
+        ggplot2::scale_x_continuous(labels = scales::percent_format(accuracy = 0.1))
+    }
   }
-
   if (plot$labels$y == "Incidence 100000 pys") {
     plot <- plot + ggplot2::labs(y = "Incidence (100,000 person-years)")
+  }
+  if (plot$labels$x == "Incidence 100000 pys") {
+    plot <- plot + ggplot2::labs(x = "Incidence (100,000 person-years)")
+  }
+  if (x == "date_years") {
+    plot <- plot +
+      ggplot2::scale_x_continuous(breaks = seq.int(min(result$date_years), max(result$date_years), by = 1)) +
+      ggplot2::xlab("Date (years)")
+  }
+  if (y == "date_years") {
+    plot <- plot +
+      ggplot2::scale_x_continuous(breaks = seq.int(min(result$date_years), max(result$date_years), by = 1)) +
+      ggplot2::ylab("Date (years)")
   }
 
   return(plot + visOmopResults::themeVisOmop())

@@ -233,8 +233,6 @@ test_that("mock db: check point and period output correctly", {
   )))
 })
 
-
-
 test_that("mock db: check period complete cohort or not", {
   start <- as.Date("2010-01-01")
 

@@ -534,7 +534,7 @@ binomialCiWilson <- function(x, n, prefix = "prevalence") {
   t1 <- (x + z^2 / 2) / (n + z^2)
   t2 <- z * sqrt(n) / (n + z^2) * sqrt(p * q + z^2 / (4 * n))
   return(dplyr::tibble(
-    !!paste0(prefix, "_95CI_lower") := t1 - t2,
-    !!paste0(prefix, "_95CI_upper") := t1 + t2
+    !!paste0(prefix, "_95CI_lower") := round(t1 - t2, 5),
+    !!paste0(prefix, "_95CI_upper") := round(t1 + t2, 5)
   ))
 }

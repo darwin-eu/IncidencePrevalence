@@ -17,6 +17,7 @@
 #' A tidy implementation of the summarised_result object for incidence results.
 #'
 #' @param result A summarised_result object created by the IncidencePrevalence package.
+#' @param metadata If TRUE additional metadata columns will be included in the result.
 #'
 #' @examples
 #' \donttest{
@@ -29,7 +30,7 @@
 #'
 #' @export
 #'
-asIncidenceResult <- function(result) {
+asIncidenceResult <- function(result, metadata = FALSE) {
   if (nrow(result) == 0) {
     cli::cli_warn("No results available to tidy")
     return(result)
@@ -44,7 +45,7 @@ asIncidenceResult <- function(result) {
     return(result)
   }
 
-  incResults <- tidyResult(result, type = "incidence", attrition = FALSE) |>
+  incResults <- tidyResult(result, type = "incidence", attrition = FALSE, metadata = metadata) |>
     dplyr::select(!"result_id")
 
   class(incResults) <- c("tidy_incidence", class(incResults))
@@ -56,6 +57,7 @@ asIncidenceResult <- function(result) {
 #' A tidy implementation of the summarised_result object for prevalence results.
 #'
 #' @param result A summarised_result object created by the IncidencePrevalence package.
+#' @param metadata If TRUE additional metadata columns will be included in the result.
 #'
 #' @examples
 #' \donttest{
@@ -68,7 +70,7 @@ asIncidenceResult <- function(result) {
 #'
 #' @export
 #'
-asPrevalenceResult <- function(result) {
+asPrevalenceResult <- function(result, metadata = FALSE) {
   result <- omopgenerics::validateResultArgument(result)
   if (nrow(result) == 0) {
     cli::cli_warn("No prevalence results available to tidy")
@@ -83,7 +85,7 @@ asPrevalenceResult <- function(result) {
     return(result)
   }
 
-  prevResults <- tidyResult(result, type = "prevalence", attrition = FALSE)
+  prevResults <- tidyResult(result, type = "prevalence", attrition = FALSE, metadata = metadata)
 
   class(prevResults) <- c("tidy_prevalence", class(prevResults))
 
@@ -94,12 +96,14 @@ asPrevalenceResult <- function(result) {
 
 
 # Helper function
-tidyResult <- function(result, type, attrition = TRUE) {
+tidyResult <- function(result, type, attrition = TRUE, metadata = FALSE) {
   result_estimates <- result |>
     omopgenerics::filterSettings(
       .data$result_type == .env$type
-    ) |>
-    omopgenerics::addSettings() |>
+    )
+  result_estimates <- result_estimates |>
+    omopgenerics::addSettings(settingsColumn =
+                                omopgenerics::settingsColumns(result, metadata = metadata)) |>
     omopgenerics::splitAll() |>
     dplyr::select(!c("variable_name", "variable_level")) |>
     omopgenerics::pivotEstimates() |>

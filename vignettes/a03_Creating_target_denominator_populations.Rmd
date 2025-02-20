@@ -61,7 +61,7 @@ acute_asthma <- tibble(
   cohort_definition_id = rep("1", 5),
   subject_id = c("3", "3", "5", "5", "2"),
   cohort_start_date = c(
-    as.Date("2012-01-01"),
+    as.Date("2011-01-01"),
     as.Date("2015-06-01"),
     as.Date("2014-10-01"),
     as.Date("2010-06-01"),
@@ -137,21 +137,31 @@ cdm$denominator_acute_asthma %>%
   xlab("Year")
 ```
 
-Restrictions based on age, sex, and prior observation can again be applied. Prior observation requirements are applied relative to an individual´s observation period start date. Importantly, when using a target cohort for the denominator individuals must satisfy the age and prior observation requirements on their target cohort entry date. (If you wish to stratify on a time-invariant feature, you would create a general population denominator and stratify at the time of estimating incidence and prevalence - see subsequent vignettes).
+## Applying cohort restrictions
 
-In the case below we can see that persons "3" and "5" satisfy the sex and age requirements on their target cohort start dates, although one of the cohort entries is excluded for patient "5" as they were below the minimum age at that time.
+We can use PatientProfiles to see demographics at time of entry to the target cohort.
+
+```{r, message=FALSE, warning=FALSE}
+cdm$target |> 
+  PatientProfiles::addDemographics(indexDate = "cohort_start_date")
+```
+
+Restrictions based on age, sex, and prior observation, and calendar dates can again be applied like with `generateDenominatorCohortSet()`. However, now we have additional considerations on how these restrictions are implemented. In particular, whether requirements must be fulfilled on the date of target cohort entry or whether we allow people to contribute time once they satisfy time-varying criteria.
+
+This choice is implemented using the `requirementsAtEntry` argument. When this is set to TRUE individuals must satisfy the age and prior observation requirements on their target cohort entry date. In the case below we can see that persons "3" and "5" satisfy the sex and age requirements on their target cohort start dates, although one of the cohort entries is excluded for patient "3" and "5" as they were below the minimum age at their date of cohort entry.
 
 ```{r, message=FALSE, warning=FALSE}
 cdm <- generateTargetDenominatorCohortSet(
   cdm = cdm,
-  name = "denominator_acute_asthma_2",
+  name = "denominator_acute_asthma_incident",
   ageGroup = list(c(11, 15)),
   sex = "Female",
   daysPriorObservation = 0,
-  targetCohortTable = "target"
+  targetCohortTable = "target",
+  requirementsAtEntry = TRUE
 )
 
-cdm$denominator_acute_asthma_2 %>%
+cdm$denominator_acute_asthma_incident %>%
   collect() %>%
   mutate(row = row_number()) %>%
   pivot_longer(cols = c(
@@ -164,6 +174,39 @@ cdm$denominator_acute_asthma_2 %>%
   theme_minimal() +
   xlab("Year")
 ```
+
+If we change `requirementsAtEntry` to FALSE individuals can now contribute once they the various criteria. Now we can see that we have included an extra period of time of risk for patient "3". This is because although they were younger than 11 at their cohort entry, we now allow them to contribute time once they have reached the age of 11.
+
+```{r, message=FALSE, warning=FALSE}
+cdm <- generateTargetDenominatorCohortSet(
+  cdm = cdm,
+  name = "denominator_acute_asthma_prevalent",
+  ageGroup = list(c(11, 15)),
+  sex = "Female",
+  daysPriorObservation = 0,
+  targetCohortTable = "target",
+  requirementsAtEntry = FALSE
+)
+
+cdm$denominator_acute_asthma_prevalent %>%
+  collect() %>%
+  mutate(row = row_number()) %>%
+  pivot_longer(cols = c(
+    "cohort_start_date",
+    "cohort_end_date"
+  )) %>%
+  ggplot(aes(group = row)) +
+  geom_point(aes(x = value, y = subject_id)) +
+  geom_line(aes(x = value, y = subject_id)) +
+  theme_minimal() +
+  xlab("Year")
+```
+
+Similarly, let's say we are considering multiple, non-overlapping, age groups. Setting requirementsAtEntry to TRUE will mean that an individual will only contribute a given target entry to one of these - the one where they are that age on the day of target cohort entry. However, setting requirementsAtEntry to FALSE would allow an individual to graduate from one age group to another.
+
+As with age, the same will apply when specifying time varying elements such as date criteria and prior observation requirements. For example, if we specify dates using `cohortDateRange` then if requirementsAtEntry is TRUE an individual must enter the target cohort during the date range, 
+
+## Specifying time at risk
 We can also enforce a time at risk for people to contribute to the denominator. For instance, we might only want to take into account events for people in the target denominator cohort on their first month after cohort entry. This can be achieved by adding the input parameter `timeAtRisk = c(0,30)` when computing the denominator, before any incidence or prevalence calculations. 
 
 ```{r, message=FALSE, warning=FALSE}
@@ -190,6 +233,7 @@ cdm$denominator_acute_asthma_2 %>%
   theme_minimal() +
   xlab("Year")
 ```
+
 Note that this parameter allows the user to input different time at risk values in the same function call. Therefore, if we ask for `timeAtRisk = list(c(0, 30), c(31, 60))`, we will get a denominator cohort of people contributing time up to 30 days following cohort entry, and another one with time from 31 days following cohort entry to 60 days. 
 
 ```{r, message=FALSE, warning=FALSE}
@@ -262,3 +306,5 @@ cdm$denominator_acute_asthma_4 %>%
   theme_minimal() +
   xlab("Year")
 ```
+
+Note that time at risk will always be related to target cohort entry. If we set `requirementsAtEntry` to FALSE and an individual contributes time from 31 days after their target entry date, they wouldn't contribute any time if timeAtRisk was set to c(0, 30).

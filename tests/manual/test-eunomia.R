@@ -9,21 +9,24 @@ test_that("eunomia test - some empty cohorts", {
   )
 
   # outcome cohorts
-  celecoxib_codes <- dplyr::tibble("concept_id" = c(1118084))
+  acetaminophen_codes <- dplyr::tibble("concept_id" = c(1127433))
   diclofenac_codes <- dplyr::tibble("concept_id" = c(1124300))
+  cdm$drug_exposure <- cdm$drug_exposure |>
+    PatientProfiles::addInObservation("drug_exposure_start_date") |>
+    dplyr::filter(in_observation == 1)
 
   # celecoxib
-  cdm$celecoxib <- cdm$drug_era %>%
+  cdm$acetaminophen <- cdm$drug_exposure %>%
     dplyr::inner_join(
-      celecoxib_codes %>%
+      acetaminophen_codes %>%
         dplyr::select(concept_id),
       by = c("drug_concept_id" = "concept_id"),
       copy = TRUE
     ) %>%
-    dplyr::rename(
+    dplyr::select(
       "subject_id" = "person_id",
-      "cohort_start_date" = "drug_era_start_date",
-      "cohort_end_date" = "drug_era_end_date"
+      "cohort_start_date" = "drug_exposure_start_date",
+      "cohort_end_date" = "drug_exposure_start_date"
     ) %>%
     dplyr::mutate(cohort_definition_id = 1L) %>%
     dplyr::select(
@@ -33,17 +36,17 @@ test_that("eunomia test - some empty cohorts", {
     dplyr::compute()
 
   # diclofenac
-  cdm$diclofenac <- cdm$drug_era %>%
+  cdm$diclofenac <- cdm$drug_exposure %>%
     dplyr::inner_join(
       diclofenac_codes %>%
         dplyr::select(concept_id),
       by = c("drug_concept_id" = "concept_id"),
       copy = TRUE
     ) %>%
-    dplyr::rename(
+    dplyr::select(
       "subject_id" = "person_id",
-      "cohort_start_date" = "drug_era_start_date",
-      "cohort_end_date" = "drug_era_end_date"
+      "cohort_start_date" = "drug_exposure_start_date",
+      "cohort_end_date" = "drug_exposure_start_date"
     ) %>%
     dplyr::mutate(cohort_definition_id = 2L) %>%
     dplyr::select(
@@ -52,13 +55,12 @@ test_that("eunomia test - some empty cohorts", {
     ) %>%
     dplyr::compute()
 
-  cdm$exposure_cohort <- dplyr::union_all(
-    cdm$celecoxib,
+  cdm$outcome_cohort <- dplyr::union_all(
+    cdm$acetaminophen,
     cdm$diclofenac
   ) %>%
-    dplyr::compute()
-  cdm$outcome_cohort <- CDMConnector::newGeneratedCohortSet(cdm$exposure_cohort)
-  cdm$outcome_cohort <- addCohortCountAttr(cdm$outcome_cohort)
+    dplyr::compute(name = "outcome_cohort", temporary = FALSE)
+  cdm$outcome_cohort <- CDMConnector::newGeneratedCohortSet(cdm$outcome_cohort)
 
   # denominator
   cdm <- generateDenominatorCohortSet(cdm,

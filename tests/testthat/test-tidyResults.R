@@ -41,7 +41,17 @@ test_that("basic example result", {
                                        dplyr::filter(result_id == 1)))
 
 
-})
+  # include metadata
+  expect_true("package_version" %in%
+                names(asIncidenceResult(inc, metadata = TRUE)))
+  expect_true(!"package_version" %in%
+                names(asIncidenceResult(inc, metadata = FALSE)))
+  expect_true("package_version" %in%
+                names(asPrevalenceResult(prev, metadata = TRUE)))
+  expect_true(!"package_version" %in%
+                names(asPrevalenceResult(prev, metadata = FALSE)))
+
+  })
 
 test_that("multiple analyses", {
   testthat::skip_on_cran()

@@ -1,4 +1,6 @@
 test_that("test tables", {
+  skip_on_cran()
+
   cdm <- mockIncidencePrevalence()
 
   cdm <- generateDenominatorCohortSet(cdm = cdm,
@@ -115,6 +117,8 @@ test_that("test tables", {
 })
 
 test_that("test importing results", {
+  skip_on_cran()
+
   cdm <- mockIncidencePrevalence()
 
   cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")

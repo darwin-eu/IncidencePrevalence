@@ -14,6 +14,7 @@ generateTargetDenominatorCohortSet(
   ageGroup = list(c(0, 150)),
   sex = "Both",
   daysPriorObservation = 0,
+  requirementsAtEntry = TRUE,
   requirementInteractions = TRUE
 )
 }
@@ -48,10 +49,7 @@ only time up to these will be contributed.}
 
 \item{ageGroup}{A list of age groups for which cohorts will be generated. A
 value of \code{list(c(0,17), c(18,30))} would, for example, lead to the creation
-of cohorts for those aged from 0 to 17, and from 18 to 30. In this example
-an individual turning 18 during the time period would appear in both
-cohorts (leaving the first cohort the day before their 18th birthday and
-entering the second from the day of their 18th birthday).}
+of cohorts for those aged from 0 to 17, and from 18 to 30.}
 
 \item{sex}{Sex of the cohorts. This can be one or more of: \code{"Male"},
 \code{"Female"}, or \code{"Both"}.}
@@ -59,6 +57,10 @@ entering the second from the day of their 18th birthday).}
 \item{daysPriorObservation}{The number of days of prior observation observed in
 the database required for an individual to start contributing time in
 a cohort.}
+
+\item{requirementsAtEntry}{If TRUE, individuals must satisfy requirements
+for inclusion on their cohort start date for the target cohort. If FALSE,
+individuals will be included once they satisfy all requirements.}
 
 \item{requirementInteractions}{If TRUE, cohorts will be created for
 all combinations of ageGroup, sex, and daysPriorObservation. If FALSE, only the

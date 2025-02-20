@@ -3,6 +3,12 @@ test_that("basic plots", {
   skip_if_not_installed("ggplot2")
   skip_if_not_installed("scales")
 
+  # comptibility with ggplot2 v3.6.0
+  get_labs <- function(x) x$labels
+  if ("get_labs" %in% getNamespaceExports("ggplot2")) {
+    get_labs <- ggplot2::get_labs
+  }
+
   cdm <- mockIncidencePrevalence(sampleSize = 100)
   cdm <- generateDenominatorCohortSet(
     cdm = cdm, name = "denominator",
@@ -17,10 +23,41 @@ test_that("basic plots", {
   )
   plot <- plotIncidence(inc)
   expect_true(ggplot2::is.ggplot(plot))
+  expect_equal(plot$data$date_years, c(2008, 2009))
+  expect_equal(
+    get_labs(plot),
+    list(
+      x = "Date (years)", y = "Incidence (100,000 person-years)", fill = NULL,
+      colour = NULL, ymin = "incidence_100000_pys_95CI_lower", ymax = "incidence_100000_pys_95CI_upper",
+      label1 = "outcome_cohort_name", label2 = "denominator_count", label3 = "outcome_count",
+      label4 = "person_days", label5 = "incidence_100000_pys", label6 = "incidence_100000_pys_95CI_lower",
+      label7 = "incidence_100000_pys_95CI_upper", label8 = "incidence_start_date", label9 = "incidence_end_date")
+  )
+  expect_equal(ggplot2::ggplot_build(plot)$layout$panel_params[[1]]$x$breaks, c(2008, 2009))
   plot <- plotIncidencePopulation(inc)
   expect_true(ggplot2::is.ggplot(plot))
-  plot <- plotIncidencePopulation(inc, y = "outcome_count")
+  expect_equal(plot$data$date_years, c(2008, 2009))
+  expect_equal(
+    get_labs(plot),
+    list(
+      x = "Date (years)", fill = NULL, colour = NULL, y = "Denominator count",
+      label1 = "outcome_cohort_name", label2 = "denominator_count", label3 = "outcome_count",
+      label4 = "person_days", label5 = "incidence_100000_pys", label6 = "incidence_100000_pys_95CI_lower",
+      label7 = "incidence_100000_pys_95CI_upper", label8 = "incidence_start_date", label9 = "incidence_end_date")
+  )
+  expect_equal(ggplot2::ggplot_build(plot)$layout$panel_params[[1]]$x$breaks, c(2008, 2009))
+  plot <- plotIncidencePopulation(inc, y = "outcome_count", x = "incidence_end_date")
   expect_true(ggplot2::is.ggplot(plot))
+  expect_equal(plot$data$date_years, c(2008, 2009))
+  expect_equal(
+    get_labs(plot),
+    list(
+      x = "Date (years)", fill = NULL, colour = NULL, y = "Outcome count",
+      label1 = "outcome_cohort_name", label2 = "denominator_count", label3 = "outcome_count",
+      label4 = "person_days", label5 = "incidence_100000_pys", label6 = "incidence_100000_pys_95CI_lower",
+      label7 = "incidence_100000_pys_95CI_upper", label8 = "incidence_start_date", label9 = "incidence_end_date")
+  )
+  expect_equal(ggplot2::ggplot_build(plot)$layout$panel_params[[1]]$x$breaks, c(2008, 2009))
   plot <- plotIncidencePopulation(inc, y = "person_days")
   expect_true(ggplot2::is.ggplot(plot))
   # grouping cols
@@ -48,25 +85,32 @@ test_that("basic plots", {
   inc <- estimateIncidence(
     cdm = cdm,
     denominatorTable = "denominator",
-    outcomeTable = "outcome", interval = "overall"
-  )
-  prev <- estimatePrevalence(
-    cdm = cdm, interval = "years",
-    denominatorTable = "denominator",
-    outcomeTable = "outcome"
+    outcomeTable = "outcome",
+    interval = "overall"
   )
   plot <- plotIncidence(inc, x = "denominator_age_group")
   expect_true(ggplot2::is.ggplot(plot))
+  expect_equal(get_labs(plot)$x,"Denominator age group")
+  plot <- plotIncidence(inc)
+  expect_true(ggplot2::is.ggplot(plot))
+  expect_equal(get_labs(plot)$x,"Incidence start date")
 
+  prev <- estimatePrevalence(
+    cdm = cdm,
+    interval = "years",
+    denominatorTable = "denominator",
+    outcomeTable = "outcome"
+  )
   # prevalence plot
   plot <- plotPrevalence(prev,
-    x = "prevalence_start_date",
-    facet = "denominator_age_group"
+                         x = "prevalence_start_date",
+                         facet = "denominator_age_group"
   )
   expect_true(ggplot2::is.ggplot(plot))
   plot <- plotPrevalencePopulation(prev, x = "denominator_age_group")
   expect_true(ggplot2::is.ggplot(plot))
   plot <- plotPrevalencePopulation(prev, colour = "denominator_age_group")
+  expect_equal(get_labs(plot)$x,"Date (years)")
   expect_true(ggplot2::is.ggplot(plot))
   # grouping cols
   expect_true(availablePrevalenceGrouping(prev) == "denominator_age_group")
@@ -92,23 +136,22 @@ test_that("basic plots", {
     )
   )
   prev <- estimatePrevalence(
-    cdm = cdm, interval = "years",
+    cdm = cdm, interval = "weeks",
     denominatorTable = "denominator",
     outcomeTable = "outcome"
   )
-  plot <- plotPrevalence(prev,
-    x = "denominator_age_group"
-  )
+  plot <- plotPrevalence(prev)
   expect_true(ggplot2::is.ggplot(plot))
+  expect_equal(get_labs(plot)$x,"Prevalence start date")
 
   # empty plot if an empty result
   expect_warning(expect_true(ggplot2::is.ggplot(
     plotIncidence(inc |>
-      dplyr::filter(result_id == 0))
+                    dplyr::filter(result_id == 0))
   )))
   expect_warning(expect_true(ggplot2::is.ggplot(
     plotPrevalence(prev |>
-      dplyr::filter(result_id == 0))
+                     dplyr::filter(result_id == 0))
   )))
 
   # other result type
@@ -139,8 +182,8 @@ test_that("basic plots", {
   result_path <- tempdir("result_to_plot")
   result <- omopgenerics::bind(inc, prev)
   omopgenerics::exportSummarisedResult(result,
-    path = result_path,
-    minCellCount = 5
+                                       path = result_path,
+                                       minCellCount = 5
   )
 
   result <- result |> omopgenerics::suppress(5)
@@ -208,10 +251,10 @@ test_that("plot facets", {
   )
 
   plot <- plotIncidence(inc,
-    facet = c(
-      "denominator_age_group",
-      "denominator_sex"
-    )
+                        facet = c(
+                          "denominator_age_group",
+                          "denominator_sex"
+                        )
   )
   expect_true(ggplot2::is.ggplot(plot))
 
@@ -237,7 +280,7 @@ test_that("plot colour", {
   )
 
   plot <- plotIncidence(inc,
-    colour = "denominator_age_group"
+                        colour = "denominator_age_group"
   )
   expect_true(ggplot2::is.ggplot(plot))
 
@@ -257,10 +300,10 @@ test_that("plot colour", {
   )
 
   plot <- plotIncidence(inc,
-    colour = c(
-      "denominator_age_group",
-      "denominator_sex"
-    )
+                        colour = c(
+                          "denominator_age_group",
+                          "denominator_sex"
+                        )
   )
 
   expect_true(ggplot2::is.ggplot(plot))
@@ -288,8 +331,8 @@ test_that("plot options", {
   )
 
   plot <- plotIncidence(inc,
-    colour = "denominator_age_group",
-    ymin = NULL, ymax = NULL
+                        colour = "denominator_age_group",
+                        ymin = NULL, ymax = NULL
   )
   expect_true(ggplot2::is.ggplot(plot))
 
@@ -301,31 +344,31 @@ test_that("plot options", {
   )
 
   plot <- plotPrevalence(prev,
-    colour = c(
-      "denominator_age_group",
-      "denominator_sex"
-    ),
-    ymin = NULL, ymax = NULL
+                         colour = c(
+                           "denominator_age_group",
+                           "denominator_sex"
+                         ),
+                         ymin = NULL, ymax = NULL
   )
 
   expect_true(ggplot2::is.ggplot(plot))
 
   plot <- plotPrevalence(prev,
-    colour = c(
-      "denominator_age_group",
-      "denominator_sex"
-    ),
-    line = FALSE
+                         colour = c(
+                           "denominator_age_group",
+                           "denominator_sex"
+                         ),
+                         line = FALSE
   )
   expect_true(ggplot2::is.ggplot(plot))
 
   plot <- plotPrevalence(prev,
-    colour = c(
-      "denominator_age_group",
-      "denominator_sex"
-    ),
-    ribbon = TRUE,
-    point = FALSE
+                         colour = c(
+                           "denominator_age_group",
+                           "denominator_sex"
+                         ),
+                         ribbon = TRUE,
+                         point = FALSE
   )
   expect_true(ggplot2::is.ggplot(plot))
 

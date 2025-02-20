@@ -21,6 +21,7 @@ checkInputGenerateDCS <- function(cdm,
                                   ageGroup,
                                   sex,
                                   daysPriorObservation,
+                                  requirementsAtEntry,
                                   requirementInteractions,
                                   targetCohortTable,
                                   targetCohortId,
@@ -41,13 +42,14 @@ checkInputGenerateDCS <- function(cdm,
     omopgenerics::assertNumeric(timeAtRisk[[i]][2], min = 0)
     tarCheck <- timeAtRisk[[i]][1] <= timeAtRisk[[i]][2]
     omopgenerics::assertTrue(tarCheck,
-      msg = "- upper age value must be equal or higher than lower age value"
+      msg = "- upper time at risk value must be equal or higher than lower time at risk value"
     )
   }
 
   omopgenerics::validateAgeGroupArgument(ageGroup, overlap = TRUE)
   omopgenerics::assertChoice(sex, c("Male", "Female", "Both"))
   omopgenerics::assertNumeric(daysPriorObservation, min = 0)
+  omopgenerics::assertLogical(requirementsAtEntry, length = 1)
   omopgenerics::assertLogical(requirementInteractions, length = 1)
 
   if (!is.null(targetCohortId)) {

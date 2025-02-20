@@ -1,4 +1,5 @@
 test_that("test date functions with duckdb mock", {
+  skip_on_cran()
   cdm <- mockIncidencePrevalence(sampleSize = 5)
 
   # add days

@@ -38,10 +38,24 @@ getIncidence <- function(cdm,
   ## Analysis code
   # people in the relevant denominator
   # along with their outcomes
-  studyPop <- cdm[[denominatorTable]] %>%
+  studyPopStart <- cdm[[denominatorTable]] %>%
     dplyr::filter(.data$cohort_definition_id ==
       .env$denominatorCohortId) %>%
     dplyr::select(-"cohort_definition_id") %>%
+    dplyr::compute(
+      name = paste0(tablePrefix, "_inc_5a"),
+      temporary = FALSE,
+      overwrite = TRUE
+    )
+
+  attrition <- recordAttrition(
+    table = studyPopStart,
+    id = "subject_id",
+    reasonId = 11,
+    reason = "Starting analysis population"
+  )
+
+  studyPop <- studyPopStart |>
     dplyr::left_join(
       cdm[[outcomeTable]] %>%
         dplyr::filter(.data$outcome_cohort_id ==
@@ -54,17 +68,10 @@ getIncidence <- function(cdm,
       )
     ) %>%
     dplyr::compute(
-      name = paste0(tablePrefix, "_inc_5"),
+      name = paste0(tablePrefix, "_inc_5b"),
       temporary = FALSE,
       overwrite = TRUE
     )
-
-  attrition <- recordAttrition(
-    table = studyPop,
-    id = "subject_id",
-    reasonId = 11,
-    reason = "Starting analysis population"
-  )
 
   # participants without an outcome
   studyPopNoOutcome <- studyPop %>%
@@ -130,7 +137,7 @@ getIncidence <- function(cdm,
           dplyr::group_by(.data$subject_id) %>%
           dplyr::filter(.data$events_post == 0) %>%
           dplyr::compute(
-            name = paste0(tablePrefix, "_inc_5a"),
+            name = paste0(tablePrefix, "_inc_5c"),
             temporary = FALSE,
             overwrite = TRUE
           )
@@ -164,11 +171,17 @@ getIncidence <- function(cdm,
   studyPop <- studyPopNoOutcome %>%
     dplyr::union_all(studyPopOutcome) %>%
     dplyr::collect()
+
+  if(is.null(outcomeWashout)){
+    working_reason <- "Apply washout - anyone with outcome prior to start excluded"
+  } else {
+    working_reason <- paste0("Apply washout criteria of ", outcomeWashout, " days (note, additional records may be created for those with an outcome)")
+  }
   attrition <- recordAttrition(
     table = studyPop,
     id = "subject_id",
     reasonId = 12,
-    reason = "Excluded due to prior event (do not pass outcome washout during study period)",
+    reason = working_reason,
     existingAttrition = attrition
   )
   # intervals to estimate
@@ -242,7 +255,7 @@ getIncidence <- function(cdm,
   }
 
   if ("none" %in% names(studyDays)) {
-    # if no study days we<U+00B4>ll return an empty tibble
+    # if no study days we will return an empty tibble
     ir <- dplyr::tibble()
 
     attrition <- recordAttrition(
@@ -263,7 +276,6 @@ getIncidence <- function(cdm,
         .data$cohort_end_date >= .env$minStartDate,
         .data$cohort_start_date <= .env$maxStartDate
       )
-
     attrition <- recordAttrition(
       table = studyPop,
       id = "subject_id",

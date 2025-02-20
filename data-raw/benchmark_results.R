@@ -27,7 +27,7 @@ cdm <- CDMConnector::cdmFromCon(
   con = db, cdmName = "ohdsi_redshift",
   cdmSchema = Sys.getenv("CDM5_REDSHIFT_CDM_SCHEMA"),
   writeSchema = c(schema = Sys.getenv("CDM5_REDSHIFT_SCRATCH_SCHEMA")),
-  writePrefix = "incp_"
+  writePrefix = "incp_", cdmVersion = "5.3"
 )
 bench[["ohdsi_redshift"]] <- benchmarkIncidencePrevalence(cdm)
 CDMConnector::cdmDisconnect(cdm)
@@ -69,6 +69,19 @@ cdm <- CDMConnector::cdmFromCon(
   writePrefix = "incp_"
 )
 bench[["ohdsi_snowflake"]] <- benchmarkIncidencePrevalence(cdm)
+CDMConnector::cdmDisconnect(cdm)
+
+# spark ----
+con <- DBI::dbConnect(
+  odbc::databricks(),
+  httpPath = Sys.getenv("DARWIN_DATABRICKS_HTTPPATH"),
+  useNativeQuery = FALSE
+)
+cdmSchema <- Sys.getenv("DARWIN_DATABRICKS_CDM_SCHEMA")
+writeSchema <- Sys.getenv("DARWIN_DATABRICKS_SCRATCH_SCHEMA")
+cdm <- CDMConnector::cdmFromCon(con, cdmSchema, writeSchema,
+                                cdmName = "darwin_databricks_spark")
+bench[["darwin_databricks_spark"]] <- benchmarkIncidencePrevalence(cdm)
 CDMConnector::cdmDisconnect(cdm)
 
 # save -----

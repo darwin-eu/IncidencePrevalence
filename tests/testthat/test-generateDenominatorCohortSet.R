@@ -377,7 +377,10 @@ test_that("mock db: subset denominator by cohort", {
     names(settings(cdm$denominator)),
     names(settings(cdm$target_cohort))
   )
-
+  expect_identical(
+    colnames(cdm$denominator),
+    colnames(cdm$target_cohort)
+  )
   expect_true(all(cdm$target_cohort %>%
     dplyr::collect() %>%
     dplyr::pull(subject_id) %in%
@@ -635,6 +638,7 @@ test_that("mock db: one male, one female", {
 })
 
 test_that("mock db: check example with restriction on sex", {
+  skip_on_cran()
   # two male, one female
   personTable <- dplyr::tibble(
     person_id = c(1L, 2L, 3L),
@@ -713,6 +717,7 @@ test_that("mock db: check example with restriction on sex", {
 })
 
 test_that("mock db: check example with restriction on age", {
+  skip_on_cran()
   # three people, born in 2000, 2005, and 2010
   personTable <- dplyr::tibble(
     person_id = c(1L, 2L, 3L),
@@ -1105,6 +1110,87 @@ test_that("mock db: targetRequirementsAtEntry", {
   expect_true(omopgenerics::cohortCount(cdm$denom_reqs_cohort_entry) %>%
     dplyr::filter(cohort_definition_id == 2) %>%
     dplyr::pull("number_records") == 0)
+
+  CDMConnector::cdmDisconnect(cdm)
+})
+
+test_that("mock db: target requirements any time", {
+  skip_on_cran()
+
+  ## Prior observation
+  personTable <- dplyr::tibble(
+    person_id = c(1L, 2L),
+    gender_concept_id = 8507L,
+    year_of_birth = 2012L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
+  )
+  observationPeriodTable <- dplyr::tibble(
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
+    observation_period_start_date = c(
+      as.Date("2012-01-10"),
+      as.Date("2012-01-14")
+    ),
+    observation_period_end_date = as.Date("2018-06-01")
+  )
+  # at target entry subject 1 has 5 days prior obs
+  # subject 2 has one day prior obs
+  targetCohortTable <- dplyr::tibble(
+    cohort_definition_id = 1L,
+    subject_id = c(1L, 2L),
+    cohort_start_date = c(
+      as.Date("2012-01-15"),
+      as.Date("2012-01-15")
+    ),
+    cohort_end_date = as.Date("2018-06-01"),
+  )
+
+  cdm <- mockIncidencePrevalence(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    targetCohortTable = targetCohortTable
+  )
+  # requirementsAtEntry TRUE, will only include subject one if we have 3 day obs req
+  cdm <- generateTargetDenominatorCohortSet(
+    cdm = cdm,
+    name = "denom_reqs_at_entry",
+    daysPriorObservation = 3,
+    targetCohortTable = "target",
+    targetCohortId = 1,
+    requirementsAtEntry = TRUE
+  )
+  expect_true(omopgenerics::cohortCount(cdm$denom_reqs_at_entry) %>%
+                dplyr::filter(cohort_definition_id == 1) %>%
+                dplyr::pull("number_subjects") == 1)
+  expect_true(cdm$denom_reqs_at_entry |>
+                dplyr::filter(subject_id == 1) |>
+                dplyr::pull("cohort_start_date") == as.Date("2012-01-15"))
+  expect_true(omopgenerics::settings(cdm$denom_reqs_at_entry) |>
+    dplyr::pull("requirements_at_entry") == "TRUE")
+
+  # but set requirementsAtEntry to FALSE to allow them to satisfy requirements
+  # after target cohort start date - should now have both
+  cdm <- generateTargetDenominatorCohortSet(
+    cdm = cdm,
+    name = "denom_reqs_whenever",
+    daysPriorObservation = 3,
+    targetCohortTable = "target",
+    targetCohortId = 1,
+    requirementsAtEntry = FALSE
+  )
+  expect_true(omopgenerics::cohortCount(cdm$denom_reqs_whenever) %>%
+                dplyr::filter(cohort_definition_id == 1) %>%
+                dplyr::pull("number_subjects") == 2)
+
+  expect_true(cdm$denom_reqs_whenever |>
+    dplyr::filter(subject_id == 1) |>
+    dplyr::pull("cohort_start_date") == as.Date("2012-01-15"))
+  expect_true(cdm$denom_reqs_whenever |>
+                dplyr::filter(subject_id == 2) |>
+                dplyr::pull("cohort_start_date") == as.Date("2012-01-17"))
+  expect_true(omopgenerics::settings(cdm$denom_reqs_whenever) |>
+                dplyr::pull("requirements_at_entry") == "FALSE")
 
   CDMConnector::cdmDisconnect(cdm)
 })
@@ -2014,6 +2100,315 @@ test_that("mock db: target time at risk - requirements applied at original index
   CDMConnector::cdmDisconnect(cdm)
 })
 
+test_that("mock db: target time at risk - requirements with requirementsAtEntry FALSE ", {
+
+  # target time at risk should always be relative to target cohort entry
+  # even if included when satisfying criteria after target entry (supplying
+  # time after 0)
+
+  skip_on_cran()
+
+  # one born 1st June
+  # one born 1st July
+  personTable <- dplyr::tibble(
+    person_id = c(1L, 2L),
+    gender_concept_id = 8507L,
+    year_of_birth = c(2000L,2000L),
+    month_of_birth = c(06L,07L),
+    day_of_birth = 01L
+  )
+  observationPeriodTable <- dplyr::tibble(
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
+    observation_period_start_date = c(
+      as.Date("2000-06-01"),
+      as.Date("2000-07-01")
+    ),
+    observation_period_end_date = as.Date("2018-06-01")
+  )
+  # at target entry, subject 1 is 5, subject 2 is 4 (month before 5th birthday)
+  # subject 2 has one day prior obs
+  targetCohortTable <- dplyr::tibble(
+    cohort_definition_id = 1L,
+    subject_id = c(1L, 2L),
+    cohort_start_date = c(
+      as.Date("2005-06-01"),
+      as.Date("2005-06-01")
+    ),
+    cohort_end_date = as.Date("2018-06-01"),
+  )
+
+  cdm <- mockIncidencePrevalence(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    targetCohortTable = targetCohortTable
+  )
+
+  # with zero to inf tar both get included
+  cdm <- generateTargetDenominatorCohortSet(
+    cdm = cdm,
+    name = "denom",
+    ageGroup = list(c(5, 5)), # only when aged 5
+    timeAtRisk = c(0, Inf),
+    targetCohortTable = "target",
+    targetCohortId = 1,
+    requirementsAtEntry = FALSE
+  )
+  expect_true(omopgenerics::cohortCount(cdm$denom) %>%
+                dplyr::filter(cohort_definition_id == 1) %>%
+                dplyr::pull("number_subjects") == 2)
+  # subject 1 from 5th birthday to day before 6th birthday
+  expect_true(cdm$denom |>
+                dplyr::filter(subject_id == 1) |>
+                dplyr::pull("cohort_start_date") == as.Date("2005-06-01"))
+  expect_true(cdm$denom |>
+                dplyr::filter(subject_id == 1) |>
+                dplyr::pull("cohort_end_date") == as.Date("2006-05-31"))
+  # subject 2 from 5th birthday to day before 6th birthday
+  expect_true(cdm$denom |>
+                dplyr::filter(subject_id == 2) |>
+                dplyr::pull("cohort_start_date") == as.Date("2005-07-01"))
+  expect_true(cdm$denom |>
+                dplyr::filter(subject_id == 2) |>
+                dplyr::pull("cohort_end_date") == as.Date("2006-06-30"))
+
+  # if we only look at tar day 40 to 50
+  # both should be included for 10 days
+  cdm <- generateTargetDenominatorCohortSet(
+    cdm = cdm,
+    name = "denom_tar_40_50",
+    ageGroup = list(c(5, 5)), # only when aged 5
+    timeAtRisk = c(40, 50),
+    targetCohortTable = "target",
+    targetCohortId = 1,
+    requirementsAtEntry = FALSE
+  )
+  expect_true(omopgenerics::cohortCount(cdm$denom_tar_40_50) %>%
+                dplyr::filter(cohort_definition_id == 1) %>%
+                dplyr::pull("number_subjects") == 2)
+  # both have the same 10 days tar (as both had the same target index date)
+  tar_40_start <- clock::add_days(as.Date("2005-06-01"), 40)
+  tar_50_end <- clock::add_days(as.Date("2005-06-01"), 50)
+  expect_true(unique(cdm$denom_tar_40_50 |>
+                dplyr::pull("cohort_start_date")) == tar_40_start)
+  expect_true(unique(cdm$denom_tar_40_50 |>
+                      dplyr::pull("cohort_end_date")) == tar_50_end)
+
+  expect_identical(
+    names(settings(cdm$denom)),
+    names(settings(cdm$denom_tar_40_50))
+  )
+  expect_identical(
+    colnames(cdm$denom),
+    colnames(cdm$denom_tar_40_50)
+  )
+
+  # if we only look at 1st day of time at risk
+  # should only include subject 1
+  # subject 2 only contributes time at risk a month after entry
+  cdm <- generateTargetDenominatorCohortSet(
+    cdm = cdm,
+    name = "denom_tar_1",
+    ageGroup = list(c(5, 5)), # only when aged 5
+    timeAtRisk = c(0, 1),
+    targetCohortTable = "target",
+    targetCohortId = 1,
+    requirementsAtEntry = FALSE
+  )
+  expect_true(omopgenerics::cohortCount(cdm$denom_tar_1) %>%
+                dplyr::filter(cohort_definition_id == 1) %>%
+                dplyr::pull("number_subjects") == 1)
+  # subject 1 from 5th birthday to day before 6th birthday
+  expect_true(cdm$denom_tar_1 |>
+                dplyr::filter(subject_id == 1) |>
+                dplyr::pull("cohort_start_date") == as.Date("2005-06-01"))
+  expect_true(cdm$denom_tar_1 |>
+                dplyr::filter(subject_id == 1) |>
+                dplyr::pull("cohort_end_date") == as.Date("2005-06-02"))
+
+  # if we only look at 370 onwards
+  # should only include subject 2
+  # subject 2 only contributes time at risk a month after entry
+  cdm <- generateTargetDenominatorCohortSet(
+    cdm = cdm,
+    name = "denom_tar_370_inf",
+    ageGroup = list(c(5, 5)),
+    timeAtRisk = c(370, Inf),
+    targetCohortTable = "target",
+    targetCohortId = 1,
+    requirementsAtEntry = FALSE
+  )
+  expect_true(omopgenerics::cohortCount(cdm$denom_tar_370_inf) %>%
+                dplyr::filter(cohort_definition_id == 1) %>%
+                dplyr::pull("number_subjects") == 1)
+  # subject 2 only (as they are still 5 after 370 days, but subject 1 would be 6)
+  tar_370_start <- clock::add_days(as.Date("2005-06-01"), 370)
+  expect_true(cdm$denom_tar_370_inf |>
+                       dplyr::pull("cohort_start_date") == tar_370_start)
+  expect_true(cdm$denom_tar_370_inf |>
+                dplyr::pull("subject_id") == 2L)
+
+
+  # contributing to multiple age groups
+  cdm <- generateTargetDenominatorCohortSet(
+    cdm = cdm,
+    name = "denom_tar_age_5_6",
+    ageGroup = list(c(5, 5),
+                    c(6, 6)),
+    timeAtRisk = c(0, Inf),
+    targetCohortTable = "target",
+    targetCohortId = 1,
+    requirementsAtEntry = FALSE
+  )
+  # both individuals will contribute to both age groups
+  expect_true(all(omopgenerics::cohortCount(cdm$denom_tar_age_5_6) |>
+    dplyr::pull("number_subjects") == 2))
+
+  cdm <- generateTargetDenominatorCohortSet(
+    cdm = cdm,
+    name = "denom_tar_age_5_6",
+    ageGroup = list(c(5, 5),
+                    c(6, 6)),
+    timeAtRisk = c(400, Inf),
+    targetCohortTable = "target",
+    targetCohortId = 1,
+    requirementsAtEntry = FALSE
+  )
+  # both only contribute to age six
+  expect_true(omopgenerics::cohortCount(cdm$denom_tar_age_5_6) |>
+    dplyr::left_join(omopgenerics::settings(cdm$denom_tar_age_5_6),
+                     by = "cohort_definition_id") |>
+    dplyr::filter(age_group == "5 to 5") |>
+    dplyr::pull("number_subjects") == 0)
+  expect_true(omopgenerics::cohortCount(cdm$denom_tar_age_5_6) |>
+                dplyr::left_join(omopgenerics::settings(cdm$denom_tar_age_5_6),
+                                 by = "cohort_definition_id") |>
+                dplyr::filter(age_group == "6 to 6") |>
+                dplyr::pull("number_subjects") == 2)
+
+  # if reqs at index, no included records
+  cdm <- generateTargetDenominatorCohortSet(
+    cdm = cdm,
+    name = "denom_tar_age_5_6_index",
+    ageGroup = list(c(5, 5),
+                    c(6, 6)),
+    timeAtRisk = c(400, Inf),
+    targetCohortTable = "target",
+    targetCohortId = 1,
+    requirementsAtEntry = TRUE
+  )
+  expect_true(all(omopgenerics::cohortCount(cdm$denom_tar_age_5_6_index) |>
+    dplyr::pull("number_subjects") == 0))
+
+  CDMConnector::cdmDisconnect(cdm)
+
+})
+
+test_that("mock db: target time at risk - requirementsAtEntry FALSE, multiple entries", {
+
+  skip_on_cran()
+
+  # one born 1st June
+  # one born 1st July
+  personTable <- dplyr::tibble(
+    person_id = c(1L, 2L),
+    gender_concept_id = 8507L,
+    year_of_birth = c(2000L,2000L),
+    month_of_birth = c(06L,07L),
+    day_of_birth = 01L
+  )
+  observationPeriodTable <- dplyr::tibble(
+    observation_period_id = c(1L, 2L),
+    person_id = c(1L, 2L),
+    observation_period_start_date = c(
+      as.Date("2000-06-01"),
+      as.Date("2000-07-01")
+    ),
+    observation_period_end_date = as.Date("2018-06-01")
+  )
+  # subject 1 first record overlaps 5th birthday
+  # others after
+  targetCohortTable <- dplyr::tibble(
+    cohort_definition_id = 1L,
+    subject_id = c(1L, 1L, 1L, 2L),
+    cohort_start_date = c(
+      as.Date("2005-04-01"),
+      as.Date("2005-06-10"),
+      as.Date("2005-06-20"),
+      as.Date("2005-07-01")
+    ),
+    cohort_end_date = c(
+      as.Date("2005-06-02"),
+      as.Date("2005-06-18"),
+      as.Date("2005-06-28"),
+      as.Date("2008-07-01")
+    ),
+  )
+
+  cdm <- mockIncidencePrevalence(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    targetCohortTable = targetCohortTable
+  )
+
+  cdm <- generateTargetDenominatorCohortSet(
+    cdm = cdm,
+    name = "t_denom",
+    timeAtRisk = c(0, Inf),
+    targetCohortTable = "target",
+    targetCohortId = 1,
+    requirementsAtEntry = FALSE
+  )
+  expect_identical(
+  sort(cdm$t_denom |>
+    dplyr::pull("cohort_start_date")),
+  sort(cdm$target |>
+    dplyr::pull("cohort_start_date")))
+
+ # only 5
+ # requirementsAtEntry - exclude first record
+  cdm <- generateTargetDenominatorCohortSet(
+    cdm = cdm,
+    name = "t_denom_a",
+    timeAtRisk = c(0, Inf),
+    ageGroup = list(c(5, 5)), # only when aged 5
+    targetCohortTable = "target",
+    targetCohortId = 1,
+    requirementsAtEntry = TRUE
+  )
+  expect_equal(omopgenerics::cohortCount(cdm$t_denom_a) |>
+    dplyr::pull("number_records"), 3)
+  # requirementsAtEntry - include first record
+  cdm <- generateTargetDenominatorCohortSet(
+    cdm = cdm,
+    name = "t_denom_b",
+    timeAtRisk = c(0, Inf),
+    ageGroup = list(c(5, 5)), # only when aged 5
+    targetCohortTable = "target",
+    targetCohortId = 1,
+    requirementsAtEntry = FALSE
+  )
+  expect_equal(omopgenerics::cohortCount(cdm$t_denom_b) |>
+                 dplyr::pull("number_records"), 4)
+
+
+  # tar window 1 to 1
+  # should exclude first (was not 5 until more than 1 day tar)
+  cdm <- generateTargetDenominatorCohortSet(
+    cdm = cdm,
+    name = "t_denom_c",
+    timeAtRisk = c(1, 1),
+    ageGroup = list(c(5, 5)), # only when aged 5
+    targetCohortTable = "target",
+    targetCohortId = 1,
+    requirementsAtEntry = FALSE
+  )
+  expect_equal(omopgenerics::cohortCount(cdm$t_denom_c) |>
+                 dplyr::pull("number_records"), 3)
+
+
+})
+
 test_that("mock db: cohort names for cohortId args", {
   skip_on_cran()
   personTable <- dplyr::tibble(
@@ -2065,4 +2460,7 @@ test_that("mock db: target cohort extra columns", {
     name = "denominator",
     targetCohortTable = "target"
   ))
+  expect_identical(colnames(cdm$denominator),
+                   c("cohort_definition_id", "subject_id",
+                     "cohort_start_date", "cohort_end_date"))
 })
