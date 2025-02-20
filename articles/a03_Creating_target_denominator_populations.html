@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -124,7 +124,7 @@ cohort.</p>
 <span>  cohort_definition_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="st">"1"</span>, <span class="fl">5</span><span class="op">)</span>,</span>
 <span>  subject_id <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"3"</span>, <span class="st">"3"</span>, <span class="st">"5"</span>, <span class="st">"5"</span>, <span class="st">"2"</span><span class="op">)</span>,</span>
 <span>  cohort_start_date <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
-<span>    <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2012-01-01"</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2011-01-01"</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2015-06-01"</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2014-10-01"</span><span class="op">)</span>,</span>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2010-06-01"</span><span class="op">)</span>,</span>
@@ -154,7 +154,7 @@ including any particular subset like so</p>
 <span><span class="op">)</span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span></span>
 <span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;main.denominator&gt; [?? x 4]</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v1.1.3 [unknown@Linux 6.8.0-1017-azure:R 4.4.2/:memory:]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v1.1.3 [unknown@Linux 6.8.0-1021-azure:R 4.4.2/:memory:]</span></span></span>
 <span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date</span></span>
 <span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>         </span></span>
 <span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 1          2010-12-19        2011-06-19     </span></span>
@@ -205,29 +205,50 @@ twice, while person “2” contributes one period of time at risk.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">"Year"</span><span class="op">)</span></span></code></pre></div>
 <p><img src="a03_Creating_target_denominator_populations_files/figure-html/unnamed-chunk-6-1.png" width="700"></p>
-<p>Restrictions based on age, sex, and prior observation can again be
-applied. Prior observation requirements are applied relative to an
-individual´s observation period start date. Importantly, when using a
-target cohort for the denominator individuals must satisfy the age and
-prior observation requirements on their target cohort entry date. (If
-you wish to stratify on a time-invariant feature, you would create a
-general population denominator and stratify at the time of estimating
-incidence and prevalence - see subsequent vignettes).</p>
-<p>In the case below we can see that persons “3” and “5” satisfy the sex
-and age requirements on their target cohort start dates, although one of
-the cohort entries is excluded for patient “5” as they were below the
-minimum age at that time.</p>
+<div class="section level3">
+<h3 id="applying-cohort-restrictions">Applying cohort restrictions<a class="anchor" aria-label="anchor" href="#applying-cohort-restrictions"></a>
+</h3>
+<p>We can use PatientProfiles to see demographics at time of entry to
+the target cohort.</p>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cdm</span><span class="op">$</span><span class="va">target</span> <span class="op">|&gt;</span> </span>
+<span>  <span class="fu">PatientProfiles</span><span class="fu">::</span><span class="fu"><a href="https://darwin-eu.github.io/PatientProfiles/reference/addDemographics.html" class="external-link">addDemographics</a></span><span class="op">(</span>indexDate <span class="op">=</span> <span class="st">"cohort_start_date"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Source:   table&lt;og_001_1740088371&gt; [?? x 8]</span></span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># Database: DuckDB v1.1.3 [unknown@Linux 6.8.0-1021-azure:R 4.4.2/:memory:]</span></span></span>
+<span><span class="co">#&gt;   cohort_definition_id subject_id cohort_start_date cohort_end_date   age sex   </span></span>
+<span><span class="co">#&gt;                  <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span>      <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>            <span style="color: #949494; font-style: italic;">&lt;date&gt;</span>          <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">1</span>                    1 3          2011-01-01        2013-01-01         10 Female</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">2</span>                    1 3          2015-06-01        2015-12-31         15 Female</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">3</span>                    1 5          2014-10-01        2015-04-01         14 Female</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">4</span>                    1 5          2010-06-01        2010-06-01         10 Female</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">5</span>                    1 2          2005-08-20        2005-09-20          5 Male  </span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 2 more variables: prior_observation &lt;int&gt;, future_observation &lt;int&gt;</span></span></span></code></pre></div>
+<p>Restrictions based on age, sex, and prior observation, and calendar
+dates can again be applied like with
+<code><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet()</a></code>. However, now we have
+additional considerations on how these restrictions are implemented. In
+particular, whether requirements must be fulfilled on the date of target
+cohort entry or whether we allow people to contribute time once they
+satisfy time-varying criteria.</p>
+<p>This choice is implemented using the <code>requirementsAtEntry</code>
+argument. When this is set to TRUE individuals must satisfy the age and
+prior observation requirements on their target cohort entry date. In the
+case below we can see that persons “3” and “5” satisfy the sex and age
+requirements on their target cohort start dates, although one of the
+cohort entries is excluded for patient “3” and “5” as they were below
+the minimum age at their date of cohort entry.</p>
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateTargetDenominatorCohortSet.html">generateTargetDenominatorCohortSet</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
-<span>  name <span class="op">=</span> <span class="st">"denominator_acute_asthma_2"</span>,</span>
+<span>  name <span class="op">=</span> <span class="st">"denominator_acute_asthma_incident"</span>,</span>
 <span>  ageGroup <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">11</span>, <span class="fl">15</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  sex <span class="op">=</span> <span class="st">"Female"</span>,</span>
 <span>  daysPriorObservation <span class="op">=</span> <span class="fl">0</span>,</span>
-<span>  targetCohortTable <span class="op">=</span> <span class="st">"target"</span></span>
+<span>  targetCohortTable <span class="op">=</span> <span class="st">"target"</span>,</span>
+<span>  requirementsAtEntry <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator_acute_asthma_2</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator_acute_asthma_incident</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>row <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/row_number.html" class="external-link">row_number</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
@@ -239,14 +260,59 @@ minimum age at that time.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">value</span>, y <span class="op">=</span> <span class="va">subject_id</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">"Year"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a03_Creating_target_denominator_populations_files/figure-html/unnamed-chunk-7-1.png" width="700">
-We can also enforce a time at risk for people to contribute to the
+<p><img src="a03_Creating_target_denominator_populations_files/figure-html/unnamed-chunk-8-1.png" width="700"></p>
+<p>If we change <code>requirementsAtEntry</code> to FALSE individuals
+can now contribute once they the various criteria. Now we can see that
+we have included an extra period of time of risk for patient “3”. This
+is because although they were younger than 11 at their cohort entry, we
+now allow them to contribute time once they have reached the age of
+11.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateTargetDenominatorCohortSet.html">generateTargetDenominatorCohortSet</a></span><span class="op">(</span></span>
+<span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
+<span>  name <span class="op">=</span> <span class="st">"denominator_acute_asthma_prevalent"</span>,</span>
+<span>  ageGroup <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">11</span>, <span class="fl">15</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  sex <span class="op">=</span> <span class="st">"Female"</span>,</span>
+<span>  daysPriorObservation <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  targetCohortTable <span class="op">=</span> <span class="st">"target"</span>,</span>
+<span>  requirementsAtEntry <span class="op">=</span> <span class="cn">FALSE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator_acute_asthma_prevalent</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/compute.html" class="external-link">collect</a></span><span class="op">(</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>row <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/row_number.html" class="external-link">row_number</a></span><span class="op">(</span><span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://tidyr.tidyverse.org/reference/pivot_longer.html" class="external-link">pivot_longer</a></span><span class="op">(</span>cols <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="st">"cohort_start_date"</span>,</span>
+<span>    <span class="st">"cohort_end_date"</span></span>
+<span>  <span class="op">)</span><span class="op">)</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>group <span class="op">=</span> <span class="va">row</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_point.html" class="external-link">geom_point</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">value</span>, y <span class="op">=</span> <span class="va">subject_id</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">value</span>, y <span class="op">=</span> <span class="va">subject_id</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">"Year"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="a03_Creating_target_denominator_populations_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
+<p>Similarly, let’s say we are considering multiple, non-overlapping,
+age groups. Setting requirementsAtEntry to TRUE will mean that an
+individual will only contribute a given target entry to one of these -
+the one where they are that age on the day of target cohort entry.
+However, setting requirementsAtEntry to FALSE would allow an individual
+to graduate from one age group to another.</p>
+<p>As with age, the same will apply when specifying time varying
+elements such as date criteria and prior observation requirements. For
+example, if we specify dates using <code>cohortDateRange</code> then if
+requirementsAtEntry is TRUE an individual must enter the target cohort
+during the date range,</p>
+</div>
+<div class="section level3">
+<h3 id="specifying-time-at-risk">Specifying time at risk<a class="anchor" aria-label="anchor" href="#specifying-time-at-risk"></a>
+</h3>
+<p>We can also enforce a time at risk for people to contribute to the
 denominator. For instance, we might only want to take into account
 events for people in the target denominator cohort on their first month
 after cohort entry. This can be achieved by adding the input parameter
 <code>timeAtRisk = c(0,30)</code> when computing the denominator, before
 any incidence or prevalence calculations.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateTargetDenominatorCohortSet.html">generateTargetDenominatorCohortSet</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  name <span class="op">=</span> <span class="st">"denominator_acute_asthma_2"</span>,</span>
@@ -269,14 +335,14 @@ any incidence or prevalence calculations.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">value</span>, y <span class="op">=</span> <span class="va">subject_id</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">"Year"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a03_Creating_target_denominator_populations_files/figure-html/unnamed-chunk-8-1.png" width="700">
-Note that this parameter allows the user to input different time at risk
-values in the same function call. Therefore, if we ask for
+<p><img src="a03_Creating_target_denominator_populations_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
+<p>Note that this parameter allows the user to input different time at
+risk values in the same function call. Therefore, if we ask for
 <code>timeAtRisk = list(c(0, 30), c(31, 60))</code>, we will get a
 denominator cohort of people contributing time up to 30 days following
 cohort entry, and another one with time from 31 days following cohort
 entry to 60 days.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateTargetDenominatorCohortSet.html">generateTargetDenominatorCohortSet</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  name <span class="op">=</span> <span class="st">"denominator_acute_asthma_3"</span>,</span>
@@ -308,7 +374,7 @@ entry to 60 days.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">value</span>, y <span class="op">=</span> <span class="va">subject_id</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">"Year"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a03_Creating_target_denominator_populations_files/figure-html/unnamed-chunk-9-1.png" width="700"></p>
+<p><img src="a03_Creating_target_denominator_populations_files/figure-html/unnamed-chunk-11-1.png" width="700"></p>
 <p>Additionally, observe that this parameter allows us to control the
 follow-up of these individuals after cohort entry for the denominator
 cohort, but this is inherently linked to their cohort exit and the end
@@ -316,7 +382,7 @@ of their observation period. Hence, if we define the target cohort so
 that individuals are only followed for one month, and we now require
 <code>timeAtRisk = c(0,90)</code>, we will get the same denominator
 cohort as in the previous example.</p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span><span class="op">$</span><span class="va">target_2</span> <span class="op">&lt;-</span> <span class="va">cdm</span><span class="op">$</span><span class="va">target</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>dif <span class="op">=</span> <span class="va">cohort_end_date</span> <span class="op">-</span> <span class="va">cohort_start_date</span><span class="op">)</span> <span class="op">|&gt;</span></span>
 <span>  <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>cohort_end_date <span class="op">=</span> <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html" class="external-link">if_else</a></span><span class="op">(</span></span>
@@ -349,9 +415,15 @@ cohort as in the previous example.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">value</span>, y <span class="op">=</span> <span class="va">subject_id</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggtheme.html" class="external-link">theme_minimal</a></span><span class="op">(</span><span class="op">)</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">xlab</a></span><span class="op">(</span><span class="st">"Year"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a03_Creating_target_denominator_populations_files/figure-html/unnamed-chunk-10-1.png" width="700"></p>
+<p><img src="a03_Creating_target_denominator_populations_files/figure-html/unnamed-chunk-12-1.png" width="700"></p>
+<p>Note that time at risk will always be related to target cohort entry.
+If we set <code>requirementsAtEntry</code> to FALSE and an individual
+contributes time from 31 days after their target entry date, they
+wouldn’t contribute any time if timeAtRisk was set to c(0, 30).</p>
 </div>
-  </main>
+</div>
+  </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
+    </nav></aside>
 </div>
 
 

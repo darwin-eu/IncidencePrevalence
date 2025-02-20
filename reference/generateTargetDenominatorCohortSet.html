@@ -13,7 +13,7 @@ or estimatePeriodPrevalence()."><meta property="og:image" content="https://darwi
 
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -63,6 +63,7 @@ or <code><a href="estimatePeriodPrevalence.html">estimatePeriodPrevalence()</a><
 <span>  ageGroup <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>, <span class="fl">150</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  sex <span class="op">=</span> <span class="st">"Both"</span>,</span>
 <span>  daysPriorObservation <span class="op">=</span> <span class="fl">0</span>,</span>
+<span>  requirementsAtEntry <span class="op">=</span> <span class="cn">TRUE</span>,</span>
 <span>  requirementInteractions <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
@@ -114,10 +115,7 @@ only time up to these will be contributed.</p></dd>
 <dt id="arg-agegroup">ageGroup<a class="anchor" aria-label="anchor" href="#arg-agegroup"></a></dt>
 <dd><p>A list of age groups for which cohorts will be generated. A
 value of <code>list(c(0,17), c(18,30))</code> would, for example, lead to the creation
-of cohorts for those aged from 0 to 17, and from 18 to 30. In this example
-an individual turning 18 during the time period would appear in both
-cohorts (leaving the first cohort the day before their 18th birthday and
-entering the second from the day of their 18th birthday).</p></dd>
+of cohorts for those aged from 0 to 17, and from 18 to 30.</p></dd>
 
 
 <dt id="arg-sex">sex<a class="anchor" aria-label="anchor" href="#arg-sex"></a></dt>
@@ -129,6 +127,12 @@ entering the second from the day of their 18th birthday).</p></dd>
 <dd><p>The number of days of prior observation observed in
 the database required for an individual to start contributing time in
 a cohort.</p></dd>
+
+
+<dt id="arg-requirementsatentry">requirementsAtEntry<a class="anchor" aria-label="anchor" href="#arg-requirementsatentry"></a></dt>
+<dd><p>If TRUE, individuals must satisfy requirements
+for inclusion on their cohort start date for the target cohort. If FALSE,
+individuals will be included once they satisfy all requirements.</p></dd>
 
 
 <dt id="arg-requirementinteractions">requirementInteractions<a class="anchor" aria-label="anchor" href="#arg-requirementinteractions"></a></dt>
