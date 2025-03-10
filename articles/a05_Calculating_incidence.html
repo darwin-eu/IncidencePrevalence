@@ -26,7 +26,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">IncidencePrevalence</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -44,7 +44,8 @@
     <li><a class="dropdown-item" href="../articles/a03_Creating_target_denominator_populations.html">Creating target denominator populations</a></li>
     <li><a class="dropdown-item" href="../articles/a04_Calculating_prevalence.html">Calculating prevalence</a></li>
     <li><a class="dropdown-item" href="../articles/a05_Calculating_incidence.html">Calculating incidence</a></li>
-    <li><a class="dropdown-item" href="../articles/a06_benchmark.html">Benchmarking the IncidencePrevalence R package</a></li>
+    <li><a class="dropdown-item" href="../articles/a06_Working_with_IncidencePrevalence_Results.html">Working with IncidencePrevalence results</a></li>
+    <li><a class="dropdown-item" href="../articles/a07_benchmark.html">Benchmarking the IncidencePrevalence R package</a></li>
   </ul>
 </li>
 <li class="nav-item"><a class="nav-link" href="../news/index.html">Changelog</a></li>
@@ -80,17 +81,16 @@ identify a set of denominator and outcome cohorts. Incidence rates can
 then be calculated using time contributed from these denominator cohorts
 up to their entry into an outcome cohort.</p>
 <p>There are a number of options to consider when calculating incidence
-rates. This package accommodates two main parameters, including:</p>
-<ol style="list-style-type: decimal">
-<li>
-<strong>Outcome washout</strong>: The number of days used for a
-‘washout’ period between the end of one outcome ending and an individual
-starting to contribute time at risk again.</li>
-<li>
-<strong>Repeated events</strong>: Whether individuals are able to
-contribute multiple events during the study period or if they will only
-contribute time up to their first event during the study period.</li>
-</ol>
+rates. This package accommodates various parameters when estimating
+incidence. In particular, the <strong>outcome washout</strong> (the
+number of days used for a ‘washout’ period between the end of one
+outcome ending and an individual starting to contribute time at risk
+again) and allowing <strong>repeated events</strong> (whether
+individuals are able to contribute multiple events during the study
+period or if they will only contribute time up to their first event
+during the study period) are particularly important analytic settings to
+consider. In addition, censoring events can also be specified to limit
+time at risk.</p>
 <div class="section level4">
 <h4 id="no-washout-no-repetitive-events">No washout, no repetitive events<a class="anchor" aria-label="anchor" href="#no-washout-no-repetitive-events"></a>
 </h4>
@@ -128,6 +128,13 @@ specified. So individuals contribute time up to their first event during
 the study period, and then after passing the outcome washout requirement
 they begin to contribute time at risk again.</p>
 <p><img src="inc_rep_some_washout.png" width="80%"></p>
+</div>
+<div class="section level4">
+<h4 id="some-washout-repetitive-events-censoring-event">Some washout, repetitive events, censoring event<a class="anchor" aria-label="anchor" href="#some-washout-repetitive-events-censoring-event"></a>
+</h4>
+<p>We can also incorporate a censoring event. Here any time at risk
+after this censoring event will be excluded.</p>
+<p><img src="inc_rep_some_washout_censor.png" width="80%"></p>
 </div>
 </div>
 <div class="section level2">
@@ -189,7 +196,7 @@ temporary tables which would be used by default).</p>
 <span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; Rows: ??</span></span>
 <span><span class="co">#&gt; Columns: 4</span></span>
-<span><span class="co">#&gt; Database: DuckDB v1.1.3 [unknown@Linux 6.8.0-1021-azure:R 4.4.2/:memory:]</span></span>
+<span><span class="co">#&gt; Database: DuckDB v1.2.0 [unknown@Linux 6.8.0-1021-azure:R 4.4.3/:memory:]</span></span>
 <span><span class="co">#&gt; $ cohort_definition_id <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…</span></span>
 <span><span class="co">#&gt; $ subject_id           <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 3, 10, 12, 14, 16, 18, 19, 20, 22, 23, 25, 27,…</span></span>
 <span><span class="co">#&gt; $ cohort_start_date    <span style="color: #949494; font-style: italic;">&lt;date&gt;</span> 1991-08-05, 2007-02-16, 2009-04-21, 1992-01-28, …</span></span>
@@ -225,7 +232,7 @@ allowing repetitive events</p>
 <span><span class="co">#&gt; $ additional_level <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1990-01-01 &amp;&amp;&amp; 1990-12-31 &amp;&amp;&amp; years", "1990-01-01 &amp;&amp;…</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-7-1.png" width="672"></p>
+<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-8-1.png" width="816"></p>
 <p>As well as plotting our prevalence estimates, we can also plot the
 population for whom these were calculated. Here we´ll plot outcome and
 population counts together.</p>
@@ -240,7 +247,7 @@ population counts together.</p>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ggtitle</a></span><span class="op">(</span><span class="st">"c) Person-years contributed by year"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">outcome_plot</span> <span class="op">/</span> <span class="va">denominator_plot</span> <span class="op">/</span> <span class="va">pys_plot</span></span></code></pre></div>
-<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-8-1.png" width="672"></p>
+<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-9-1.png" width="816"></p>
 <p>Now with a washout of all prior history while still not allowing
 repetitive events. Here we use <code>Inf</code> to specify that we will
 use a washout of all prior history for an individual.</p>
@@ -273,7 +280,7 @@ use a washout of all prior history for an individual.</p>
 <span><span class="co">#&gt; $ additional_level <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1990-01-01 &amp;&amp;&amp; 1990-12-31 &amp;&amp;&amp; years", "1990-01-01 &amp;&amp;…</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-9-1.png" width="672"></p>
+<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-10-1.png" width="816"></p>
 <p>Now we´ll set the washout to 180 days while still not allowing
 repetitive events</p>
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
@@ -305,8 +312,8 @@ repetitive events</p>
 <span><span class="co">#&gt; $ additional_level <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1990-01-01 &amp;&amp;&amp; 1990-12-31 &amp;&amp;&amp; years", "1990-01-01 &amp;&amp;…</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-10-1.png" width="672"></p>
-<p>And finally we´ll set the washout to 180 days and allow repetitive
+<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-11-1.png" width="816"></p>
+<p>And now we´ll set the washout to 180 days and allow repetitive
 events</p>
 <div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">inc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimateIncidence.html">estimateIncidence</a></span><span class="op">(</span></span>
@@ -337,15 +344,52 @@ events</p>
 <span><span class="co">#&gt; $ additional_level <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1990-01-01 &amp;&amp;&amp; 1990-12-31 &amp;&amp;&amp; years", "1990-01-01 &amp;&amp;…</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-11-1.png" width="672"></p>
+<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-12-1.png" width="816"></p>
+<p>Finally, we can apply a censoring event. For this we will need to
+point to a cohort which we want to be used for censoring. As with the
+outcome cohort, censoring cohorts need to be defined externally. But
+once created we can use these to limit follow-up. Note, only one
+censoring cohort can be used and this cohort must only include one
+record per person</p>
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">inc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimateIncidence.html">estimateIncidence</a></span><span class="op">(</span></span>
+<span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
+<span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span>
+<span>  outcomeTable <span class="op">=</span> <span class="st">"outcome"</span>,</span>
+<span>  censorTable <span class="op">=</span> <span class="st">"censor"</span>,</span>
+<span>  interval <span class="op">=</span> <span class="st">"years"</span>,</span>
+<span>  outcomeWashout <span class="op">=</span> <span class="fl">180</span>,</span>
+<span>  repeatedEvents <span class="op">=</span> <span class="cn">TRUE</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">inc</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
+<span>  <span class="fu"><a href="https://pillar.r-lib.org/reference/glimpse.html" class="external-link">glimpse</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Rows: 184</span></span>
+<span><span class="co">#&gt; Columns: 13</span></span>
+<span><span class="co">#&gt; $ result_id        <span style="color: #949494; font-style: italic;">&lt;int&gt;</span> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,…</span></span>
+<span><span class="co">#&gt; $ cdm_name         <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "mock", "mock", "mock", "mock", "mock", "mock", "mock…</span></span>
+<span><span class="co">#&gt; $ group_name       <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "denominator_cohort_name &amp;&amp;&amp; outcome_cohort_name", "d…</span></span>
+<span><span class="co">#&gt; $ group_level      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "denominator_cohort_1 &amp;&amp;&amp; cohort_1", "denominator_coh…</span></span>
+<span><span class="co">#&gt; $ strata_name      <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "overall", "overall", "overall", "overall", "overall"…</span></span>
+<span><span class="co">#&gt; $ strata_level     <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "overall", "overall", "overall", "overall", "overall"…</span></span>
+<span><span class="co">#&gt; $ variable_name    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "Denominator", "Outcome", "Denominator", "Denominator…</span></span>
+<span><span class="co">#&gt; $ variable_level   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> <span style="color: #BB0000;">NA</span>, <span style="color: #BB0000;">NA</span>, <span style="color: #BB0000;">NA</span>, <span style="color: #BB0000;">NA</span>, <span style="color: #BB0000;">NA</span>, <span style="color: #BB0000;">NA</span>, <span style="color: #BB0000;">NA</span>, <span style="color: #BB0000;">NA</span>, <span style="color: #BB0000;">NA</span>, <span style="color: #BB0000;">NA</span>, <span style="color: #BB0000;">NA</span>, <span style="color: #BB0000;">NA</span>, <span style="color: #BB0000;">NA</span>, <span style="color: #BB0000;">N</span>…</span></span>
+<span><span class="co">#&gt; $ estimate_name    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "denominator_count", "outcome_count", "person_days", …</span></span>
+<span><span class="co">#&gt; $ estimate_type    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "integer", "integer", "numeric", "numeric", "numeric"…</span></span>
+<span><span class="co">#&gt; $ estimate_value   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "2266", "101", "667834", "1828.43", "5523.865", "4499…</span></span>
+<span><span class="co">#&gt; $ additional_name  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "incidence_start_date &amp;&amp;&amp; incidence_end_date &amp;&amp;&amp; anal…</span></span>
+<span><span class="co">#&gt; $ additional_level <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "1990-01-01 &amp;&amp;&amp; 1990-12-31 &amp;&amp;&amp; years", "1990-01-01 &amp;&amp;…</span></span>
+<span></span>
+<span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span></code></pre></div>
+<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-13-1.png" width="816"></p>
 <div class="section level3">
 <h3 id="stratified-analyses">Stratified analyses<a class="anchor" aria-label="anchor" href="#stratified-analyses"></a>
 </h3>
-<p>As with prevalence. if we specified multiple denominator populations
+<p>As with prevalence, if we specified multiple denominator populations
 results will be returned for each. Here for example we define three age
 groups for denominator populations and get three sets of estimates back
 when estimating incidence</p>
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>, name <span class="op">=</span> <span class="st">"denominator_age_sex"</span>,</span>
 <span>  cohortDateRange <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"1990-01-01"</span><span class="op">)</span>, <span class="fu"><a href="https://rdrr.io/r/base/as.Date.html" class="external-link">as.Date</a></span><span class="op">(</span><span class="st">"2009-12-31"</span><span class="op">)</span><span class="op">)</span>,</span>
@@ -366,20 +410,21 @@ when estimating incidence</p>
 <span>  repeatedEvents <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span>, facet <span class="op">=</span> <span class="st">"denominator_age_group"</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-12-1.png" width="672"></p>
+<span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">denominator_age_group</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-14-1.png" width="816"></p>
 <p>We can also plot person years by year for each strata.</p>
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">pys_plot</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/plotIncidencePopulation.html">plotIncidencePopulation</a></span><span class="op">(</span>result <span class="op">=</span> <span class="va">inc</span>, y <span class="op">=</span> <span class="st">"person_years"</span><span class="op">)</span></span>
 <span></span>
 <span><span class="va">pys_plot</span> <span class="op">+</span></span>
 <span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">denominator_age_group</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
-<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-13-1.png" width="672"></p>
+<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-15-1.png" width="816"></p>
 <p>And again, as with prevalence while we specify time-varying
 stratifications when defining our denominator populations, if we have
 time-invariant stratifications we can include these at the the
 estimation stage.</p>
-<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op">&lt;-</span> <span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>group <span class="op">=</span> <span class="fu"><a href="https://dplyr.tidyverse.org/reference/if_else.html" class="external-link">if_else</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">as.numeric</a></span><span class="op">(</span><span class="va">subject_id</span><span class="op">)</span> <span class="op">&lt;</span> <span class="fl">3000</span>, <span class="st">"first"</span>, <span class="st">"second"</span><span class="op">)</span><span class="op">)</span></span>
 <span></span>
@@ -393,11 +438,11 @@ estimation stage.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span>,</span>
-<span>  facet <span class="op">=</span> <span class="st">"group"</span>,</span>
 <span>  colour <span class="op">=</span> <span class="st">"group"</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-14-1.png" width="672"></p>
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<span><span class="op">)</span> <span class="op">+</span> </span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">group</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">1</span><span class="op">)</span></span></code></pre></div>
+<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-16-1.png" width="1248"></p>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span></span>
 <span><span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op">&lt;-</span> <span class="va">cdm</span><span class="op">$</span><span class="va">denominator</span> <span class="op"><a href="../reference/pipe.html">%&gt;%</a></span></span>
 <span>  <span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span></span>
@@ -419,10 +464,11 @@ estimation stage.</p>
 <span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="../reference/plotIncidence.html">plotIncidence</a></span><span class="op">(</span><span class="va">inc</span>,</span>
-<span>  facet <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"group_1"</span>, <span class="st">"group_2"</span><span class="op">)</span>,</span>
 <span>  colour <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"group_1"</span>, <span class="st">"group_2"</span><span class="op">)</span></span>
-<span><span class="op">)</span></span></code></pre></div>
-<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-14-2.png" width="672"></p>
+<span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/facet_wrap.html" class="external-link">facet_wrap</a></span><span class="op">(</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/vars.html" class="external-link">vars</a></span><span class="op">(</span><span class="va">group_1</span>, <span class="va">group_2</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">2</span><span class="op">)</span> <span class="op">+</span></span>
+<span>  <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/theme.html" class="external-link">theme</a></span><span class="op">(</span>legend.position <span class="op">=</span> <span class="st">"top"</span><span class="op">)</span></span></code></pre></div>
+<p><img src="a05_Calculating_incidence_files/figure-html/unnamed-chunk-16-2.png" width="1248"></p>
 <div class="section level4">
 <h4 id="other-parameters">Other parameters<a class="anchor" aria-label="anchor" href="#other-parameters"></a>
 </h4>
@@ -440,7 +486,7 @@ important to note that the denominator population used to compute
 incidence rates might differ from the one calculated with
 <code><a href="../reference/generateDenominatorCohortSet.html">generateDenominatorCohortSet()</a></code>. 95 % confidence intervals
 are calculated using the exact method.</p>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">inc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimateIncidence.html">estimateIncidence</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span>
@@ -458,7 +504,7 @@ are calculated using the exact method.</p>
 </h4>
 <p>As with our prevalence results, we can also view the attrition
 associate with estimating incidence.</p>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">inc</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/estimateIncidence.html">estimateIncidence</a></span><span class="op">(</span></span>
 <span>  cdm <span class="op">=</span> <span class="va">cdm</span>,</span>
 <span>  denominatorTable <span class="op">=</span> <span class="st">"denominator"</span>,</span>
@@ -468,23 +514,23 @@ associate with estimating incidence.</p>
 <span>  repeatedEvents <span class="op">=</span> <span class="cn">TRUE</span></span>
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="../reference/tableIncidenceAttrition.html">tableIncidenceAttrition</a></span><span class="op">(</span><span class="va">inc</span><span class="op">)</span></span></code></pre></div>
-<div id="ftrxtpugkz" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
-<style>#ftrxtpugkz table {
+<div id="znqmyrqhne" style="padding-left:0px;padding-right:0px;padding-top:10px;padding-bottom:10px;overflow-x:auto;overflow-y:auto;width:auto;height:auto;">
+<style>#znqmyrqhne table {
   font-family: system-ui, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-#ftrxtpugkz thead, #ftrxtpugkz tbody, #ftrxtpugkz tfoot, #ftrxtpugkz tr, #ftrxtpugkz td, #ftrxtpugkz th {
+#znqmyrqhne thead, #znqmyrqhne tbody, #znqmyrqhne tfoot, #znqmyrqhne tr, #znqmyrqhne td, #znqmyrqhne th {
   border-style: none;
 }
 
-#ftrxtpugkz p {
+#znqmyrqhne p {
   margin: 0;
   padding: 0;
 }
 
-#ftrxtpugkz .gt_table {
+#znqmyrqhne .gt_table {
   display: table;
   border-collapse: collapse;
   line-height: normal;
@@ -510,12 +556,12 @@ associate with estimating incidence.</p>
   border-left-color: #D3D3D3;
 }
 
-#ftrxtpugkz .gt_caption {
+#znqmyrqhne .gt_caption {
   padding-top: 4px;
   padding-bottom: 4px;
 }
 
-#ftrxtpugkz .gt_title {
+#znqmyrqhne .gt_title {
   color: #333333;
   font-size: 125%;
   font-weight: initial;
@@ -527,7 +573,7 @@ associate with estimating incidence.</p>
   border-bottom-width: 0;
 }
 
-#ftrxtpugkz .gt_subtitle {
+#znqmyrqhne .gt_subtitle {
   color: #333333;
   font-size: 85%;
   font-weight: initial;
@@ -539,7 +585,7 @@ associate with estimating incidence.</p>
   border-top-width: 0;
 }
 
-#ftrxtpugkz .gt_heading {
+#znqmyrqhne .gt_heading {
   background-color: #FFFFFF;
   text-align: center;
   border-bottom-color: #FFFFFF;
@@ -551,13 +597,13 @@ associate with estimating incidence.</p>
   border-right-color: #D3D3D3;
 }
 
-#ftrxtpugkz .gt_bottom_border {
+#znqmyrqhne .gt_bottom_border {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
 }
 
-#ftrxtpugkz .gt_col_headings {
+#znqmyrqhne .gt_col_headings {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -572,7 +618,7 @@ associate with estimating incidence.</p>
   border-right-color: #D3D3D3;
 }
 
-#ftrxtpugkz .gt_col_heading {
+#znqmyrqhne .gt_col_heading {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -592,7 +638,7 @@ associate with estimating incidence.</p>
   overflow-x: hidden;
 }
 
-#ftrxtpugkz .gt_column_spanner_outer {
+#znqmyrqhne .gt_column_spanner_outer {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -604,15 +650,15 @@ associate with estimating incidence.</p>
   padding-right: 4px;
 }
 
-#ftrxtpugkz .gt_column_spanner_outer:first-child {
+#znqmyrqhne .gt_column_spanner_outer:first-child {
   padding-left: 0;
 }
 
-#ftrxtpugkz .gt_column_spanner_outer:last-child {
+#znqmyrqhne .gt_column_spanner_outer:last-child {
   padding-right: 0;
 }
 
-#ftrxtpugkz .gt_column_spanner {
+#znqmyrqhne .gt_column_spanner {
   border-bottom-style: solid;
   border-bottom-width: 2px;
   border-bottom-color: #D3D3D3;
@@ -624,11 +670,11 @@ associate with estimating incidence.</p>
   width: 100%;
 }
 
-#ftrxtpugkz .gt_spanner_row {
+#znqmyrqhne .gt_spanner_row {
   border-bottom-style: hidden;
 }
 
-#ftrxtpugkz .gt_group_heading {
+#znqmyrqhne .gt_group_heading {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -654,7 +700,7 @@ associate with estimating incidence.</p>
   text-align: left;
 }
 
-#ftrxtpugkz .gt_empty_group_heading {
+#znqmyrqhne .gt_empty_group_heading {
   padding: 0.5px;
   color: #333333;
   background-color: #FFFFFF;
@@ -669,15 +715,15 @@ associate with estimating incidence.</p>
   vertical-align: middle;
 }
 
-#ftrxtpugkz .gt_from_md > :first-child {
+#znqmyrqhne .gt_from_md > :first-child {
   margin-top: 0;
 }
 
-#ftrxtpugkz .gt_from_md > :last-child {
+#znqmyrqhne .gt_from_md > :last-child {
   margin-bottom: 0;
 }
 
-#ftrxtpugkz .gt_row {
+#znqmyrqhne .gt_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -696,7 +742,7 @@ associate with estimating incidence.</p>
   overflow-x: hidden;
 }
 
-#ftrxtpugkz .gt_stub {
+#znqmyrqhne .gt_stub {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -709,7 +755,7 @@ associate with estimating incidence.</p>
   padding-right: 5px;
 }
 
-#ftrxtpugkz .gt_stub_row_group {
+#znqmyrqhne .gt_stub_row_group {
   color: #333333;
   background-color: #FFFFFF;
   font-size: 100%;
@@ -723,15 +769,15 @@ associate with estimating incidence.</p>
   vertical-align: top;
 }
 
-#ftrxtpugkz .gt_row_group_first td {
+#znqmyrqhne .gt_row_group_first td {
   border-top-width: 2px;
 }
 
-#ftrxtpugkz .gt_row_group_first th {
+#znqmyrqhne .gt_row_group_first th {
   border-top-width: 2px;
 }
 
-#ftrxtpugkz .gt_summary_row {
+#znqmyrqhne .gt_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -741,16 +787,16 @@ associate with estimating incidence.</p>
   padding-right: 5px;
 }
 
-#ftrxtpugkz .gt_first_summary_row {
+#znqmyrqhne .gt_first_summary_row {
   border-top-style: solid;
   border-top-color: #D3D3D3;
 }
 
-#ftrxtpugkz .gt_first_summary_row.thick {
+#znqmyrqhne .gt_first_summary_row.thick {
   border-top-width: 2px;
 }
 
-#ftrxtpugkz .gt_last_summary_row {
+#znqmyrqhne .gt_last_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -760,7 +806,7 @@ associate with estimating incidence.</p>
   border-bottom-color: #D3D3D3;
 }
 
-#ftrxtpugkz .gt_grand_summary_row {
+#znqmyrqhne .gt_grand_summary_row {
   color: #333333;
   background-color: #FFFFFF;
   text-transform: inherit;
@@ -770,7 +816,7 @@ associate with estimating incidence.</p>
   padding-right: 5px;
 }
 
-#ftrxtpugkz .gt_first_grand_summary_row {
+#znqmyrqhne .gt_first_grand_summary_row {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -780,7 +826,7 @@ associate with estimating incidence.</p>
   border-top-color: #D3D3D3;
 }
 
-#ftrxtpugkz .gt_last_grand_summary_row_top {
+#znqmyrqhne .gt_last_grand_summary_row_top {
   padding-top: 8px;
   padding-bottom: 8px;
   padding-left: 5px;
@@ -790,11 +836,11 @@ associate with estimating incidence.</p>
   border-bottom-color: #D3D3D3;
 }
 
-#ftrxtpugkz .gt_striped {
+#znqmyrqhne .gt_striped {
   background-color: rgba(128, 128, 128, 0.05);
 }
 
-#ftrxtpugkz .gt_table_body {
+#znqmyrqhne .gt_table_body {
   border-top-style: solid;
   border-top-width: 2px;
   border-top-color: #D3D3D3;
@@ -803,7 +849,7 @@ associate with estimating incidence.</p>
   border-bottom-color: #D3D3D3;
 }
 
-#ftrxtpugkz .gt_footnotes {
+#znqmyrqhne .gt_footnotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -817,7 +863,7 @@ associate with estimating incidence.</p>
   border-right-color: #D3D3D3;
 }
 
-#ftrxtpugkz .gt_footnote {
+#znqmyrqhne .gt_footnote {
   margin: 0px;
   font-size: 90%;
   padding-top: 4px;
@@ -826,7 +872,7 @@ associate with estimating incidence.</p>
   padding-right: 5px;
 }
 
-#ftrxtpugkz .gt_sourcenotes {
+#znqmyrqhne .gt_sourcenotes {
   color: #333333;
   background-color: #FFFFFF;
   border-bottom-style: none;
@@ -840,7 +886,7 @@ associate with estimating incidence.</p>
   border-right-color: #D3D3D3;
 }
 
-#ftrxtpugkz .gt_sourcenote {
+#znqmyrqhne .gt_sourcenote {
   font-size: 90%;
   padding-top: 4px;
   padding-bottom: 4px;
@@ -848,72 +894,72 @@ associate with estimating incidence.</p>
   padding-right: 5px;
 }
 
-#ftrxtpugkz .gt_left {
+#znqmyrqhne .gt_left {
   text-align: left;
 }
 
-#ftrxtpugkz .gt_center {
+#znqmyrqhne .gt_center {
   text-align: center;
 }
 
-#ftrxtpugkz .gt_right {
+#znqmyrqhne .gt_right {
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-#ftrxtpugkz .gt_font_normal {
+#znqmyrqhne .gt_font_normal {
   font-weight: normal;
 }
 
-#ftrxtpugkz .gt_font_bold {
+#znqmyrqhne .gt_font_bold {
   font-weight: bold;
 }
 
-#ftrxtpugkz .gt_font_italic {
+#znqmyrqhne .gt_font_italic {
   font-style: italic;
 }
 
-#ftrxtpugkz .gt_super {
+#znqmyrqhne .gt_super {
   font-size: 65%;
 }
 
-#ftrxtpugkz .gt_footnote_marks {
+#znqmyrqhne .gt_footnote_marks {
   font-size: 75%;
   vertical-align: 0.4em;
   position: initial;
 }
 
-#ftrxtpugkz .gt_asterisk {
+#znqmyrqhne .gt_asterisk {
   font-size: 100%;
   vertical-align: 0;
 }
 
-#ftrxtpugkz .gt_indent_1 {
+#znqmyrqhne .gt_indent_1 {
   text-indent: 5px;
 }
 
-#ftrxtpugkz .gt_indent_2 {
+#znqmyrqhne .gt_indent_2 {
   text-indent: 10px;
 }
 
-#ftrxtpugkz .gt_indent_3 {
+#znqmyrqhne .gt_indent_3 {
   text-indent: 15px;
 }
 
-#ftrxtpugkz .gt_indent_4 {
+#znqmyrqhne .gt_indent_4 {
   text-indent: 20px;
 }
 
-#ftrxtpugkz .gt_indent_5 {
+#znqmyrqhne .gt_indent_5 {
   text-indent: 25px;
 }
 
-#ftrxtpugkz .katex-display {
+#znqmyrqhne .katex-display {
   display: inline-flex !important;
   margin-bottom: 0.75em !important;
 }
 
-#ftrxtpugkz div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
+#znqmyrqhne div.Reactable > div.rt-table > div.rt-thead > div.rt-tr.rt-tr-group-header > div.rt-th-group:after {
   height: 0px !important;
 }
 </style>
