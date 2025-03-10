@@ -64,8 +64,10 @@ checkInputGenerateDCS <- function(cdm,
 checkInputEstimateIncidence <- function(cdm,
                                         denominatorTable,
                                         outcomeTable,
+                                        censorTable,
                                         denominatorCohortId,
                                         outcomeCohortId,
+                                        censorCohortId,
                                         interval,
                                         completeDatabaseIntervals,
                                         outcomeWashout,
@@ -82,6 +84,22 @@ checkInputEstimateIncidence <- function(cdm,
     outcomeCohortId <- omopgenerics::validateCohortIdArgument(
       outcomeCohortId, cdm[[outcomeTable]]
     )
+  }
+  if(!is.null(censorTable)){
+  omopgenerics::validateCohortArgument(cohort = cdm[[censorTable]])
+  censorCohortId <- omopgenerics::validateCohortIdArgument(
+      censorCohortId, cdm[[censorTable]])
+    if (length(censorCohortId) > 1) {
+      cli::cli_abort("Only one censor cohort can be used. Please specify a single cohort using censorCohortId argument.")
+    }
+  # one record per person
+  if(nrow(omopgenerics::cohortCount(cdm[[censorTable]]) |>
+    dplyr::filter(.data$cohort_definition_id == .env$censorCohortId) |>
+    dplyr::filter(.data$number_records > .data$number_subjects)) > 0){
+    cli::cli_abort("Censor cohort must contain only one record per person.")
+  }
+
+
   }
 
   omopgenerics::assertTrue(all(interval %in%
@@ -100,7 +118,7 @@ checkInputEstimateIncidence <- function(cdm,
 
   omopgenerics::assertLogical(repeatedEvents)
 
-  return(list(denominatorCohortId, outcomeCohortId))
+  return(list(denominatorCohortId, outcomeCohortId, censorCohortId))
 }
 
 checkInputEstimateAdditional <- function(cdm,

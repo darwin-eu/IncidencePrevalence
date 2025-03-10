@@ -25,6 +25,8 @@
 #' be used for stratification
 #' @param outcomeTable A tibble in the format of a cohort table which can
 #' be used for outcomes
+#' @param censorTable A tibble in the format of a cohort table which can
+#' be used for censoring
 #' @param sampleSize The number of unique patients.
 #' @param outPre The fraction of patients with an event.
 #' @param seed The seed for simulating the data set. Use the same
@@ -61,6 +63,7 @@ mockIncidencePrevalence <- function(personTable = NULL,
                                     observationPeriodTable = NULL,
                                     targetCohortTable = NULL,
                                     outcomeTable = NULL,
+                                    censorTable = NULL,
                                     sampleSize = 1,
                                     outPre = 1,
                                     seed = 444,
@@ -85,6 +88,10 @@ mockIncidencePrevalence <- function(personTable = NULL,
   if (!is.null(outcomeTable)) {
     omopgenerics::assertTrue(is.data.frame(outcomeTable))
   }
+  if (!is.null(censorTable)) {
+    omopgenerics::assertTrue(is.data.frame(censorTable))
+  }
+
 
   omopgenerics::assertNumeric(sampleSize, integerish = TRUE, min = 1)
   omopgenerics::assertNumeric(seed, integerish = TRUE, min = 1)
@@ -320,9 +327,24 @@ mockIncidencePrevalence <- function(personTable = NULL,
   }
 
   if (is.null(targetCohortTable)) {
-    # add targe population
+    # add target population
     # as a random sample, keep the same start and end dates
     targetCohortTable <- dplyr::sample_frac(personTable, 0.8) %>%
+      dplyr::left_join(observationPeriodTable, by = "person_id") %>%
+      dplyr::rename("subject_id" = "person_id") %>%
+      dplyr::mutate(cohort_definition_id = 1L) %>%
+      dplyr::rename("cohort_start_date" = "observation_period_start_date") %>%
+      dplyr::rename("cohort_end_date" = "observation_period_end_date") %>%
+      dplyr::select(
+        "cohort_definition_id", "subject_id",
+        "cohort_start_date", "cohort_end_date"
+      )
+  }
+
+  if (is.null(censorTable)) {
+    # add target population
+    # as a random sample, keep the same start and end dates
+    censorTable <- dplyr::sample_frac(personTable, 0.1) %>%
       dplyr::left_join(observationPeriodTable, by = "person_id") %>%
       dplyr::rename("subject_id" = "person_id") %>%
       dplyr::mutate(cohort_definition_id = 1L) %>%
@@ -376,9 +398,13 @@ mockIncidencePrevalence <- function(personTable = NULL,
     dplyr::mutate(cohort_definition_id = as.integer(.data$cohort_definition_id)),
   overwrite = TRUE
   )
+  DBI::dbWriteTable(db, "censor", censorTable %>%
+                      dplyr::mutate(cohort_definition_id = as.integer(.data$cohort_definition_id)),
+                    overwrite = TRUE
+  )
 
   cdm <- CDMConnector::cdmFromCon(db, "main", "main",
-    cohortTables = c("target", "outcome"),
+    cohortTables = c("target", "outcome", "censor"),
     cdmName = "mock", .softValidation = TRUE
   )
 

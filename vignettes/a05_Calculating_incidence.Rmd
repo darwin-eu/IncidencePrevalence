@@ -13,8 +13,8 @@ knitr::opts_chunk$set(
   warning = FALSE, 
   message = FALSE,
   comment = "#>",
-  fig.width = 7,
-  fig.height = 5,
+  fig.width = 8.5,
+  fig.height = 6,
   eval = Sys.getenv("$RUNNER_OS") != "macOS"
 )
 ```
@@ -27,10 +27,7 @@ library(here)
 # Introduction
 Incidence rates describe the rate at which new events occur in a population, with the denominator the person-time at risk of the event during this period. In the previous vignettes we have seen how we can identify a set of denominator and outcome cohorts. Incidence rates can then be calculated using time contributed from these denominator cohorts up to their entry into an outcome cohort.
 
-There are a number of options to consider when calculating incidence rates. This package accommodates two main parameters, including:
-
-1. **Outcome washout**: The number of days used for a 'washout' period between the end of one outcome ending and an individual starting to contribute time at risk again.
-2. **Repeated events**: Whether individuals are able to contribute multiple events during the study period or if they will only contribute time up to their first event during the study period.
+There are a number of options to consider when calculating incidence rates. This package accommodates various parameters when estimating incidence. In particular, the **outcome washout** (the number of days used for a 'washout' period between the end of one outcome ending and an individual starting to contribute time at risk again) and allowing **repeated events** (whether individuals are able to contribute multiple events during the study period or if they will only contribute time up to their first event during the study period) are particularly important analytic settings to consider. In addition, censoring events can also be specified to limit time at risk.
 
 ### No washout, no repetitive events
 In this example there is no outcome washout specified and repetitive events are not allowed, so individuals contribute time up to their first event during the study period.
@@ -57,6 +54,13 @@ Now repetitive events are allowed with some amount of outcome washout specified.
 
 ```{r,echo=FALSE, out.width="80%"}
 knitr::include_graphics(here("vignettes/inc_rep_some_washout.png"))
+```
+
+### Some washout, repetitive events, censoring event
+We can also incorporate a censoring event. Here any time at risk after this censoring event will be excluded.
+
+```{r,echo=FALSE, out.width="80%"}
+knitr::include_graphics(here("vignettes/inc_rep_some_washout_censor.png"))
 ```
 
 # Outcome definition
@@ -161,7 +165,7 @@ inc %>%
 plotIncidence(inc)
 ```
 
-And finally we´ll set the washout to 180 days and allow repetitive events
+And now we´ll set the washout to 180 days and allow repetitive events
 ```{r, message= FALSE, warning=FALSE}
 inc <- estimateIncidence(
   cdm = cdm,
@@ -178,8 +182,26 @@ inc %>%
 plotIncidence(inc)
 ```
 
+Finally, we can apply a censoring event. For this we will need to point to a cohort which we want to be used for censoring. As with the outcome cohort, censoring cohorts need to be defined externally. But once created we can use these to limit follow-up. Note, only one censoring cohort can be used and this cohort must only include one record per person
+```{r, message= FALSE, warning=FALSE}
+inc <- estimateIncidence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  censorTable = "censor",
+  interval = "years",
+  outcomeWashout = 180,
+  repeatedEvents = TRUE
+)
+
+inc %>%
+  glimpse()
+
+plotIncidence(inc)
+```
+
 ## Stratified analyses
-As with prevalence. if we specified multiple denominator populations results will be returned for each. Here for example we define three age groups for denominator populations and get three sets of estimates back when estimating incidence
+As with prevalence, if we specified multiple denominator populations results will be returned for each. Here for example we define three age groups for denominator populations and get three sets of estimates back when estimating incidence
 
 ```{r}
 cdm <- generateDenominatorCohortSet(
@@ -202,7 +224,8 @@ inc <- estimateIncidence(
   repeatedEvents = TRUE
 )
 
-plotIncidence(inc, facet = "denominator_age_group")
+plotIncidence(inc) + 
+  facet_wrap(vars(denominator_age_group), ncol = 1)
 ```
 
 We can also plot person years by year for each strata.
@@ -215,7 +238,7 @@ pys_plot +
 
 And again, as with prevalence while we specify time-varying stratifications when defining our denominator populations, if we have time-invariant stratifications we can include these at the the estimation stage. 
 
-```{r}
+```{r, fig.width=13}
 cdm$denominator <- cdm$denominator %>%
   mutate(group = if_else(as.numeric(subject_id) < 3000, "first", "second"))
 
@@ -229,9 +252,9 @@ inc <- estimateIncidence(
 )
 
 plotIncidence(inc,
-  facet = "group",
   colour = "group"
-)
+) + 
+  facet_wrap(vars(group), ncol = 1)
 
 cdm$denominator <- cdm$denominator %>%
   mutate(
@@ -253,9 +276,10 @@ inc <- estimateIncidence(
 )
 
 plotIncidence(inc,
-  facet = c("group_1", "group_2"),
   colour = c("group_1", "group_2")
-)
+) +
+  facet_wrap(vars(group_1, group_2), ncol = 2) +
+  theme(legend.position = "top")
 ```
 
 

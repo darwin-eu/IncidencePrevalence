@@ -17,8 +17,10 @@
 getIncidence <- function(cdm,
                          denominatorTable,
                          outcomeTable,
+                         censorTable,
                          denominatorCohortId,
                          outcomeCohortId,
+                         censorCohortId,
                          weeks,
                          months,
                          quarters,
@@ -45,7 +47,8 @@ getIncidence <- function(cdm,
     dplyr::compute(
       name = paste0(tablePrefix, "_inc_5a"),
       temporary = FALSE,
-      overwrite = TRUE
+      overwrite = TRUE,
+      logPrefix = "IncidencePrevalence_getIncidence_denominator_"
     )
 
   attrition <- recordAttrition(
@@ -70,9 +73,33 @@ getIncidence <- function(cdm,
     dplyr::compute(
       name = paste0(tablePrefix, "_inc_5b"),
       temporary = FALSE,
-      overwrite = TRUE
+      overwrite = TRUE,
+      logPrefix = "IncidencePrevalence_getIncidence_outcomes_"
     )
-
+  if(!is.null(censorTable)){
+    censorCohortName <- omopgenerics::getCohortName(cdm[[censorTable]],
+                                                    cohortId = censorCohortId)
+    studyPop <- studyPop |>
+      dplyr::left_join(cdm[[censorTable]] |>
+                         dplyr::filter(.data$cohort_definition_id == !!censorCohortId) |>
+                         dplyr::select("subject_id",
+                                       "censor_start_date" = "cohort_start_date"),
+                       by = "subject_id") |>
+      dplyr::mutate(cohort_end_date = dplyr::if_else(
+        is.na(.data$censor_start_date) |
+          (.data$cohort_end_date < .data$censor_start_date),
+        .data$cohort_end_date,
+        .data$censor_start_date)) |>
+    dplyr::filter(.data$cohort_start_date <= .data$cohort_end_date,
+                  (is.na(.data$outcome_start_date) | .data$outcome_start_date <= .data$cohort_end_date)) %>%
+      dplyr::compute(
+        name = paste0(tablePrefix, "_inc_5c"),
+        temporary = FALSE,
+        overwrite = TRUE
+      )
+  } else {
+    censorCohortName <- "None"
+  }
   # participants without an outcome
   studyPopNoOutcome <- studyPop %>%
     dplyr::filter(is.na(.data$outcome_start_date) &
@@ -137,9 +164,10 @@ getIncidence <- function(cdm,
           dplyr::group_by(.data$subject_id) %>%
           dplyr::filter(.data$events_post == 0) %>%
           dplyr::compute(
-            name = paste0(tablePrefix, "_inc_5c"),
+            name = paste0(tablePrefix, "_inc_5d"),
             temporary = FALSE,
-            overwrite = TRUE
+            overwrite = TRUE,
+            logPrefix = "IncidencePrevalence_getIncidence_washout_"
           )
 
         studyPopOutcome <- dplyr::union_all(
@@ -172,11 +200,22 @@ getIncidence <- function(cdm,
     dplyr::union_all(studyPopOutcome) %>%
     dplyr::collect()
 
+  if(is.null(censorTable)){
   if(is.null(outcomeWashout)){
     working_reason <- "Apply washout - anyone with outcome prior to start excluded"
   } else {
     working_reason <- paste0("Apply washout criteria of ", outcomeWashout, " days (note, additional records may be created for those with an outcome)")
   }
+  } else {
+    if(is.null(outcomeWashout)){
+      working_reason <- "Apply washout and censor cohort - anyone with outcome prior to start excluded"
+    } else {
+      working_reason <- paste0("Apply washout criteria of ", outcomeWashout, " days and censor cohort (note, additional records may be created for those with an outcome)")
+    }
+
+  }
+
+
   attrition <- recordAttrition(
     table = studyPop,
     id = "subject_id",
@@ -384,7 +423,8 @@ getIncidence <- function(cdm,
   analysisSettings <- dplyr::tibble(
     analysis_outcome_washout = .env$outcomeWashout,
     analysis_repeated_events = .env$repeatedEvents,
-    analysis_complete_database_intervals = .env$completeDatabaseIntervals
+    analysis_complete_database_intervals = .env$completeDatabaseIntervals,
+    analysis_censor_cohort_name = .env$censorCohortName
   )
   studyPop <- studyPop %>%
     dplyr::select(

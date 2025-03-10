@@ -13,7 +13,7 @@ cdm <- CDMConnector::cdmFromCon(
   writePrefix = "incp_"
 )
 bench[["ohdsi_postgres"]] <- benchmarkIncidencePrevalence(cdm)
-CDMConnector::cdmDisconnect(cdm)
+omopgenerics::cdmDisconnect(cdm)
 
 # redshift ----
 db <- DBI::dbConnect(RPostgres::Redshift(),
@@ -30,7 +30,7 @@ cdm <- CDMConnector::cdmFromCon(
   writePrefix = "incp_", cdmVersion = "5.3"
 )
 bench[["ohdsi_redshift"]] <- benchmarkIncidencePrevalence(cdm)
-CDMConnector::cdmDisconnect(cdm)
+omopgenerics::cdmDisconnect(cdm)
 
 # sql server ----
 db <- DBI::dbConnect(odbc::odbc(),
@@ -50,7 +50,7 @@ cdm <- CDMConnector::cdmFromCon(
   writeSchema = c(catalog = b[1], schema = b[2])
 )
 bench[["ohdsi_sql_server"]] <- benchmarkIncidencePrevalence(cdm)
-CDMConnector::cdmDisconnect(cdm)
+omopgenerics::cdmDisconnect(cdm)
 
 # snowflake ----
 con <- DBI::dbConnect(odbc::odbc(),
@@ -69,21 +69,28 @@ cdm <- CDMConnector::cdmFromCon(
   writePrefix = "incp_"
 )
 bench[["ohdsi_snowflake"]] <- benchmarkIncidencePrevalence(cdm)
-CDMConnector::cdmDisconnect(cdm)
+omopgenerics::cdmDisconnect(cdm)
 
 # spark ----
 con <- DBI::dbConnect(
   odbc::databricks(),
   httpPath = Sys.getenv("DARWIN_DATABRICKS_HTTPPATH"),
-  useNativeQuery = FALSE
+  workspace = Sys.getenv("DARWIN_DATABRICKS_HOST"),
+  useNativeQuery = FALSE,
+  uid = Sys.getenv("DARWIN_DATABRICKS_USER"),
+  pwd = Sys.getenv("DARWIN_DATABRICKS_TOKEN")
 )
 cdmSchema <- Sys.getenv("DARWIN_DATABRICKS_CDM_SCHEMA")
 writeSchema <- Sys.getenv("DARWIN_DATABRICKS_SCRATCH_SCHEMA")
 cdm <- CDMConnector::cdmFromCon(con, cdmSchema, writeSchema,
                                 cdmName = "darwin_databricks_spark")
 bench[["darwin_databricks_spark"]] <- benchmarkIncidencePrevalence(cdm)
-CDMConnector::cdmDisconnect(cdm)
+omopgenerics::cdmDisconnect(cdm)
 
+# add existing results ----
+# cprd_gold <- omopgenerics::importSummarisedResult(
+#   here::here("data-raw", "results_CPRD GOLD_2025_03_03.csv"))
+# IncidencePrevalenceBenchmarkResults <- bind(IncidencePrevalenceBenchmarkResults, cprd_gold)
 # save -----
 IncidencePrevalenceBenchmarkResults <- bind(bench)
 usethis::use_data(IncidencePrevalenceBenchmarkResults,

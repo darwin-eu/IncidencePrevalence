@@ -70,7 +70,7 @@ test_that("postgres test", {
   expect_no_error(postgres_timings <- benchmarkIncidencePrevalence(cdm))
   expect_no_error(postgres_timings_participants <- benchmarkIncidencePrevalence(cdm))
 
-  CDMConnector::cdmDisconnect(cdm = cdm)
+  omopgenerics::cdmDisconnect(cdm = cdm)
 })
 
 test_that("redshift test", {
@@ -147,7 +147,7 @@ test_that("redshift test", {
     returnParticipants = TRUE
   ))
 
-  CDMConnector::cdmDisconnect(cdm = cdm)
+  omopgenerics::cdmDisconnect(cdm = cdm)
 })
 
 test_that("sql server test", {
@@ -226,7 +226,7 @@ test_that("sql server test", {
     returnParticipants = TRUE
   ))
 
-  CDMConnector::cdmDisconnect(cdm = cdm)
+  omopgenerics::cdmDisconnect(cdm = cdm)
 })
 
 test_that("snowflake test", {
@@ -306,5 +306,5 @@ test_that("snowflake test", {
     returnParticipants = TRUE
   ))
 
-  CDMConnector::cdmDisconnect(cdm = cdm)
+  omopgenerics::cdmDisconnect(cdm = cdm)
 })

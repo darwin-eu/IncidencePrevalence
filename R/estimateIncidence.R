@@ -22,12 +22,20 @@
 #' function).
 #' @param outcomeTable A cohort table in the cdm reference containing
 #' a set of outcome cohorts.
+#' @param censorTable A cohort table in the cdm reference containing a cohort
+#' to be used for censoring. Individuals will stop contributing time at risk
+#' from the date of their first record in the censor cohort. If they appear in
+#' the censor cohort before entering the denominator cohort they will be
+#' excluded. The censor cohort can only contain one record per individual.
 #' @param denominatorCohortId The cohort definition ids or the cohort names of
 #' the denominator cohorts of interest. If NULL all cohorts will be considered
 #' in the analysis.
 #' @param outcomeCohortId The cohort definition ids or the cohort names of the
 #' outcome cohorts of interest. If NULL all cohorts will be considered in the
 #' analysis.
+#' @param censorCohortId The cohort definition id or the cohort name of the
+#' cohort to be used for censoring. Must be specified if there are multiple
+#' cohorts in the censor table.
 #' @param interval Time intervals over which incidence is estimated. Can
 #' be "weeks", "months", "quarters", "years", or "overall". ISO weeks will
 #' be used for weeks. Calendar months, quarters, or years can be used, or an
@@ -70,8 +78,10 @@
 estimateIncidence <- function(cdm,
                               denominatorTable,
                               outcomeTable,
+                              censorTable = NULL,
                               denominatorCohortId = NULL,
                               outcomeCohortId = NULL,
+                              censorCohortId = NULL,
                               interval = "years",
                               completeDatabaseIntervals = TRUE,
                               outcomeWashout = Inf,
@@ -90,12 +100,14 @@ estimateIncidence <- function(cdm,
   }
 
   cohortIds <- checkInputEstimateIncidence(
-    cdm, denominatorTable, outcomeTable, denominatorCohortId,
-    outcomeCohortId, interval, completeDatabaseIntervals,
+    cdm, denominatorTable, outcomeTable, censorTable,
+    denominatorCohortId, outcomeCohortId, censorCohortId,
+    interval, completeDatabaseIntervals,
     outcomeWashout, repeatedEvents
   )
   denominatorCohortId <- cohortIds[[1]]
   outcomeCohortId <- cohortIds[[2]]
+  censorCohortId <- cohortIds[[3]]
 
   checkStrata(strata, cdm[[denominatorTable]])
 
@@ -162,7 +174,8 @@ estimateIncidence <- function(cdm,
     dplyr::compute(
       name = paste0(tablePrefix, "_inc_1"),
       temporary = FALSE,
-      overwrite = TRUE
+      overwrite = TRUE,
+      logPrefix = "IncidencePrevalence_estimateIncidence_cohort_outcomes_"
     )
 
   cdm[[paste0(tablePrefix, "_inc_2")]] <- cdm[[paste0(tablePrefix, "_inc_1")]] %>%
@@ -171,7 +184,8 @@ estimateIncidence <- function(cdm,
     dplyr::compute(
       name = paste0(tablePrefix, "_inc_2"),
       temporary = FALSE,
-      overwrite = TRUE
+      overwrite = TRUE,
+      logPrefix = "IncidencePrevalence_estimateIncidence_most_recent_"
     )
 
   if (nrow(cdm[[paste0(tablePrefix, "_inc_2")]] |>
@@ -188,7 +202,8 @@ estimateIncidence <- function(cdm,
       dplyr::compute(
         name = paste0(tablePrefix, "_inc_2"),
         temporary = FALSE,
-        overwrite = TRUE
+        overwrite = TRUE,
+        logPrefix = "IncidencePrevalence_estimateIncidence_most_recent_2_"
       )
   }
 
@@ -202,7 +217,8 @@ estimateIncidence <- function(cdm,
     dplyr::compute(
       name = paste0(tablePrefix, "_inc_2"),
       temporary = FALSE,
-      overwrite = TRUE
+      overwrite = TRUE,
+      logPrefix = "IncidencePrevalence_estimateIncidence_during_"
     )
 
   cdm[[paste0(tablePrefix, "_inc_3")]] <- cdm[[paste0(tablePrefix, "_inc_2")]] %>%
@@ -218,7 +234,8 @@ estimateIncidence <- function(cdm,
     dplyr::compute(
       name = paste0(tablePrefix, "_inc_3"),
       temporary = FALSE,
-      overwrite = TRUE
+      overwrite = TRUE,
+      logPrefix = "IncidencePrevalence_estimateIncidence_index_"
     )
 
   cdm[[paste0(tablePrefix, "_inc_4")]] <- cdm[[paste0(tablePrefix, "_inc_3")]] %>%
@@ -237,7 +254,8 @@ estimateIncidence <- function(cdm,
     dplyr::compute(
       name = paste0(tablePrefix, "_inc_4"),
       temporary = FALSE,
-      overwrite = TRUE
+      overwrite = TRUE,
+      logPrefix = "IncidencePrevalence_estimateIncidence_full_join_"
     )
 
   studySpecs <- getIncAnalysisSpecs(outcomeCohortId = outcomeCohortId,
@@ -254,13 +272,14 @@ estimateIncidence <- function(cdm,
     cli::cli_alert_info(
       "Getting incidence for analysis {counter} of {length(studySpecs)}"
     )
-
     workingInc <- getIncidence(
       cdm = cdm,
       denominatorTable = denominatorTable,
       denominatorCohortId = x$denominator_cohort_id,
       outcomeTable = paste0(tablePrefix, "_inc_4"),
       outcomeCohortId = x$outcome_cohort_id,
+      censorTable = censorTable,
+      censorCohortId = censorCohortId,
       weeks = x$weeks,
       months = x$months,
       quarters = x$quarters,
@@ -359,11 +378,11 @@ estimateIncidence <- function(cdm,
       )
   }
 
-  omopgenerics::dropTable(
+  omopgenerics::dropSourceTable(
     cdm = cdm,
     name = dplyr::starts_with(paste0(tablePrefix, "_inc_"))
   )
-  omopgenerics::dropTable(
+  omopgenerics::dropSourceTable(
     cdm = cdm,
     name = dplyr::starts_with(paste0(tablePrefix, "_analysis_"))
   )
@@ -452,7 +471,7 @@ estimateIncidence <- function(cdm,
       c(
         "result_id", "result_type", "package_name", "package_version",
         "analysis_outcome_washout", "analysis_repeated_events",
-        "analysis_complete_database_intervals"
+        "analysis_complete_database_intervals", "analysis_censor_cohort_name"
       ),
       dplyr::starts_with("denominator_"), dplyr::starts_with("outcome_")
     ) |>

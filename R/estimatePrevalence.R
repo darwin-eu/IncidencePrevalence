@@ -382,7 +382,7 @@ estimatePrevalence <- function(cdm,
     )
   }
 
-  omopgenerics::dropTable(
+  omopgenerics::dropSourceTable(
     cdm = cdm,
     name = dplyr::starts_with(paste0(tablePrefix, "_analysis_"))
   )

@@ -1,0 +1,180 @@
+---
+title: "Working with IncidencePrevalence results"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{a06_Working_with_IncidencePrevalence_Results}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  warning = FALSE, 
+  message = FALSE,
+  comment = "#>",
+  fig.width = 7,
+  fig.height = 5,
+  eval = Sys.getenv("$RUNNER_OS") != "macOS"
+)
+```
+
+## Standardardised results format
+
+The IncidencePrevalence returns results from analyses in a standardised results format, as defined in the omopgenerics package. This format, a `summarised_result`, is explained in general in the omopgenerics documenatation https://darwin-eu.github.io/omopgenerics/articles/summarised_result.html. 
+
+Let's see how this result format is used by IncidencePrevalence.  
+
+We'll first create some example incidence and prevalence results with a mock dataset.
+
+```{r}
+library(dplyr)
+library(IncidencePrevalence)
+
+cdm <- mockIncidencePrevalence(
+  sampleSize = 10000,
+  outPre = 0.3,
+  minOutcomeDays = 365,
+  maxOutcomeDays = 3650
+)
+
+cdm <- generateDenominatorCohortSet(
+  cdm = cdm,
+  name = "denominator",
+  cohortDateRange = as.Date(c("2008-01-01", "2018-01-01")),
+  ageGroup = list(
+    c(0, 64),
+    c(65, 100)
+  ),
+  sex = c("Male", "Female", "Both"),
+  daysPriorObservation = 180
+)
+
+inc <- estimateIncidence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = "years",
+  repeatedEvents = TRUE,
+  outcomeWashout = 180,
+  completeDatabaseIntervals = TRUE
+)
+
+prev_point <- estimatePointPrevalence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = "years",
+  timePoint = "start"
+)
+```
+
+We can see that both of our results object have a "summarised_result" class.
+
+```{r}
+inherits(inc, "summarised_result")
+
+inherits(prev_point, "summarised_result")
+```
+
+In practice, this means that our results have the following columns
+```{r}
+omopgenerics::resultColumns("summarised_result")
+```
+
+And we can see that this is indeed the case for incidence and prevalence results
+```{r}
+inc |> 
+  glimpse()
+
+prev_point |> 
+  glimpse()
+```
+
+In addition to these main results, we can see that our results are also associated with settings. These settings contain information on how the results were created. Although we can see that some settings are present for both incidence and prevalence, such as `denominator_days_prior_observation` which relates to the input to `daysPriorObservation` we specified above, others are only present for the relevant result, such analysis_outcome_washout which relates to the `outcomeWashout` argument used for the `estimateIncidence()` function.
+
+```{r}
+settings(inc) |> 
+  glimpse()
+
+settings(prev_point) |> 
+  glimpse()
+```
+
+Because our results are in the same format we can easily combine them using the `bind`. We can see that after this we will have the same results columns, while the settings are now combined with all analytic choices used stored.
+
+```{r}
+results <- bind(inc, prev_point) |> 
+  glimpse()
+
+results |> 
+  glimpse()
+
+settings(results) |> 
+  glimpse()
+```
+
+## Exporting and importing results
+
+We can export our results in a single CSV. Note that when exporting we will apply minimum cell count of 5, suppressing any results below this.
+
+```{r}
+dir <- file.path(tempdir(), "my_study_results")
+dir.create(dir)
+
+exportSummarisedResult(results,
+                       minCellCount = 5,
+                       fileName = "incidence_prevalence_results.csv",
+                       path = dir)
+```
+
+We can see we have created a single CSV file with our results which contains our suppressed aggregated results which our ready to share.
+```{r}
+list.files(dir)
+```
+
+We can import our results back into R (or if we're running a network study we could import our set of results from data partners). 
+
+```{r}
+res_imported <- importSummarisedResult(path = dir)
+```
+
+# Validate minimum cell count suppression
+
+We can validate whether our results have been suppressed. We can see that our original results have not been suppressed but the ones we exported were.
+
+```{r, message=TRUE, warning=TRUE}
+omopgenerics::isResultSuppressed(results)
+```
+
+```{r, message=TRUE, warning=TRUE}
+omopgenerics::isResultSuppressed(res_imported)
+```
+
+# Tidying results for further analysis
+
+Although our standardised result format is a nice way to combine, store, and share results, in can be somewhat difficult to use if we want to perform further analyses. So to get to a tidy format more specific to their type of results we can use asIncidenceResult() and asPrevalenceResult(), respectively.
+
+```{r}
+asIncidenceResult(inc) |> glimpse()
+```
+
+```{r}
+asPrevalenceResult(prev_point) |> glimpse()
+```
+
+With these formats it is now much easier to create custom tables, plots, or post-process are results. For a somewhat trivial example, we can use this to help us quickly add a smoothed line to our incidence results in a custom plot.
+
+```{r}
+library(ggplot2)
+asIncidenceResult(inc) |> 
+  ggplot(aes(x = incidence_start_date, 
+             y = incidence_100000_pys)) +
+  geom_point() +  
+  geom_smooth(method = "loess", se = FALSE, color = "red") +
+  theme_bw() +
+  facet_wrap(vars(denominator_age_group, denominator_sex)) + 
+  ggtitle("Smoothed incidence rates over time") +
+  xlab("Date") +
+  ylab("Incidence per 100,000 person-years")
+```

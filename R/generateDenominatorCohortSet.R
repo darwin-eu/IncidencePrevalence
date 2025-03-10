@@ -295,7 +295,8 @@ generateTargetDenominatorCohortSet <- function(cdm,
       reason = "Time at risk criteria applied"
     )
 
-  omopgenerics::dropTable(cdm = cdm, name = dplyr::starts_with(paste0(name, "_tar")))
+  omopgenerics::dropSourceTable(cdm = cdm,
+                                name = dplyr::starts_with(paste0(name, "_tar")))
   cdm[[paste0(name, "_tar")]] <- NULL
   for (i in seq_along(tar_df$time_start)) {
     cdm[[tar_df$tmpTbl[i]]] <- NULL
@@ -431,7 +432,7 @@ fetchDenominatorCohortSet <- function(cdm,
         cdm = cdm
       )
     }
-    omopgenerics::dropTable(cdm = cdm, name = dplyr::starts_with(paste0(intermediateTable, i)))
+    omopgenerics::dropSourceTable(cdm = cdm, name = dplyr::starts_with(paste0(intermediateTable, i)))
   }
   if (is.null(cohortRef)) {
     cdm <- omopgenerics::insertTable(
@@ -457,7 +458,7 @@ fetchDenominatorCohortSet <- function(cdm,
     )
 
   # drop the intermediate tables
-  omopgenerics::dropTable(
+  omopgenerics::dropSourceTable(
     cdm = cdm,
     name = dplyr::starts_with(paste0(intermediateTable))
   )
@@ -930,7 +931,7 @@ unionCohorts <- function(cdm,
 
 
     # drop intermediate tables
-    omopgenerics::dropTable(
+    omopgenerics::dropSourceTable(
       cdm = cdm,
       name = dplyr::starts_with(paste0(intermediateTable, "_b"))
     )

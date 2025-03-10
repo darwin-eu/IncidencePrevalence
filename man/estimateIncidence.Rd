@@ -8,8 +8,10 @@ estimateIncidence(
   cdm,
   denominatorTable,
   outcomeTable,
+  censorTable = NULL,
   denominatorCohortId = NULL,
   outcomeCohortId = NULL,
+  censorCohortId = NULL,
   interval = "years",
   completeDatabaseIntervals = TRUE,
   outcomeWashout = Inf,
@@ -28,6 +30,12 @@ function).}
 \item{outcomeTable}{A cohort table in the cdm reference containing
 a set of outcome cohorts.}
 
+\item{censorTable}{A cohort table in the cdm reference containing a cohort
+to be used for censoring. Individuals will stop contributing time at risk
+from the date of their first record in the censor cohort. If they appear in
+the censor cohort before entering the denominator cohort they will be
+excluded. The censor cohort can only contain one record per individual.}
+
 \item{denominatorCohortId}{The cohort definition ids or the cohort names of
 the denominator cohorts of interest. If NULL all cohorts will be considered
 in the analysis.}
@@ -35,6 +43,10 @@ in the analysis.}
 \item{outcomeCohortId}{The cohort definition ids or the cohort names of the
 outcome cohorts of interest. If NULL all cohorts will be considered in the
 analysis.}
+
+\item{censorCohortId}{The cohort definition id or the cohort name of the
+cohort to be used for censoring. Must be specified if there are multiple
+cohorts in the censor table.}
 
 \item{interval}{Time intervals over which incidence is estimated. Can
 be "weeks", "months", "quarters", "years", or "overall". ISO weeks will

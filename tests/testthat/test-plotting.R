@@ -209,7 +209,7 @@ test_that("basic plots", {
   expect_error(plotIncidence(tidy_prev))
   expect_error(plotPrevalence(tidy_inc))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("plot facets", {
@@ -258,7 +258,7 @@ test_that("plot facets", {
   )
   expect_true(ggplot2::is.ggplot(plot))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("plot colour", {
@@ -308,7 +308,7 @@ test_that("plot colour", {
 
   expect_true(ggplot2::is.ggplot(plot))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("plot options", {
@@ -372,7 +372,7 @@ test_that("plot options", {
   )
   expect_true(ggplot2::is.ggplot(plot))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("y axis", {
@@ -408,5 +408,5 @@ test_that("y axis", {
   expect_true(ggplot2::is.ggplot(plot))
 
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })

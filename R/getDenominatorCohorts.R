@@ -441,7 +441,7 @@ getDenominatorCohorts <- function(cdm,
     )
 
   # remove intermediate tables
-  omopgenerics::dropTable(
+  omopgenerics::dropSourceTable(
     cdm = cdm,
     name = dplyr::starts_with(paste0(intermediateTable, "_"))
   )

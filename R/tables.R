@@ -59,7 +59,7 @@ tablePrevalence <- function(result,
                             settingsColumn = c("denominator_age_group", "denominator_sex"),
                             hide = c("denominator_cohort_name", "analysis_interval"),
                             .options = list()) {
-  rlang::check_installed("visOmopResults", version = "1.0.0")
+  rlang::check_installed("visOmopResults", version = "1.0.2")
 
   formatEstimateName <- c(
     "Denominator (N)" = "<denominator_count>",
@@ -124,7 +124,7 @@ tableIncidence <- function(result,
                            settingsColumn = c("denominator_age_group", "denominator_sex"),
                            hide = c("denominator_cohort_name", "analysis_interval"),
                            .options = list()) {
-  rlang::check_installed("visOmopResults", version = "1.0.0")
+  rlang::check_installed("visOmopResults", version = "1.0.2")
 
   tableInternal(
     result = result,

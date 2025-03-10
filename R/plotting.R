@@ -56,7 +56,7 @@ plotIncidence <- function(result,
                           ymax = "incidence_100000_pys_95CI_upper",
                           facet = NULL,
                           colour = NULL) {
-  rlang::check_installed("visOmopResults", version = "1.0.0")
+  rlang::check_installed("visOmopResults", version = "1.0.2")
 
   if (nrow(result) == 0) {
     cli::cli_warn("Empty result object")
@@ -147,7 +147,7 @@ plotPrevalence <- function(result,
     return(emptyPlot())
   }
 
-  rlang::check_installed("visOmopResults", version = "1.0.0")
+  rlang::check_installed("visOmopResults", version = "1.0.2")
 
   # check if result is tidy or not
   if (inherits(result, "summarised_result")) {
@@ -221,7 +221,7 @@ plotIncidencePopulation <- function(result,
                                     y = "denominator_count",
                                     facet = NULL,
                                     colour = NULL) {
-  rlang::check_installed("visOmopResults", version = "1.0.0")
+  rlang::check_installed("visOmopResults", version = "1.0.2")
   result <- omopgenerics::validateResultArgument(result) |>
     omopgenerics::filterSettings(.data$result_type == "incidence")
   if (nrow(result) == 0) {
@@ -267,7 +267,7 @@ plotPrevalencePopulation <- function(result,
                                      y = "denominator_count",
                                      facet = NULL,
                                      colour = NULL) {
-  rlang::check_installed("visOmopResults", version = "1.0.0")
+  rlang::check_installed("visOmopResults", version = "1.0.2")
   result <- omopgenerics::validateResultArgument(result) |>
     omopgenerics::filterSettings(.data$result_type == "prevalence")
   if (nrow(result) == 0) {

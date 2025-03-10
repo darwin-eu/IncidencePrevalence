@@ -33,7 +33,7 @@ test_that("mock db: check output format", {
   ) %in% colnames(settings(prev))))
 
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: checks on working example", {
@@ -85,7 +85,7 @@ test_that("mock db: checks on working example", {
   )
   expect_true(nrow(prev) >= 1)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: working examples 2", {
@@ -142,7 +142,7 @@ test_that("mock db: working examples 2", {
   )
   expect_true(nrow(prev) >= 1)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check minimum counts", {
@@ -261,7 +261,7 @@ test_that("mock db: check minimum counts", {
   expect_true(prev_est$estimate_value[2] == "-")
   expect_equal(as.numeric(prev_est$estimate_value[3]), 0.56, tolerance = 0.1)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check study time periods", {
@@ -336,7 +336,7 @@ test_that("mock db: check study time periods", {
   expect_true(nrow(prev |>
     dplyr::filter(estimate_name == "outcome_count")) == 1)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   # should return empty if no study days
   personTable <- dplyr::tibble(
@@ -405,7 +405,7 @@ test_that("mock db: check study time periods", {
   expect_true(nrow(prev |>
     dplyr::filter(estimate_name == "outcome_count")) == 0)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check fullContribution requirement", {
@@ -487,7 +487,7 @@ test_that("mock db: check fullContribution requirement", {
     dplyr::filter(variable_name == "excluded_subjects") |>
     dplyr::pull("estimate_value") == "1")
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check periods follow calendar dates", {
@@ -638,7 +638,7 @@ test_that("mock db: check periods follow calendar dates", {
     dplyr::pull("prevalence_end_date") ==
     "2013-06-15")
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check multiple outcome ids", {
@@ -689,7 +689,7 @@ test_that("mock db: check multiple outcome ids", {
     ) |>
     dplyr::pull("estimate_value") == "1"))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: multiple denominator inputs", {
@@ -733,7 +733,7 @@ test_that("mock db: multiple denominator inputs", {
                     type = "tibble")
   )
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
 })
 
@@ -789,7 +789,7 @@ test_that("mock db: some empty result sets", {
   expect_true(nrow(prev %>%
     omopgenerics::filterSettings(result_type == "prevalence")) > 0)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check expected errors", {
@@ -837,7 +837,7 @@ test_that("mock db: check expected errors", {
     denominatorCohortId = 1
   ))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check user point prevalence function", {
@@ -861,7 +861,7 @@ test_that("mock db: check user point prevalence function", {
   expect_true(all(names(prev) ==
     names(prev_point)))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check user period prevalence function", {
@@ -886,7 +886,7 @@ test_that("mock db: check user period prevalence function", {
   expect_true(all(names(prev) ==
     names(prev_period)))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: multiple observation periods", {
@@ -1027,7 +1027,7 @@ test_that("mock db: multiple observation periods", {
     dplyr::filter(estimate_name == "outcome_count") %>%
     dplyr::pull("estimate_value"))) == 0)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check confidence intervals", {
@@ -1074,7 +1074,7 @@ test_that("mock db: check confidence intervals", {
     tolerance = 1e-2
   )
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check attrition", {
@@ -1107,7 +1107,7 @@ test_that("mock db: check attrition", {
     ) |>
     dplyr::filter(strata_level == "Not Male")) > 0)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check attrition with complete database intervals", {
@@ -1186,7 +1186,7 @@ test_that("mock db: check attrition with complete database intervals", {
     dplyr::filter(variable_name == "excluded_subjects") |>
     dplyr::pull("estimate_value") == "-")
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check compute permanent", {
@@ -1212,7 +1212,7 @@ test_that("mock db: check compute permanent", {
     "dbplyr_"
   )))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: if missing cohort attributes", {
@@ -1226,7 +1226,7 @@ test_that("mock db: if missing cohort attributes", {
     outcomeTable = "outcome",
     interval = "years"
   ))
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   # missing cohort_count
   cdm <- mockIncidencePrevalence()
@@ -1238,7 +1238,7 @@ test_that("mock db: if missing cohort attributes", {
     outcomeTable = "outcome",
     interval = "years"
   ))
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: test empty outcome table works", {
@@ -1258,7 +1258,7 @@ test_that("mock db: test empty outcome table works", {
     interval = "years"
   ))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: prevalence using strata vars", {
@@ -1408,7 +1408,7 @@ test_that("mock db: prevalence using strata vars", {
     strata = list(c("my_strata"), c("not_a_col"))
   ))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: cohort names for cohortId args", {
@@ -1450,7 +1450,7 @@ test_that("mock db: cohort names for cohortId args", {
   expect_true(all.equal(pre1, pre2))
   expect_true(all.equal(pre2, pre3))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: empty denominator", {
@@ -1496,7 +1496,7 @@ test_that("mock db: empty denominator", {
 
   expect_error(estimatePrevalence(cdm, "target", "outcome", 2))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check local cdm", {

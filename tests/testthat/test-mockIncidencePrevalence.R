@@ -32,7 +32,7 @@ test_that("check working example with defaults", {
       dplyr::rename_with(tolower)))
   expect_true(obsPeriodNamesCheck)
 
-  CDMConnector::cdmDisconnect(db)
+  omopgenerics::cdmDisconnect(db)
 })
 
 test_that("check working example sample size and outcome prevalence option", {
@@ -62,7 +62,7 @@ test_that("check working example sample size and outcome prevalence option", {
       dplyr::rename_with(tolower)))
   expect_true(outcomeNamesCheck)
 
-  CDMConnector::cdmDisconnect(db)
+  omopgenerics::cdmDisconnect(db)
 })
 
 test_that("multiple outcomes", {
@@ -161,10 +161,10 @@ test_that("multiple outcomes", {
       dplyr::rename_with(tolower)))
   expect_true(outcomeNamesCheck)
 
-  CDMConnector::cdmDisconnect(db)
-  CDMConnector::cdmDisconnect(db2)
-  CDMConnector::cdmDisconnect(db3)
-  CDMConnector::cdmDisconnect(db4)
+  omopgenerics::cdmDisconnect(db)
+  omopgenerics::cdmDisconnect(db2)
+  omopgenerics::cdmDisconnect(db3)
+  omopgenerics::cdmDisconnect(db4)
 })
 
 test_that("check expected errors", {

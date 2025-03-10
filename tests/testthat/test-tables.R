@@ -13,6 +13,9 @@ test_that("test tables", {
 
   # test prevalence works
   expect_no_error(tablePrevalence(prev_period, type = "gt"))
+  expect_no_error(tablePrevalence(prev_period |>
+                                    omopgenerics::suppress(5),
+                                  type = "gt"))
   expect_no_error(tablePrevalence(prev_period,
                                   groupColumn = c("denominator_cohort_name",
                                                   "outcome_cohort_name"),
@@ -55,6 +58,9 @@ test_that("test tables", {
     interval = "months",
     strata = list(c("my_strata"))
   )
+  expect_no_error(tableIncidence(inc |>
+                                   omopgenerics::suppress(5),
+                                 type = "tibble"))
   expect_no_error(tableIncidence(inc, type = "tibble"))
   expect_no_error(tableIncidence(inc, type = "flextable",
                                  header = "my_strata",
@@ -113,7 +119,7 @@ test_that("test tables", {
   ))
 
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("test importing results", {
@@ -162,5 +168,5 @@ test_that("test importing results", {
   expect_no_error(tableIncidence(results_imported))
   expect_no_error(tablePrevalence(results_imported))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })

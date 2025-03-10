@@ -27,6 +27,7 @@ test_that("mock db: check output format", {
       "package_name", "package_version",
       "group", "strata", "additional", "min_cell_count",
       "analysis_complete_database_intervals",
+      "analysis_censor_cohort_name",
       "analysis_outcome_washout", "analysis_repeated_events",
       "denominator_age_group", "denominator_sex",
       "denominator_days_prior_observation", "denominator_start_date",
@@ -49,7 +50,7 @@ test_that("mock db: check output format", {
   )
 
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: checks on working example", {
@@ -112,7 +113,7 @@ test_that("mock db: checks on working example", {
   )
   expect_identical(inc, inc_recon)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check working example 2", {
@@ -222,7 +223,7 @@ test_that("mock db: check working example 2", {
     ) |>
     dplyr::pull("estimate_value"))) == 1)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check study periods", {
@@ -292,7 +293,7 @@ test_that("mock db: check study periods", {
   expect_true(nrow(inc |>
     dplyr::filter(estimate_name == "outcome_count")) == 10)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check overall", {
@@ -391,7 +392,7 @@ test_that("mock db: check overall", {
     omopgenerics::splitAdditional() |>
     dplyr::pull("incidence_end_date") == as.Date("2011-06-15"))) # date of end of obs
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check person days", {
@@ -495,7 +496,7 @@ test_that("mock db: check person days", {
       as.Date("2021-01-01")
     )) + 1))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check periods follow calendar dates", {
@@ -590,7 +591,7 @@ test_that("mock db: check periods follow calendar dates", {
     dplyr::filter(dplyr::row_number() == 3) |>
     dplyr::pull("estimate_value") == "1")
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check washout windows", {
@@ -704,7 +705,7 @@ test_that("mock db: check washout windows", {
     dplyr::filter(estimate_name == "person_days") |>
     dplyr::pull("estimate_value"))))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
 
   # never satisfy criteria in study period
@@ -754,7 +755,7 @@ test_that("mock db: check washout windows", {
   expect_true(nrow(incW365 |>
     omopgenerics::filterSettings(result_type == "incidence")) == 0)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check events overlapping with start of a period", {
@@ -809,7 +810,7 @@ test_that("mock db: check events overlapping with start of a period", {
   expect_true(all(inc |>
     dplyr::filter(estimate_name == "denominator_count") |>
     dplyr::pull("estimate_value") == 1))
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   # another example
   personTable <- dplyr::tibble(
@@ -861,7 +862,7 @@ test_that("mock db: check events overlapping with start of a period", {
     dplyr::filter(estimate_name == "denominator_count") |>
     dplyr::pull("estimate_value") == 1))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: compare results from months and years", {
@@ -941,7 +942,7 @@ test_that("mock db: compare results from months and years", {
       dplyr::pull("estimate_value")))
   )
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
 
   cdm <- mockIncidencePrevalence(sampleSize = 1000)
@@ -1012,7 +1013,7 @@ test_that("mock db: compare results from months and years", {
     dplyr::filter(estimate_name == "person_days") |>
     dplyr::pull("estimate_value"))))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: multiple denominator inputs", {
@@ -1054,7 +1055,7 @@ test_that("mock db: multiple denominator inputs", {
                    type = "tibble")
   )
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
 })
 
@@ -1119,7 +1120,7 @@ test_that("mock db: check entry and event on same day", {
     dplyr::filter(estimate_name == "outcome_count") |>
     dplyr::pull("estimate_value"))) == "1")
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: cohort start overlaps with the outcome", {
@@ -1176,7 +1177,7 @@ test_that("mock db: cohort start overlaps with the outcome", {
     dplyr::filter(estimate_name == "denominator_count") |>
     dplyr::pull("estimate_value") == "1"))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check outcome in previous obeservation period", {
@@ -1261,7 +1262,7 @@ test_that("mock db: check outcome in previous obeservation period", {
     dplyr::filter(estimate_name == "denominator_count") |>
     dplyr::pull("estimate_value"))) == 2)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check minimum counts", {
@@ -1402,7 +1403,7 @@ test_that("mock db: check minimum counts", {
     dplyr::filter(dplyr::row_number() == 2) |>
     dplyr::pull("estimate_value") == "-")
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: multiple overlapping outcomes", {
@@ -1461,7 +1462,7 @@ test_that("mock db: multiple overlapping outcomes", {
   expect_true(inc |>
     dplyr::filter(estimate_name == "outcome_count") |>
     dplyr::pull("estimate_value") == "1")
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   # three
   personTable <- dplyr::tibble(
@@ -1521,7 +1522,7 @@ test_that("mock db: multiple overlapping outcomes", {
     dplyr::filter(estimate_name == "outcome_count") |>
     dplyr::pull("estimate_value") == "1")
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: cohort before period start ending after period", {
@@ -1600,7 +1601,7 @@ test_that("mock db: cohort before period start ending after period", {
     dplyr::filter(estimate_name == "outcome_count") |>
     dplyr::pull("estimate_value") == "1"))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check full period requirement - year", {
@@ -1653,7 +1654,7 @@ test_that("mock db: check full period requirement - year", {
   )
   expect_true(nrow(inc |>
     omopgenerics::filterSettings(result_type == "incidence")) == 0)
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   # edge case first day to last of the year
   # still expect this to work
@@ -1708,7 +1709,7 @@ test_that("mock db: check full period requirement - year", {
     dplyr::filter(estimate_name == "outcome_count")) ==
     1)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check full period requirement - month", {
@@ -1760,7 +1761,7 @@ test_that("mock db: check full period requirement - month", {
     interval = c("Months")
   )
   expect_gte(nrow(inc), 1)
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   # edge case first day to last of the month
   # still expect this to work
@@ -1812,7 +1813,7 @@ test_that("mock db: check full period requirement - month", {
   expect_gte(nrow(inc |>
     omopgenerics::filterSettings(result_type == "incidence")), 1)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check completeDatabaseIntervals", {
@@ -1971,7 +1972,7 @@ test_that("mock db: check completeDatabaseIntervals", {
     dplyr::pull("incidence_start_date") |>
     as.Date()) == "2021")
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check insufficient study days", {
@@ -2027,7 +2028,7 @@ test_that("mock db: check insufficient study days", {
   expect_true(nrow(inc |>
     omopgenerics::filterSettings(result_type == "incidence")) == 0)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check with and without study start and end date", {
@@ -2225,7 +2226,7 @@ test_that("mock db: check with and without study start and end date", {
       as.Date()) == 2010) |>
     dplyr::pull("estimate_value"))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check study start and end date 1000", {
@@ -2338,7 +2339,7 @@ test_that("mock db: check study start and end date 1000", {
       dplyr::pull("estimate_value"))
 
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   # with multiple outcomes per person
   cdm <- mockIncidencePrevalence(
@@ -2424,7 +2425,7 @@ test_that("mock db: check study start and end date 1000", {
       dplyr::filter(estimate_name == "incidence_100000_pys") %>%
       dplyr::pull("estimate_value"))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("expected errors with mock", {
@@ -2509,7 +2510,7 @@ test_that("expected errors with mock", {
     outcomeCohortId = TRUE
   ))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: multiple observation periods", {
@@ -2595,7 +2596,7 @@ test_that("mock db: multiple observation periods", {
   expect_true(sum(as.numeric(incW0 %>%
     dplyr::filter(estimate_name == "outcome_count") %>%
     dplyr::pull("estimate_value"))) == 2)
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   # Change the inclusion so that both patients have valid observation periods. Now 1 should have two, and 2 one.
   # Should capture the final part of the first observation period, and the initial part of the second for person 1
@@ -2638,7 +2639,7 @@ test_that("mock db: multiple observation periods", {
   expect_true(sum(as.numeric(incW10 %>%
     dplyr::filter(estimate_name == "outcome_count") %>%
     dplyr::pull("estimate_value"))) == 3)
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   # try event not counted for outcome but counted for washout as denominator (before observ period)
   outcomeTable <- dplyr::tibble(
@@ -2692,7 +2693,7 @@ test_that("mock db: multiple observation periods", {
       )) + 1 - 10 +
       as.numeric(difftime(as.Date("2011-12-11"), as.Date("2010-12-11"))) +
       1 - 10 - 3)
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   # multiple events in one of the observation periods of person 1
   conditionX <- dplyr::tibble(
@@ -2776,7 +2777,7 @@ test_that("mock db: multiple observation periods", {
         as.Date("2011-12-11"),
         as.Date("2010-12-11")
       )) + 1 - 30)
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   # The first event of person 1 will not be included in the observation period
   # but should also influence the second event with the washout
@@ -2836,7 +2837,7 @@ test_that("mock db: multiple observation periods", {
         as.Date("2011-12-11"),
         as.Date("2010-12-11")
       )) + 1 - 30)
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   # three observation periods for 1 person and a
   # couple of consecutive events lost to washout
@@ -2935,7 +2936,7 @@ test_that("mock db: multiple observation periods", {
     dplyr::filter(estimate_name == "outcome_count") %>%
     dplyr::pull("estimate_value"))) == 2)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check confidence intervals", {
@@ -2983,7 +2984,7 @@ test_that("mock db: check confidence intervals", {
     tolerance = 1e-2
   )
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check attrition", {
@@ -3016,7 +3017,7 @@ test_that("mock db: check attrition", {
     ) |>
     dplyr::filter(strata_level == "Not Male")), 0)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   # check obscuring counts
   cdm <- mockIncidencePrevalence(sampleSize = 4)
@@ -3038,7 +3039,7 @@ test_that("mock db: check attrition", {
     dplyr::filter(variable_name == "excluded_subjects") |>
     dplyr::pull("estimate_value") == "-")
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check attrition with complete database intervals", {
@@ -3096,7 +3097,7 @@ test_that("mock db: check attrition with complete database intervals", {
     dplyr::filter(variable_name == "excluded_subjects") |>
     dplyr::pull("estimate_value") == "1")
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check compute permanent", {
@@ -3119,7 +3120,7 @@ test_that("mock db: check compute permanent", {
     "dbplyr_"
   )))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: if missing cohort attributes", {
@@ -3134,7 +3135,7 @@ test_that("mock db: if missing cohort attributes", {
     outcomeTable = "outcome",
     interval = "overall"
   ))
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: empty outcome cohort", {
@@ -3174,7 +3175,7 @@ test_that("mock db: empty outcome cohort", {
     as.numeric(tidyInc$denominator_count)
   )
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: incidence using strata vars", {
@@ -3336,7 +3337,7 @@ test_that("mock db: incidence using strata vars", {
     strata = list(c("my_strata"), c("not_a_col"))
   ))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: multiple outcome cohort id", {
@@ -3415,7 +3416,7 @@ test_that("mock db: multiple outcome cohort id", {
     dplyr::pull("estimate_value"), inc_all_outcome_2 |>
     dplyr::pull("estimate_value"))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: cohort names for cohortId args", {
@@ -3451,13 +3452,15 @@ test_that("mock db: cohort names for cohortId args", {
   )
 
   inc1 <- estimateIncidence(cdm, "target", "outcome")
-  inc2 <- estimateIncidence(cdm, "target", "outcome", 1, 1)
-  inc3 <- estimateIncidence(cdm, "target", "outcome", "cohort_1", "cohort_1")
+  inc2 <- estimateIncidence(cdm, denominatorTable = "target", outcomeTable = "outcome",
+                            denominatorCohortId = 1, outcomeCohortId = 1)
+  inc3 <-  estimateIncidence(cdm, denominatorTable = "target", outcomeTable = "outcome",
+                             denominatorCohortId = "cohort_1", outcomeCohortId = "cohort_1")
 
   expect_true(all.equal(inc1, inc2))
   expect_true(all.equal(inc2, inc3))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: empty denominator", {
@@ -3503,7 +3506,7 @@ test_that("mock db: empty denominator", {
 
   expect_error(estimateIncidence(cdm, "target", "outcome", 2))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check local cdm", {
@@ -3552,4 +3555,273 @@ test_that("mock db: check local cdm", {
     outcomeTable = "outcome",
     interval = c("years", "overall")
   ))
+})
+
+test_that("mock db: censor cohort", {
+  skip_on_cran()
+
+  # if appearing in censor cohort before denominator, the person should be
+  # excluded
+  personTable <- dplyr::tibble(
+    person_id = 1L,
+    gender_concept_id = 8507L,
+    year_of_birth = 1990L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
+  )
+  observationPeriodTable <- dplyr::tibble(
+    observation_period_id = 1L,
+    person_id = 1L,
+    observation_period_start_date = as.Date("1990-01-01"),
+    observation_period_end_date = as.Date("2012-06-01")
+  )
+  outcomeTable <- dplyr::tibble(
+    cohort_definition_id = 1L,
+    subject_id = 1L,
+    cohort_start_date = c(
+      as.Date("2008-02-05"),
+      as.Date("2010-02-08"),
+      as.Date("2010-02-20")
+    ),
+    cohort_end_date = c(
+      as.Date("2008-02-05"),
+      as.Date("2010-02-08"),
+      as.Date("2010-02-20")
+    )
+  )
+  censorCohort <- dplyr::tibble(
+    cohort_definition_id = 1L,
+    subject_id = 1L,
+    cohort_start_date = c(
+      as.Date("1995-01-01")
+    ),
+    cohort_end_date = c(
+      as.Date("1995-01-01")
+    )
+  )
+  cdm <- mockIncidencePrevalence(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    outcomeTable = outcomeTable,
+    censorTable = censorCohort
+  )
+
+  cdm <- generateDenominatorCohortSet(cdm = cdm,
+                                      name = "denominator",
+                                      cohortDateRange = c(as.Date("2000-01-01"),
+                                                          as.Date(NA)))
+  # using censor cohort should mean person excluded before start
+  inc <- estimateIncidence(cdm,
+                    denominatorTable = "denominator",
+                    outcomeTable = "outcome",
+                    censorTable = "censor")
+  expect_true(all(inc |>
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value") == "0"))
+
+
+
+  # if appearing in censor cohort after denominator but before outcome, they
+  # should contribute time at risk until censor and then no more time and no
+  # outcome
+
+  # censor cohort after 1st outcome
+  # so should be excluded from then (if analysis is allowing repetitive events)
+  censorCohort2 <- dplyr::tibble(
+    cohort_definition_id = 1L,
+    subject_id = 1L,
+    cohort_start_date = c(
+      as.Date("2009-01-01")
+    ),
+    cohort_end_date = c(
+      as.Date("2009-01-01")
+    )
+  )
+  cdm <- omopgenerics::insertTable(cdm, "my_censor_cohort_2", censorCohort2)
+  cdm$my_censor_cohort_2 <- omopgenerics::newCohortTable(cdm$my_censor_cohort_2)
+
+  inc_2 <- estimateIncidence(cdm,
+                             interval = "overall",
+                            denominatorTable = "denominator",
+                            outcomeTable = "outcome",
+                            censorTable = "my_censor_cohort_2",
+                            outcomeWashout = 0,
+                            repeatedEvents = TRUE)
+  expect_true(all(sum(as.numeric(inc_2 |>
+                    dplyr::filter(estimate_name == "outcome_count") |>
+                    dplyr::pull("estimate_value"))) == 1))
+
+  # if appearing in the censor cohort on the day of the outcome, they
+  # contribute the outcome but are censored from then on
+  censorCohort3 <- dplyr::tibble(
+    cohort_definition_id = 1L,
+    subject_id = 1L,
+    cohort_start_date = c(
+      as.Date("2008-02-05")
+    ),
+    cohort_end_date = c(
+      as.Date("2008-02-05")
+    )
+  )
+  cdm <- omopgenerics::insertTable(cdm, "my_censor_cohort_3", censorCohort3)
+  cdm$my_censor_cohort_3 <- omopgenerics::newCohortTable(cdm$my_censor_cohort_3)
+
+  inc_3 <- estimateIncidence(cdm,
+                             denominatorTable = "denominator",
+                             outcomeTable = "outcome",
+                             censorTable = "my_censor_cohort_3",
+                             outcomeWashout = 0,
+                             repeatedEvents = TRUE)
+  expect_true(all(sum(as.numeric(inc_2 |>
+                                   dplyr::filter(estimate_name == "outcome_count") |>
+                                   dplyr::pull("estimate_value"))) == 1))
+
+
+  # multiple denominators - censor cohort should apply with each
+
+  # check censor cohort id argument
+  # if multiple cohorts in censor cohort table, one must be chosen
+  censorCohort5 <- dplyr::tibble(
+    cohort_definition_id = c(1L, 2L),
+    subject_id = c(1L,1L),
+    cohort_start_date = c(
+      as.Date("2008-02-05"),
+      as.Date("2009-02-05")
+    ),
+    cohort_end_date = c(
+      as.Date("2008-02-05"),
+      as.Date("2009-02-05")
+    )
+  )
+  cdm <- omopgenerics::insertTable(cdm, "my_censor_cohort_5", censorCohort5)
+  cdm$my_censor_cohort_5 <- omopgenerics::newCohortTable(cdm$my_censor_cohort_5)
+  # need to specify one cohort if multiple exist
+  expect_no_error(estimateIncidence(cdm,
+                    denominatorTable = "denominator",
+                    outcomeTable = "outcome",
+                    censorTable = "my_censor_cohort_5",
+                    censorCohortId = "cohort_1")) # can use name
+  expect_error(estimateIncidence(cdm,
+                                 denominatorTable = "denominator",
+                                 outcomeTable = "outcome",
+                                 censorTable = "my_censor_cohort_5",
+                                 censorCohortId = c(1,2)))
+  expect_error(estimateIncidence(cdm,
+                                 denominatorTable = "denominator",
+                                 outcomeTable = "outcome",
+                                 censorTable = "my_censor_cohort_5",
+                                 censorCohortId = c(1,2)))
+  expect_error(estimateIncidence(cdm,
+                                 denominatorTable = "denominator",
+                                 outcomeTable = "outcome",
+                                 censorTable = "my_censor_cohort_5",
+                                 censorCohortId = NULL))
+
+
+  # censor cohort must be one record per person
+  censorCohort6 <- dplyr::tibble(
+    cohort_definition_id = 1L,
+    subject_id = 1L,
+    cohort_start_date = c(
+      as.Date("1995-01-01"),
+      as.Date("1998-01-01")
+    ),
+    cohort_end_date = c(
+      as.Date("1995-01-01"),
+      as.Date("1998-01-01")
+    )
+  )
+  cdm <- omopgenerics::insertTable(cdm, "my_censor_cohort_6", censorCohort6)
+  cdm$my_censor_cohort_6 <- omopgenerics::newCohortTable(cdm$my_censor_cohort_6)
+  expect_error(estimateIncidence(cdm,
+                    denominatorTable = "denominator",
+                    outcomeTable = "outcome",
+                    censorTable = "my_censor_cohort_6"))
+
+  # validate input
+  expect_error(estimateIncidence(cdm,
+                    denominatorTable = "denominator",
+                    outcomeTable = "outcome",
+                    censorTable = "not_a_table",
+                    outcomeWashout = 0,
+                    repeatedEvents = TRUE))
+ expect_error(estimateIncidence(cdm,
+                    denominatorTable = "denominator",
+                    outcomeTable = "outcome",
+                    censorTable = "my_censor_cohort_3",
+                    censorCohortId = 99)) # not in cohort table
+
+ # multiple observation periods
+ # should look back
+ personTable <- dplyr::tibble(
+   person_id = 1L,
+   gender_concept_id = 8507L,
+   year_of_birth = 1990L,
+   month_of_birth = 01L,
+   day_of_birth = 01L
+ )
+ observationPeriodTable <- dplyr::tibble(
+   observation_period_id = c(1L, 2L),
+   person_id = c(1L, 1L),
+   observation_period_start_date = c(as.Date("2000-01-01"),
+                                     as.Date("2002-01-01")),
+   observation_period_end_date = c(as.Date("2001-06-01"),
+                                   as.Date("2003-06-01"))
+
+ )
+ outcomeTable <- dplyr::tibble(
+   cohort_definition_id = 1L,
+   subject_id = 1L,
+   cohort_start_date = c(
+     as.Date("2002-02-05")
+   ),
+   cohort_end_date = c(
+     as.Date("2002-02-05")
+   )
+ )
+ censorCohort <- dplyr::tibble(
+   cohort_definition_id = 1L,
+   subject_id = 1L,
+   cohort_start_date = c(
+     as.Date("2000-04-01")
+   ),
+   cohort_end_date = c(
+     as.Date("2000-04-01")
+   )
+ )
+ cdm <- mockIncidencePrevalence(
+   personTable = personTable,
+   observationPeriodTable = observationPeriodTable,
+   outcomeTable = outcomeTable,
+   censorTable = censorCohort
+ )
+
+ cdm <- generateDenominatorCohortSet(cdm = cdm,
+                                     name = "denominator")
+ inc_1 <- estimateIncidence(cdm,
+                          denominatorTable = "denominator",
+                          outcomeTable = "outcome",
+                          completeDatabaseIntervals = FALSE)
+ expect_true(all(inc_1 |>
+                   dplyr::filter(estimate_name == "denominator_count") |>
+                   dplyr::pull("estimate_value") == "1"))
+ expect_true(any(inc_1 |>
+                   dplyr::filter(estimate_name == "outcome_count") |>
+                   dplyr::pull("estimate_value") == "1"))
+
+
+
+ # using censor cohort should mean person excluded before start
+ inc_2 <- estimateIncidence(cdm,
+                          denominatorTable = "denominator",
+                          outcomeTable = "outcome",
+                          censorTable = "censor",
+                          completeDatabaseIntervals = FALSE)
+ expect_true(inc_2 |>
+                   dplyr::filter(estimate_name == "outcome_count") |>
+                   dplyr::pull("estimate_value") == "0")
+
+
+
+
 })

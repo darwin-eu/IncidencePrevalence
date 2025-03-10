@@ -101,7 +101,8 @@ benchmarkIncidencePrevalence <- function(cdm,
       !is.na(.data$cohort_end_date)) %>%
     dplyr::compute(
       temporary = FALSE,
-      name = "bench_outcome"
+      name = "bench_outcome",
+      logPrefix = "IncidencePrevalence_benchmarkIncidencePrevalence_outcome_"
     ) %>%
     omopgenerics::newCohortTable()
 
@@ -185,11 +186,11 @@ benchmarkIncidencePrevalence <- function(cdm,
       dplyr::pull())
 
 
-  omopgenerics::dropTable(
+  omopgenerics::dropSourceTable(
     cdm = cdm,
     name = dplyr::contains("denominator_typical")
   )
-  omopgenerics::dropTable(
+  omopgenerics::dropSourceTable(
     cdm = cdm,
     name = dplyr::contains("bench_outcome")
   )

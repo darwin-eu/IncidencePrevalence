@@ -10,6 +10,7 @@ mockIncidencePrevalence(
   observationPeriodTable = NULL,
   targetCohortTable = NULL,
   outcomeTable = NULL,
+  censorTable = NULL,
   sampleSize = 1,
   outPre = 1,
   seed = 444,
@@ -35,6 +36,9 @@ be used for stratification}
 
 \item{outcomeTable}{A tibble in the format of a cohort table which can
 be used for outcomes}
+
+\item{censorTable}{A tibble in the format of a cohort table which can
+be used for censoring}
 
 \item{sampleSize}{The number of unique patients.}
 

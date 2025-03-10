@@ -47,7 +47,7 @@ test_that("mock db: check output format", {
     dplyr::filter(cohort_definition_id == 1) %>%
     dplyr::pull("number_records") == 1)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: checks on working example", {
@@ -101,7 +101,7 @@ test_that("mock db: checks on working example", {
     daysPriorObservation = c(0, 365)
   ))
   expect_true(all(omopgenerics::cohortCount(cdm$denominator)$number_records == 0))
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   # using cohort target
   # add stratifying cohort
@@ -131,7 +131,7 @@ test_that("mock db: checks on working example", {
     dplyr::select(cohort_end_date) %>%
     dplyr::pull() == "2012-03-15")
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check example we expect to work", {
@@ -178,7 +178,7 @@ test_that("mock db: check example we expect to work", {
     dplyr::collect() %>%
     dplyr::pull(cohort_end_date) == as.Date("2010-05-15"))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check another example we expect to work", {
@@ -282,7 +282,7 @@ test_that("mock db: check another example we expect to work", {
     dplyr::collect() %>%
     dplyr::pull(cohort_end_date) == as.Date("2010-05-15")))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: mock example 1000", {
@@ -319,7 +319,7 @@ test_that("mock db: mock example 1000", {
     dplyr::pull(cohort_end_date)) <=
     as.Date("2013-06-15"))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: subset denominator by cohort", {
@@ -436,7 +436,7 @@ test_that("mock db: subset denominator by cohort", {
   )
   expect_true(nrow(omopgenerics::settings(cdm$target_cohort_mult2)) == 2)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   targetCohortTable <- dplyr::tibble(
     cohort_definition_id = as.integer(c(1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12)),
@@ -516,7 +516,7 @@ test_that("mock db: subset denominator by cohort", {
     dplyr::collect() %>%
     dplyr::pull(cohort_end_date) %in%
     as.Date(c("2013-06-06", "2014-02-01"))))
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
 
   # multiple observation periods and multiple outcomes for a person
@@ -584,7 +584,7 @@ test_that("mock db: subset denominator by cohort", {
     dplyr::pull(cohort_end_date) %in%
     as.Date(c("2008-04-01", "2009-04-01", "2010-04-01"))))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: one male, one female", {
@@ -634,7 +634,7 @@ test_that("mock db: one male, one female", {
     dplyr::collect() %>%
     dplyr::pull(subject_id) %in% c(1, 2)))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check example with restriction on sex", {
@@ -674,7 +674,7 @@ test_that("mock db: check example with restriction on sex", {
   expect_true(omopgenerics::cohortCount(cdm$denominator1)$number_records == 2)
   expect_true(omopgenerics::cohortCount(cdm$denominator2)$number_records == 3)
   expect_true(omopgenerics::cohortCount(cdm$denominator3)$number_records == 1)
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   # one male only
   personTable <- dplyr::tibble(
@@ -713,7 +713,7 @@ test_that("mock db: check example with restriction on sex", {
   expect_true(omopgenerics::cohortCount(cdm$denominator2)$number_records == 1)
   expect_true(omopgenerics::cohortCount(cdm$denominator3)$number_records == 0)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check example with restriction on age", {
@@ -761,7 +761,7 @@ test_that("mock db: check example with restriction on age", {
   expect_true(omopgenerics::cohortCount(cdm$denominator_c)$number_records == 1)
   expect_true(omopgenerics::cohortCount(cdm$denominator_d)$number_records == 0)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   # one person, born in 2000
   personTable <- dplyr::tibble(
@@ -805,7 +805,7 @@ test_that("mock db: check example with restriction on age", {
     dplyr::collect() %>%
     dplyr::pull(cohort_end_date) == as.Date("2011-05-31"))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check age edge cases", {
@@ -848,7 +848,7 @@ test_that("mock db: check age edge cases", {
     dplyr::collect() %>%
     dplyr::pull(cohort_end_date) == as.Date("2011-05-31"))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db check age target entry and exit", {
@@ -900,7 +900,7 @@ test_that("mock db check age target entry and exit", {
     dplyr::select(cohort_end_date) %>%
     dplyr::pull() == as.Date("2014-12-31"))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db check target prior observation requirement", {
@@ -984,7 +984,7 @@ test_that("mock db check target prior observation requirement", {
     dplyr::select(cohort_start_date) %>%
     dplyr::pull() == as.Date("2012-01-01"))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: targetRequirementsAtEntry", {
@@ -1111,7 +1111,7 @@ test_that("mock db: targetRequirementsAtEntry", {
     dplyr::filter(cohort_definition_id == 2) %>%
     dplyr::pull("number_records") == 0)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: target requirements any time", {
@@ -1192,7 +1192,7 @@ test_that("mock db: target requirements any time", {
   expect_true(omopgenerics::settings(cdm$denom_reqs_whenever) |>
                 dplyr::pull("requirements_at_entry") == "FALSE")
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check example with multiple observation periods", {
@@ -1256,7 +1256,7 @@ test_that("mock db: check example with multiple observation periods", {
     dplyr::collect() %>%
     dplyr::pull(cohort_end_date) == as.Date("2010-06-01"))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check imputation of date of birth", {
@@ -1309,7 +1309,7 @@ test_that("mock db: check imputation of date of birth", {
     dplyr::summarise(check = cohort_start_date == as.Date("2010-01-01")) %>%
     dplyr::pull())
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check edge cases (zero results expected)", {
@@ -1367,7 +1367,7 @@ test_that("mock db: check edge cases (zero results expected)", {
   ))
   expect_true(omopgenerics::cohortCount(cdm$denominator)$number_records == 0)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check expected errors", {
@@ -1442,7 +1442,7 @@ test_that("mock db: check expected errors", {
   )
   expect_error(mockIncidencePrevalence(targetCohortTable = targetCohortTable))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check attrition table logic", {
@@ -1528,7 +1528,7 @@ test_that("mock db: check attrition table logic", {
     daysPriorObservation = 365
   )
   expect_true(omopgenerics::attrition(cdm$denominator)$excluded_records[7] == 1)
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   # multiple observation periods per person
   personTable <- dplyr::tibble(
@@ -1565,7 +1565,7 @@ test_that("mock db: check attrition table logic", {
     omopgenerics::attrition(cdm$denominator)$number_subjects == 1
   ))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check attrition with multiple cohorts", {
@@ -1666,7 +1666,7 @@ test_that("mock db: check attrition with multiple cohorts", {
     dplyr::pull(.data$excluded_records) > 0)
 
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: check tables were cleaned up", {
@@ -1719,7 +1719,7 @@ test_that("mock db: check tables were cleaned up", {
     omopgenerics::settings(cdmReconn$my_denominator)
   )
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: requirement interactions", {
@@ -1782,7 +1782,7 @@ test_that("mock db: requirement interactions", {
     dplyr::filter(age_group == "0 to 100") %>%
     dplyr::filter(days_prior_observation == 30)) == 0
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: target time at risk", {
@@ -2011,7 +2011,7 @@ test_that("mock db: target time at risk", {
   ))
 
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: target time at risk - requirements applied at original index", {
@@ -2097,7 +2097,7 @@ test_that("mock db: target time at risk - requirements applied at original index
   expect_true(cdm$denominator |>
     dplyr::pull("subject_id") == 2)
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: target time at risk - requirements with requirementsAtEntry FALSE ", {
@@ -2300,7 +2300,7 @@ test_that("mock db: target time at risk - requirements with requirementsAtEntry 
   expect_true(all(omopgenerics::cohortCount(cdm$denom_tar_age_5_6_index) |>
     dplyr::pull("number_subjects") == 0))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
 })
 
@@ -2448,7 +2448,7 @@ test_that("mock db: cohort names for cohortId args", {
   expect_true(all.equal(cdm1$target, cdm2$target))
   expect_true(all.equal(cdm2$target, cdm3$target))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("mock db: target cohort extra columns", {

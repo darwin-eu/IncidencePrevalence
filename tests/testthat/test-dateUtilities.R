@@ -122,5 +122,5 @@ test_that("test date functions with duckdb mock", {
     type = "other"
   ))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })

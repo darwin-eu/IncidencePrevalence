@@ -38,7 +38,7 @@ test_that("full benchmark", {
     analysisType = "not an option"
   ))
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
 
 test_that("check tables cleaned up", {
@@ -62,7 +62,7 @@ test_that("check tables cleaned up", {
   )
 
   expect_equal(sort(start_tables), sort(end_tables))
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 
   cdm <- mockIncidencePrevalence(
     sampleSize = 100,
@@ -72,5 +72,5 @@ test_that("check tables cleaned up", {
     maxDaysToObservationEnd = 364
   )
 
-  CDMConnector::cdmDisconnect(cdm)
+  omopgenerics::cdmDisconnect(cdm)
 })
