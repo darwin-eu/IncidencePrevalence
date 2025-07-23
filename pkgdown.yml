@@ -1,5 +1,5 @@
 pandoc: 3.1.11
-pkgdown: 2.1.1
+pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
   a01_Introduction_to_IncidencePrevalence: a01_Introduction_to_IncidencePrevalence.html
@@ -9,7 +9,7 @@ articles:
   a05_Calculating_incidence: a05_Calculating_incidence.html
   a06_Working_with_IncidencePrevalence_Results: a06_Working_with_IncidencePrevalence_Results.html
   a07_benchmark: a07_benchmark.html
-last_built: 2025-03-10T16:07Z
+last_built: 2025-07-23T06:53Z
 urls:
   reference: https://darwin-eu.github.io/IncidencePrevalence/reference
   article: https://darwin-eu.github.io/IncidencePrevalence/articles
