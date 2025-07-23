@@ -69,7 +69,7 @@
       <img src="../logo.png" class="logo" alt=""><h1>Benchmarking the IncidencePrevalence R package</h1>
             
       
-      <small class="dont-index">Source: <a href="https://github.com/darwin-eu/IncidencePrevalence/blob/main/vignettes/a07_benchmark.Rmd" class="external-link"><code>vignettes/a07_benchmark.Rmd</code></a></small>
+      <small class="dont-index">Source: <a href="https://github.com/darwin-eu/IncidencePrevalence/blob/v1.2.1/vignettes/a07_benchmark.Rmd" class="external-link"><code>vignettes/a07_benchmark.Rmd</code></a></small>
       <div class="d-none name"><code>a07_benchmark.Rmd</code></div>
     </div>
 
@@ -93,7 +93,7 @@ uses duckdb.</p>
 <span><span class="co">#&gt; $ variable_level   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "overall"<span style="color: #949494;">, </span>"overall"<span style="color: #949494;">, </span>"overall"<span style="color: #949494;">, </span>"overall"</span></span>
 <span><span class="co">#&gt; $ estimate_name    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "time_taken_minutes"<span style="color: #949494;">, </span>"time_taken_minutes"<span style="color: #949494;">, </span>"time_tak…</span></span>
 <span><span class="co">#&gt; $ estimate_type    <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "numeric"<span style="color: #949494;">, </span>"numeric"<span style="color: #949494;">, </span>"numeric"<span style="color: #949494;">, </span>"numeric"</span></span>
-<span><span class="co">#&gt; $ estimate_value   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0.1"<span style="color: #949494;">, </span>"0.05"<span style="color: #949494;">, </span>"0.05"<span style="color: #949494;">, </span>"0.15"</span></span>
+<span><span class="co">#&gt; $ estimate_value   <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "0.11"<span style="color: #949494;">, </span>"0.05"<span style="color: #949494;">, </span>"0.05"<span style="color: #949494;">, </span>"0.15"</span></span>
 <span><span class="co">#&gt; $ additional_name  <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "dbms &amp;&amp;&amp; person_n &amp;&amp;&amp; min_observation_start &amp;&amp;&amp; max_…</span></span>
 <span><span class="co">#&gt; $ additional_level <span style="color: #949494; font-style: italic;">&lt;chr&gt;</span> "duckdb &amp;&amp;&amp; 100 &amp;&amp;&amp; 2010-01-01 &amp;&amp;&amp; 2010-12-31"<span style="color: #949494;">, </span>"duck…</span></span></code></pre>
 <p>We can see our results like so:</p>
@@ -567,7 +567,7 @@ uses duckdb.</p>
 <td headers="generating denominator (8 cohorts)  Min observation start" class="gt_row gt_right" style="text-align: left; border-left-width: 1px; border-left-style: solid; border-left-color: #D3D3D3; border-right-width: 1px; border-right-style: solid; border-right-color: #D3D3D3; border-top-width: 1px; border-top-style: solid; border-top-color: #D3D3D3; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: #D3D3D3;">2010-01-01</td>
 <td headers="generating denominator (8 cohorts)  Max observation end" class="gt_row gt_right" style="text-align: left; border-left-width: 1px; border-left-style: solid; border-left-color: #D3D3D3; border-right-width: 1px; border-right-style: solid; border-right-color: #D3D3D3; border-top-width: 1px; border-top-style: solid; border-top-color: #D3D3D3; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: #D3D3D3;">2010-12-31</td>
 <td headers="generating denominator (8 cohorts)  Estimate name" class="gt_row gt_left" style="text-align: left; border-left-width: 1px; border-left-style: solid; border-left-color: #D3D3D3; border-right-width: 1px; border-right-style: solid; border-right-color: #D3D3D3; border-top-width: 1px; border-top-style: solid; border-top-color: #D3D3D3; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: #D3D3D3;">time_taken_minutes</td>
-<td headers="generating denominator (8 cohorts)  Estimate value" class="gt_row gt_right" style="text-align: left;">0.10</td>
+<td headers="generating denominator (8 cohorts)  Estimate value" class="gt_row gt_right" style="text-align: left;">0.11</td>
 </tr>
 <tr class="gt_group_heading_row">
 <th colspan="7" class="gt_group_heading" style="background-color: #E9E9E9; font-weight: bold;" scope="colgroup" id="yearly point prevalence for two outcomes with eight denominator cohorts">yearly point prevalence for two outcomes with eight denominator cohorts</th>
@@ -1101,7 +1101,7 @@ have already been run so we’ll start by loading the results.</p>
 <td headers="generating denominator (8 cohorts)  Max observation end" class="gt_row gt_right" style="text-align: left; border-left-width: 1px; border-left-style: solid; border-left-color: #D3D3D3; border-right-width: 1px; border-right-style: solid; border-right-color: #D3D3D3; border-top-width: 1px; border-top-style: solid; border-top-color: #D3D3D3; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: #D3D3D3;">2010-12-31</td>
 <td headers="generating denominator (8 cohorts)  Package version" class="gt_row gt_right" style="text-align: left; border-left-width: 1px; border-left-style: solid; border-left-color: #D3D3D3; border-right-width: 1px; border-right-style: solid; border-right-color: #D3D3D3; border-top-width: 1px; border-top-style: solid; border-top-color: #D3D3D3; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: #D3D3D3;">1.2.1</td>
 <td headers="generating denominator (8 cohorts)  Estimate name" class="gt_row gt_left" style="text-align: left; border-left-width: 1px; border-left-style: solid; border-left-color: #D3D3D3; border-right-width: 1px; border-right-style: solid; border-right-color: #D3D3D3; border-top-width: 1px; border-top-style: solid; border-top-color: #D3D3D3; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: #D3D3D3;">time_taken_minutes</td>
-<td headers="generating denominator (8 cohorts)  Estimate value" class="gt_row gt_right" style="text-align: left;">0.10</td>
+<td headers="generating denominator (8 cohorts)  Estimate value" class="gt_row gt_right" style="text-align: left;">0.11</td>
 </tr>
 <tr>
 <td headers="generating denominator (8 cohorts)  CDM name" class="gt_row gt_left" style="text-align: left; border-left-width: 1px; border-left-style: solid; border-left-color: #D3D3D3; border-right-width: 1px; border-right-style: solid; border-right-color: #D3D3D3; border-top-width: 1px; border-top-style: solid; border-top-color: #D3D3D3; border-bottom-width: 1px; border-bottom-style: solid; border-bottom-color: #D3D3D3;">ohdsi_postgres</td>
