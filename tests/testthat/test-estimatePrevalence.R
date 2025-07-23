@@ -26,6 +26,7 @@ test_that("mock db: check output format", {
     "package_name", "package_version", "min_cell_count",
     "analysis_type",
     "analysis_complete_database_intervals", "analysis_full_contribution",
+    "analysis_level",
     "denominator_age_group", "denominator_sex",
     "denominator_days_prior_observation", "denominator_start_date",
     "denominator_end_date", "denominator_target_cohort_name",
@@ -1545,4 +1546,267 @@ test_that("mock db: check local cdm", {
     outcomeTable = "outcome",
     interval = c("months", "years")
   ))
+
+  omopgenerics::cdmDisconnect(cdm)
+
+})
+
+test_that("mock db: period prevalence at the record level", {
+
+  skip_on_cran()
+
+  personTable <- dplyr::tibble(
+    person_id = c(1L, 2L, 3L),
+    gender_concept_id = 8507L,
+    year_of_birth = 2000L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
+  )
+  # one person with two spans of time in the denominator
+  observationPeriodTable <- dplyr::tibble(
+    observation_period_id = c(1L, 1L, 2L, 3L),
+    person_id = c(1L, 1L, 2L, 3L),
+    observation_period_start_date = c(
+      as.Date("2000-06-01"),
+      as.Date("2010-06-01"),
+      as.Date("2000-06-01"),
+      as.Date("2000-06-01")
+    ),
+    observation_period_end_date = c(
+      as.Date("2005-07-01"),
+      as.Date("2012-07-01"),
+      as.Date("2012-06-01"),
+      as.Date("2000-06-15")
+    )
+  )
+
+  # one outcome during their first entry
+  # another in their second
+  outcomeTable <- dplyr::tibble(
+    cohort_definition_id = 1L,
+    subject_id = 1L,
+    cohort_start_date = c(
+      as.Date("2003-02-05"),
+      as.Date("2010-09-01")
+    ),
+    cohort_end_date = c(
+      as.Date("2003-02-06"),
+      as.Date("2010-09-02")
+    )
+  )
+
+  cdm <- mockIncidencePrevalence(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    outcomeTable = outcomeTable
+  )
+  cdm <- generateDenominatorCohortSet(cdm, "denom")
+
+  # person level results
+  prev_person_level <- estimatePeriodPrevalence(
+    cdm = cdm,
+    denominatorTable = "denom",
+    outcomeTable = "outcome",
+    interval = "overall",
+    level = "person")
+  expect_true(prev_person_level |>
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value") == "3")
+  expect_true(prev_person_level |>
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value") == "1")
+  expect_true(all(settings(prev_person_level) |>
+    dplyr::pull("analysis_level") == "person"))
+
+  # record level results
+  prev_record_level <- estimatePeriodPrevalence(
+    cdm = cdm,
+    denominatorTable = "denom",
+    outcomeTable = "outcome",
+    interval = "overall",
+    level = "record")
+  expect_true(prev_record_level |>
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value") == "4")
+  expect_true(prev_record_level |>
+    dplyr::filter(estimate_name == "outcome_count") |>
+    dplyr::pull("estimate_value") == "2")
+  expect_true(all(settings(prev_record_level) |>
+                    dplyr::pull("analysis_level") == "record"))
+
+  # check with strata
+  cdm$denom <- cdm$denom |>
+    dplyr::mutate(group = "a")
+  prev_record_level_strata <- estimatePeriodPrevalence(
+    cdm = cdm,
+    denominatorTable = "denom",
+    outcomeTable = "outcome",
+    interval = "overall",
+    strata = "group",
+    level = "record")
+  expect_true(all(prev_record_level_strata |>
+                dplyr::filter(estimate_name == "denominator_count") |>
+                dplyr::pull("estimate_value") == "4"))
+  expect_true(all(prev_record_level_strata |>
+                dplyr::filter(estimate_name == "outcome_count") |>
+                dplyr::pull("estimate_value") == "2"))
+  expect_true(all(settings(prev_record_level_strata) |>
+                    dplyr::pull("analysis_level") == "record"))
+
+
+  # expected error
+  expect_error(estimatePeriodPrevalence(
+    cdm = cdm,
+    denominatorTable = "denom",
+    outcomeTable = "outcome",
+    interval = "overall",
+    strata = "group",
+    level = "something else"))
+
+  omopgenerics::cdmDisconnect(cdm)
+
+})
+
+test_that("mock db: period prevalence at the record level - more examples", {
+
+  skip_on_cran()
+
+
+  personTable <- dplyr::tibble(
+    person_id = 1L,
+    gender_concept_id = 8507L,
+    year_of_birth = 2000L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
+  )
+  # one person with two spans of time in the denominator
+  observationPeriodTable <- dplyr::tibble(
+    observation_period_id = 1L,
+    person_id = 1L,
+    observation_period_start_date = c(
+      as.Date("2000-06-01")
+    ),
+    observation_period_end_date = c(
+      as.Date("2020-07-01")
+    )
+  )
+
+  cdm <- mockIncidencePrevalence(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable
+  )
+
+  pregnancy_table <- dplyr::tribble(
+    ~cohort_definition_id,   ~subject_id,   ~cohort_start_date,      ~cohort_end_date,
+    99,                       1,             as.Date("2014-01-01"),   as.Date("2014-09-05")
+  )
+
+  cdm <- CDMConnector::insertTable(
+    cdm = cdm,
+    name = "pregnancy_table",
+    table = pregnancy_table,
+    overwrite = TRUE,
+    temporary = FALSE
+  )
+
+  cohort_table <- dplyr::tribble(
+    ~cohort_definition_id,   ~subject_id,   ~cohort_start_date,      ~cohort_end_date,
+    1,                       1,             as.Date("2014-01-01"),   as.Date("2014-01-30"),
+    1,                       1,             as.Date("2014-03-14"),   as.Date("2014-04-30")
+  )
+
+  cdm <- CDMConnector::insertTable(
+    cdm = cdm,
+    name = "cohort_table",
+    table = cohort_table,
+    overwrite = TRUE,
+    temporary = FALSE
+  )
+
+  cdm$cohort_table <- cdm$cohort_table |>
+    omopgenerics::newCohortTable() |>
+    dplyr::compute(name = "cohort_table", temporary = FALSE, overwrite = TRUE)
+
+  cdm$pregnancy_table <- cdm$pregnancy_table |>
+    omopgenerics::newCohortTable() |>
+    dplyr::compute(name = "pregnancy_table", temporary = FALSE, overwrite = TRUE)
+
+  starts <- seq(1, 20 * 7, 7)
+  stops <- seq(7, 20 * 7, 7)
+
+  timesAtRisk <- lapply(seq_len(length(starts)), function(i) {
+    c(
+      starts[i],
+      stops[i]
+    )
+  })
+
+  cdm <- cdm |>
+    generateTargetDenominatorCohortSet(
+      name = "denom",
+      targetCohortTable = "pregnancy_table",
+      timeAtRisk = timesAtRisk,
+      requirementsAtEntry = FALSE,
+      requirementInteractions = FALSE
+    )
+
+  prev <- cdm |>
+    estimatePeriodPrevalence(
+      denominatorTable = "denom",
+      outcomeTable = "cohort_table",
+      interval = "overall",
+      level = "record",
+      completeDatabaseIntervals = FALSE
+    )
+
+  # should appear in all denominators
+  expect_true(all(prev |>
+    dplyr::filter(estimate_name == "denominator_count") |>
+    dplyr::pull("estimate_value") == "1"))
+
+  # tar 1 to 7 - they have an outcome
+  expect_true(prev |>
+                  omopgenerics::filterSettings(denominator_time_at_risk == "1 to 7") |>
+                    dplyr::filter(estimate_name == "outcome_count") |>
+                    dplyr::pull("estimate_value") == "1")
+
+  # tar 36 to 42 - they do not have an outcome
+  expect_true(prev |>
+                omopgenerics::filterSettings(denominator_time_at_risk == "36 to 42") |>
+                dplyr::filter(estimate_name == "outcome_count") |>
+                dplyr::pull("estimate_value") == "0")
+
+
+  # check with strata
+  cdm$denom <- cdm$denom |>
+    dplyr::mutate(group = "a")
+  prev_2 <- cdm |>
+    estimatePeriodPrevalence(
+      denominatorTable = "denom",
+      outcomeTable = "cohort_table",
+      interval = "overall",
+      level = "record",
+      strata = "group",
+      completeDatabaseIntervals = FALSE
+    )
+  # should appear in all denominators
+  expect_true(all(prev_2 |>
+                    dplyr::filter(estimate_name == "denominator_count") |>
+                    dplyr::pull("estimate_value") == "1"))
+
+  # tar 1 to 7 - they have an outcome
+  expect_true(all(prev_2 |>
+                omopgenerics::filterSettings(denominator_time_at_risk == "1 to 7") |>
+                dplyr::filter(estimate_name == "outcome_count") |>
+                dplyr::pull("estimate_value") == "1"))
+
+  # tar 36 to 42 - they do not have an outcome
+  expect_true(all(prev_2 |>
+                omopgenerics::filterSettings(denominator_time_at_risk == "36 to 42") |>
+                dplyr::filter(estimate_name == "outcome_count") |>
+                dplyr::pull("estimate_value") == "0"))
+
+
+  omopgenerics::cdmDisconnect(cdm = cdm)
+
 })

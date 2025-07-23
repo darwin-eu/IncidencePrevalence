@@ -10,7 +10,8 @@ tableIncidenceAttrition(
   header = "variable_name",
   groupColumn = c("cdm_name", "outcome_cohort_name"),
   settingsColumn = NULL,
-  hide = c("denominator_cohort_name", "estimate_name", "reason_id", "variable_level")
+  hide = c("denominator_cohort_name", "estimate_name", "reason_id", "variable_level"),
+  style = "default"
 )
 }
 \arguments{
@@ -32,6 +33,8 @@ the table}
 
 \item{hide}{Table columns to exclude, options are the ones described in
 \code{header}}
+
+\item{style}{A style supported by visOmopResults::visOmopTable()}
 }
 \value{
 A visual table.

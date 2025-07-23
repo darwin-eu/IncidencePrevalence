@@ -12,7 +12,7 @@ test_that("test tables", {
   )
 
   # test prevalence works
-  expect_no_error(tablePrevalence(prev_period, type = "gt"))
+  expect_no_error(tablePrevalence(prev_period, type = "gt", style = "darwin"))
   expect_no_error(tablePrevalence(prev_period |>
                                     omopgenerics::suppress(5),
                                   type = "gt"))
@@ -60,7 +60,7 @@ test_that("test tables", {
   )
   expect_no_error(tableIncidence(inc |>
                                    omopgenerics::suppress(5),
-                                 type = "tibble"))
+                                 style = "darwin"))
   expect_no_error(tableIncidence(inc, type = "tibble"))
   expect_no_error(tableIncidence(inc, type = "flextable",
                                  header = "my_strata",
@@ -135,7 +135,9 @@ test_that("test importing results", {
     outcomeTable = "outcome"
   )
 
-  prev_path <- tempdir("prev")
+  prev_path <- file.path(tempdir(), "prev")
+  dir.create(prev_path, showWarnings = FALSE)
+
   omopgenerics::exportSummarisedResult(prev_period, path = prev_path)
 
   prev_period_imported <- omopgenerics::importSummarisedResult(prev_path)
@@ -154,13 +156,16 @@ test_that("test importing results", {
     interval = "months",
     strata = list(c("my_strata"))
   )
-  inc_path <- tempdir("inc")
+
+  inc_path <- file.path(tempdir(), "inc")
+  dir.create(inc_path, showWarnings = FALSE)
   omopgenerics::exportSummarisedResult(inc, path = inc_path)
 
-  inc_imported <- omopgenerics::importSummarisedResult(prev_path)
+  inc_imported <- omopgenerics::importSummarisedResult(inc_path)
   expect_no_error(tableIncidence(inc_imported, type = "tibble"))
 
-  results_path <- tempdir("results")
+  results_path <- file.path(tempdir(), "results")
+  dir.create(results_path, showWarnings = FALSE)
   results <- bind(inc, prev_period)
   omopgenerics::exportSummarisedResult(results, path = results_path)
 

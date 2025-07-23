@@ -108,7 +108,7 @@ This will then give us six denominator cohorts
 
 ``` r
 settings(cdm$denominator)
-#> # A tibble: 6 × 10
+#> # A tibble: 6 × 11
 #>   cohort_definition_id cohort_name        age_group sex   days_prior_observation
 #>                  <int> <chr>              <chr>     <chr>                  <dbl>
 #> 1                    1 denominator_cohor… 0 to 64   Male                     180
@@ -117,29 +117,29 @@ settings(cdm$denominator)
 #> 4                    4 denominator_cohor… 65 to 100 Male                     180
 #> 5                    5 denominator_cohor… 65 to 100 Fema…                    180
 #> 6                    6 denominator_cohor… 65 to 100 Both                     180
-#> # ℹ 5 more variables: start_date <date>, end_date <date>,
-#> #   target_cohort_definition_id <int>, target_cohort_name <chr>,
-#> #   time_at_risk <chr>
+#> # ℹ 6 more variables: start_date <date>, end_date <date>,
+#> #   requirements_at_entry <chr>, target_cohort_definition_id <int>,
+#> #   target_cohort_name <chr>, time_at_risk <chr>
 ```
 
 These cohorts will be in the typical OMOP CDM structure
 
 ``` r
 cdm$denominator
-#> # Source:   table<main.denominator> [?? x 4]
-#> # Database: DuckDB v1.0.0 [eburn@Windows 10 x64:R 4.2.1/:memory:]
+#> # Source:   table<denominator> [?? x 4]
+#> # Database: DuckDB v1.3.2-dev13 [eburn@Windows 10 x64:R 4.2.1/:memory:]
 #>    cohort_definition_id subject_id cohort_start_date cohort_end_date
 #>                   <int>      <int> <date>            <date>         
-#>  1                    1        116 2008-01-01        2009-01-10     
-#>  2                    1        204 2008-01-01        2009-12-05     
-#>  3                    1        271 2008-01-01        2008-02-06     
-#>  4                    1        371 2008-01-01        2011-04-23     
-#>  5                    1        390 2010-04-14        2013-03-29     
-#>  6                    1        480 2008-01-01        2015-12-27     
-#>  7                    1        526 2008-01-01        2008-03-12     
-#>  8                    1        567 2008-01-01        2011-04-23     
-#>  9                    1        571 2008-01-01        2008-03-05     
-#> 10                    1        595 2008-01-01        2010-09-02     
+#>  1                    1         87 2008-01-01        2018-01-01     
+#>  2                    1        116 2008-01-01        2009-01-10     
+#>  3                    1        204 2008-01-01        2009-12-05     
+#>  4                    1        271 2008-01-01        2008-02-06     
+#>  5                    1        371 2008-01-01        2011-04-23     
+#>  6                    1        390 2010-04-14        2013-03-29     
+#>  7                    1        480 2008-01-01        2015-12-27     
+#>  8                    1        526 2008-01-01        2008-03-12     
+#>  9                    1        555 2010-03-24        2017-12-09     
+#> 10                    1        567 2008-01-01        2011-04-23     
 #> # ℹ more rows
 ```
 
@@ -152,8 +152,8 @@ outcome cohort.
 
 ``` r
 cdm$outcome
-#> # Source:   table<main.outcome> [?? x 4]
-#> # Database: DuckDB v1.0.0 [eburn@Windows 10 x64:R 4.2.1/:memory:]
+#> # Source:   table<outcome> [?? x 4]
+#> # Database: DuckDB v1.3.2-dev13 [eburn@Windows 10 x64:R 4.2.1/:memory:]
 #>    cohort_definition_id subject_id cohort_start_date cohort_end_date
 #>                   <int>      <int> <date>            <date>         
 #>  1                    1          2 1991-07-21        1991-12-05     

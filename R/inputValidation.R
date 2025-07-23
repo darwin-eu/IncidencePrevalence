@@ -143,7 +143,8 @@ checkInputEstimatePrevalence <- function(cdm,
                                          interval,
                                          completeDatabaseIntervals,
                                          fullContribution,
-                                         timePoint) {
+                                         timePoint,
+                                         level) {
   omopgenerics::validateCdmArgument(cdm)
   omopgenerics::validateCohortArgument(cohort = cdm[[denominatorTable]])
   if (!is.null(denominatorCohortId)) {
@@ -177,6 +178,7 @@ checkInputEstimatePrevalence <- function(cdm,
   omopgenerics::assertTrue(all(timePoint %in% c("start", "middle", "end")))
   omopgenerics::assertLogical(fullContribution)
   omopgenerics::assertLogical(completeDatabaseIntervals)
+  omopgenerics::assertChoice(level, c("person", "record"))
 
   return(list(denominatorCohortId, outcomeCohortId))
 }

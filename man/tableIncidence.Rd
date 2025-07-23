@@ -11,6 +11,7 @@ tableIncidence(
   groupColumn = c("cdm_name", "outcome_cohort_name"),
   settingsColumn = c("denominator_age_group", "denominator_sex"),
   hide = c("denominator_cohort_name", "analysis_interval"),
+  style = "default",
   .options = list()
 )
 }
@@ -35,6 +36,8 @@ the table}
 
 \item{hide}{Table columns to exclude, options are the ones described in
 \code{header}}
+
+\item{style}{A style supported by visOmopResults::visOmopTable()}
 
 \item{.options}{Table options to apply}
 }

@@ -28,6 +28,7 @@ getPrevalence <- function(cdm,
                           completeDatabaseIntervals,
                           timePoint,
                           fullContribution,
+                          level,
                           tablePrefix,
                           analysisId,
                           strata,
@@ -279,6 +280,7 @@ getPrevalence <- function(cdm,
 
         if (length(strata) == 0 || includeOverallStrata == TRUE) {
           # include ongoing in current time of interest
+          if(level == "person"){
           result <- workingPop %>%
             dplyr::summarise(
               denominator_count = dplyr::n_distinct(.data$subject_id),
@@ -288,6 +290,25 @@ getPrevalence <- function(cdm,
                   .data$outcome_end_date >= .data$cohort_start_date
               ])
             )
+          } else { # record level
+            result <-  cbind(
+              # count of cohort entries
+              workingPop |>
+              dplyr::select("subject_id", "cohort_start_date") |>
+              dplyr::distinct() |>
+              dplyr::summarise(denominator_count = dplyr::n()),
+              # count of outcomes per cohort entry
+                workingPop |>
+                  dplyr::mutate(
+                    has_outcome = dplyr::if_else(!is.na(.data$outcome_start_date) &
+                                                   .data$outcome_start_date <= .data$cohort_end_date &
+                                                   .data$outcome_end_date >= .data$cohort_start_date,
+                                                 1, 0)
+                  ) |>
+                  dplyr::select("subject_id", "cohort_start_date", "has_outcome") |>
+                  dplyr::distinct() |>
+                  dplyr::summarise(outcome_count = sum(.data$has_outcome)))
+          }
 
           pr[[paste0(i, "_", j)]] <- dplyr::tibble(
             denominator_count = result$denominator_count,
@@ -309,7 +330,7 @@ getPrevalence <- function(cdm,
             pr[[paste0(i, "_", j, "_", k)]] <- dplyr::bind_rows(
               pr[[paste0(i, "_", j)]],
               getStratifiedPrevalenceResult(workingPop,
-                workingStrata = strata[[k]]
+                workingStrata = strata[[k]], level
               )
             ) %>%
               dplyr::mutate(
@@ -337,8 +358,9 @@ getPrevalence <- function(cdm,
   return(results)
 }
 
-getStratifiedPrevalenceResult <- function(workingPop, workingStrata) {
+getStratifiedPrevalenceResult <- function(workingPop, workingStrata, level) {
   # include ongoing in current time of interest
+  if(level == "person"){
   result <- workingPop %>%
     dplyr::group_by(dplyr::pick(.env$workingStrata)) %>%
     dplyr::summarise(
@@ -350,6 +372,27 @@ getStratifiedPrevalenceResult <- function(workingPop, workingStrata) {
       ])
     ) %>%
     dplyr::ungroup()
+  } else { # record level
+    result <-  workingPop |>
+      dplyr::group_by(dplyr::pick(.env$workingStrata)) |>
+      dplyr::select(.env$workingStrata, "subject_id", "cohort_start_date") |>
+      dplyr::distinct() |>
+      dplyr::summarise(denominator_count = dplyr::n()) |>
+      dplyr::left_join(
+        workingPop |>
+      dplyr::group_by(dplyr::pick(.env$workingStrata)) |>
+      dplyr::mutate(
+        has_outcome = dplyr::if_else(!is.na(.data$outcome_start_date) &
+          .data$outcome_start_date <= .data$cohort_end_date &
+          .data$outcome_end_date >= .data$cohort_start_date,
+        1, 0)
+      ) |>
+      dplyr::select(.env$workingStrata, "subject_id", "cohort_start_date", "has_outcome") |>
+      dplyr::distinct() |>
+      dplyr::summarise(outcome_count = sum(.data$has_outcome)),
+      by = workingStrata)
+
+  }
 
   result <- result %>%
     omopgenerics::uniteStrata(cols = workingStrata)

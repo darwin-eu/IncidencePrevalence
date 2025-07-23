@@ -31,6 +31,7 @@
 #' the table
 #' @param hide  Table columns to exclude, options are the ones described in
 #' `header`
+#' @param style A style supported by visOmopResults::visOmopTable()
 #' @param .options Table options to apply
 #'
 #' @return Table of prevalence results
@@ -58,6 +59,7 @@ tablePrevalence <- function(result,
                             groupColumn = c("cdm_name", "outcome_cohort_name"),
                             settingsColumn = c("denominator_age_group", "denominator_sex"),
                             hide = c("denominator_cohort_name", "analysis_interval"),
+                            style = "default",
                             .options = list()) {
   rlang::check_installed("visOmopResults", version = "1.0.2")
 
@@ -76,6 +78,7 @@ tablePrevalence <- function(result,
     type = type,
     hide = hide,
     resultType = "prevalence",
+    style = style,
     .options = .options
   )
 }
@@ -98,6 +101,7 @@ tablePrevalence <- function(result,
 #' the table
 #' @param hide  Table columns to exclude, options are the ones described in
 #' `header`
+#' @param style A style supported by visOmopResults::visOmopTable()
 #' @param .options Table options to apply
 #'
 #' @return Table of results
@@ -123,6 +127,7 @@ tableIncidence <- function(result,
                            groupColumn = c("cdm_name", "outcome_cohort_name"),
                            settingsColumn = c("denominator_age_group", "denominator_sex"),
                            hide = c("denominator_cohort_name", "analysis_interval"),
+                           style = "default",
                            .options = list()) {
   rlang::check_installed("visOmopResults", version = "1.0.2")
 
@@ -142,6 +147,7 @@ tableIncidence <- function(result,
     hide = hide,
     settingsColumn = settingsColumn,
     resultType = "incidence",
+    style = style,
     .options = .options
   )
 }
@@ -161,12 +167,13 @@ tableInternal <- function(
     groupColumn = character(),
     settingsColumn = character(),
     hide = character(),
+    style = style,
     .options = list()) {
   result <- omopgenerics::newSummarisedResult(result) |>
     omopgenerics::filterSettings(.data$result_type == resultType)
   if (nrow(result) == 0) {
     cli::cli_warn("No results of the type {resultType} were found in the summarised result provided.")
-    return(visOmopResults::visOmopTable(result = result, type = type))
+    return(visOmopResults::visOmopTable(result = result, type = type, style = style))
   }
   omopgenerics::assertList(.options)
   omopgenerics::assertCharacter(header, null = TRUE)
@@ -193,6 +200,7 @@ tableInternal <- function(
     type = type,
     rename = c("Database name" = "cdm_name"),
     hide = hide,
+    style = style,
     .options = .options
   )
 }
@@ -266,6 +274,7 @@ optionsTableIncidence <- function() {
 #' the table
 #' @param hide  Table columns to exclude, options are the ones described in
 #' `header`
+#' @param style A style supported by visOmopResults::visOmopTable()
 #'
 #' @return A visual table.
 #'
@@ -290,7 +299,8 @@ tableIncidenceAttrition <- function(result,
                                     header = "variable_name",
                                     groupColumn = c("cdm_name", "outcome_cohort_name"),
                                     settingsColumn = NULL,
-                                    hide = c("denominator_cohort_name", "estimate_name", "reason_id", "variable_level")) {
+                                    hide = c("denominator_cohort_name", "estimate_name", "reason_id", "variable_level"),
+                                    style = "default") {
   # initial checks
   result <- omopgenerics::validateResultArgument(result)
   omopgenerics::assertChoice(type, c("gt", "flextable", "tibble"))
@@ -317,7 +327,8 @@ tableIncidenceAttrition <- function(result,
     groupColumn = groupColumn,
     settingsColumn = settingsColumn,
     type = type,
-    hide = hide
+    hide = hide,
+    style = style
   )
 
   return(tab)
@@ -339,6 +350,7 @@ tableIncidenceAttrition <- function(result,
 #' the table
 #' @param hide  Table columns to exclude, options are the ones described in
 #' `header`
+#' @param style A style supported by visOmopResults::visOmopTable()
 #'
 #' @return A visual table.
 #'
@@ -364,7 +376,8 @@ tablePrevalenceAttrition <- function(result,
                                      header = "variable_name",
                                      groupColumn = c("cdm_name", "outcome_cohort_name"),
                                      settingsColumn = NULL,
-                                     hide = c("denominator_cohort_name", "estimate_name", "reason_id", "variable_level")) {
+                                     hide = c("denominator_cohort_name", "estimate_name", "reason_id", "variable_level"),
+                                     style = "default") {
   # initial checks
   result <- omopgenerics::validateResultArgument(result)
   omopgenerics::assertChoice(type, visOmopResults::tableType())
@@ -391,7 +404,8 @@ tablePrevalenceAttrition <- function(result,
     groupColumn = groupColumn,
     settingsColumn = settingsColumn,
     type = type,
-    hide = hide
+    hide = hide,
+    style = style
   )
 
   return(tab)

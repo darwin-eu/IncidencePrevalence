@@ -14,6 +14,7 @@ Calculate incidence and prevalence using data mapped to the Observational Medica
 Useful links:
 \itemize{
   \item \url{https://darwin-eu.github.io/IncidencePrevalence/}
+  \item Report bugs at \url{https://github.com/darwin-eu/IncidencePrevalence/issues}
 }
 
 }
@@ -23,7 +24,7 @@ Useful links:
 Authors:
 \itemize{
   \item Berta Raventos \email{braventos@idiapjgol.info} (\href{https://orcid.org/0000-0002-4668-2970}{ORCID})
-  \item Marti Catala \email{marti.catalasabate@ndorms.ox.ac.uk} (\href{https://orcid.org/0000-0003-3308-9905}{ORCID})
+  \item Martí Català \email{marti.catalasabate@ndorms.ox.ac.uk} (\href{https://orcid.org/0000-0003-3308-9905}{ORCID})
 }
 
 Other contributors:

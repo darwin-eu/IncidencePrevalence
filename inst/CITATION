@@ -1,0 +1,15 @@
+citHeader("To cite IncidencePrevalence in publications please use:")
+
+bibentry(
+  bibtype  = "Article",
+  author = "Berta Raventós and Martí Català and Mike Du and Yuchen Guo and Adam Black and Ger Inberg and Xintong Li and Kim López-Güell and Danielle Newby and Maria de Ridder and Cesar Barboza and Talita Duarte-Salles and Katia Verhamme and Peter Rijnbeek and Daniel Prieto-Alhambra and Edward Burn",
+  title = "IncidencePrevalence: An R package to calculate population-level incidence rates and prevalence using the OMOP common data model",
+  journal = "Pharmacoepidemiology and Drug Safety",
+  volume = "33",
+  number = "1",
+  pages = "e5717",
+  keywords = "common data model, incidence, OMOP, prevalence, R package",
+  year = "2024"
+)
+
+

@@ -83,6 +83,7 @@ estimatePointPrevalence <- function(cdm,
     interval = interval,
     completeDatabaseIntervals = FALSE,
     fullContribution = FALSE,
+    level = "person",
     timePoint = timePoint,
     strata = strata,
     includeOverallStrata = includeOverallStrata
@@ -117,6 +118,11 @@ estimatePointPrevalence <- function(cdm,
 #' included if they in the database for the entire interval of interest. If
 #' FALSE they are only required to present for one day of the interval in
 #' order to contribute.
+#' @param level Can be "person" or "record". When estimating at the record
+#' level, each span of time contributed in the denominator will be considered
+#' separately (e.g. so as to estimate prevalence at the episode level). When
+#' estimating at the person level, multiple entries for a person will be
+#' considered together.
 #' @param strata Variables added to the denominator cohort table for which to
 #' stratify estimates.
 #' @param includeOverallStrata Whether to include an overall result as well as
@@ -147,6 +153,7 @@ estimatePeriodPrevalence <- function(cdm,
                                      interval = "years",
                                      completeDatabaseIntervals = TRUE,
                                      fullContribution = FALSE,
+                                     level = "person",
                                      strata = list(),
                                      includeOverallStrata = TRUE) {
   estimatePrevalence(
@@ -159,6 +166,7 @@ estimatePeriodPrevalence <- function(cdm,
     interval = interval,
     completeDatabaseIntervals = completeDatabaseIntervals,
     fullContribution = fullContribution,
+    level = level,
     timePoint = "start",
     strata = strata,
     includeOverallStrata = includeOverallStrata
@@ -174,6 +182,7 @@ estimatePrevalence <- function(cdm,
                                interval = "months",
                                completeDatabaseIntervals = TRUE,
                                fullContribution = FALSE,
+                               level = "person",
                                timePoint = "start",
                                strata = list(),
                                includeOverallStrata = TRUE) {
@@ -195,7 +204,7 @@ estimatePrevalence <- function(cdm,
     denominatorCohortId, outcomeCohortId,
     type,
     interval, completeDatabaseIntervals,
-    fullContribution, timePoint
+    fullContribution, timePoint, level
   )
 
   denominatorCohortId <- cohortIds[[1]]
@@ -241,13 +250,13 @@ estimatePrevalence <- function(cdm,
     cdm, denominatorTable, outcomeTable, denominatorCohortId,
     outcomeCohortId
   )
-
   studySpecs <- tidyr::expand_grid(
     outcomeCohortId = outcomeCohortId,
     denominatorCohortId = denominatorCohortId,
     timePoint = timePoint,
     fullContribution = fullContribution,
-    completeDatabaseIntervals = completeDatabaseIntervals
+    completeDatabaseIntervals = completeDatabaseIntervals,
+    level = level
   )
 
   studySpecs <- studySpecs |>
@@ -304,6 +313,7 @@ estimatePrevalence <- function(cdm,
       years = x$years,
       overall = x$overall,
       completeDatabaseIntervals = x$completeDatabaseIntervals,
+      level = x$level,
       timePoint = x$timePoint,
       fullContribution = x$fullContribution,
       tablePrefix = tablePrefix,
@@ -325,6 +335,7 @@ estimatePrevalence <- function(cdm,
       denominator_cohort_id = x$denominatorCohortId,
       analysis_type = paste0(.env$type, " prevalence"),
       analysis_complete_database_intervals = x$completeDatabaseIntervals,
+      analysis_level = x$level,
       analysis_time_point = x$timePoint,
       analysis_full_contribution = x$fullContribution
     )
@@ -497,7 +508,8 @@ estimatePrevalence <- function(cdm,
       c(
         "result_id", "result_type", "package_name", "package_version",
         "analysis_type",
-        "analysis_complete_database_intervals", "analysis_full_contribution"
+        "analysis_complete_database_intervals", "analysis_level",
+        "analysis_full_contribution"
       ),
       dplyr::starts_with("denominator_"), dplyr::starts_with("outcome_")
     ) |>

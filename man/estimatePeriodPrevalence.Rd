@@ -13,6 +13,7 @@ estimatePeriodPrevalence(
   interval = "years",
   completeDatabaseIntervals = TRUE,
   fullContribution = FALSE,
+  level = "person",
   strata = list(),
   includeOverallStrata = TRUE
 )
@@ -50,6 +51,12 @@ period start dates, respectively).}
 included if they in the database for the entire interval of interest. If
 FALSE they are only required to present for one day of the interval in
 order to contribute.}
+
+\item{level}{Can be "person" or "record". When estimating at the record
+level, each span of time contributed in the denominator will be considered
+separately (e.g. so as to estimate prevalence at the episode level). When
+estimating at the person level, multiple entries for a person will be
+considered together.}
 
 \item{strata}{Variables added to the denominator cohort table for which to
 stratify estimates.}

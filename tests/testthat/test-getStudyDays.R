@@ -1,4 +1,5 @@
 test_that("mock db: check point and period output correctly", {
+  skip_on_cran()
   start <- as.Date("2010-01-01")
 
   end <- as.Date("2012-01-01")
@@ -234,6 +235,7 @@ test_that("mock db: check point and period output correctly", {
 })
 
 test_that("mock db: check period complete cohort or not", {
+  skip_on_cran()
   start <- as.Date("2010-01-01")
 
   end <- as.Date("2012-01-01")

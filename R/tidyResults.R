@@ -101,9 +101,12 @@ tidyResult <- function(result, type, attrition = TRUE, metadata = FALSE) {
     omopgenerics::filterSettings(
       .data$result_type == .env$type
     )
+  if(nrow(result_estimates) == 0){
+    return(result_estimates)
+  }
   result_estimates <- result_estimates |>
     omopgenerics::addSettings(settingsColumn =
-                                omopgenerics::settingsColumns(result, metadata = metadata)) |>
+                                omopgenerics::settingsColumns(result_estimates, metadata = metadata)) |>
     omopgenerics::splitAll() |>
     dplyr::select(!c("variable_name", "variable_level")) |>
     omopgenerics::pivotEstimates() |>

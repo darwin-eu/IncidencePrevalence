@@ -8,9 +8,16 @@ vignette: >
 ---
 
 ```{r, include = FALSE}
+NOT_CRAN <- identical(tolower(Sys.getenv("NOT_CRAN")), "true")
+
 knitr::opts_chunk$set(
   collapse = TRUE,
+  eval = TRUE, 
+  warning = FALSE, 
+  message = FALSE,
   comment = "#>",
+  echo = FALSE,
+  eval = NOT_CRAN,
   fig.width = 7,
   fig.height = 5
 )
