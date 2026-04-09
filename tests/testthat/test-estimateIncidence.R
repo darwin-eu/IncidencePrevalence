@@ -3820,8 +3820,81 @@ test_that("mock db: censor cohort", {
  expect_true(inc_2 |>
                    dplyr::filter(estimate_name == "outcome_count") |>
                    dplyr::pull("estimate_value") == "0")
-
-
-
-
 })
+
+test_that("rateDenominator works correctly", {
+  skip_on_cran()
+
+  personTable <- dplyr::tibble(
+    person_id = 1L,
+    gender_concept_id = 8507L,
+    year_of_birth = 2000L,
+    month_of_birth = 01L,
+    day_of_birth = 01L
+  )
+  observationPeriodTable <- dplyr::tibble(
+    observation_period_id = 1L,
+    person_id = 1L,
+    observation_period_start_date = as.Date("2010-01-01"),
+    observation_period_end_date = as.Date("2012-12-31")
+  )
+  outcomeTable <- dplyr::tibble(
+    cohort_definition_id = 1L,
+    subject_id = 1L,
+    cohort_start_date = as.Date("2011-01-01"),
+    cohort_end_date = as.Date("2011-01-01")
+  )
+
+  cdm <- mockIncidencePrevalence(
+    personTable = personTable,
+    observationPeriodTable = observationPeriodTable,
+    outcomeTable = outcomeTable
+  )
+
+  cdm <- generateDenominatorCohortSet(cdm = cdm, name = "denominator")
+
+  # Default (100000)
+  inc1 <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "overall"
+  )
+
+  expect_true(any(grepl("incidence_100000_pys", inc1$estimate_name)))
+
+  # Custom (1000)
+  inc2 <- estimateIncidence(
+    cdm = cdm,
+    denominatorTable = "denominator",
+    outcomeTable = "outcome",
+    interval = "overall",
+    rateDenominator = 1000
+  )
+
+  expect_true(any(grepl("incidence_1000_pys", inc2$estimate_name)))
+  expect_false(any(grepl("incidence_100000_pys", inc2$estimate_name)))
+
+  # Check scaling
+  val1 <- inc1 %>%
+    dplyr::filter(estimate_name == "incidence_100000_pys") %>%
+    dplyr::pull(estimate_value) %>%
+    as.numeric()
+
+  val2 <- inc2 %>%
+    dplyr::filter(estimate_name == "incidence_1000_pys") %>%
+    dplyr::pull(estimate_value) %>%
+    as.numeric()
+
+  if (length(val1) > 0 && length(val2) > 0) {
+    expect_equal(val1, val2 * 100, tolerance = 0.5)
+  }
+
+  # Check tableIncidence output
+  expect_no_error(tbl <- tableIncidence(inc2))
+  expect_s3_class(tbl, "gt_tbl")
+
+  # Clean up
+  omopgenerics::cdmDisconnect(cdm)
+})
+

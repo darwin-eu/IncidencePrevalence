@@ -17,7 +17,8 @@ estimateIncidence(
   outcomeWashout = Inf,
   repeatedEvents = FALSE,
   strata = list(),
-  includeOverallStrata = TRUE
+  includeOverallStrata = TRUE,
+  rateDenominator = 1e+05
 )
 }
 \arguments{
@@ -75,6 +76,9 @@ stratify estimates.}
 
 \item{includeOverallStrata}{Whether to include an overall result as well as
 strata specific results (when strata has been specified).}
+
+\item{rateDenominator}{The denominator to use for the incidence rate
+calculation. Default is 100000.}
 }
 \value{
 Incidence estimates

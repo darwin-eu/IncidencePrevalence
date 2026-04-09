@@ -58,6 +58,8 @@
 #' stratify estimates.
 #' @param includeOverallStrata Whether to include an overall result as well as
 #' strata specific results (when strata has been specified).
+#' @param rateDenominator The denominator to use for the incidence rate
+#' calculation. Default is 100000.
 #'
 #' @return Incidence estimates
 #' @export
@@ -87,7 +89,8 @@ estimateIncidence <- function(cdm,
                               outcomeWashout = Inf,
                               repeatedEvents = FALSE,
                               strata = list(),
-                              includeOverallStrata = TRUE) {
+                              includeOverallStrata = TRUE,
+                              rateDenominator = 100000) {
   startCollect <- Sys.time()
 
   tablePrefix <- paste0(
@@ -98,6 +101,7 @@ estimateIncidence <- function(cdm,
   if (is.character(interval)) {
     interval <- tolower(interval)
   }
+  rateDenominator <- as.integer(rateDenominator)
 
   cohortIds <- checkInputEstimateIncidence(
     cdm, denominatorTable, outcomeTable, censorTable,
@@ -291,7 +295,8 @@ estimateIncidence <- function(cdm,
       tablePrefix = tablePrefix,
       analysisId = x$analysis_id,
       strata = strata,
-      includeOverallStrata = includeOverallStrata
+      includeOverallStrata = includeOverallStrata,
+      rateDenominator = rateDenominator
     )
 
     workingIncIr <- workingInc[["ir"]] %>%
@@ -374,7 +379,7 @@ estimateIncidence <- function(cdm,
   if (nrow(irs) > 0) {
     irs <- irs %>%
       dplyr::bind_cols(
-        incRateCiExact(irs$outcome_count, irs$person_years)
+        incRateCiExact(irs$outcome_count, irs$person_years, rateDenominator)
       )
   }
 
@@ -437,8 +442,9 @@ estimateIncidence <- function(cdm,
       tidyr::pivot_longer(
         cols = c(
           "denominator_count", "outcome_count", "person_days", "person_years",
-          "incidence_100000_pys", "incidence_100000_pys_95CI_lower",
-          "incidence_100000_pys_95CI_upper"
+          paste0("incidence_", rateDenominator, "_pys"),
+          paste0("incidence_", rateDenominator, "_pys_95CI_lower"),
+          paste0("incidence_", rateDenominator, "_pys_95CI_upper")
         ),
         names_to = "estimate_name",
         values_to = "estimate_value"
@@ -503,15 +509,20 @@ estimateIncidence <- function(cdm,
 
 
 
-incRateCiExact <- function(ev, pt) {
+incRateCiExact <- function(ev, pt, rateDenominator) {
+  rateDenominator <- as.integer(rateDenominator)
   return(dplyr::tibble(
-    incidence_100000_pys_95CI_lower =
-      ((stats::qchisq(p = 0.025, df = 2 * ev) / 2) / pt) * 100000,
-    incidence_100000_pys_95CI_upper =
-      ((stats::qchisq(p = 0.975, df = 2 * (ev + 1)) / 2) / pt) * 100000
+    lower =
+      ((stats::qchisq(p = 0.025, df = 2 * ev) / 2) / pt) * rateDenominator,
+    upper =
+      ((stats::qchisq(p = 0.975, df = 2 * (ev + 1)) / 2) / pt) * rateDenominator
   ) |>
-  dplyr::mutate(incidence_100000_pys_95CI_lower = round(.data$incidence_100000_pys_95CI_lower, 3),
-                incidence_100000_pys_95CI_upper = round(.data$incidence_100000_pys_95CI_upper, 3))
+    dplyr::mutate(lower = round(.data$lower, 3),
+                  upper = round(.data$upper, 3)) |>
+    dplyr::rename(
+      !!paste0("incidence_", rateDenominator, "_pys_95CI_lower") := "lower",
+      !!paste0("incidence_", rateDenominator, "_pys_95CI_upper") := "upper"
+    )
   )
 }
 

@@ -1,4 +1,4 @@
-url: https://darwin-eu.github.io/IncidencePrevalence/
+url: https://iomedhealth.github.io/IncidencePrevalence/
 template:
   bootstrap: 5
   bootswatch: flatly
@@ -9,7 +9,7 @@ reference:
   - matches("generateDenominatorCohortSet|generateTargetDenominatorCohortSet")
 - subtitle: Estimate incidence rates
 - contents:
-  - matches("estimateIncidence")
+  - matches("estimateIncidence|estimateRollingIncidence")
 - subtitle: Estimate point and period prevalence
 - contents:
   - matches("estimatePointPrevalence|estimatePeriodPrevalence")

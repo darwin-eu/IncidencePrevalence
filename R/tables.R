@@ -131,16 +131,31 @@ tableIncidence <- function(result,
                            .options = list()) {
   rlang::check_installed("visOmopResults", version = "1.0.2")
 
-  tableInternal(
-    result = result,
-    formatEstimateName = c(
+  # dynamically create formatEstimateName
+  estimates <- unique(result$estimate_name)
+  inc_est <- estimates[grepl("incidence_\\d+_pys$", estimates)]
+  if (length(inc_est) > 0) {
+    denom <- sub("incidence_(\\d+)_pys", "\\1", inc_est[1])
+    formatEstimateName <- c(
       "Denominator (N)" = "<denominator_count>",
       "Person-years" = "<person_years>",
       "Outcome (N)" = "<outcome_count>",
-      "Incidence 100,000 person-years [95% CI]" =
-        "<incidence_100000_pys> (<incidence_100000_pys_95CI_lower> -
-      <incidence_100000_pys_95CI_upper>)"
-    ),
+      setNames(
+        paste0("<incidence_", denom, "_pys> (<incidence_", denom, "_pys_95CI_lower> - <incidence_", denom, "_pys_95CI_upper>)"),
+        paste0("Incidence ", format(as.numeric(denom), big.mark=",", scientific = FALSE), " person-years [95% CI]")
+      )
+    )
+  } else {
+    formatEstimateName <- c(
+      "Denominator (N)" = "<denominator_count>",
+      "Person-years" = "<person_years>",
+      "Outcome (N)" = "<outcome_count>"
+    )
+  }
+
+  tableInternal(
+    result = result,
+    formatEstimateName = formatEstimateName,
     header = header,
     groupColumn = groupColumn,
     type = type,

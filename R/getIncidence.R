@@ -32,7 +32,9 @@ getIncidence <- function(cdm,
                          tablePrefix,
                          analysisId,
                          strata,
-                         includeOverallStrata) {
+                         includeOverallStrata,
+                         rateDenominator) {
+  rateDenominator <- as.integer(rateDenominator)
   if (!is.null(outcomeWashout) && is.na(outcomeWashout)) {
     outcomeWashout <- NULL
   }
@@ -410,8 +412,8 @@ getIncidence <- function(cdm,
       ir <- ir %>%
         dplyr::mutate(
           person_years = round(.data$person_days / 365.25, 3),
-          incidence_100000_pys =
-            round(((.data$outcome_count / .data$person_years) * 100000), 3)
+          !!paste0("incidence_", rateDenominator, "_pys") :=
+            round(((.data$outcome_count / .data$person_years) * rateDenominator), 3)
         )
     }
   }

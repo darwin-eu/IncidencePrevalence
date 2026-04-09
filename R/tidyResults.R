@@ -94,6 +94,45 @@ asPrevalenceResult <- function(result, metadata = FALSE) {
 
 }
 
+#' A tidy implementation of the summarised_result object for rolling incidence results.
+#'
+#' @param result A summarised_result object created by the IncidencePrevalence package.
+#' @param metadata If TRUE additional metadata columns will be included in the result.
+#'
+#' @examples
+#' \donttest{
+#' cdm <- mockIncidencePrevalence()
+#' inc <- estimateRollingIncidence(cdm, "target", "outcome")
+#' tidy_inc <- asRollingIncidenceResult(inc)
+#' }
+#'
+#' @return A tibble with a tidy version of the summarised_result object.
+#'
+#' @export
+#'
+asRollingIncidenceResult <- function(result, metadata = FALSE) {
+  if (nrow(result) == 0) {
+    cli::cli_warn("No results available to tidy")
+    return(result)
+  }
+  result <- omopgenerics::validateResultArgument(result)
+  result <- result |>
+    omopgenerics::filterSettings(
+      .data$result_type %in% c("rolling_incidence", "rolling_incidence_attrition")
+    )
+  if (nrow(result) == 0) {
+    cli::cli_warn("No rolling incidence results found in result object")
+    return(result)
+  }
+
+  incResults <- tidyResult(result, type = "rolling_incidence", attrition = FALSE, metadata = metadata) |>
+    dplyr::select(!"result_id")
+
+  class(incResults) <- c("tidy_rolling_incidence", class(incResults))
+
+  incResults
+}
+
 
 # Helper function
 tidyResult <- function(result, type, attrition = TRUE, metadata = FALSE) {
@@ -116,7 +155,7 @@ tidyResult <- function(result, type, attrition = TRUE, metadata = FALSE) {
         .fns = ~ toDate(.x)
       ),
       dplyr::across(
-        .cols = dplyr::contains("time|washout|days"),
+        .cols = dplyr::matches("washout|days|interval_number"),
         .fns = ~ as.numeric(.x)
       )
     ) |>

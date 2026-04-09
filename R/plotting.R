@@ -83,7 +83,18 @@ plotIncidence <- function(result,
     return(emptyPlot())
   }
 
-  omopgenerics::assertChoice(y, c("incidence_100000_pys", "outcome_count", "denominator_count", "person_days"))
+  if (y == "incidence_100000_pys" && !"incidence_100000_pys" %in% colnames(resultTidy)) {
+    # check for other incidence estimates
+    cols <- colnames(resultTidy)
+    inc_cols <- cols[grepl("^incidence_\\d+_pys$", cols)]
+    if (length(inc_cols) == 1) {
+       y <- inc_cols
+       if (ymin == "incidence_100000_pys_95CI_lower") ymin <- paste0(y, "_95CI_lower")
+       if (ymax == "incidence_100000_pys_95CI_upper") ymax <- paste0(y, "_95CI_upper")
+    }
+  }
+
+  # omopgenerics::assertChoice(y, c("incidence_100000_pys", "outcome_count", "denominator_count", "person_days"))
 
   plotEstimates(
     result = resultTidy,
@@ -97,6 +108,99 @@ plotIncidence <- function(result,
     facet = facet,
     colour = colour,
     type = "incidence"
+  )
+}
+
+#' Plot rolling incidence results
+#'
+#' @param result Rolling incidence results
+#' @param x Variable to plot on x axis
+#' @param y Variable to plot on y axis.
+#' @param line Whether to plot a line using `geom_line`
+#' @param point Whether to plot points using `geom_point`
+#' @param ribbon Whether to plot a ribbon using `geom_ribbon`
+#' @param ymin Lower limit of error bars, if provided is plot using `geom_errorbar`
+#' @param ymax Upper limit of error bars, if provided is plot using `geom_errorbar`
+#' @param facet Variables to use for facets. To see available variables for
+#' facetting use the function `availableRollingIncidenceGrouping()`.
+#' @param colour Variables to use for colours. To see available variables for
+#' colouring use the function `availableRollingIncidenceGrouping()`.
+#'
+#' @return A ggplot with the rolling incidence results plotted
+#' @export
+#'
+plotRollingIncidence <- function(result,
+                                 x = "interval_number",
+                                 y = "incidence_100000_pys",
+                                 line = TRUE,
+                                 point = TRUE,
+                                 ribbon = FALSE,
+                                 ymin = "incidence_100000_pys_95CI_lower",
+                                 ymax = "incidence_100000_pys_95CI_upper",
+                                 facet = NULL,
+                                 colour = NULL) {
+  rlang::check_installed("visOmopResults", version = "1.0.2")
+
+  if (nrow(result) == 0) {
+    cli::cli_warn("Empty result object")
+    return(emptyPlot())
+  }
+
+  # check if result is tidy or not
+  if (inherits(result, "summarised_result")) {
+    resultTidy <- result |>
+      tidyResult(type = "rolling_incidence", attrition = FALSE)
+  } else if (result |>
+             dplyr::pull("result_type") |>
+             unique() ==
+             "tidy_rolling_incidence") {
+    resultTidy <- result
+  } else {
+    cli::cli_abort("result must be either a summarised_result object output of
+                   the estimateRollingIncidence() function or a tidied result from the
+                   asRollingIncidenceResult() function.")
+  }
+
+  if (nrow(resultTidy) == 0) {
+    cli::cli_warn("No rolling incidence results available to plot")
+    return(emptyPlot())
+  }
+
+  if (y == "incidence_100000_pys" && !"incidence_100000_pys" %in% colnames(resultTidy)) {
+    # check for other incidence estimates
+    cols <- colnames(resultTidy)
+    inc_cols <- cols[grepl("^incidence_\\d+_pys$", cols)]
+    if (length(inc_cols) == 1) {
+       y <- inc_cols
+       if (ymin == "incidence_100000_pys_95CI_lower") ymin <- paste0(y, "_95CI_lower")
+       if (ymax == "incidence_100000_pys_95CI_upper") ymax <- paste0(y, "_95CI_upper")
+    }
+  }
+
+  # Add analysis_interval to group if it exists to avoid overlapping artifacts
+  if ("analysis_interval" %in% colnames(resultTidy)) {
+    if (is.null(colour)) {
+      group <- "analysis_interval"
+    } else {
+      group <- c(colour, "analysis_interval")
+    }
+  } else {
+    group <- colour
+  }
+
+  plotEstimates(
+    result = resultTidy,
+    x = x,
+    y = y,
+    line = line,
+    point = point,
+    ribbon = ribbon,
+    ymin = ymin,
+    ymax = ymax,
+    facet = facet,
+    colour = colour,
+    type = "rolling_incidence",
+    group = group
   )
 }
 
@@ -287,9 +391,11 @@ plotPopulation <- function(result,
                            facet = NULL,
                            colour = NULL,
                            type) {
+  cols <- colnames(result)
+  inc_cols <- cols[grepl("^incidence_\\d+_pys", cols)]
   labels <- c(
     "outcome_cohort_name", "denominator_count", "outcome_count", "person_days",
-    "incidence_100000_pys", "incidence_100000_pys_95CI_lower", "incidence_100000_pys_95CI_upper",
+    inc_cols,
     "prevalence", "prevalence_95CI_lower", "prevalence_95CI_upper",
     "incidence_start_date", "incidence_end_date", "prevalence_start_date", "prevalence_end_date"
   )
@@ -355,7 +461,8 @@ plotEstimates <- function(result,
                           ymax,
                           facet,
                           colour,
-                          type) {
+                          type,
+                          group = colour) {
   rlang::check_installed("ggplot2", reason = "for plot functions")
   rlang::check_installed("scales", reason = "for plot functions")
 
@@ -367,7 +474,8 @@ plotEstimates <- function(result,
 
   labels <- c(
     "outcome_cohort_name", "denominator_count", "outcome_count", "person_days", y, ymin, ymax,
-    "incidence_start_date", "incidence_end_date", "prevalence_start_date", "prevalence_end_date"
+    "incidence_start_date", "incidence_end_date", "prevalence_start_date", "prevalence_end_date",
+    "window_start_days", "window_end_days", "interval_number"
   )
   labels <- labels[labels %in% colnames(result)]
 
@@ -392,7 +500,7 @@ plotEstimates <- function(result,
     ymax = ymax,
     facet = facet,
     colour = colour,
-    group = colour,
+    group = group,
     label = labels
   )
 
@@ -417,11 +525,15 @@ plotEstimates <- function(result,
         ggplot2::scale_x_continuous(labels = scales::percent_format(accuracy = 0.1))
     }
   }
-  if (plot$labels$y == "Incidence 100000 pys") {
-    plot <- plot + ggplot2::labs(y = "Incidence (100,000 person-years)")
+  if (grepl("incidence_\\d+_pys", y, ignore.case = TRUE)) {
+     denom <- sub("incidence_(\\d+)_pys", "\\1", y)
+     denom_form <- format(as.numeric(denom), big.mark=",", scientific = FALSE)
+     plot <- plot + ggplot2::labs(y = paste0("Incidence (", denom_form, " person-years)"))
   }
-  if (plot$labels$x == "Incidence 100000 pys") {
-    plot <- plot + ggplot2::labs(x = "Incidence (100,000 person-years)")
+  if (grepl("incidence_\\d+_pys", x, ignore.case = TRUE)) {
+     denom <- sub("incidence_(\\d+)_pys", "\\1", x)
+     denom_form <- format(as.numeric(denom), big.mark=",", scientific = FALSE)
+     plot <- plot + ggplot2::labs(x = paste0("Incidence (", denom_form, " person-years)"))
   }
   if (x == "date_years") {
     plot <- plot +
@@ -531,6 +643,21 @@ availablePrevalenceGrouping <- function(result, varying = FALSE) {
   omopgenerics::assertLogical(varying, length = 1)
   result <- omopgenerics::validateResultArgument(result) |>
     omopgenerics::filterSettings(.data$result_type == "prevalence")
+  availableGrouping(result, varying)
+}
+
+#' Variables that can be used for faceting and colouring rolling incidence plots
+#'
+#' @param result Rolling incidence results
+#' @param varying If FALSE, only variables with non-unique values will be
+#' returned, otherwise all available variables will be returned
+#'
+#' @export
+#'
+availableRollingIncidenceGrouping <- function(result, varying = FALSE) {
+  omopgenerics::assertLogical(varying, length = 1)
+  result <- omopgenerics::validateResultArgument(result) |>
+    omopgenerics::filterSettings(.data$result_type == "rolling_incidence")
   availableGrouping(result, varying)
 }
 

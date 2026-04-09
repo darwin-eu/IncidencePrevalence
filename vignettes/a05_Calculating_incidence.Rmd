@@ -314,3 +314,24 @@ inc <- estimateIncidence(
 )
 tableIncidenceAttrition(inc, style = "darwin")
 ```
+
+
+### Calculating Rolling Incidence
+
+While `estimateIncidence()` slices person-time based on absolute calendar dates (e.g. "January 2010", "February 2010"), you may also want to estimate incidence *relative* to each person's entry into the denominator cohort. This is known as "rolling incidence" or "time-since-entry incidence".
+
+The `estimateRollingIncidence()` function calculates the rate of an outcome occurring in relative time intervals (e.g. "Month 1 after cohort entry", "Month 2 after cohort entry", etc.).
+
+```{r, message=FALSE, warning=FALSE}
+rolling_inc <- estimateRollingIncidence(
+  cdm = cdm,
+  denominatorTable = "denominator",
+  outcomeTable = "outcome",
+  interval = "months",
+  nIntervals = 12,
+  outcomeWashout = 180,
+  repeatedEvents = TRUE
+)
+```
+
+The result of this function is also a standard `SummarisedResult` object compatible with the standard `plotIncidence()` and `tableIncidence()` functions. Instead of absolute dates, the intervals will be presented sequentially by their relative offset since entry.

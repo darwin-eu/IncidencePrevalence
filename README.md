@@ -9,8 +9,14 @@
 ## Package overview
 
 IncidencePrevalence contains functions for estimating population-level
-incidence and prevalence using the OMOP common data model. For more
-information on the package please see our paper in Pharmacoepidemiology
+incidence and prevalence using the OMOP common data model. This includes functions to:
+- `generateDenominatorCohortSet()`: To identify a set of denominator populations.
+- `estimateIncidence()`: To calculate incidence rates for a given set of outcomes and denominators using absolute calendar time.
+- `estimateRollingIncidence()`: To calculate rolling (time-since-entry) incidence rates relative to a person's entry into the denominator cohort.
+- `estimatePointPrevalence()`: To calculate point prevalence for a given set of outcomes and denominators.
+- `estimatePeriodPrevalence()`: To calculate period prevalence for a given set of outcomes and denominators.
+
+For more information on the package please see our paper in Pharmacoepidemiology
 and Drug Safety.
 
 > Raventós, B, Català, M, Du, M, et al. IncidencePrevalence: An R
